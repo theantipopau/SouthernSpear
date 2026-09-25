@@ -441,13 +441,13 @@ Implementations: `FSSOnlineServicesOSS` (EOS-backed), `FSSNullOnlineServices` (o
 
 ```bash
 # Editor target
-Engine/Build/BatchFiles/RunUBT.bat SouthernSpearEditor Win64 Development -Project="%CD%\SouthernSpear.uproject" -WaitMutex
+EngineBuildBatchFilesBuild.bat SouthernSpearEditor Win64 Development -Project="%CD%\SouthernSpear.uproject" -WaitMutex
 
 # Client
-Engine/Build/BatchFiles/RunUBT.bat SouthernSpear Win64 Development -Project="%CD%\SouthernSpear.uproject" -WaitMutex
+EngineBuildBatchFilesBuild.bat SouthernSpear Win64 Development -Project="%CD%\SouthernSpear.uproject" -WaitMutex
 
 # Dedicated server  <-- required for acceptance
-Engine/Build/BatchFiles/RunUBT.bat SouthernSpearServer Win64 Development -Project="%CD%\SouthernSpear.uproject" -WaitMutex
+EngineBuildBatchFilesBuild.bat SouthernSpearServer Win64 Development -Project="%CD%\SouthernSpear.uproject" -WaitMutex
 ```
 
 ### 8.2 Targets

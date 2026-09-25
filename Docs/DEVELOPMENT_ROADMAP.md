@@ -80,7 +80,7 @@ Each item is independently testable and produces a working increment.
 
 | # | ID | Task | Depends on | Done when |
 |---|---|---|---|---|
-| 1 | VS-01 | Vendor Lyra, rename project, compile editor | — | `RunUBT SouthernSpearEditor` exits 0 |
+| 1 | VS-01 | Vendor Lyra, rename project, compile editor | — | `Build.bat SouthernSpearEditor` exits 0 |
 | 2 | VS-02 | Stand up `SouthernSpearCore` (tags, log categories, module rules) | VS-01 | Compiles; depends on nothing of ours |
 | 3 | VS-03 | `FSSServiceRecord` + `ISSPersistenceProvider` + local dev provider + schema v1 | VS-02 | Unit test: save → reload → identical |
 | 4 | VS-04 | Settings save/load via `GameSettings` | VS-03 | Settings survive client restart |

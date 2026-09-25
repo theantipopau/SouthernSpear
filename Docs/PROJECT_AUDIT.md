@@ -60,7 +60,7 @@ $ uname -a
 MINGW64_NT-10.0-26200 hurleym 3.6.7-fb42d713.x86_64 ... Msys
 ```
 
-Windows, build `26200`. Shell used for all commands is Git Bash (MSYS2). Native Windows paths are used for UE tooling because `Build.bat` / `RunUBT.bat` require `cmd.exe`.
+Windows, build `26200`. Shell used for all commands is Git Bash (MSYS2). Native Windows paths are used for UE tooling because `Build.bat` / `Build.bat` require `cmd.exe`.
 
 ### 4.2 Unreal Engine
 
@@ -143,7 +143,30 @@ $ cat /c/ProgramData/Epic/UnrealEngineLauncher/LauncherInstalled.dat
 
 UE 5.8 is absent from that list. This means the in-editor **Fab plugin cannot see the Fab library for this engine version** — Fab matches sample projects against registered engine installs. Any future Fab asset acquisition therefore needs either the engine registered in the Launcher or manual download + `LICENCE_REGISTER.md` verification. Tracked as risk **R-03**.
 
-### 4.4 C++ toolchain
+### 4.4 Build entry point
+
+**UE 5.8.3 on Windows has no `RunUBT.bat`.** Verified:
+
+```
+$ ls /e/Unreal/UE_5.8/Engine/Build/BatchFiles/*.bat
+Build.bat   Clean.bat   GetDotnetPath.bat   GetMSBuildPath.bat
+MakeAndInstallSSHKey.bat   Rebuild.bat   RunDotnet.bat   RunUAT.bat
+
+$ ls /e/Unreal/UE_5.8/Engine/Build/BatchFiles/ | grep -i ubt
+RunUBT.sh
+```
+
+`RunUBT.sh` is a **Linux/macOS** script and is not executable here. The correct Windows entry point is:
+
+```
+Engine\Build\BatchFiles\Build.bat <Target> <Platform> <Config> -Project=<path> -WaitMutex
+```
+
+> This was misdocumented in the README, the technical design document, the CI workflow and the roadmap before being caught by an actual build attempt. The same class of error as the earlier "missing Lyra plugins" reading: a plausible assumption that nobody executed. **The build command is verified, not remembered.** All documents now use `Build.bat`.
+
+Direct `UnrealBuildTool.exe` remains available at `Engine/Binaries/DotNET/UnrealBuildTool/UnrealBuildTool.exe` if finer control is ever needed.
+
+### 4.5 C++ toolchain
 
 ```
 $ ls "/c/Program Files (x86)/Microsoft Visual Studio/Installer/vswhere.exe" -latest -property installationVersion
@@ -178,7 +201,7 @@ Installed `14.44.35207` clears the floor. **The toolchain is valid, but the marg
 
 **Rider is not installed.** Visual Studio Community is the designated C++ IDE.
 
-### 4.5 Blender
+### 4.6 Blender
 
 ```
 $ "/c/Program Files/Blender Foundation/Blender 5.2/blender.exe" --version
@@ -188,7 +211,7 @@ Blender 5.2.2 LTS
 
 **Blender 5.2.2 LTS.** Not on `PATH`; scripts must reference the absolute path or use a local `Tools/Blender/venv.ps1` wrapper.
 
-### 4.6 Source control
+### 4.7 Source control
 
 ```
 $ git --version
@@ -200,7 +223,7 @@ git-lfs/3.7.1 (GitHub; windows amd64; go 1.25.1; git b84b3384)
 
 Both current. GitHub CLI is authenticated to `theantipopau` (scopes: `gist`, `read:org`, `repo`, `workflow`) but has no access to Epic's private Lyra repository.
 
-### 4.7 Hardware
+### 4.8 Hardware
 
 | Component | Value |
 |---|---|
@@ -214,7 +237,7 @@ Assessment:
 - GPU is strong for UE5 title work and shader compilation.
 - **32 GB RAM is the binding constraint.** The acceptance test "dedicated server + 4 clients" runs as 5 processes alongside the editor, which is not comfortable in 32 GB. Mitigation in `TEST_PLAN.md`: run dedicated server on the 16-thread CPU while clients are distributed, and close the editor during soak tests. Tracked as risk **R-05**.
 
-### 4.8 Disk
+### 4.9 Disk
 
 | Volume | Free | Used |
 |---|---|---|
@@ -265,27 +288,47 @@ Binary assets route through LFS; text is not. Probe artefacts were removed. A `g
 | G0.5 | Blender confirmed | **PASS** — 5.2.2 LTS |
 | G0.6 | Git repo + LFS established | **PASS** |
 | G0.7 | Design documents authored | **PASS** — see `Docs/` |
-| G0.8 | **Lyra compiles on UE 5.8.3** | **IN PROGRESS** — version match proven; first `SouthernSpearEditor` compile not yet run |
+| G0.8 | **Lyra fork compiles on UE 5.8.3** | ✅ **PASS** — see below |
 
-### The one thing that must be proven before any implementation
+### Gate G0.8 result — PASSED (2026-09-26)
 
-Lyra declares `EngineAssociation: "5.8"` and its runtime log reports `engineversion="5.8.3-58210709+++UE5+Release-5.8"`, matching the installed engine build exactly. That resolves *compatibility*. It does not yet prove our *forked* project compiles, because renaming the project and adding plugins can surface build errors the stock sample does not.
-
-**Mandatory gate G0.8.** Vendor Lyra, rename the project, and prove a clean compile:
+The vendored fork, renamed to `SouthernSpear`, **compiles clean on UE 5.8.3 with no errors and no code changes to Lyra.**
 
 ```
-Engine\Build\BatchFiles\RunUBT.bat SouthernSpearEditor Win64 Development -Project="%CD%\SouthernSpear.uproject" -WaitMutex
+Engine\Build\BatchFiles\Build.bat SouthernSpearEditor Win64 Development -Project=<...>\SouthernSpear.uproject -WaitMutex
+
+Result: Succeeded
+Total execution time: 1188.05 seconds
+Errors: 0
 ```
 
-The result of this command determines the architecture:
+**429 build actions** from a completely clean tree (all prebuilt binaries were deliberately excluded from the vendor step, so this was a genuine full rebuild, not a relink).
 
-| Outcome | Response |
+Produced:
+
+| Artefact | Path |
 |---|---|
-| Compiles clean on 5.8.3 | Adopt Lyra as the foundation per the brief. Architecture in `TECHNICAL_DESIGN_DOCUMENT.md` is confirmed. |
-| Compiles with errors | Adopt what works, vendor-and-fix the rest. **Every fix is recorded in `Docs/LYRA_ADOPTION.md`** before proceeding. |
-| Does not compile at all | Fall back to a clean C++ project on the Gameplay Ability System, Game Features and CommonUI, reproducing only the Lyra subsystems this game needs. The design is already modularised for this outcome. |
+| Game module | `Binaries/Win64/UnrealEditor-LyraGame.dll` |
+| Editor module | `Binaries/Win64/UnrealEditor-LyraEditor.dll` |
+| Target rules | `Intermediate/Build/BuildRules/SouthernSpearModuleRules.dll` |
 
-No gameplay code is written until G0.8 produces a recorded result.
+> There is deliberately **no** `UnrealEditor-SouthernSpear.dll`. The target is ours; the modules remain `LyraGame`/`LyraEditor` per departure **D-01**. Renaming them would break the content references held inside binary `.uasset` files.
+
+Consequences:
+- The Lyra foundation is **confirmed**, not assumed. `TECHNICAL_DESIGN_DOCUMENT.md` stands as written.
+- **Phase 1 is unblocked.**
+- No divergence from upstream Lyra was needed, so no new entries were required in `LYRA_ADOPTION.md`. The only changes made were the project rename, three new target files, and one `GameName` line in `DefaultEngine.ini`.
+
+The build-log transcript is retained at `Build/g08.log`.
+
+### What G0.8 deliberately did not test
+
+A successful compile is not a running game. Still outstanding before anything may be called "working":
+
+- The project has **never been opened in the editor** under its new name.
+- No map has been imported, so **NavMesh generation is still unvalidated**.
+- No server or client binary has been built or launched.
+- No automation test has run.
 
 ---
 
@@ -322,8 +365,9 @@ uname -a
 cat "/e/Unreal/UE_5.8/Engine/Build/Build.version"
 ls "/e/Unreal/UE_5.8/Engine/Build/InstalledBuild.txt"
 ls "/e/Unreal/UE_5.8/Templates" | grep -i lyra
+ls "/e/Unreal/UE_5.8/Engine/Build/BatchFiles/"*.bat          # build entry point
 gh repo view EpicGames/UnrealEngine-Lyra --json name,visibility
-cat "/c/ProgramData/Epic/EpicEngineLauncher/LauncherInstalled.dat"
+cat "/c/ProgramData/Epic/EpicGamesLauncher/LauncherInstalled.dat"
 ls "/c/Program Files/Microsoft Visual Studio/2022/Community/VC/Tools/MSVC"
 ls "/c/Program Files (x86)/Windows Kits/10/Include"
 "/c/Program Files (x86)/Microsoft Visual Studio/Installer/vswhere.exe" -latest -property installationVersion

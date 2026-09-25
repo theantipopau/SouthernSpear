@@ -175,7 +175,7 @@ Explicitly **not** substitutable by a listen server.
 
 | ID | Check | Command / method |
 |---|---|---|
-| DS-01 | Server target builds | `RunUBT.bat SouthernSpearServer Win64 Development` |
+| DS-01 | Server target builds | `Build.bat SouthernSpearServer Win64 Development` |
 | DS-02 | Server packages | `RunUAT.bat BuildCookRun -Target=SouthernSpearServer` |
 | DS-03 | Client packages | `RunUAT.bat BuildCookRun -Target=SouthernSpear` |
 | DS-04 | Client connects | Client joins by IP; connection confirmed in server log |
@@ -311,7 +311,7 @@ Every session appends to this table. **Empty means not tested — not passed.**
 |---|---|---|---|---|
 | 2026-09-26 | Toolchain audit | See `PROJECT_AUDIT.md` §9 | **PASS** | Terminal transcript in session log |
 | 2026-09-26 | Git LFS configuration | `git check-attr filter diff merge text` | **PASS** | `.uasset`/`.blend` → `lfs`; `.md` → text |
-| — | Gate G0.8 Lyra compile | `RunUBT.bat SouthernSpearEditor` | **NOT RUN** | Pending Lyra download completion |
+| — | Gate G0.8 Lyra compile | `Build.bat SouthernSpearEditor` | **NOT RUN** | Pending Lyra download completion |
 | — | All other suites | — | **NOT RUN** | Blocked on gate G0.8 |
 
 ---

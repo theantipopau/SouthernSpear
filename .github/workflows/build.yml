@@ -48,7 +48,7 @@ jobs:
           echo === MSVC ===
           dir /b "%ProgramFiles%\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC"
           echo === UBT ===
-          "%UE_ROOT%\Engine\Build\BatchFiles\RunUBT.bat" -Mode=QueryTargets
+          "%UE_ROOT%\Engine\Build\BatchFiles\Build.bat" -Mode=QueryTargets
 
       # Risk R-04: the installed MSVC clears the engine minimum by a very thin
       # margin. If UBT ever reports a compiler error, a silently downgraded
@@ -108,14 +108,14 @@ jobs:
       - name: Build Editor
         shell: cmd
         run: |
-          "%UE_ROOT%\Engine\Build\BatchFiles\RunUBT.bat" %PROJECT_NAME%Editor Win64 Development ^
+          "%UE_ROOT%\Engine\Build\BatchFiles\Build.bat" %PROJECT_NAME%Editor Win64 Development ^
               -Project="%PROJECT_DIR%\%PROJECT_NAME%.uproject" -WaitMutex
 
       # D-05: the dedicated server is a first-class target, not a later step.
       - name: Build Dedicated Server
         shell: cmd
         run: |
-          "%UE_ROOT%\Engine\Build\BatchFiles\RunUBT.bat" %PROJECT_NAME%Server Win64 Development ^
+          "%UE_ROOT%\Engine\Build\BatchFiles\Build.bat" %PROJECT_NAME%Server Win64 Development ^
               -Project="%PROJECT_DIR%\%PROJECT_NAME%.uproject" -WaitMutex
 
       - name: Run automation tests
