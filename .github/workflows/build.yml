@@ -1,0 +1,129 @@
+# ============================================================================
+# Southern Spear - CI
+#
+# Self-hosted Windows runner: the Unreal Engine 5.8.3 install and the Visual
+# Studio toolchain live on the development machine, not on GitHub-hosted
+# runners. See Docs/PROJECT_AUDIT.md.
+# ============================================================================
+name: Build
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  # Adjust if the engine lives elsewhere. Defaults to the audited path.
+  # NOTE: single-quoted - backslashes in double-quoted YAML are escape sequences.
+  UE_ROOT: 'E:\Unreal\UE_5.8'
+  PROJECT_DIR: 'E:\Australian Army Game'
+  PROJECT_NAME: "SouthernSpear"
+  # Engine minimum, read from VCToolChain.cs - see PROJECT_AUDIT.md
+  MSVC_MIN_VERSION: "14.44.34918"
+
+jobs:
+  verify:
+    name: Verify, build and test
+    # The engine and MSVC toolchain are installed on this machine only.
+    runs-on: [ self-hosted, windows, ue-5.8 ]
+    timeout-minutes: 90
+
+    steps:
+      - name: Checkout (with LFS)
+        uses: actions/checkout@v4
+        with:
+          lfs: true
+
+      - name: Report toolchain
+        shell: cmd
+        run: |
+          echo === Engine ===
+          type "%UE_ROOT%\Engine\Build\Build.version"
+          echo === MSVC ===
+          dir /b "%ProgramFiles%\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC"
+          echo === UBT ===
+          "%UE_ROOT%\Engine\Build\BatchFiles\RunUBT.bat" -Mode=QueryTargets
+
+      # Risk R-04: the installed MSVC clears the engine minimum by a very thin
+      # margin. If UBT ever reports a compiler error, a silently downgraded
+      # toolset is the first thing to check.
+      - name: Assert MSVC meets the engine minimum
+        shell: pwsh
+        run: |
+          $min = [version]($env:MSVC_MIN_VERSION)
+          $root = "${env:ProgramFiles}\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC"
+          $installed = Get-ChildItem $root -Directory | Sort-Object Name -Descending | Select-Object -First 1
+          $cur = [version](($installed.Name -replace '\.(\d+)$', '.$1'))
+          Write-Host "Installed MSVC: $cur ; Required: $min"
+          if ($cur -lt $min) { throw "MSVC $cur is below the engine minimum $min" }
+
+      - name: Verify Git LFS integrity
+        shell: cmd
+        run: git lfs fsck && git lfs ls-files
+
+      # TDD 3.3 - the presentation resolver must be structurally incapable of
+      # touching gameplay. Enforced in CI rather than by code review.
+      - name: Static scan - presentation must not reference gameplay
+        shell: pwsh
+        run: |
+          $violations = @()
+          $files = Get-ChildItem -Path .\Source,.\Plugins -Recurse -Filter *.h -EA SilentlyContinue |
+                   Where-Object { $_.FullName -match 'Presentation' }
+          foreach ($f in $files) {
+            if ($f.FullName -match 'Test') { continue }   # whitelisted
+            $bad = Select-String -Path $f.FullName -Pattern 'Weapon|Damage|AbilitySystem|Health'
+            if ($bad) { $violations += "$($f.FullName): $($bad -join '; ')" }
+          }
+          if ($violations) { $violations | ForEach-Object { Write-Host "VIOLATION: $_" }; throw "Presentation referenced gameplay headers" }
+          Write-Host "PASS: presentation layer is decoupled from gameplay"
+
+      # TDD 3.2 / TEST_PLAN 4.1 - the progression curve must be data-driven.
+      - name: Static scan - no progression numbers in C++
+        shell: pwsh
+        run: |
+          $bad = Select-String -Path .\Source\SouthernSpearProgression\*.cpp,.\Source\SouthernSpearProgression\*.h `
+                 -Pattern 'RankThreshold\s*=\s*\d|XpPerRank\s*=\s*\d|AccountLevelThreshold\s*=\s*\d' -EA SilentlyContinue
+          if ($bad) { $bad | ForEach-Object { Write-Host "VIOLATION: $_" }; throw "Progression numbers found in C++" }
+          Write-Host "PASS: progression is data-driven"
+
+      # Legal gate: nothing third-party ships without a licence record.
+      - name: Static scan - no secrets in repository
+        shell: cmd
+        run: |
+          git grep -n -I -E "(BEGIN (RSA|OPENSSH|EC) PRIVATE KEY|api[_-]?key\s*=\s*[A-Za-z0-9]{16,}|client[_-]?secret\s*=\s*[A-Za-z0-9]{16,})" -- . ':!Docs' ':!.github'
+          if %errorlevel% equ 0 (exit /b 1) else (echo PASS: no secrets found)
+
+      - name: Build Editor
+        shell: cmd
+        run: |
+          "%UE_ROOT%\Engine\Build\BatchFiles\RunUBT.bat" %PROJECT_NAME%Editor Win64 Development ^
+              -Project="%PROJECT_DIR%\%PROJECT_NAME%.uproject" -WaitMutex
+
+      # D-05: the dedicated server is a first-class target, not a later step.
+      - name: Build Dedicated Server
+        shell: cmd
+        run: |
+          "%UE_ROOT%\Engine\Build\BatchFiles\RunUBT.bat" %PROJECT_NAME%Server Win64 Development ^
+              -Project="%PROJECT_DIR%\%PROJECT_NAME%.uproject" -WaitMutex
+
+      - name: Run automation tests
+        shell: cmd
+        run: |
+          "%UE_ROOT%\Engine\Binaries\Win64\UnrealEditor-Cmd.exe" ^
+              "%PROJECT_DIR%\%PROJECT_NAME%.uproject" ^
+              -ExecCmds="Automation RunTests SouthernSpear.Unit+SouthernSpear.Integration+SouthernSpear.Network+SouthernSpear.Leak;Quit" ^
+              -unattended -nopause -nosplash -nullrhi -log -ReportOutputPath="%PROJECT_DIR%\Saved\TestResults"
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: '${{ env.PROJECT_DIR }}\Saved\TestResults'
+          if-no-files-found: ignore

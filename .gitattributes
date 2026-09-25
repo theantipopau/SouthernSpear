@@ -1,0 +1,107 @@
+# ============================================================================
+# SOUTHERN SPEAR - Git attributes and Git LFS tracking
+# ============================================================================
+
+# ---------------------------------------------------------------------------
+# Default: treat everything as text, normalise line endings.
+# Prevents noisy CRLF/LF diffs when Windows and Linux build agents coexist.
+# ---------------------------------------------------------------------------
+* text=auto eol=lf
+
+# ---------------------------------------------------------------------------
+# Files that must never be CRLF-normalised
+# ---------------------------------------------------------------------------
+*.bat       text eol=crlf
+*.cmd       text eol=crlf
+*.ps1       text eol=crlf
+*.sln       text eol=crlf
+*.uproject  text eol=lf
+*.uplugin   text eol=lf
+*.Build.cs  text eol=lf
+*.Target.cs text eol=lf
+
+# ---------------------------------------------------------------------------
+# Git LFS: Unreal Engine binary assets
+# See LICENCE_REGISTER.md - every third-party asset must have an entry
+# before it is committed. Use `git lfs track` to add new binary types.
+# ---------------------------------------------------------------------------
+
+# Unreal asset containers (.uasset/.umap are opaque binary)
+*.uasset filter=lfs diff=lfs merge=lfs -text
+*.umap   filter=lfs diff=lfs merge=lfs -text
+*.uptnl  filter=lfs diff=lfs merge=lfs -text
+*.uexp   filter=lfs diff=lfs merge=lfs -text
+*.ubulk  filter=lfs diff=lfs merge=lfs -text
+*.uptnl  filter=lfs diff=lfs merge=lfs -text
+
+# Unreal static mesh interchange / USD
+*.stl    filter=lfs diff=lfs merge=lfs -text
+*.usd    filter=lfs diff=lfs merge=lfs -text
+*.usda   filter=lfs diff=lfs merge=lfs -text
+*.usdc   filter=lfs diff=lfs merge=lfs -text
+*.abc    filter=lfs diff=lfs merge=lfs -text
+
+# Source art / DCC interchange
+*.fbx    filter=lfs diff=lfs merge=lfs -text
+*.obj    filter=lfs diff=lfs merge=lfs -text
+*.tga    filter=lfs diff=lfs merge=lfs -text
+*.exr    filter=lfs diff=lfs merge=lfs -text
+*.psd    filter=lfs diff=lfs merge=lfs -text
+*.kra    filter=lfs diff=lfs merge=lfs -text
+*.spp    filter=lfs diff=lfs merge=lfs -text
+
+# Blender source files (authoritative art source, always tracked in LFS)
+*.blend  filter=lfs diff=lfs merge=lfs -text
+
+# Source art caches
+*.bphys  filter=lfs diff=lfs merge=lfs -text
+*.alembic filter=lfs diff=lfs merge=lfs -text
+
+# Audio source
+*.wav    filter=lfs diff=lfs merge=lfs -text
+*.flac   filter=lfs diff=lfs merge=lfs -text
+*.ogg    filter=lfs diff=lfs merge=lfs -text
+*.aif    filter=lfs diff=lfs merge=lfs -text
+*.aiff   filter=lfs diff=lfs merge=lfs -text
+
+# Images / textures produced by export
+*.png    filter=lfs diff=lfs merge=lfs -text
+*.jpg    filter=lfs diff=lfs merge=lfs -text
+*.jpeg   filter=lfs diff=lfs merge=lfs -text
+*.tif    filter=lfs diff=lfs merge=lfs -text
+*.tiff   filter=lfs diff=lfs merge=lfs -text
+
+# Font sources
+*.ttf     filter=lfs diff=lfs merge=lfs -text
+*.otf     filter=lfs diff=lfs merge=lfs -text
+
+# ---------------------------------------------------------------------------
+# Never LFS-track these, even though some are binary.
+# ---------------------------------------------------------------------------
+*.dll     -filter -diff -merge text
+*.exe     -filter -diff -merge text
+*.pdb     -filter -diff -merge text
+*.lib     -filter -diff -merge text
+*.so      -filter -diff -merge text
+*.dylib   -filter -diff -merge text
+*.jar     -filter -diff -merge text
+*.zip     -filter -diff -merge text
+*.7z      -filter -diff -merge text
+*.tar     -filter -diff -merge text
+*.gz      -filter -diff -merge text
+
+# ---------------------------------------------------------------------------
+# Merge drivers for common text types
+# ---------------------------------------------------------------------------
+*.md      text eol=lf
+*.txt     text eol=lf
+*.json    text eol=lf
+*.yml     text eol=lf
+*.yaml    text eol=lf
+*.ini     text eol=lf
+*.cs      text eol=lf diff=csharp
+*.h       text eol=lf
+*.cpp     text eol=lf diff=cpp
+*.usf     text eol=lf
+*.ush     text eol=lf
+*.py      text eol=lf diff=python

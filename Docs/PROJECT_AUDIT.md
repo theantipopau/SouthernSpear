@@ -1,0 +1,318 @@
+# PROJECT AUDIT — Southern Spear
+
+**Document ID:** `Docs/PROJECT_AUDIT.md`
+**Status:** Baseline — Phase 0
+**Last updated:** 2026-09-26
+**Verification rule:** Every claim in this document is backed by a command actually executed on the build machine. Anything unverified is explicitly marked **UNVERIFIED**. No result in this project is ever reported without a reproducible command.
+
+---
+
+## 1. Purpose
+
+This document records the objective state of the development machine and repository at project inception, so that later claims about the toolchain are auditable rather than assumed.
+
+---
+
+## 2. Audit Summary
+
+| Area | Finding | Severity |
+|---|---|---|
+| Repository | Did not exist. Initialised this session on branch `main`. | Resolved |
+| Unreal Engine | **5.8.3** installed at `E:\Unreal\UE_5.8` (Installed Build) | OK, with constraint |
+| Lyra Starter Game | **Not bundled** with the engine. Being fetched separately. | Blocker — see §6 |
+| C++ toolchain | Visual Studio Community 2022 **17.14.37710.0**, MSVC **14.44.35207** | OK |
+| Windows SDK | **10.0.26100.0** | OK |
+| Blender | **5.2.2 LTS** at `C:\Program Files\Blender Foundation\Blender 5.2` | OK |
+| Git / LFS | Git **2.54.0.windows.1**, git-lfs **3.7.1** | OK |
+| Project path | Contains a space (`E:\Australian Army Game\`) | **Risk** — see §7 |
+| RAM | **31.2 GB** — tight for editor + dedicated server + 4 clients | Risk |
+| Engine registration | UE 5.8 is **not** registered in the Epic Games Launcher | **Risk** — affects Fab |
+
+---
+
+## 3. Repository State (before)
+
+The workspace contained exactly one item and no version control:
+
+```
+$ pwd && ls -la
+/e/Australian Army Game
+drwxr-xr-x ... .
+drwxr-xr-x ... ..
+drwxr-xr-x ... .freebuff
+
+$ git status
+fatal: not a git repository (or any of the parent directories): .git
+```
+
+**Conclusion:** This is a greenfield project. There is no pre-existing Unreal project, no C++ source, no content, and no legacy code to preserve or migrate.
+
+`.freebuff/` is local agent workspace metadata (a single `project-id` file) and is excluded from version control.
+
+---
+
+## 4. Installed Toolchain — Verified
+
+### 4.1 Operating system
+
+```
+$ uname -a
+MINGW64_NT-10.0-26200 hurleym 3.6.7-fb42d713.x86_64 ... Msys
+```
+
+Windows, build `26200`. Shell used for all commands is Git Bash (MSYS2). Native Windows paths are used for UE tooling because `Build.bat` / `RunUBT.bat` require `cmd.exe`.
+
+### 4.2 Unreal Engine
+
+```
+$ cat /e/Unreal/UE_5.8/Engine/Build/Build.version
+{
+	"MajorVersion": 5,
+	"MinorVersion": 8,
+	"PatchVersion": 3,
+	"Changelist": 58210709,
+	"CompatibleChangelist": 55116800,
+	"IsLicenseeVersion": 0,
+	"IsPromotedBuild": 1,
+	"BranchName": "++UE5+Release-5.8"
+}
+```
+
+| Property | Value |
+|---|---|
+| Version | **UE 5.8.3** |
+| Changelist | 58210709 |
+| Branch | `++UE5+Release-5.8` |
+| Install path | `E:\Unreal\UE_5.8` |
+| Layout | `Engine/` + `FeaturePacks/` + `Templates/` (Installed Build) |
+
+**Critical constraint — this is an Installed Build, not a source build:**
+
+```
+$ ls /e/Unreal/UE_5.8/Engine/Build/InstalledBuild.txt
+/e/Unreal/UE_5.8/Engine/Build/InstalledBuild.txt      <-- PRESENT
+```
+
+Consequences that constrain project architecture:
+
+1. **We cannot add C++ modules to the Engine.** All game code must live in the project or its plugins.
+2. **We cannot rebuild engine binaries.** Engine-level bug fixes are out of scope; workarounds must be expressed in project code.
+3. **Lyra cannot be installed into the engine tree.** It must be copied into the project and adapted there.
+
+### 4.3 Lyra availability — the Phase 0 blocker
+
+```
+$ find /e/Unreal/UE_5.8 -maxdepth 3 -iname "*Lyra*"
+(no results)
+
+$ ls /e/Unreal/UE_5.8/Templates | grep -i lyra
+(no results)
+```
+
+Lyra is **not** shipped with the engine. Attempting to obtain it from source control fails:
+
+```
+$ gh repo view EpicGames/UnrealEngine-Lyra --json name,visibility
+GraphQL: Could not resolve to a Repository with the name 'EpicGames/UnrealEngine-Lyra'. (repository)
+```
+
+Lyra is distributed by Epic through Fab / the Epic Games Launcher under the standard Unreal Engine EULA. There is no unauthenticated source. It is being obtained manually and staged at `E:\Unreal\Lyra\LyraStarterGame` (2.2 GB observed and still unpacking at time of writing).
+
+**Engine is not Launcher-registered.** The only entry in the Launcher's install list is an unrelated product:
+
+```
+$ cat /c/ProgramData/Epic/UnrealEngineLauncher/LauncherInstalled.dat
+"InstallLocation": "D:\\EpicGames\\HellLetLooseG0WU4", "AppName": "3e02273b544..."
+```
+
+UE 5.8 is absent from that list. This means the in-editor **Fab plugin cannot see the Fab library for this engine version** — Fab matches sample projects against registered engine installs. Any future Fab asset acquisition therefore needs either the engine registered in the Launcher or manual download + `LICENCE_REGISTER.md` verification. Tracked as risk **R-03**.
+
+### 4.4 C++ toolchain
+
+```
+$ ls "/c/Program Files (x86)/Microsoft Visual Studio/Installer/vswhere.exe" -latest -property installationVersion
+17.14.37710.0
+
+$ ls "/c/Program Files/Microsoft Visual Studio/2022/Community/VC/Tools/MSVC"
+14.44.35207
+
+$ ls "/c/Program Files (x86)/Windows Kits/10/Include"
+10.0.26100.0
+
+$ ls "/c/Program Files/Microsoft Visual Studio/2022/Community/VC/Auxiliary/Build/vcvars64.bat"
+/c/Program Files/Microsoft Visual Studio/2022/Community/VC/Auxiliary/Build/vcvars64.bat
+```
+
+| Component | Version | Required by engine | Status |
+|---|---|---|---|
+| Visual Studio | Community 2022, **17.14.37710.0** | Yes | OK |
+| MSVC toolset | **14.44.35207** | **>= 14.44.34918** | OK (margin +0.00010) |
+| Windows SDK | **10.0.26100.0** | 10.0.26100 family | OK |
+| `vcvars64.bat` | present | Yes | OK |
+| .NET | **10.0.401** | Required by UBT | OK |
+
+Engine-minimum toolchain check, read directly from the engine source:
+
+```
+$ grep -rn "older than 14.44" Engine/Source/Programs/UnrealBuildTool/Platform/Windows/VCToolChain.cs
+Lines.Add($" * MSVC compiler version {...} older than 14.44.34918");
+```
+
+Installed `14.44.35207` clears the floor. **The toolchain is valid, but the margin is thin** — if UBT ever reports a compiler error, verify `msvc` was not silently downgraded. Tracked as risk **R-04**.
+
+**Rider is not installed.** Visual Studio Community is the designated C++ IDE.
+
+### 4.5 Blender
+
+```
+$ "/c/Program Files/Blender Foundation/Blender 5.2/blender.exe" --version
+Blender 5.2.2 LTS
+	build date: 2026-09-15
+```
+
+**Blender 5.2.2 LTS.** Not on `PATH`; scripts must reference the absolute path or use a local `Tools/Blender/venv.ps1` wrapper.
+
+### 4.6 Source control
+
+```
+$ git --version
+git version 2.54.0.windows.1
+
+$ git lfs version
+git-lfs/3.7.1 (GitHub; windows amd64; go 1.25.1; git b84b3384)
+```
+
+Both current. GitHub CLI is authenticated to `theantipopau` (scopes: `gist`, `read:org`, `repo`, `workflow`) but has no access to Epic's private Lyra repository.
+
+### 4.7 Hardware
+
+| Component | Value |
+|---|---|
+| CPU | **AMD Ryzen 7 9800X3D** — 8 cores / 16 threads |
+| RAM | **31.2 GB** |
+| Discrete GPU | **AMD Radeon RX 9070 XT**, driver 32.0.31044.16 |
+| Integrated GPU | AMD Radeon(TM) Graphics |
+
+Assessment:
+- CPU is excellent for both client development and a dedicated-server target.
+- GPU is strong for UE5 title work and shader compilation.
+- **32 GB RAM is the binding constraint.** The acceptance test "dedicated server + 4 clients" runs as 5 processes alongside the editor, which is not comfortable in 32 GB. Mitigation in `TEST_PLAN.md`: run dedicated server on the 16-thread CPU while clients are distributed, and close the editor during soak tests. Tracked as risk **R-05**.
+
+### 4.8 Disk
+
+| Volume | Free | Used |
+|---|---|---|
+| C: | 632.8 GB | 320.2 GB |
+| D: | 556.2 GB | 1305.8 GB |
+| E: | 488.6 GB | 465.3 GB |
+| F: | 926.5 GB | 1867.9 GB |
+
+E: (the engine and project volume) is the tightest at 488.6 GB free. Lyra alone expands to several GB; with Derived Data Cache, cooked content and a packaged client, a project working budget of **< 150 GB on E:** is the working ceiling. Tracked as risk **R-06**.
+
+---
+
+## 5. Source Control — Established This Session
+
+| Item | Value |
+|---|---|
+| Repository root | `E:\Australian Army Game` |
+| Default branch | `main` |
+| `core.autocrlf` | `false` |
+| `core.eol` | `lf` |
+| Git LFS | `git lfs install --local` — hooks written |
+
+Files created: `.gitignore` (Unreal + Blender + secrets), `.gitattributes` (LFS tracking for Unreal/Blender/binary types).
+
+**Line endings are pinned to LF** with a `.gitattributes` override back to CRLF for `.bat`/`.cmd`/`.ps1`. Without this, Windows and any future Linux build agent produce whole-file diffs on every touch.
+
+**LFS tracking verified end-to-end, not merely configured.** A probe file was created and its attributes resolved:
+
+```
+$ git check-attr filter diff merge text -- T_Probe.uasset Probe.blend Test.md
+T_Probe.uasset: filter: lfs   diff: lfs   merge: lfs   text: unset
+Probe.blend:    filter: lfs   diff: lfs   merge: lfs   text: unset
+Test.md:        filter: unspecified                text: set
+```
+
+Binary assets route through LFS; text is not. Probe artefacts were removed. A `git lfs fsck` is run as part of CI.
+
+---
+
+## 6. Phase 0 Gate Status
+
+| # | Gate | Status |
+|---|---|---|
+| G0.1 | Workspace inspected | **PASS** |
+| G0.2 | Unreal version identified | **PASS** — 5.8.3 |
+| G0.3 | Empty-vs-existing project determined | **PASS** — greenfield |
+| G0.4 | C++ toolchain confirmed | **PASS** — VS 2022 17.14, MSVC 14.44.35207 |
+| G0.5 | Blender confirmed | **PASS** — 5.2.2 LTS |
+| G0.6 | Git repo + LFS established | **PASS** |
+| G0.7 | Design documents authored | **PASS** — see `Docs/` |
+| G0.8 | **Lyra compiles on UE 5.8.3** | **PENDING** — see below |
+
+### The one thing that must be proven before any implementation
+
+Lyra's published versions target specific engine releases. It is **UNVERIFIED** whether the downloaded Lyra build targets 5.8.3. Epic states Lyra is updated with each major engine release, and 5.8 is recent, so a matching build is likely — but "likely" is not evidence.
+
+**Mandatory gate G0.8.** Copy Lyra into the project and prove a clean compile:
+
+```
+Engine\Build\BatchFiles\RunUBT.bat SouthernSpearEditor Win64 Development -Project="%CD%\SouthernSpear.uproject" -WaitMutex
+```
+
+The result of this command determines the architecture:
+
+| Outcome | Response |
+|---|---|
+| Lyra compiles clean on 5.8.3 | Adopt Lyra as the foundation per the brief. Architecture in `TECHNICAL_DESIGN_DOCUMENT.md` is confirmed. |
+| Lyra compiles with errors | Adopt what works, vendor-and-fix the rest. **Every fix is recorded in `Docs/LYRA_ADOPTION.md`** before proceeding. |
+| Lyra does not compile at all | Fall back to a clean C++ project on the Gameplay Ability System, Game Features and CommonUI, reproducing only the Lyra subsystems this game needs. The design is already modularised for this outcome. |
+
+No gameplay code is written until G0.8 produces a recorded result.
+
+---
+
+## 7. Risks
+
+| ID | Risk | Impact | Mitigation |
+|---|---|---|---|
+| **R-01** | Lyra may not target 5.8.3 | Blocks foundation choice | Gate G0.8; architecture is plugin-modular so a fallback is a subset of the plan, not a rewrite |
+| **R-02** | Path contains a space (`Australian Army Game`) | UBT, UAT and some third-party tooling can fail on spaces; a failure at packaging time is expensive to discover late | **Recommended:** relocate the repo to a space-free path (e.g. `E:\SouthernSpear`). See §8. Low cost now, high cost later |
+| **R-03** | Engine not registered in Epic Games Launcher | In-editor Fab plugin cannot resolve this engine version, blocking compliant third-party asset acquisition | Register the engine in the Launcher, or acquire assets by manual download with mandatory `LICENCE_REGISTER.md` verification |
+| **R-04** | MSVC margin over the engine minimum is ~0.0001 | A silent toolchain downgrade produces confusing build failures | CI asserts MSVC version; treat any compiler error as suspect-version first |
+| **R-05** | 32 GB RAM for editor + DS + 4 clients | Cannot validate the 4-client acceptance test comfortably in one pass | Stagger client start, close the editor during soak, or run clients on a second machine (see §8) |
+| **R-06** | E: has 488.6 GB free | Cook + package + LFS objects can exhaust it | Monitor; move `DerivedDataCache` to F:; enforce LFS quotas |
+| **R-07** | UE 5.8.3 is a recent release | Ecosystem content and Fab assets may lag the engine | Prefer engine-native solutions; verify every plugin on 5.8 before adoption |
+| **R-08** | Installed Build — no engine modules | Cannot patch engine C++ | All divergence is expressed in project/plugin code and documented |
+
+---
+
+## 8. Open Questions For The Producer
+
+1. **Repository path** — relocate to a space-free path? (R-02). Recommended, cheap now.
+2. **Second client machine** — available for true 4-client + dedicated-server testing? (R-05).
+3. **Fab account** — is there a team account with an EULA-accepted licence seat, and will the engine be registered in the Launcher? (R-03).
+4. **Project path/naming** — confirm `SouthernSpear` as the final code name; the folder is currently `Australian Army Game`, which is a working-directory name only.
+
+---
+
+## 9. Reproducing This Audit
+
+Every command in this document is read-only and safe to re-run:
+
+```bash
+uname -a
+cat "/e/Unreal/UE_5.8/Engine/Build/Build.version"
+ls "/e/Unreal/UE_5.8/Engine/Build/InstalledBuild.txt"
+ls "/e/Unreal/UE_5.8/Templates" | grep -i lyra
+gh repo view EpicGames/UnrealEngine-Lyra --json name,visibility
+cat "/c/ProgramData/Epic/EpicEngineLauncher/LauncherInstalled.dat"
+ls "/c/Program Files/Microsoft Visual Studio/2022/Community/VC/Tools/MSVC"
+ls "/c/Program Files (x86)/Windows Kits/10/Include"
+"/c/Program Files (x86)/Microsoft Visual Studio/Installer/vswhere.exe" -latest -property installationVersion
+"/c/Program Files/Blender Foundation/Blender 5.2/blender.exe" --version
+git --version && git lfs version
+git lfs env
+git check-attr filter diff merge text -- <some.uasset>
+```
