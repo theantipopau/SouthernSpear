@@ -116,7 +116,23 @@ $ gh repo view EpicGames/UnrealEngine-Lyra --json name,visibility
 GraphQL: Could not resolve to a Repository with the name 'EpicGames/UnrealEngine-Lyra'. (repository)
 ```
 
-Lyra is distributed by Epic through Fab / the Epic Games Launcher under the standard Unreal Engine EULA. There is no unauthenticated source. It is being obtained manually and staged at `E:\Unreal\Lyra\LyraStarterGame` (2.2 GB observed and still unpacking at time of writing).
+Lyra is distributed by Epic through Fab / the Epic Games Launcher under the standard Unreal Engine EULA. There is no unauthenticated source.
+
+**Obtained and verified.** Staged at `E:\Unreal\Lyra\LyraStarterGame` (5.2 GB, 20 plugins, full C++ source, 55 prebuilt binaries).
+
+| Check | Result |
+|---|---|
+| `LyraStarterGame.uproject` → `EngineAssociation` | **`"5.8"`** — matches the installed engine |
+| Runtime log `engineversion` | **`5.8.3-58210709+++UE5+Release-5.8`** — exact build match |
+| Runtime log `buildversion` | `++UE5+Release-5.8-CL-58210709` — exact match |
+| Plugin inventory | 20 `.uplugin` files present |
+| C++ source | Complete (`ShooterCoreRuntime/Public` + `Private`, `LyraGame`, `LyraEditor`) |
+| Prebuilt binaries | 55 DLLs shipped |
+| Editor load | Launched, initialising (first-run shader compile) |
+
+> **Correction logged.** An intermediate check during download reported `ShooterCore`, `ShooterMaps` and `TopDownArena` as missing. That was a **false negative** — the search used a non-recursive glob. They are present under `Plugins/GameFeatures/`. Recorded here so the audit trail is accurate.
+
+All Lyra capabilities the architecture depends on are present: `GameFeatures`, `CommonUI`/`CommonGame`/`UIExtension`, `EnhancedInput`, `GameplayAbilities`, `ReplicationGraph`, `GameSettings`, `CommonUser`, `GameSubtitles`, `GameplayMessageRouter`, `AsyncMixin`, `OnlineServicesOSSAdapter`/`OnlineServicesNull`, `GameplayStateTree`, `GameplayBehaviors`, and the `ShooterTests`/`RuntimeTests` automation harness.
 
 **Engine is not Launcher-registered.** The only entry in the Launcher's install list is an unrelated product:
 
@@ -249,13 +265,13 @@ Binary assets route through LFS; text is not. Probe artefacts were removed. A `g
 | G0.5 | Blender confirmed | **PASS** — 5.2.2 LTS |
 | G0.6 | Git repo + LFS established | **PASS** |
 | G0.7 | Design documents authored | **PASS** — see `Docs/` |
-| G0.8 | **Lyra compiles on UE 5.8.3** | **PENDING** — see below |
+| G0.8 | **Lyra compiles on UE 5.8.3** | **IN PROGRESS** — version match proven; first `SouthernSpearEditor` compile not yet run |
 
 ### The one thing that must be proven before any implementation
 
-Lyra's published versions target specific engine releases. It is **UNVERIFIED** whether the downloaded Lyra build targets 5.8.3. Epic states Lyra is updated with each major engine release, and 5.8 is recent, so a matching build is likely — but "likely" is not evidence.
+Lyra declares `EngineAssociation: "5.8"` and its runtime log reports `engineversion="5.8.3-58210709+++UE5+Release-5.8"`, matching the installed engine build exactly. That resolves *compatibility*. It does not yet prove our *forked* project compiles, because renaming the project and adding plugins can surface build errors the stock sample does not.
 
-**Mandatory gate G0.8.** Copy Lyra into the project and prove a clean compile:
+**Mandatory gate G0.8.** Vendor Lyra, rename the project, and prove a clean compile:
 
 ```
 Engine\Build\BatchFiles\RunUBT.bat SouthernSpearEditor Win64 Development -Project="%CD%\SouthernSpear.uproject" -WaitMutex
@@ -265,9 +281,9 @@ The result of this command determines the architecture:
 
 | Outcome | Response |
 |---|---|
-| Lyra compiles clean on 5.8.3 | Adopt Lyra as the foundation per the brief. Architecture in `TECHNICAL_DESIGN_DOCUMENT.md` is confirmed. |
-| Lyra compiles with errors | Adopt what works, vendor-and-fix the rest. **Every fix is recorded in `Docs/LYRA_ADOPTION.md`** before proceeding. |
-| Lyra does not compile at all | Fall back to a clean C++ project on the Gameplay Ability System, Game Features and CommonUI, reproducing only the Lyra subsystems this game needs. The design is already modularised for this outcome. |
+| Compiles clean on 5.8.3 | Adopt Lyra as the foundation per the brief. Architecture in `TECHNICAL_DESIGN_DOCUMENT.md` is confirmed. |
+| Compiles with errors | Adopt what works, vendor-and-fix the rest. **Every fix is recorded in `Docs/LYRA_ADOPTION.md`** before proceeding. |
+| Does not compile at all | Fall back to a clean C++ project on the Gameplay Ability System, Game Features and CommonUI, reproducing only the Lyra subsystems this game needs. The design is already modularised for this outcome. |
 
 No gameplay code is written until G0.8 produces a recorded result.
 
@@ -277,7 +293,7 @@ No gameplay code is written until G0.8 produces a recorded result.
 
 | ID | Risk | Impact | Mitigation |
 |---|---|---|---|
-| **R-01** | Lyra may not target 5.8.3 | Blocks foundation choice | Gate G0.8; architecture is plugin-modular so a fallback is a subset of the plan, not a rewrite |
+| **R-01** | ~~Lyra may not target 5.8.3~~ **RESOLVED** — `EngineAssociation: "5.8"`, runtime log confirms exact build match | — | Closed. Remaining work is the actual compile (G0.8) |
 | **R-02** | Path contains a space (`Australian Army Game`) | UBT, UAT and some third-party tooling can fail on spaces; a failure at packaging time is expensive to discover late | **Recommended:** relocate the repo to a space-free path (e.g. `E:\SouthernSpear`). See §8. Low cost now, high cost later |
 | **R-03** | Engine not registered in Epic Games Launcher | In-editor Fab plugin cannot resolve this engine version, blocking compliant third-party asset acquisition | Register the engine in the Launcher, or acquire assets by manual download with mandatory `LICENCE_REGISTER.md` verification |
 | **R-04** | MSVC margin over the engine minimum is ~0.0001 | A silent toolchain downgrade produces confusing build failures | CI asserts MSVC version; treat any compiler error as suspect-version first |
