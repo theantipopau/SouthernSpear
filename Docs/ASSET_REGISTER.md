@@ -202,7 +202,7 @@ All maps `PLACEHOLDER` unless marked. **Greybox only in Phase 1.** No final maps
 
 | ID | Map | Layers required | Status | Notes |
 |---|---|---|---|---|
-| M-001 | **Dry River** — rural training area, dry creek bed, scrub, farm structures, long sightlines, concealed approaches | Objective Assault, Secure and Hold, Day, Low-light | `PLACEHOLDER` | **Greybox first — the vertical slice map** |
+| M-001 | **Dry River** — rural training area, dry creek bed, scrub, farm structures, long sightlines, concealed approaches | Objective Assault (sequential A→B), Day | `PLACEHOLDER` — **blockout generated** | **The vertical slice test bed.** Original blockout authored in Blender; see `Docs/MAPS_DRYRIVER.md` |
 | M-002 | **Red Ridge** — semi-arid ridgeline, radio installation, rocky terrain, strong elevation change | Objective Assault, Secure and Hold, Day, Low-light | `DEFERRED` | Phase 4 |
 | M-003 | **Ironbark** — eucalypt woodland, training compound, mixed close/medium ranges, bushfire-safe fictional setting | Objective Assault, Secure and Hold, Day, Low-light | `DEFERRED` | Phase 4 |
 | M-004 | **Port Wakefield** — fictional industrial port, warehouses, container yards, administrative buildings, maritime edge | Objective Assault, Secure and Hold, Day, Low-light | `DEFERRED` | Phase 4 |
@@ -213,6 +213,20 @@ All maps `PLACEHOLDER` unless marked. **Greybox only in Phase 1.** No final maps
 > **Layout rule:** no map may reproduce a real military base, sensitive installation, or any operationally useful site. Layouts are designed from gameplay requirements, not surveyed from any real location.
 >
 > **Scale rule:** World Partition only where scale justifies it. Small polished maps first.
+
+### 4.9a Dry River blockout — generated assets
+
+| ID | Asset | Path | Status | Licence dep. |
+|---|---|---|---|---|
+| M-001a | Source blockout | `Content/Art/Blockout/SS_MAP_DryRiver_01_HI.blend` | `IN_PRODUCTION` | Class F — original |
+| M-001b | Game import mesh | `Content/Art/Blockout/SS_MAP_DryRiver_01.fbx` | `IN_PRODUCTION` | Class F — original |
+| M-001c | Gameplay layout markers | `Content/Art/Blockout/SS_MAP_DryRiver_01_Layout.csv` | `IN_PRODUCTION` | Class F — original |
+| M-001d | Blockout generator | `Tools/Blender/dryriver_blockout.py` | `DONE` | Class F — original |
+| M-001e | Layout verifier | `Tools/Blender/verify_dryriver.py` | `DONE` | Class F — original |
+
+**Generated 2026-09-26.** 162 objects, 8,944 faces. 4 gameplay markers. Verified against the design spec by `verify_dryriver.py`, which runs in CI.
+
+All class F — created specifically for this project, no third-party obligation. Registered in `LICENCE_REGISTER.md` §4.
 
 ### 4.10 Data Assets (no licence dependency — original data)
 
@@ -241,8 +255,9 @@ All maps `PLACEHOLDER` unless marked. **Greybox only in Phase 1.** No final maps
 | Audio (13) | 13 | 0 | 0 | 0 |
 | Effects (6) | 6 | 0 | 0 | 0 |
 | UI (12) | 11 | 1 | 0 | 0 |
-| Maps / layers (7) | 2 | 1 | 0 | 0 |
+| Maps / layers (7) | 1 | 1 | 1 (Dry River blockout generated) | 0 |
 | Data (10) | 10 | 0 | 0 | 0 |
+| Tooling (2) | 0 | 0 | 0 | 2 (blockout generator + verifier) |
 
 **Everything is a placeholder. Nothing here is final.** That is the correct state for the end of Phase 0.
 

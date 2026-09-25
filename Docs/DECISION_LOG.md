@@ -249,27 +249,29 @@ Test.md:         filter: unspecified           text: set
 
 ---
 
-### ADR-013 — Electric Dreams is a source of generic parts, not a base map
+## ADR-013 — Maps are built original. Third-party environments are not used.
 
-**Status:** Accepted
+**Status:** Accepted (revised 2026-09-26)
 **Date:** 2026-09-26
 
 **Context.** An "Electric Dreams" environment pack was downloaded. Using a finished showcase environment as the vertical-slice map would be faster than greyboxing and would produce a better-looking first build.
 
-**Decision.** **Generic modular pieces only.** The pack is not used as a base map, and no Southern Spear map may derive its layout or visual identity from it. Harvested pieces must be generic and non-branded, re-surfaced in our own materials, and individually registered (L-0012.x) before entering the repository. The pack may additionally be used outside the project as a performance stress scene.
+**Decision.** **The pack is disregarded entirely.** Southern Spear builds its own maps. No third-party environment is used as a base map, as a source of harvestable art, or as a map layout reference.
 
 **Alternatives.**
-- *Use it as the vertical-slice map* — rejected. Map geometry is load-bearing: it drives sightlines, rotation distances and cover rhythm, all of which Phase 1 is supposed to be tuning. Starting from a fixed layout would mean tuning the gameplay around an asset instead of designing the gameplay and building to it. The tonal mismatch is the visible symptom; the coupling is the real cost.
-- *Ignore the pack entirely* — rejected. Generic modular pieces (concrete, steel, modular walls) are legitimately useful and save real production time.
+- *Use it as the vertical-slice map* — rejected. Map geometry is load-bearing: it drives sightlines, rotation distances and cover rhythm, all of which Phase 1 exists to tune. Starting from a fixed layout would mean tuning gameplay around an asset instead of building to a design.
+- *Harvest generic modular pieces* — **initially adopted, then reversed.** Harvested art carries the source pack's visual signature, its licence obligations and its production assumptions, none of which belong in a shipping build. The production time saved is smaller than the integration and re-surfacing cost it creates.
+- *Ignore the pack entirely* — **adopted.**
 
 **Consequences.**
-- The vertical slice is greyboxed. It will look poor. This is correct and expected (ADR-008).
-- Harvested pieces carry re-surfacing work so they do not import the pack's visual signature.
-- Licence is **unread** and therefore class E. Extraction is blocked until the terms are verified.
+- All map geometry is original, authored in Blender from a gameplay-driven design spec (`Docs/MAPS_DRYRIVER.md`).
+- The map layout carries the full original-work guarantee, reinforcing ADR-012 and the prohibition on reproducing any real installation.
+- More upfront Blender work, and the vertical slice will look plainly greyboxed. Correct and expected (ADR-008).
+- The licence risk attached to L-0012 disappears with the harvest. The entry stays on file as a record that the pack was considered and declined.
 
 ---
 
-### ADR-014 — Repository relocated to a space-free path
+## ADR-014 — Repository relocated to a space-free path
 
 **Status:** Accepted
 **Date:** 2026-09-26
@@ -288,12 +290,38 @@ Test.md:         filter: unspecified           text: set
 
 ---
 
+## ADR-015 — The vertical-slice test bed is an original outback blockout
+
+**Status:** Accepted
+**Date:** 2026-09-26
+
+**Context.** The vertical slice needs one playable map with two teams, an objective sequence and deployment zones. The options were a third-party environment (now excluded by ADR-013), a hand-built greybox, or a scripted blockout generated from a design spec.
+
+**Decision.** Build **Dry River** as an original blockout authored in Blender from a written gameplay spec, then import it into Unreal. Every dimension in the map traces to a gameplay requirement — sightline length, rotation distance, cover density — and is recorded with its justification in `Docs/MAPS_DRYRIVER.md`.
+
+**Alternatives.**
+- *Hand-place the blockout in the UE editor* — rejected as the primary path. Slow, non-reproducible, and produces no reusable source asset. Blender is the authoritative source for art in this project anyway, so the source `.blend` must exist regardless.
+- *UE Landscape / World Partition* — rejected for the vertical slice. Justified only for large maps (ADR-008); it adds a heightfield pipeline that proves nothing about netcode, teams or objectives.
+
+**Consequences.**
+- The map is reproducible: the script regenerates it, so a dimension can be changed and re-exported rather than nudged in the editor.
+- The Blender source is version-controlled in LFS, satisfying the asset pipeline standard in `TECHNICAL_DESIGN_DOCUMENT.md` §12.2.
+- Layout intent is reviewable as a document before it is reviewable as a level, which is the cheaper way to iterate on a greybox.
+
+---
+
 ## Open Decisions
 
 | ID | Question | Needed by |
 |---|---|---|
-| ADR-013 | ~~Repository path~~ — resolved as ADR-014 | — |
-| ADR-014 | Online services: EOS vs Steam vs custom, and in what order? | Phase 5 |
-| ADR-015 | Anti-cheat: vendor, platform-provided, or bespoke? | Phase 5 |
-| ADR-016 | Match size: 16, 32 or 64 baseline? | Phase 4, after performance profiling |
-| ADR-017 | Whether to retain or drop Lyra's third example experience (Exploder) | Phase 1 |
+| ADR-016 | Online services: EOS vs Steam vs custom, and in what order? | Phase 5 |
+| ADR-017 | Anti-cheat: vendor, platform-provided, or bespoke? | Phase 5 |
+| ADR-018 | Match size: 16, 32 or 64 baseline? | Phase 4, after performance profiling |
+| ADR-019 | Whether to retain or drop Lyra's third example experience (Exploder) | Phase 1 |
+
+### Resolved
+
+| Former ID | Question | Resolution |
+|---|---|---|
+| ADR-013 | Repository path: relocate off a space-containing path? | Relocated — ADR-014 |
+| ADR-013 | Electric Dreams: use as a base map or harvest art? | Declined entirely — ADR-013 |

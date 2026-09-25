@@ -1,0 +1,5 @@
+name,x,y,z,kind
+SS_MAP_DryRiver_ObjA_WaterPoint,-15.000,0.000,-3.226,Objective
+SS_MAP_DryRiver_ObjB_Farmstead,40.000,52.000,6.947,Objective
+SS_MAP_DryRiver_DeployAlpha,0.000,-85.000,0.343,Deployment
+SS_MAP_DryRiver_DeployBravo,0.000,85.000,13.020,Deployment

@@ -99,6 +99,12 @@ jobs:
           git grep -n -I -E "(BEGIN (RSA|OPENSSH|EC) PRIVATE KEY|api[_-]?key\s*=\s*[A-Za-z0-9]{16,}|client[_-]?secret\s*=\s*[A-Za-z0-9]{16,})" -- . ':!Docs' ':!.github'
           if %errorlevel% equ 0 (exit /b 1) else (echo PASS: no secrets found)
 
+      # The Dry River blockout must not drift from its design spec. Layout is
+      # gameplay-load-bearing, so a silent geometry change is a balance change.
+      - name: Verify Dry River blockout against its design spec
+        shell: cmd
+        run: python Tools\Blender\verify_dryriver.py
+
       - name: Build Editor
         shell: cmd
         run: |
