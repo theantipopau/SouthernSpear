@@ -249,11 +249,50 @@ Test.md:         filter: unspecified           text: set
 
 ---
 
+### ADR-013 — Electric Dreams is a source of generic parts, not a base map
+
+**Status:** Accepted
+**Date:** 2026-09-26
+
+**Context.** An "Electric Dreams" environment pack was downloaded. Using a finished showcase environment as the vertical-slice map would be faster than greyboxing and would produce a better-looking first build.
+
+**Decision.** **Generic modular pieces only.** The pack is not used as a base map, and no Southern Spear map may derive its layout or visual identity from it. Harvested pieces must be generic and non-branded, re-surfaced in our own materials, and individually registered (L-0012.x) before entering the repository. The pack may additionally be used outside the project as a performance stress scene.
+
+**Alternatives.**
+- *Use it as the vertical-slice map* — rejected. Map geometry is load-bearing: it drives sightlines, rotation distances and cover rhythm, all of which Phase 1 is supposed to be tuning. Starting from a fixed layout would mean tuning the gameplay around an asset instead of designing the gameplay and building to it. The tonal mismatch is the visible symptom; the coupling is the real cost.
+- *Ignore the pack entirely* — rejected. Generic modular pieces (concrete, steel, modular walls) are legitimately useful and save real production time.
+
+**Consequences.**
+- The vertical slice is greyboxed. It will look poor. This is correct and expected (ADR-008).
+- Harvested pieces carry re-surfacing work so they do not import the pack's visual signature.
+- Licence is **unread** and therefore class E. Extraction is blocked until the terms are verified.
+
+---
+
+### ADR-014 — Repository relocated to a space-free path
+
+**Status:** Accepted
+**Date:** 2026-09-26
+
+**Context.** The repository lived at `E:\Australian Army Game`. A space in a build path can break UnrealBuildTool, UAT and third-party tooling, and the failure typically surfaces at packaging time when it is most expensive to fix.
+
+**Decision.** Relocate the repository to `E:\SouthernSpear` before vendoring Lyra, so the space never enters the build system.
+
+**Alternatives.**
+- *Keep the path and hope* — rejected: UE 5.8 mostly tolerates spaces, which is exactly what makes the eventual failure confusing. The fix is a one-time `git mv`-equivalent now versus a tooling migration later.
+- *Rename the folder but keep 'Australian Army'* — rejected. The folder name would still read as an official ADF product, which ADR-012 forbids.
+
+**Consequences.**
+- The working directory is also renamed away from the game's subject, which is consistent with the fictional-work position.
+- Done **before** the Lyra vendor step, so no build ever sees the old path.
+
+---
+
 ## Open Decisions
 
 | ID | Question | Needed by |
 |---|---|---|
-| ADR-013 | Repository path: relocate to remove the space in `Australian Army Game`? | Before packaging |
+| ADR-013 | ~~Repository path~~ — resolved as ADR-014 | — |
 | ADR-014 | Online services: EOS vs Steam vs custom, and in what order? | Phase 5 |
 | ADR-015 | Anti-cheat: vendor, platform-provided, or bespoke? | Phase 5 |
 | ADR-016 | Match size: 16, 32 or 64 baseline? | Phase 4, after performance profiling |

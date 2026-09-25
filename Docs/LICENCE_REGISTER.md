@@ -103,12 +103,38 @@ Anything class **D** or **E** is a release blocker. There is no exception.
 | **Rule** | Original, properly licensed, or properly attributed audio only. **No recorded real voice content.** Voice chat is never recorded without explicit per-player consent and a documented privacy design |
 | **Action** | Every future audio entry added here before import |
 
+### L-0012 — Electric Dreams environment (reference + selective harvest only)
+
+| Field | Value |
+|---|---|
+| **Component** | "Electric Dreams" environment pack, staged at `E:\Unreal\Environment\` |
+| **Status** | 🔴 **ACQUISED, TERMS NOT YET VERIFIED** |
+| **Licence** | **UNREAD** |
+| **Class** | **E — unresolved. Treated as class D (prohibited) until the licence text is read and recorded here.** |
+| **Approved use** | **Generic modular pieces only** (e.g. concrete, steel, modular walls) — explicitly *not* as a base map |
+| **Rejected use** | Base map, art direction, or any map derived from its layout or art style |
+
+**Constraints on use:**
+1. The environment's aesthetic is incompatible with the Australian bushland/industrial setting. It is **not** to be used as a base map, and no Southern Spear map may derive its layout or visual identity from it.
+2. Only **generic, non-branded, non-stylised** modular pieces may be harvested. Anything carrying the pack's distinctive art direction, signature look, or branding is excluded.
+3. Every harvested piece gets its **own** register row (L-0012.x) naming the specific piece, before it enters the repository.
+4. Harvested pieces are to be **re-lit and re-surfaced** in our own original materials so they do not carry the source pack's visual signature into a shipping build.
+5. The pack may additionally be used **outside the project** as a standalone GPU/Lumen/Nanite performance stress scene. That use carries no shipping obligation.
+
+| Field | Value |
+|---|---|
+| **Action** | Read the Fab/EULA licence text in full, record the actual terms, then reclassify. If commercial packaging is not explicitly permitted, the harvest is abandoned. |
+
+> Recorded before extraction, deliberately at class **E**. "Free" is not a licence category — an unread licence is treated as prohibited.
+
+---
+
 ### L-0006 — Fab / Marketplace assets
 
 | Field | Value |
 |---|---|
 | **Component** | Any asset acquired from Fab |
-| **Status** | **NONE ACQUIRED** |
+| **Status** | **NONE ACQUIRED** (see L-0012 for the one pack staged so far) |
 | **Blocker** | PROJECT_AUDIT **R-03** — UE 5.8 is not registered in the Epic Games Launcher, so the in-editor Fab plugin cannot resolve this engine version |
 | **Action** | Register the engine in the Launcher, or acquire assets manually. Either way, each asset gets a register row with publisher, source URL, licence class and modifications **before** it is imported |
 | **Rule** | Never download from unverified model-ripping or redistribution sites. Never assume a free asset permits commercial packaging |
