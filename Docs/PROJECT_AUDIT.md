@@ -24,7 +24,7 @@ This document records the objective state of the development machine and reposit
 | Windows SDK | **10.0.26100.0** | OK |
 | Blender | **5.2.2 LTS** at `C:\Program Files\Blender Foundation\Blender 5.2` | OK |
 | Git / LFS | Git **2.54.0.windows.1**, git-lfs **3.7.1** | OK |
-| Project path | Contains a space (`E:\Australian Army Game\`) | **Risk** — see §7 |
+| Project path | Relocated to `E:\SouthernSpear\` (space-free) | **RESOLVED** — see ADR-014 |
 | RAM | **31.2 GB** — tight for editor + dedicated server + 4 clients | Risk |
 | Engine registration | UE 5.8 is **not** registered in the Epic Games Launcher | **Risk** — affects Fab |
 
@@ -36,7 +36,7 @@ The workspace contained exactly one item and no version control:
 
 ```
 $ pwd && ls -la
-/e/Australian Army Game
+/e/SouthernSpear
 drwxr-xr-x ... .
 drwxr-xr-x ... ..
 drwxr-xr-x ... .freebuff
@@ -231,7 +231,7 @@ E: (the engine and project volume) is the tightest at 488.6 GB free. Lyra alone 
 
 | Item | Value |
 |---|---|
-| Repository root | `E:\Australian Army Game` |
+| Repository root | `E:\SouthernSpear` (relocated from `E:\Australian Army Game` — ADR-014) |
 | Default branch | `main` |
 | `core.autocrlf` | `false` |
 | `core.eol` | `lf` |
@@ -294,7 +294,7 @@ No gameplay code is written until G0.8 produces a recorded result.
 | ID | Risk | Impact | Mitigation |
 |---|---|---|---|
 | **R-01** | ~~Lyra may not target 5.8.3~~ **RESOLVED** — `EngineAssociation: "5.8"`, runtime log confirms exact build match | — | Closed. Remaining work is the actual compile (G0.8) |
-| **R-02** | Path contains a space (`Australian Army Game`) | UBT, UAT and some third-party tooling can fail on spaces; a failure at packaging time is expensive to discover late | **Recommended:** relocate the repo to a space-free path (e.g. `E:\SouthernSpear`). See §8. Low cost now, high cost later |
+| ~~**R-02**~~ | **RESOLVED (ADR-014)** — repository relocated to the space-free path `E:\SouthernSpear` before Lyra was vendored, so no build ever saw a space | — | Closed |
 | **R-03** | Engine not registered in Epic Games Launcher | In-editor Fab plugin cannot resolve this engine version, blocking compliant third-party asset acquisition | Register the engine in the Launcher, or acquire assets by manual download with mandatory `LICENCE_REGISTER.md` verification |
 | **R-04** | MSVC margin over the engine minimum is ~0.0001 | A silent toolchain downgrade produces confusing build failures | CI asserts MSVC version; treat any compiler error as suspect-version first |
 | **R-05** | 32 GB RAM for editor + DS + 4 clients | Cannot validate the 4-client acceptance test comfortably in one pass | Stagger client start, close the editor during soak, or run clients on a second machine (see §8) |
@@ -306,10 +306,10 @@ No gameplay code is written until G0.8 produces a recorded result.
 
 ## 8. Open Questions For The Producer
 
-1. **Repository path** — relocate to a space-free path? (R-02). Recommended, cheap now.
+1. ~~**Repository path**~~ — **resolved**: relocated to `E:\SouthernSpear` (ADR-014).
 2. **Second client machine** — available for true 4-client + dedicated-server testing? (R-05).
-3. **Fab account** — is there a team account with an EULA-accepted licence seat, and will the engine be registered in the Launcher? (R-03).
-4. **Project path/naming** — confirm `SouthernSpear` as the final code name; the folder is currently `Australian Army Game`, which is a working-directory name only.
+3. **Fab account** — is there a team account with an EULA-accepted licence seat, and will the engine be registered in the Launcher? (R-03). This also governs the Electric Dreams harvest (L-0012).
+4. **Project path/naming** — **resolved**: `SouthernSpear`, both the code name and the folder name.
 
 ---
 

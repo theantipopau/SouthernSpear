@@ -22,7 +22,7 @@ env:
   # Adjust if the engine lives elsewhere. Defaults to the audited path.
   # NOTE: single-quoted - backslashes in double-quoted YAML are escape sequences.
   UE_ROOT: 'E:\Unreal\UE_5.8'
-  PROJECT_DIR: 'E:\Australian Army Game'
+  PROJECT_DIR: 'E:\SouthernSpear'
   PROJECT_NAME: "SouthernSpear"
   # Engine minimum, read from VCToolChain.cs - see PROJECT_AUDIT.md
   MSVC_MIN_VERSION: "14.44.34918"

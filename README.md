@@ -53,6 +53,10 @@
 
 ---
 
+## Repository
+
+Located at `E:\SouthernSpear` — deliberately **space-free**, so UnrealBuildTool, UAT and third-party tooling never see a space in a build path (ADR-014).
+
 ## Repository Layout
 
 ```
