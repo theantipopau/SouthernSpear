@@ -1,0 +1,129 @@
+LogSSObjectives: Objective Assault: 2 objective(s) in sequence.
+LogSSObjectives: Round 1: WaitingToStart -> PreRound, objective -1/2, outcome None, captures T1=0 T2=0.
+LogSSObjectives: Round 1: PreRound -> InProgress, objective 0/2, outcome None, captures T1=0 T2=0.
+LogSSObjectives: Objective 0 'Water Point' captured by TeamOne.
+LogSSObjectives: Round 1: InProgress -> InProgress, objective 1/2, outcome None, captures T1=1 T2=0.
+LogSSObjectives: Round 1: InProgress -> PostRound, objective -1/2, outcome Draw, captures T1=1 T2=0.
+LogSSObjectives: Round 2: PostRound -> PreRound, objective -1/2, outcome None, captures T1=0 T2=0.
+LogSSObjectives: Round 2: PreRound -> InProgress, objective 0/2, outcome None, captures T1=0 T2=0.
+LogSSObjectives: Objective 0 'Water Point' captured by TeamOne.
+LogSSObjectives: Round 2: InProgress -> InProgress, objective 1/2, outcome None, captures T1=1 T2=0.
+LogSSObjectives: Round 2: InProgress -> PostRound, objective -1/2, outcome Draw, captures T1=1 T2=0.
+LogSSObjectives: Round 3: PostRound -> PreRound, objective -1/2, outcome None, captures T1=0 T2=0.
+LogSSObjectives: Round 3: PreRound -> InProgress, objective 0/2, outcome None, captures T1=0 T2=0.
+LogSSObjectives: Objective 0 'Water Point' captured by TeamTwo.
+LogSSObjectives: Round 3: InProgress -> InProgress, objective 1/2, outcome None, captures T1=0 T2=1.
+LogSSObjectives: Objective 1 'Farmstead' captured by TeamTwo.
+LogSSObjectives: Round 3: InProgress -> PostRound, objective -1/2, outcome TeamTwoWon, captures T1=0 T2=2.
+LogSSObjectives: Round 4: PostRound -> PreRound, objective -1/2, outcome None, captures T1=0 T2=0.
+LogSSObjectives: Round 4: PreRound -> InProgress, objective 0/2, outcome None, captures T1=0 T2=0.
+LogSSObjectives: Objective 0 'Water Point' captured by TeamTwo.
+LogSSObjectives: Round 4: InProgress -> InProgress, objective 1/2, outcome None, captures T1=0 T2=1.
+LogSSObjectives: Objective 1 'Farmstead' captured by TeamTwo.
+LogSSObjectives: Round 4: InProgress -> PostRound, objective -1/2, outcome TeamTwoWon, captures T1=0 T2=2.
+LogSSObjectives: Round 5: PostRound -> PreRound, objective -1/2, outcome None, captures T1=0 T2=0.
+LogSSObjectives: Round 5: PreRound -> InProgress, objective 0/2, outcome None, captures T1=0 T2=0.
+LogSSObjectives: Objective 0 'Water Point' captured by TeamTwo.
+LogSSObjectives: Round 5: InProgress -> InProgress, objective 1/2, outcome None, captures T1=0 T2=1.
+LogSSObjectives: Objective 1 'Farmstead' captured by TeamTwo.
+LogSSObjectives: Round 5: InProgress -> PostRound, objective -1/2, outcome TeamTwoWon, captures T1=0 T2=2.
+LogSSObjectives: Round 6: PostRound -> PreRound, objective -1/2, outcome None, captures T1=0 T2=0.
+LogSSObjectives: Round 6: PreRound -> InProgress, objective 0/2, outcome None, captures T1=0 T2=0.
+LogSSObjectives: Objective 0 'Water Point' captured by TeamTwo.
+LogSSObjectives: Round 6: InProgress -> InProgress, objective 1/2, outcome None, captures T1=0 T2=1.
+LogSSObjectives: Objective 1 'Farmstead' captured by TeamTwo.
+LogSSObjectives: Round 6: InProgress -> PostRound, objective -1/2, outcome TeamTwoWon, captures T1=0 T2=2.
+LogSSObjectives: Round 7: PostRound -> PreRound, objective -1/2, outcome None, captures T1=0 T2=0.
+LogSSObjectives: Round 7: PreRound -> InProgress, objective 0/2, outcome None, captures T1=0 T2=0.
+LogSSObjectives: Objective 0 'Water Point' captured by TeamTwo.
+LogSSObjectives: Round 7: InProgress -> InProgress, objective 1/2, outcome None, captures T1=0 T2=1.
+LogSSObjectives: Objective 1 'Farmstead' captured by TeamTwo.
+LogSSObjectives: Round 7: InProgress -> PostRound, objective -1/2, outcome TeamTwoWon, captures T1=0 T2=2.
+LogSSObjectives: Round 8: PostRound -> PreRound, objective -1/2, outcome None, captures T1=0 T2=0.
+LogSSObjectives: Round 8: PreRound -> InProgress, objective 0/2, outcome None, captures T1=0 T2=0.
+LogSSObjectives: Objective 0 'Water Point' captured by TeamTwo.
+LogSSObjectives: Round 8: InProgress -> InProgress, objective 1/2, outcome None, captures T1=0 T2=1.
+LogSSObjectives: Objective 1 'Farmstead' captured by TeamTwo.
+LogSSObjectives: Round 8: InProgress -> PostRound, objective -1/2, outcome TeamTwoWon, captures T1=0 T2=2.
+LogSSObjectives: Round 9: PostRound -> PreRound, objective -1/2, outcome None, captures T1=0 T2=0.
+LogSSObjectives: Round 9: PreRound -> InProgress, objective 0/2, outcome None, captures T1=0 T2=0.
+LogSSObjectives: Objective 0 'Water Point' captured by TeamOne.
+LogSSObjectives: Round 9: InProgress -> InProgress, objective 1/2, outcome None, captures T1=1 T2=0.
+LogSSObjectives: Objective 1 'Farmstead' captured by TeamOne.
+LogSSObjectives: Round 9: InProgress -> PostRound, objective -1/2, outcome TeamOneWon, captures T1=2 T2=0.
+LogSSObjectives: Round 10: PostRound -> PreRound, objective -1/2, outcome None, captures T1=0 T2=0.
+LogSSObjectives: Round 10: PreRound -> InProgress, objective 0/2, outcome None, captures T1=0 T2=0.
+LogSSObjectives: Objective 0 'Water Point' captured by TeamOne.
+LogSSObjectives: Round 10: InProgress -> InProgress, objective 1/2, outcome None, captures T1=1 T2=0.
+LogSSObjectives: Objective 1 'Farmstead' captured by TeamOne.
+LogSSObjectives: Round 10: InProgress -> PostRound, objective -1/2, outcome TeamOneWon, captures T1=2 T2=0.
+LogSSObjectives: Round 11: PostRound -> PreRound, objective -1/2, outcome None, captures T1=0 T2=0.
+LogSSObjectives: Round 11: PreRound -> InProgress, objective 0/2, outcome None, captures T1=0 T2=0.
+LogSSObjectives: Objective 0 'Water Point' captured by TeamOne.
+LogSSObjectives: Round 11: InProgress -> InProgress, objective 1/2, outcome None, captures T1=1 T2=0.
+LogSSObjectives: Objective 1 'Farmstead' captured by TeamOne.
+LogSSObjectives: Round 11: InProgress -> PostRound, objective -1/2, outcome TeamOneWon, captures T1=2 T2=0.
+LogSSObjectives: Round 12: PostRound -> PreRound, objective -1/2, outcome None, captures T1=0 T2=0.
+LogSSObjectives: Round 12: PreRound -> InProgress, objective 0/2, outcome None, captures T1=0 T2=0.
+LogSSObjectives: Objective 0 'Water Point' captured by TeamOne.
+LogSSObjectives: Round 12: InProgress -> InProgress, objective 1/2, outcome None, captures T1=1 T2=0.
+LogSSObjectives: Objective 1 'Farmstead' captured by TeamOne.
+LogSSObjectives: Round 12: InProgress -> PostRound, objective -1/2, outcome TeamOneWon, captures T1=2 T2=0.
+LogSSObjectives: Round 13: PostRound -> PreRound, objective -1/2, outcome None, captures T1=0 T2=0.
+LogSSObjectives: Round 13: PreRound -> InProgress, objective 0/2, outcome None, captures T1=0 T2=0.
+LogSSObjectives: Objective 0 'Water Point' captured by TeamOne.
+LogSSObjectives: Round 13: InProgress -> InProgress, objective 1/2, outcome None, captures T1=1 T2=0.
+LogSSObjectives: Objective 1 'Farmstead' captured by TeamOne.
+LogSSObjectives: Round 13: InProgress -> PostRound, objective -1/2, outcome TeamOneWon, captures T1=2 T2=0.
+LogSSObjectives: Round 14: PostRound -> PreRound, objective -1/2, outcome None, captures T1=0 T2=0.
+LogSSObjectives: Round 14: PreRound -> InProgress, objective 0/2, outcome None, captures T1=0 T2=0.
+LogSSObjectives: Objective 0 'Water Point' captured by TeamOne.
+LogSSObjectives: Round 14: InProgress -> InProgress, objective 1/2, outcome None, captures T1=1 T2=0.
+LogSSObjectives: Objective 1 'Farmstead' captured by TeamOne.
+LogSSObjectives: Round 14: InProgress -> PostRound, objective -1/2, outcome TeamOneWon, captures T1=2 T2=0.
+LogSSObjectives: Round 15: PostRound -> PreRound, objective -1/2, outcome None, captures T1=0 T2=0.
+LogSSObjectives: Round 15: PreRound -> InProgress, objective 0/2, outcome None, captures T1=0 T2=0.
+LogSSObjectives: Round 15: InProgress -> PostRound, objective -1/2, outcome Draw, captures T1=0 T2=0.
+LogSSObjectives: Round 16: PostRound -> PreRound, objective -1/2, outcome None, captures T1=0 T2=0.
+LogSSObjectives: Round 16: PreRound -> InProgress, objective 0/2, outcome None, captures T1=0 T2=0.
+LogSSObjectives: Objective 0 'Water Point' captured by TeamTwo.
+LogSSObjectives: Round 16: InProgress -> InProgress, objective 1/2, outcome None, captures T1=0 T2=1.
+LogSSObjectives: Objective 1 'Farmstead' captured by TeamOne.
+LogSSObjectives: Round 16: InProgress -> PostRound, objective -1/2, outcome TeamOneWon, captures T1=1 T2=1.
+LogSSObjectives: Round 17: PostRound -> PreRound, objective -1/2, outcome None, captures T1=0 T2=0.
+LogSSObjectives: Round 17: PreRound -> InProgress, objective 0/2, outcome None, captures T1=0 T2=0.
+LogSSObjectives: Objective 0 'Water Point' captured by TeamOne.
+LogSSObjectives: Round 17: InProgress -> InProgress, objective 1/2, outcome None, captures T1=1 T2=0.
+LogSSObjectives: Objective 1 'Farmstead' captured by TeamOne.
+LogSSObjectives: Round 17: InProgress -> PostRound, objective -1/2, outcome TeamOneWon, captures T1=2 T2=0.
+LogSSObjectives: Round 18: PostRound -> PreRound, objective -1/2, outcome None, captures T1=0 T2=0.
+LogSSObjectives: Round 18: PreRound -> InProgress, objective 0/2, outcome None, captures T1=0 T2=0.
+LogSSObjectives: Objective 0 'Water Point' captured by TeamOne.
+LogSSObjectives: Round 18: InProgress -> InProgress, objective 1/2, outcome None, captures T1=1 T2=0.
+LogSSObjectives: Objective 1 'Farmstead' captured by TeamOne.
+LogSSObjectives: Round 18: InProgress -> PostRound, objective -1/2, outcome TeamOneWon, captures T1=2 T2=0.
+LogSSObjectives: Round 19: PostRound -> PreRound, objective -1/2, outcome None, captures T1=0 T2=0.
+LogSSObjectives: Round 19: PreRound -> InProgress, objective 0/2, outcome None, captures T1=0 T2=0.
+LogSSObjectives: Objective 0 'Water Point' captured by TeamOne.
+LogSSObjectives: Round 19: InProgress -> InProgress, objective 1/2, outcome None, captures T1=1 T2=0.
+LogSSObjectives: Objective 1 'Farmstead' captured by TeamOne.
+LogSSObjectives: Round 19: InProgress -> PostRound, objective -1/2, outcome TeamOneWon, captures T1=2 T2=0.
+LogSSObjectives: Round 20: PostRound -> PreRound, objective -1/2, outcome None, captures T1=0 T2=0.
+LogSSObjectives: Round 20: PreRound -> InProgress, objective 0/2, outcome None, captures T1=0 T2=0.
+LogSSObjectives: Objective 0 'Water Point' captured by TeamOne.
+LogSSObjectives: Round 20: InProgress -> InProgress, objective 1/2, outcome None, captures T1=1 T2=0.
+LogSSObjectives: Objective 1 'Farmstead' captured by TeamOne.
+LogSSObjectives: Round 20: InProgress -> PostRound, objective -1/2, outcome TeamOneWon, captures T1=2 T2=0.
+LogSSObjectives: Round 21: PostRound -> PreRound, objective -1/2, outcome None, captures T1=0 T2=0.
+LogSSObjectives: Round 21: PreRound -> InProgress, objective 0/2, outcome None, captures T1=0 T2=0.
+LogSSObjectives: Objective 0 'Water Point' captured by TeamOne.
+LogSSObjectives: Round 21: InProgress -> InProgress, objective 1/2, outcome None, captures T1=1 T2=0.
+LogSSObjectives: Objective 1 'Farmstead' captured by TeamOne.
+LogSSObjectives: Round 21: InProgress -> PostRound, objective -1/2, outcome TeamOneWon, captures T1=2 T2=0.
+LogSSObjectives: Round 22: PostRound -> PreRound, objective -1/2, outcome None, captures T1=0 T2=0.
+LogSSObjectives: Round 22: PreRound -> InProgress, objective 0/2, outcome None, captures T1=0 T2=0.
+LogSSObjectives: Objective 0 'Water Point' captured by TeamTwo.
+LogSSObjectives: Round 22: InProgress -> InProgress, objective 1/2, outcome None, captures T1=0 T2=1.
+LogSSObjectives: Round 22: InProgress -> PostRound, objective -1/2, outcome Draw, captures T1=0 T2=1.
+LogSSObjectives: Round 23: PostRound -> PreRound, objective -1/2, outcome None, captures T1=0 T2=0.
+LogSSObjectives: Round 23: PreRound -> InProgress, objective 0/2, outcome None, captures T1=0 T2=0.
