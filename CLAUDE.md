@@ -128,6 +128,7 @@ rifle definitions, pointed at ours). The starting loadout is data: `Config/Defau
 
 - Binary assets (`.uasset .umap .fbx .blend .png .jpg`) are LFS. Push with `GIT_LFS_SKIP_PUSH=1 git push`
   (Epic content must not be republished; remote holds pointers only, R-14). Verify staged binaries are pointers.
+- **Stage explicit paths, never `git add -A`**: Fab or Sourced packs can land in `Content/` at any time and must stay git-ignored until adapted (ADR-021). Check `git status` for new `Content/` folders first.
 - Never commit `Binaries/ Intermediate/ Saved/ DerivedDataCache/ Build/ __pycache__`, secrets or broken-guard changes.
 - Commits end with the `Co-Authored-By` line given by the harness. Don't reset/clean/discard others' work.
 - Website source is `Site/`; publish with `python Tools/publish_site.py` after the changelog is committed
