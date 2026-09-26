@@ -1,0 +1,25 @@
+{
+	"FileVersion": 3,
+	"Version": 1,
+	"VersionName": "0.1",
+	"FriendlyName": "Southern Spear Lyra Bridge",
+	"Description": "The only Southern Spear module allowed to depend on Lyra (ADR-019). Adapts Lyra systems to Southern Spear rules on the client: viewer-relative team tint now, the Southern Spear HUD later. Nothing depends on it.",
+	"Category": "Gameplay",
+	"CreatedBy": "Southern Spear",
+	"EnabledByDefault": true,
+	"CanContainContent": false,
+	"Installed": false,
+	"Modules": [
+		{
+			"Name": "SouthernSpearLyraBridge",
+			"Type": "Runtime",
+			"LoadingPhase": "Default"
+		}
+	],
+	"Plugins": [
+		{
+			"Name": "SouthernSpearCore",
+			"Enabled": true
+		}
+	]
+}

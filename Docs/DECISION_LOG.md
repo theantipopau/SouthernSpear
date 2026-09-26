@@ -442,3 +442,36 @@ presentation (ADR-004, ADR-017) so it can be tested headless.
 it: mirrored inputs give mirrored results. Respawn limits, elimination rules and attacker/defender
 asymmetry are deferred and need their own ADR. Parallel objectives on Dry River are not allowed
 until the OBJ B distance asymmetry in `MAPS_DRYRIVER.md` §6.1 is rebalanced.
+
+## ADR-019 — SouthernSpearLyraBridge: the one guarded Lyra dependency
+
+**Status:** Accepted (producer decision, 2026-09-26)
+**Date:** 2026-09-26
+
+**Context.** Viewer-relative team tint (ADR-017) and a Southern Spear health/ammo HUD need Lyra data
+(team ids, attributes, equipment). Core, Team, Objectives and their UI must stay Lyra-free (SS002), and
+Lyra stays unmodified (ADR-002).
+
+**Decision.** A new plugin `SouthernSpearLyraBridge` is the **only** `SouthernSpear*` module that may
+depend on `LyraGame`. It adapts Lyra to Southern Spear rules on the client and holds no gameplay rules of
+its own. No Southern Spear module may depend on it (guard SS001), and SS002 now bars Lyra from every
+other `SouthernSpear*` module. First use: `USSViewerTeamTintSubsystem`, which re-tints pawns from the
+local viewer's side through `FSSTeamIdentity::ResolveLocality` (own team sage, other team OPFOR clay).
+Viewers without a playable team keep Lyra's absolute colours. `ULyraTeamDisplayAsset` is not exported, so
+the bridge sets Lyra's five team colour parameters directly.
+
+**Consequences.** Lyra coupling is in one place, which can be replaced when Lyra is. The tint re-applies
+every 0.5 s to stay on top of Lyra's own re-application (parameter sets only).
+
+## ADR-020 — Original art built in Blender by script
+
+**Status:** Accepted (producer decision, 2026-09-26)
+**Date:** 2026-09-26
+
+**Decision.** Character, weapon and gear art for the vertical slice is original, built by scripts in
+`Tools/Blender/` (reproducible, reviewable, legally clean; licence class "original"). Weapons come first
+(A88 family, A89, A4, MAF counterparts per ADR-016), as static meshes attached to Lyra's weapon
+sockets so Lyra's animations keep working. Gear and uniforms (CMECU) come next, skinned to the Lyra
+mannequin skeleton. Quality starts at placeholder and improves over time. Marketplace or commissioned
+art is not used unless a later decision says so. No real-weapon CAD, brand marks, or copied patterns.
+

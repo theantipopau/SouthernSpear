@@ -8,6 +8,9 @@
 #include "SSObjectiveAssaultDirector.h"
 #include "SSObjectiveStatusWidget.h"
 #include "SSObjectiveTypes.h"
+#include "Misc/CommandLine.h"
+#include "Misc/Parse.h"
+#include "UnrealClient.h"
 
 IMPLEMENT_MODULE(FDefaultModuleImpl, SouthernSpearObjectivesUI)
 
@@ -29,6 +32,17 @@ TStatId USSObjectiveHudSubsystem::GetStatId() const
 
 void USSObjectiveHudSubsystem::Tick(float DeltaTime)
 {
+	// Dev capture: -SSShotAt=<seconds> takes one viewport screenshot
+	// (Saved/Screenshots) without touching the desktop or window focus.
+	ElapsedSeconds += DeltaTime;
+	float ShotAt = 0.f;
+	if (!bShotTaken && FParse::Value(FCommandLine::Get(), TEXT("SSShotAt="), ShotAt) && ElapsedSeconds >= ShotAt)
+	{
+		bShotTaken = true;
+		FScreenshotRequest::RequestScreenshot(TEXT("SSShot.png"), /*bShowUI=*/ true, /*bAddFilenameSuffix=*/ false);
+		UE_LOG(LogSSObjectives, Log, TEXT("Requested viewport screenshot at %.1f s."), ElapsedSeconds);
+	}
+
 	if (StatusWidget)
 	{
 		return;

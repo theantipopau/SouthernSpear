@@ -1,0 +1,114 @@
+// Copyright Southern Spear. All Rights Reserved.
+
+#include "SSViewerTeamTintSubsystem.h"
+
+#include "Engine/World.h"
+#include "EngineUtils.h"
+#include "GameFramework/Pawn.h"
+#include "GameFramework/PlayerController.h"
+#include "SSTeamIdentityLibrary.h"
+#include "Components/MeshComponent.h"
+#include "Teams/LyraTeamSubsystem.h"
+
+DEFINE_LOG_CATEGORY_STATIC(LogSSBridge, Log, All);
+
+IMPLEMENT_MODULE(FDefaultModuleImpl, SouthernSpearLyraBridge)
+
+namespace
+{
+	// Southern Spear palette (Site/styles.css): sage friendly, OPFOR clay opposing.
+	FLinearColor Srgb(const TCHAR* Hex) { return FLinearColor::FromSRGBColor(FColor::FromHex(Hex)); }
+
+	// Lyra's shooter teams use generic ids 1 and 2 (same mapping as the objective director).
+	ESSTeamId ToTeamId(int32 LyraTeamId)
+	{
+		return LyraTeamId == 1 ? ESSTeamId::TeamOne : LyraTeamId == 2 ? ESSTeamId::TeamTwo : ESSTeamId::None;
+	}
+
+	// The colour parameters Lyra's team display assets drive (TeamDA_*). Set
+	// directly because ULyraTeamDisplayAsset is not exported from LyraGame.
+	const FName BaseParams[] = { TEXT("TeamColor") };
+	const FName GlowParams[] = { TEXT("EdgeGlowColor"), TEXT("EmissiveColor"), TEXT("EmissiveColor2"), TEXT("EmissiveColor3") };
+
+	void Tint(AActor* Actor, const FLinearColor& Base, const FLinearColor& Glow)
+	{
+		TArray<AActor*> Actors { Actor };
+		Actor->GetAttachedActors(Actors, /*bResetArray=*/ false, /*bRecursivelyIncludeAttachedActors=*/ true);
+		for (AActor* Each : Actors)
+		{
+			TInlineComponentArray<UMeshComponent*> Meshes(Each);
+			for (UMeshComponent* Mesh : Meshes)
+			{
+				for (const FName& Name : BaseParams) { Mesh->SetVectorParameterValueOnMaterials(Name, FVector(Base)); }
+				for (const FName& Name : GlowParams) { Mesh->SetVectorParameterValueOnMaterials(Name, FVector(Glow)); }
+			}
+		}
+	}
+}
+
+bool USSViewerTeamTintSubsystem::ShouldCreateSubsystem(UObject* Outer) const
+{
+	const UWorld* World = Cast<UWorld>(Outer);
+	return World && World->GetNetMode() != NM_DedicatedServer && Super::ShouldCreateSubsystem(Outer);
+}
+
+bool USSViewerTeamTintSubsystem::DoesSupportWorldType(const EWorldType::Type WorldType) const
+{
+	return WorldType == EWorldType::Game || WorldType == EWorldType::PIE;
+}
+
+TStatId USSViewerTeamTintSubsystem::GetStatId() const
+{
+	RETURN_QUICK_DECLARE_CYCLE_STAT(USSViewerTeamTintSubsystem, STATGROUP_Tickables);
+}
+
+void USSViewerTeamTintSubsystem::Tick(float DeltaTime)
+{
+	// Lyra re-applies its own colours on team/pawn changes; a frequent, cheap
+	// re-apply (parameter sets only) keeps the viewer-relative tint on top.
+	Accumulator += DeltaTime;
+	if (Accumulator < 0.5f)
+	{
+		return;
+	}
+	Accumulator = 0.f;
+
+	UWorld* World = GetWorld();
+	const APlayerController* Viewer = World ? World->GetFirstPlayerController() : nullptr;
+	ULyraTeamSubsystem* Teams = World ? World->GetSubsystem<ULyraTeamSubsystem>() : nullptr;
+	if (!Viewer || !Viewer->IsLocalController() || !Teams)
+	{
+		return;
+	}
+	const ESSTeamId ViewerTeam = ToTeamId(Teams->FindTeamFromObject(Viewer));
+	if (!FSSTeamIdentity::IsPlayableTeam(ViewerTeam))
+	{
+		return; // no authorised vantage: leave Lyra's absolute colours
+	}
+
+	LastTintedCount = 0;
+	for (TActorIterator<APawn> It(World); It; ++It)
+	{
+		const ESSTeamId Subject = ToTeamId(Teams->FindTeamFromObject(*It));
+		if (!FSSTeamIdentity::IsPlayableTeam(Subject))
+		{
+			continue;
+		}
+		const FSSLocalityResolution Resolution = FSSTeamIdentity::ResolveLocality(ViewerTeam, Subject);
+		if (!Resolution.IsResolved())
+		{
+			continue;
+		}
+		static const FLinearColor FriendlyBase = Srgb(TEXT("B9C1B4")), FriendlyGlow = Srgb(TEXT("D6E2CF"));
+		static const FLinearColor OpposingBase = Srgb(TEXT("8C493D")), OpposingGlow = Srgb(TEXT("C98A7C"));
+		const bool bFriendly = Resolution.Locality == ESSLocality::Friendly;
+		Tint(*It, bFriendly ? FriendlyBase : OpposingBase, bFriendly ? FriendlyGlow : OpposingGlow);
+		++LastTintedCount;
+	}
+	if (LastTintedCount != LastLoggedCount)
+	{
+		LastLoggedCount = LastTintedCount;
+		UE_LOG(LogSSBridge, Log, TEXT("Viewer-relative tint applied to %d pawn(s) (viewer %s)."),
+			LastTintedCount, *FSSTeamIdentity::ToDebugString(ViewerTeam));
+	}
+}

@@ -395,6 +395,10 @@
 			"Enabled": true
 		},
 		{
+			"Name": "SouthernSpearLyraBridge",
+			"Enabled": true
+		},
+		{
 			"Name": "SSExp_ObjectiveAssault",
 			"Enabled": true
 		}

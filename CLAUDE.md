@@ -35,6 +35,7 @@ Southern Spear is an original, fictional, Australian-inspired tactical multiplay
 - **Fictional only (ADR-016).** Use: CDS (Commonwealth Defence Service), CLS (Commonwealth Land Service),
   ACR / **3 ACR**, 2 CG, SOR, **MAF** (Murasian Armed Forces — a competent conventional force; never
   insurgents/terrorists/militia/ethnic/religious/real-nation), **CMECU** uniform.
+- **Art (ADR-020):** original, script-built in Blender (`Tools/Blender/`); weapons as static meshes on Lyra sockets, gear skinned to the Lyra mannequin.
 - **Weapons are A-series:** A88 (+C/G/M/T), A89, A4, A416, A417, A9. Real names (EF88, F89, M4, AK,
   Minimi…) only in internal research notes — never in code identifiers, data, UI or public docs.
 - No ADF/Army branding, insignia, Rising Sun, mottos, colour patches; no Multicam or Auscam/Musorian copies
@@ -54,6 +55,7 @@ Southern Spear is an original, fictional, Australian-inspired tactical multiplay
 | `SouthernSpearObjectivesUI` | Objective HUD: pure `FSSObjectiveHudModel` (viewer-relative text/tone, neutral Team One/Two vantage without a team), C++-built `USSObjectiveStatusWidget`, `USSObjectiveHudSubsystem` (adds it for the local player) | Objectives, Core, UMG — **no Lyra**; gameplay never depends on it (SS005) |
 | `SouthernSpearObjectivesEditor` (editor module) | Python-callable authoring helpers (`SetGameFeatureComponentGrants`, `SetPropertyFromText`) | GameFeatures, Core |
 | `Plugins/GameFeatures/SSExp_ObjectiveAssault` | Content-only Game Feature + experience `B_SS_ObjectiveAssault` | ShooterCore, Objectives |
+| `Plugins/SouthernSpearLyraBridge` | ADR-019: the **only** SS module allowed to depend on Lyra. Client `USSViewerTeamTintSubsystem` (own team sage, other OPFOR clay, via `ResolveLocality`); future SS health/ammo HUD | Core, LyraGame — **nothing may depend on it** |
 | `Source/`, other `Plugins/` | Vendored Lyra — **do not modify**; any departure needs an ADR + `Docs/LYRA_ADOPTION.md` entry | — |
 
 Rules: ADR-004 — presentation may never expose/modify damage, health, ammo, recoil, movement, collision,
@@ -78,6 +80,8 @@ python Tools/verify_dressing.py
   real source in a deliberately broken state.
 - `-game` runs print only Display+ to stdout; read `Saved/Logs/SouthernSpear.log` for `LogSSObjectives`.
 - In Git Bash prefix map-path args with `MSYS_NO_PATHCONV=1` (e.g. `/Game/Maps/L_DryRiver_01`).
+- Rendered check without touching the desktop: add `-SSShotAt=45` to a windowed `-game` run → `Saved/Screenshots/WindowsEditor/SSShot.png`.
+  Never screen-capture the desktop (it can grab the user's other windows).
 - Live check: `UnrealEditor-Cmd ... "/Game/Maps/L_DryRiver_01?NumBots=8?RoundSeconds=60" -game -nullrhi ... -FORCELOGFLUSH`
   (without `-FORCELOGFLUSH` a timeout kill loses the log tail; URL also takes `PreRoundSeconds`/`PostRoundSeconds`).
 - Source files are CRLF: Python `str.replace` edits must preserve `
