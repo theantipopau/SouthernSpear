@@ -54,4 +54,8 @@ public:
 	 */
 	UFUNCTION(BlueprintCallable, Category = "Southern Spear|Editor")
 	static bool SetPropertyFromText(UObject* Target, FName PropertyName, const FString& Value);
+
+	/** Export a property as text (the inverse of SetPropertyFromText); empty if missing. */
+	UFUNCTION(BlueprintCallable, Category = "Southern Spear|Editor")
+	static FString GetPropertyAsText(UObject* Target, FName PropertyName);
 };

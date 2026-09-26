@@ -61,3 +61,14 @@ bool USSObjectivesEditorLibrary::SetPropertyFromText(UObject* Target, FName Prop
 	Target->MarkPackageDirty();
 	return true;
 }
+
+FString USSObjectivesEditorLibrary::GetPropertyAsText(UObject* Target, FName PropertyName)
+{
+	FProperty* Property = Target ? Target->GetClass()->FindPropertyByName(PropertyName) : nullptr;
+	FString Out;
+	if (Property)
+	{
+		Property->ExportText_InContainer(0, Out, Target, Target, Target, PPF_None);
+	}
+	return Out;
+}

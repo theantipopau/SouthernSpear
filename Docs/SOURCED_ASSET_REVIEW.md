@@ -24,6 +24,10 @@ The only licence-related file in the whole drop is an author credit in `M4_alt/s
 | `Environmental/*` (Bingie Bingie, Cape Liptrap, Petty Beach, Ross River NT, Split Point VIC) | Photogrammetry scans of real Australian places, some named "Sketchfab" | **PROMISING — needs licence** | Sketchfab scans are often CC-BY or CC0, which would be usable with attribution. The Sketchfab page URL and licence are needed for each one. |
 | `Environmental/forest` | Fir-forest FBX plus images scraped from the web (hash filenames, `carve.photos` background removal) | **REJECT textures / BLOCKED model** | Scraped images have unknown rights. Fir forest is also not an Australian biome. |
 
+> **Note on the environment scans:** ADR-013 decided that maps are built original and third-party
+> environments are not used. Even with a clean CC licence, using these scans in the game needs a new
+> ADR superseding ADR-013 for look-development or terrain reference. As visual reference they are fine now.
+
 ## What *is* allowed now
 
 - **Visual reference.** Looking at these, or at any photo, for proportions, silhouette and mood while

@@ -1,0 +1,44 @@
+{
+  "ok": true,
+  "steps": [
+    {
+      "step": "import_mesh",
+      "ok": true,
+      "detail": "[89.0, 8.4, 31.3]"
+    },
+    {
+      "step": "master_material",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "step": "finishes",
+      "ok": true,
+      "detail": "['Polymer', 'Metal', 'Glass']"
+    },
+    {
+      "step": "visual_blueprint",
+      "ok": true,
+      "detail": "/SSExp_ObjectiveAssault/Weapons/A88/B_SS_A88"
+    },
+    {
+      "step": "equipment_definition",
+      "ok": true,
+      "detail": "((ActorToSpawn=\"/Script/Engine.BlueprintGeneratedClass'/SSExp_ObjectiveAssault/Weapons/A88/B_SS_A88.B_SS_A88_C'\",AttachSocket=\"weapon_r\",AttachTransform=(Rotation=(X=0.000000,Y=0.000000,Z=-0.707107,W=0.707107))))"
+    },
+    {
+      "step": "item_definition",
+      "ok": true,
+      "detail": "1 equippable fragment(s) -> WID_SS_A88_C"
+    }
+  ],
+  "errors": [],
+  "mesh_size_cm": [
+    89.0,
+    8.4,
+    31.3
+  ],
+  "muzzle_socket": true,
+  "actors_to_spawn": "((ActorToSpawn=\"/Script/Engine.BlueprintGeneratedClass'/SSExp_ObjectiveAssault/Weapons/A88/B_SS_A88.B_SS_A88_C'\",AttachSocket=\"weapon_r\",AttachTransform=(Rotation=(X=0.000000,Y=0.000000,Z=-0.707107,W=0.707107))))",
+  "item_class": "/SSExp_ObjectiveAssault/Weapons/A88/ID_SS_A88.ID_SS_A88_C"
+}

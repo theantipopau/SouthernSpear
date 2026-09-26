@@ -21,6 +21,7 @@ public class SouthernSpearLyraBridge : ModuleRules
 				"Core",
 				"CoreUObject",
 				"Engine",
+				"DeveloperSettings",
 				"SouthernSpearCore",
 			}
 		);

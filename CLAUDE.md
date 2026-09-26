@@ -101,6 +101,14 @@ Each is `UnrealEditor-Cmd ... -nullrhi -unattended -nosplash -nosound -stdout
 
 Blender source: `Tools/Blender/dryriver_blockout.py`, `dryriver_dressing.py`; shared spec `Tools/Common/dryriver_spec.py`.
 
+## Weapons pipeline (ADR-020)
+
+`blender --background --factory-startup --python Tools/Blender/a88_rifle.py` → `Art/Weapons/A88/SM_A88.fbx`, then
+`UnrealEditor-Cmd ... -ExecutePythonScript=E:/SouthernSpear/Tools/Unreal/setup_a88.py` → mesh, `MI_A88_*`, `B_SS_A88`
+(`ASSHeldItemVisualActor`, +90° yaw offset cancels Lyra's -90° attach), `WID_SS_A88`/`ID_SS_A88` (copies of Lyra's
+rifle definitions, pointed at ours). The starting loadout is data: `Config/DefaultGame.ini` `[/Script/SouthernSpearLyraBridge.SSLoadoutSettings]`.
+`Content/Sourced/` is an **unlicensed drop — reference only, git-ignored** (`Docs/SOURCED_ASSET_REVIEW.md`, R-17).
+
 ## Unreal Python gotchas (all learned the hard way)
 
 - `unreal.Rotator` positional order is **(roll, pitch, yaw)** — always use keywords.
@@ -110,6 +118,8 @@ Blender source: `Tools/Blender/dryriver_blockout.py`, `dryriver_dressing.py`; sh
 - Holding a map reference (`load_asset`) across `load_map` → fatal "World Memory Leaks".
 - `EditDefaultsOnly` props (e.g. `LyraWorldSettings.DefaultGameplayExperience`) and non-BlueprintType structs
   (`FGameFeatureComponentEntry`, `FGameFeatureAbilitiesEntry`) need `SSObjectivesEditorLibrary` helpers.
+- Lyra types that aren't exported (`ULyraQuickBarComponent`, `ULyraTeamDisplayAsset`, `ULyraInventoryItemDefinition`): use `FindObject<UClass>` + UFUNCTION reflection in the bridge, never `StaticClass()`.
+- `StaticMesh.sockets` is protected in Python: use `find_socket`. Hidden C++ props: `SSObjectivesEditorLibrary.get/set_property_as/from_text`.
 - Some classes aren't module attributes: use `unreal.load_class(None, "/Script/Module.Class")`.
 - `-nosound` makes Lyra weapon audio print on-screen Blueprint errors (`WeaponAudioFunctions.EarlyReflections`); not a defect.
 - Engine Toolset Python import errors in logs are unrelated noise.
