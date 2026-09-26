@@ -799,6 +799,31 @@ team respawns close to OBJ B. Needs spawn/objective distance review once multipl
 
 ---
 
+## Session 011 — 2026-09-26 — CLAUDE.md Added
+
+### COMPLETED
+- Added `CLAUDE.md`: project identity, session start checklist, source-of-truth order, fictional
+  content and legal rules, module architecture and guard, build/test commands, Dry River pipeline
+  order, Unreal Python gotchas found in Sessions 006–010, Git/LFS/publishing rules, and the
+  mandatory end-of-session changelog format.
+
+### FILES CHANGED
+Created `CLAUDE.md`. Modified `Docs/CHANGELOG.md`.
+
+### TESTING
+Documentation only. No build or test run: **NOT RUN** (not applicable).
+
+### ASSETS
+None.
+
+### RISKS
+Unchanged. The extra player starts from Session 010 remain unverified.
+
+### NEXT ACTION
+**Close the running game process, run `setup_objective_assault.py` + `build_dryriver_nav.py`, and verify the extra player starts.**
+
+---
+
 ## Open Threads
 
 | Item | Blocked on | Owner |
