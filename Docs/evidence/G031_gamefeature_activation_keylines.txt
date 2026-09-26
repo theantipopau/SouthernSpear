@@ -1,0 +1,6 @@
+LogGameFeatures: Display: Game feature 'TopDownArena' transitioned successfully. Ending state: Registered [Registered, Active]
+LogGameFeatures: Display: Game feature 'ShooterCore' transitioned successfully. Ending state: Registered [Registered, Active]
+LogGameFeatures: Display: Game feature 'ShooterExplorer' transitioned successfully. Ending state: Registered [Registered, Active]
+LogGameFeatures: Display: Game feature 'ShooterMaps' transitioned successfully. Ending state: Registered [Registered, Active]
+LogGameFeatures: Display: Game feature 'ShooterTests' transitioned successfully. Ending state: Registered [Registered, Active]
+LogGameFeatures: Display: Game feature 'ShooterCore' transitioned successfully. Ending state: Active [Active, Active]

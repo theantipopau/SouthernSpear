@@ -602,15 +602,23 @@ None created or imported. Placeholder table references engine-shipped assets by 
    Found by the negative test: an injected `LyraHealthComponent.h` include passed. Fixed.
 2. **Guard SS001 forbade every SS→SS dependency**, contradicting the rule that SS plugins may build
    on SouthernSpearCore. Fixed.
-3. **Game Feature "Active" claim not reproduced**: this run logs ending state `Registered`. Earlier
-   evidence should be re-checked in a PIE/game run.
+3. **Game Feature activation — resolved in follow-up.** A `-game` run on `/ShooterMaps/Maps/L_Expanse`
+   (`UnrealEditor-Cmd ... /ShooterMaps/Maps/L_Expanse -game -nullrhi`, stopped by 240 s timeout, exit 124)
+   logs `ShooterCore ... Ending state: Active`; the other four remain `Registered`, which is correct Lyra
+   on-demand behaviour. The Session 003 record already said `Registered`; the "all five became active"
+   claim came from the session hand-off, not the evidence. Evidence `G031_gamefeature_activation_keylines.txt`.
 4. Minor, not fixed: Core reports `UnrecognisedViewingTeam` when the *subject* team is an unknown
    non-None value (`SSTeamIdentityLibrary.cpp`).
 
 ### NEXT ACTION
 
-**Re-verify Lyra Game Feature activation in a real game/PIE run** — the commandlet log shows
-`Registered`, not `Active`, so G-gate evidence claiming activation is unconfirmed.
+Follow-up in this session: stale active docs corrected against ADR-016/017 (ROADMAP status,
+TEST_PLAN execution table, GDD team/weapon rows, ASSET_REGISTER W-001..W-003/W-101..W-102,
+ASSET_NAMING_STANDARDS examples, DF/_DA and _SM LOD contradictions, dressing-name deviation noted).
+
+**Diagnose and fix R-10** (Dry River dressing collision lost after save/reload): re-observed this
+session at 0/3 sampled props and 0/7 fences, and it is the last defect in already-built work
+before new gameplay (SSExp_ObjectiveAssault / A88) begins.
 
 ---
 

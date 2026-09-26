@@ -10,9 +10,9 @@
 
 | Element | Convention | Example |
 |---|---|---|
-| Prefix | `SS_` | `SS_WPN_AKServiceRifle` |
+| Prefix | `SS_` | `SS_WPN_A88_01` |
 | Type token | 2–4 letter code | `WPN`, `CHR`, `ANM`, `SND`, `MFX`, `UI_`, `MAP`, `DF`, `DT` |
-| Separator | `_` | `SS_WPN_AKServiceRifle` |
+| Separator | `_` | `SS_WPN_A88_01` |
 | Words | PascalCase within a token | `SS_WPN_ServiceRifle` |
 | Variants | Suffix with a number | `SS_WPN_ServiceRifle_01` |
 
@@ -24,7 +24,7 @@
 
 | Code | Category | Example |
 |---|---|---|
-| `CORE` | Shared / core | `SS_CORE_Material_MulticamOriginal` |
+| `CORE` | Shared / core | `SS_CORE_Material_CMECU` |
 | `CHR` | Characters | `SS_CHR_Helmet_01` |
 | `WPN` | Weapons | `SS_WPN_ServiceRifle_01` |
 | `EQP` | Equipment | `SS_EQP_FieldDressing_01` |
@@ -34,7 +34,7 @@
 | `UI` | Interface | `SS_UI_W_Badge_Medic` |
 | `MAP` | Maps | `SS_MAP_DryRiver_01` |
 | `TRN` | Training | `SS_TRN_Range_01` |
-| `DF` | Data asset | `SS_DF_Weapon_AKServiceRifle` |
+| `DA` | Data asset | `SS_DA_Weapon_A88` |
 | `DT` | Data table | `SS_DT_ProgressionCurve` |
 | `DEV` | Developer-only | `SS_DEV_DebugHUD` |
 
@@ -58,7 +58,7 @@ A mismatch between the asset name and its path is a review rejection, because it
 | Suffix | Use |
 |---|---|
 | `_01`, `_02` | Iterations / variants |
-| `_SM`, `_MD`, `_LG` | Skeletal mesh LODs |
+| `_LOD0`, `_LOD1`, … | Mesh LODs (never `_SM`, which reads as Static Mesh) |
 | `_MF` | Material function |
 | `_MI` | Material instance |
 | `_MAT` | Material |
@@ -69,11 +69,13 @@ A mismatch between the asset name and its path is a review rejection, because it
 | `_AO` | Ambient occlusion |
 | `_D` | Decal |
 | `_BP` | Blueprint |
-| `_DA` | Data asset |
-| `_DT` | Data table |
 | `_FL` | Flow material |
 | `_C` | Curve |
 | `_P` | Physics asset |
+
+Asset type is carried by the category token (§2) **or** a suffix, never both: data assets and data tables use the `DA`/`DT` category token and take no `_DA`/`_DT` suffix.
+
+**Known deviation:** the Session 004 dressing meshes are named `SS_Dressing_*` with no category token. They are referenced by the Dry River placement data and tools, so they are recorded here rather than renamed; new dressing uses `SS_MAP_Dressing_*`.
 
 ---
 

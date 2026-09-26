@@ -75,13 +75,13 @@ There is exactly **one** soldier simulation. Both teams instantiate the same paw
 |---|---|---|
 | Underlying pawn class | `SS_Soldier` | `SS_Soldier` |
 | Hitbox / capsule / collision | Identical | Identical |
-| Network identity (`PlayerState`, `TeamId`) | Team 0 / Team 1 per match | Team 0 / Team 1 per match |
+| Network identity (`PlayerState`, `TeamId`) | `ESSTeamId` TeamOne / TeamTwo (ADR-017) | `ESSTeamId` TeamOne / TeamTwo (ADR-017) |
 | Weapon data (calibre, damage, RoF) | **Identical** | **Identical** |
 | Visual mesh set | Original multicam-style field dress | Mixed field clothing, chest rigs |
-| Weapon model | EF88-style bullpup | AK-pattern rifle |
+| Weapon model | A88 Standard Service Rifle (3 ACR presentation) | Original MAF counterpart display mesh, same A88 gameplay definition |
 | Insignia | Fictional unit flashes | Fictional non-national markings |
 
-A replicated `TeamId` on the `PlayerState` determines which **presentation layer** a client resolves. Presentation is resolved *on the client for cosmetic reasons only* and is never consulted for gameplay.
+The replicated `ESSTeamId` is combined with the viewer's own team to derive a local `ESSLocality` (never replicated), which selects the **presentation layer** (ADR-017, `FSSFactionPresentationResolver`). Presentation is resolved *on the client for cosmetic reasons only* and is never consulted for gameplay.
 
 ### 3.2 Hard rules
 

@@ -311,8 +311,13 @@ Every session appends to this table. **Empty means not tested — not passed.**
 |---|---|---|---|---|
 | 2026-09-26 | Toolchain audit | See `PROJECT_AUDIT.md` §9 | **PASS** | Terminal transcript in session log |
 | 2026-09-26 | Git LFS configuration | `git check-attr filter diff merge text` | **PASS** | `.uasset`/`.blend` → `lfs`; `.md` → text |
-| — | Gate G0.8 Lyra compile | `Build.bat SouthernSpearEditor` | **NOT RUN** | Pending Lyra download completion |
-| — | All other suites | — | **NOT RUN** | Blocked on gate G0.8 |
+| 2026-09-26 | Gate G0.8 Lyra compile | `Build.bat SouthernSpearEditor` | **PASS** | `CHANGELOG.md` G0.8 session |
+| 2026-09-26 | Architecture guard (+ negative) | `python Tools/validate_architecture.py` | **PASS**; negative caught 4 | `Docs/evidence/G030_guard_*.txt` |
+| 2026-09-26 | SouthernSpear.Core + .Presentation | `Automation RunTests SouthernSpear` | **PASS 15/15** | `Docs/evidence/G030_tests_keylines.txt` |
+| 2026-09-26 | Dry River nav regression (R-11) | `-ExecutePythonScript=Tools\Unreal\build_dryriver_nav.py` | **PASS** (path 2 points; tiles not measured) | `Docs/evidence/R11_dryriver_nav_report.json` |
+| 2026-09-26 | Dry River dressing data | `python Tools/verify_dressing.py` | **PASS 19/19** | `CHANGELOG.md` Session 006 |
+| 2026-09-26 | Game Feature activation | `-game` on `/ShooterMaps/Maps/L_Expanse` | **PASS** (ShooterCore Active on demand) | `Docs/evidence/G031_gamefeature_activation_keylines.txt` |
+| — | Dedicated server | — | **NOT RUN** | R-09 |
 
 ---
 

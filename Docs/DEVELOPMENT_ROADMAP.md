@@ -1,7 +1,7 @@
 # DEVELOPMENT ROADMAP — Southern Spear
 
 **Document ID:** `Docs/DEVELOPMENT_ROADMAP.md`
-**Status:** Baseline — Phase 0
+**Status:** Phase 1 active
 **Last updated:** 2026-09-26
 
 > **Fictional entertainment project.** Not endorsed, developed or approved by the Australian Defence Force, the Department of Defence or the Australian Army.
@@ -132,7 +132,7 @@ The milestone is complete only when **all** of these are demonstrated with a rec
 
 | ID | Task | Done when |
 |---|---|---|
-| IC-01 | EF88-style bullpup rifle (placeholder mesh, real data) | Data-driven, fires, reloads, replicates |
+| IC-01 | A88 Standard Service Rifle (placeholder mesh, real data) | Data-driven, fires, reloads, replicates |
 | IC-02 | AK-pattern counterpart | Identical gameplay data, different presentation |
 | IC-03 | F89-style support weapon + bipod | Bipod deploy/stow affects stability |
 | IC-04 | Opposing support weapon | As above, mirrored |
@@ -312,8 +312,8 @@ NEXT ACTION
 
 | Phase | State |
 |---|---|
-| Phase 0 | **In progress** — all documents written; awaiting gate G0.8 (Lyra compile) |
-| Phase 1 | Not started |
+| Phase 0 | **Complete** — G0.8 passed; G0.9 blocked by engine distribution (R-09); G0.10 passed |
+| Phase 1 | **Active** — G1.1, G1.2, G2.0, G2.1 passed; SouthernSpearCore and SouthernSpearTeam built and tested (`CHANGELOG.md` Session 006) |
 | Phases 2–6 | Not started |
 
-**Next action:** complete the Lyra download, vendor it into the repository, and run the Phase 0 gate G0.8 compile.
+**Next action:** see the single NEXT ACTION in the latest `CHANGELOG.md` session.

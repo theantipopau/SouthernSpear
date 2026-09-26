@@ -82,9 +82,9 @@ Lyra content is a **technical foundation, not Southern Spear art.** It is a plac
 
 | ID | Asset | Status | Licence dep. | Notes |
 |---|---|---|---|---|
-| W-001 | EF88-style 5.56 mm bullpup service rifle | `PLACEHOLDER` | — | Use the **Quinn/Manny** placeholder rifle initially. Original bullpup model required. **Original design, not a trace of manufacturer CAD** |
-| W-002 | F89 Minimi-style 5.56 mm belt-fed support weapon | `PLACEHOLDER` | — | Bipod, belt box, third-person carry poses |
-| W-003 | Generic service pistol | `PLACEHOLDER` | — | |
+| W-001 | A88 Standard Service Rifle (fictional; original bullpup design) | `PLACEHOLDER` | — | Use the **Quinn/Manny** placeholder rifle initially. Original bullpup model required. **Original design, not a trace of manufacturer CAD** |
+| W-002 | A89 Light Support Weapon (fictional; original belt-fed design) | `PLACEHOLDER` | — | Bipod, belt box, third-person carry poses |
+| W-003 | A9 Service Pistol (fictional) | `PLACEHOLDER` | — | |
 | W-004 | Smoke grenade | `PLACEHOLDER` | — | |
 | W-005 | Fragmentation grenade | `PLACEHOLDER` | — | Simulation only; no real-world handling detail |
 | W-006 | Field dressing | `PLACEHOLDER` | — | |
@@ -95,8 +95,8 @@ Lyra content is a **technical foundation, not Southern Spear art.** It is a plac
 
 | ID | Asset | Status | Licence dep. | Notes |
 |---|---|---|---|---|
-| W-101 | AK-pattern service rifle | `PLACEHOLDER` | — | **Original model.** Distinct silhouette. Not a copy of any manufacturer CAD or commercial game model |
-| W-102 | AK-pattern support rifle / belt-fed LMG | `PLACEHOLDER` | — | Original model |
+| W-101 | MAF service rifle display mesh (cosmetic counterpart to A88; same gameplay definition) | `PLACEHOLDER` | — | **Original model.** Distinct silhouette. Not a copy of any manufacturer CAD or commercial game model |
+| W-102 | MAF support weapon display mesh (cosmetic counterpart to A89) | `PLACEHOLDER` | — | Original model |
 | W-103 | Generic sidearm | `PLACEHOLDER` | — | |
 | W-104 | Smoke grenade (opposing) | `PLACEHOLDER` | — | Cosmetic variant, same gameplay data |
 | W-105 | Fragmentation grenade (opposing) | `PLACEHOLDER` | — | Cosmetic variant, same gameplay data |
