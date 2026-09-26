@@ -332,3 +332,21 @@ Before any public release:
 | Date | Change | Entry |
 |---|---|---|
 | 2026-09-26 | Register created. Lyra and UE recorded. Insignia, ADF marks and prohibited sources placed on hold. No third-party assets acquired. | All |
+
+### L-0016 — Fab packs (Standard License), added 2026-09-27
+
+| Pack | Local folder | Used for | Status |
+|---|---|---|---|
+| Rural Australia | `Content/RuralAustralia` | Base of `L_RedGum_01` (ADR-022); fence meshes changed to have no collision | In use |
+| QuantumCharacter (military character) | `Content/QuantumCharacter` | 3 ACR soldier body | In use; insignia check pending (R-20) |
+| Modern_Insurgent_7 | `Content/Modern_Insurgent_7` | MAF soldier body (conventional parts only) | In use; names internal only |
+| Insurgent_2 | `Content/Insurgent_2` | — (irregular/ethnic-coded gear; ADR-016) | Not used |
+| FPS_Weapon_Bundle, AK-47, M1911 | `Content/FPS_Weapon_Bundle`, `Content/AK-47`, `Content/M1911` | Reference for A-series reshaping only | Not used |
+
+| Field | Value |
+|---|---|
+| **Author** | Respective Fab sellers (see each pack's Fab page in the producer's library) |
+| **Source** | Fab (fab.com), added to the project from the producer's Epic account |
+| **Licence** | Fab Standard License |
+| **Class** | **A** — no attribution required; source files must not be redistributed publicly (R-14) |
+| **Status** | Raw packs git-ignored; project assets reference them by path (R-19) |

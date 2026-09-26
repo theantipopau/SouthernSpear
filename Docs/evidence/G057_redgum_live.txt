@@ -1,0 +1,69 @@
+[2026.09.26-22.06.27:750][  0]LogSSObjectives: Objective Assault: 3 objective(s) in sequence.
+[2026.09.26-22.06.27:761][  0]LogSSObjectives: Round 1: WaitingToStart -> PreRound, objective -1/3, outcome None, captures T1=0 T2=0.
+[2026.09.26-22.06.27:981][  0]LogLyraExperience: Identified experience LyraExperienceDefinition:B_SS_ObjectiveAssault (Source: WorldSettings)
+[2026.09.26-22.06.30:834][  2]LogSSObjectives: Objective status widget shown for LyraPlayerController_0.
+[2026.09.26-22.06.40:790][423]LogSSObjectives: Round 1: PreRound -> InProgress, objective 0/3, outcome None, captures T1=0 T2=0.
+[2026.09.26-22.06.40:890][487]LogSSObjectives: Steered 8 idle bot(s) to objective 0.
+[2026.09.26-22.07.01:591][395]LogSSObjectives: Steered 7 idle bot(s) to objective 0.
+[2026.09.26-22.07.05:591][243]LogSSObjectives: Steered 8 idle bot(s) to objective 0.
+[2026.09.26-22.07.20:090][658]LogSSObjectives: Objective 0 'Bore Pump' captured by TeamTwo.
+[2026.09.26-22.07.20:098][663]LogSSObjectives: Round 1: InProgress -> InProgress, objective 1/3, outcome None, captures T1=0 T2=1.
+[2026.09.26-22.07.20:190][726]LogSSObjectives: Steered 8 idle bot(s) to objective 1.
+[2026.09.26-22.07.22:191][169]LogSSObjectives: Steered 7 idle bot(s) to objective 1.
+[2026.09.26-22.07.24:190][617]LogSSObjectives: Steered 8 idle bot(s) to objective 1.
+[2026.09.26-22.07.26:192][ 34]LogSSObjectives: Steered 7 idle bot(s) to objective 1.
+[2026.09.26-22.07.28:291][513]LogSSObjectives: Steered 5 idle bot(s) to objective 1.
+[2026.09.26-22.07.30:291][810]LogSSObjectives: Steered 4 idle bot(s) to objective 1.
+[2026.09.26-22.07.38:591][164]LogSSObjectives: Steered 6 idle bot(s) to objective 1.
+[2026.09.26-22.07.40:125][143]LogSSObjectives: Objective 1 'Homestead' captured by TeamOne.
+[2026.09.26-22.07.40:136][150]LogSSObjectives: Round 1: InProgress -> InProgress, objective 2/3, outcome None, captures T1=1 T2=1.
+[2026.09.26-22.07.40:191][187]LogSSObjectives: Steered 5 idle bot(s) to objective 2.
+[2026.09.26-22.07.46:391][800]LogSSObjectives: Steered 6 idle bot(s) to objective 2.
+[2026.09.26-22.07.48:493][832]LogSSObjectives: Steered 7 idle bot(s) to objective 2.
+[2026.09.26-22.07.50:592][ 78]LogSSObjectives: Steered 8 idle bot(s) to objective 2.
+[2026.09.26-22.08.10:891][848]LogSSObjectives: Round 1: InProgress -> PostRound, objective -1/3, outcome Draw, captures T1=1 T2=1.
+[2026.09.26-22.08.25:989][786]LogSSObjectives: Round 2: PostRound -> PreRound, objective -1/3, outcome None, captures T1=0 T2=0.
+[2026.09.26-22.08.26:007][786]LogSSObjectives: Round reset: sending 9 player(s) back to deployment.
+[2026.09.26-22.08.27:162][713]LogSSObjectives: Round reset: restarted 0 controller(s) directly.
+[2026.09.26-22.08.36:075][ 72]LogSSObjectives: Round 2: PreRound -> InProgress, objective 0/3, outcome None, captures T1=0 T2=0.
+[2026.09.26-22.08.36:177][148]LogSSObjectives: Steered 7 idle bot(s) to objective 0.
+[2026.09.26-22.09.35:775][347]LogSSObjectives: Steered 5 idle bot(s) to objective 0.
+[2026.09.26-22.09.37:877][659]LogSSObjectives: Steered 3 idle bot(s) to objective 0.
+[2026.09.26-22.09.44:076][303]LogSSObjectives: Steered 5 idle bot(s) to objective 0.
+[2026.09.26-22.09.46:176][481]LogSSObjectives: Steered 6 idle bot(s) to objective 0.
+[2026.09.26-22.09.48:176][673]LogSSObjectives: Steered 5 idle bot(s) to objective 0.
+[2026.09.26-22.09.52:277][262]LogSSObjectives: Steered 4 idle bot(s) to objective 0.
+[2026.09.26-22.09.54:376][568]LogSSObjectives: Steered 6 idle bot(s) to objective 0.
+[2026.09.26-22.09.57:875][823]LogSSObjectives: Objective 0 'Bore Pump' captured by TeamTwo.
+[2026.09.26-22.09.57:887][830]LogSSObjectives: Round 2: InProgress -> InProgress, objective 1/3, outcome None, captures T1=0 T2=1.
+[2026.09.26-22.09.57:976][891]LogSSObjectives: Steered 7 idle bot(s) to objective 1.
+[2026.09.26-22.10.06:176][579]LogSSObjectives: Round 2: InProgress -> PostRound, objective -1/3, outcome Draw, captures T1=0 T2=1.
+[2026.09.26-22.10.21:176][875]LogSSObjectives: Round 3: PostRound -> PreRound, objective -1/3, outcome None, captures T1=0 T2=0.
+[2026.09.26-22.10.21:200][904]LogSSObjectives: Round reset: sending 9 player(s) back to deployment.
+[2026.09.26-22.10.23:976][976]LogSSObjectives: Round reset: restarted 0 controller(s) directly.
+[2026.09.26-22.10.31:250][547]LogSSObjectives: Round 3: PreRound -> InProgress, objective 0/3, outcome None, captures T1=0 T2=0.
+[2026.09.26-22.10.31:352][615]LogSSObjectives: Steered 7 idle bot(s) to objective 0.
+[2026.09.26-22.10.37:454][601]LogSSObjectives: Steered 8 idle bot(s) to objective 0.
+[2026.09.26-22.10.53:850][340]LogSSObjectives: Steered 7 idle bot(s) to objective 0.
+[2026.09.26-22.11.06:351][430]LogSSObjectives: Steered 6 idle bot(s) to objective 0.
+[2026.09.26-22.11.08:351][859]LogSSObjectives: Steered 7 idle bot(s) to objective 0.
+[2026.09.26-22.11.11:751][260]LogSSObjectives: Objective 0 'Bore Pump' captured by TeamOne.
+[2026.09.26-22.11.11:755][262]LogSSObjectives: Round 3: InProgress -> InProgress, objective 1/3, outcome None, captures T1=1 T2=0.
+[2026.09.26-22.11.11:852][337]LogSSObjectives: Steered 8 idle bot(s) to objective 1.
+[2026.09.26-22.11.18:051][879]LogSSObjectives: Steered 7 idle bot(s) to objective 1.
+[2026.09.26-22.11.22:364][951]LogSSObjectives: Steered 5 idle bot(s) to objective 1.
+[2026.09.26-22.11.24:252][234]LogSSObjectives: Steered 4 idle bot(s) to objective 1.
+[2026.09.26-22.11.28:451][ 29]LogSSObjectives: Steered 6 idle bot(s) to objective 1.
+[2026.09.26-22.11.30:451][156]LogSSObjectives: Steered 7 idle bot(s) to objective 1.
+[2026.09.26-22.11.34:551][810]LogSSObjectives: Steered 8 idle bot(s) to objective 1.
+[2026.09.26-22.11.54:151][700]LogSSObjectives: Objective 1 'Homestead' captured by TeamTwo.
+[2026.09.26-22.11.54:156][703]LogSSObjectives: Round 3: InProgress -> InProgress, objective 2/3, outcome None, captures T1=1 T2=1.
+[2026.09.26-22.11.54:252][769]LogSSObjectives: Steered 8 idle bot(s) to objective 2.
+[2026.09.26-22.12.01:351][908]LogSSObjectives: Round 3: InProgress -> PostRound, objective -1/3, outcome Draw, captures T1=1 T2=1.
+[2026.09.26-22.12.16:351][304]LogSSObjectives: Round 4: PostRound -> PreRound, objective -1/3, outcome None, captures T1=0 T2=0.
+[2026.09.26-22.12.16:364][304]LogSSObjectives: Round reset: sending 9 player(s) back to deployment.
+[2026.09.26-22.12.17:330][258]LogSSObjectives: Round reset: restarted 0 controller(s) directly.
+[2026.09.26-22.12.26:426][877]LogSSObjectives: Round 4: PreRound -> InProgress, objective 0/3, outcome None, captures T1=0 T2=0.
+[2026.09.26-22.12.26:529][952]LogSSObjectives: Steered 8 idle bot(s) to objective 0.
+[2026.09.26-22.12.47:129][252]LogSSObjectives: Steered 7 idle bot(s) to objective 0.
+[2026.09.26-22.12.51:229][260]LogSSObjectives: Steered 8 idle bot(s) to objective 0.

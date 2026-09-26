@@ -97,7 +97,8 @@ def ensure_game_feature_data():
         ("/Script/LyraGame.LyraGameState", "/ShooterCore/Game/B_TeamSetup_TwoTeams.B_TeamSetup_TwoTeams_C"),
         ("/Script/LyraGame.LyraGameState", "/ShooterCore/Game/B_TeamSpawningRules.B_TeamSpawningRules_C"),
         ("/Script/LyraGame.LyraGameState", "/ShooterCore/Bot/B_ShooterBotSpawner.B_ShooterBotSpawner_C"),
-        ("/Script/Engine.Controller", "/Game/Characters/Cosmetics/B_PickRandomCharacter.B_PickRandomCharacter_C"),
+        # 3 ACR / MAF soldier bodies (setup_soldiers.py) instead of the random Manny/Quinn.
+        ("/Script/Engine.Controller", "/SSExp_ObjectiveAssault/Characters/B_SS_CharacterParts.B_SS_CharacterParts_C"),
     ):
         load_class(actor)
         load_class(comp)

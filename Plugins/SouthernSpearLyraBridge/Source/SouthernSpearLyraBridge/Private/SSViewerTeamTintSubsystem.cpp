@@ -7,6 +7,7 @@
 #include "GameFramework/Pawn.h"
 #include "GameFramework/PlayerController.h"
 #include "SSTeamIdentityLibrary.h"
+#include "SSLocalityPresentable.h"
 #include "Components/MeshComponent.h"
 #include "Teams/LyraTeamSubsystem.h"
 
@@ -30,12 +31,17 @@ namespace
 	const FName BaseParams[] = { TEXT("TeamColor") };
 	const FName GlowParams[] = { TEXT("EdgeGlowColor"), TEXT("EmissiveColor"), TEXT("EmissiveColor2"), TEXT("EmissiveColor3") };
 
-	void Tint(AActor* Actor, const FLinearColor& Base, const FLinearColor& Glow)
+	void Tint(AActor* Actor, const FLinearColor& Base, const FLinearColor& Glow, ESSLocality Locality)
 	{
 		TArray<AActor*> Actors { Actor };
 		Actor->GetAttachedActors(Actors, /*bResetArray=*/ false, /*bRecursivelyIncludeAttachedActors=*/ true);
 		for (AActor* Each : Actors)
 		{
+			// Viewer-relative looks (3 ACR / MAF soldier bodies).
+			if (ISSLocalityPresentable* Presentable = Cast<ISSLocalityPresentable>(Each))
+			{
+				Presentable->ApplyViewerLocality(Locality);
+			}
 			TInlineComponentArray<UMeshComponent*> Meshes(Each);
 			for (UMeshComponent* Mesh : Meshes)
 			{
@@ -102,7 +108,7 @@ void USSViewerTeamTintSubsystem::Tick(float DeltaTime)
 		static const FLinearColor FriendlyBase = Srgb(TEXT("B9C1B4")), FriendlyGlow = Srgb(TEXT("D6E2CF"));
 		static const FLinearColor OpposingBase = Srgb(TEXT("8C493D")), OpposingGlow = Srgb(TEXT("C98A7C"));
 		const bool bFriendly = Resolution.Locality == ESSLocality::Friendly;
-		Tint(*It, bFriendly ? FriendlyBase : OpposingBase, bFriendly ? FriendlyGlow : OpposingGlow);
+		Tint(*It, bFriendly ? FriendlyBase : OpposingBase, bFriendly ? FriendlyGlow : OpposingGlow, Resolution.Locality);
 		++LastTintedCount;
 	}
 	if (LastTintedCount != LastLoggedCount)

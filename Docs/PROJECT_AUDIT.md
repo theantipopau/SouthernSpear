@@ -546,6 +546,9 @@ inverts into a positive check for the locality enum.
 | ~~**R-13**~~ | ~~Dry River player starts mis-placed/mis-oriented~~ | **CLOSED Session 008.** Worse than recorded: `build_dryriver_level.py` also passed metres as centimetres, so both starts sat within 2 m of the map centre. Fixed (cm, facing the centre) and the level regenerated; starts now at y = ±8500 cm | CLOSED |
 | **R-16** | Win streaks / spawn proximity to OBJ B; bots can deadlock on a contested objective | Session 012: round-reset respawn sends everyone back to deployment; 14 extra starts. Open until spawn-to-objective distances are measured | OPEN (mitigated) |
 | **R-17** | `Content/Sourced/` holds ~2.4 GB of third-party models/textures with no licences, including two commercial-game rips and real-weapon replicas | Git-ignored, nothing imported; triage in `Docs/SOURCED_ASSET_REVIEW.md`; producer to delete rips and supply licences | OPEN |
+| **R-18** | First person has no view model (arms and weapon) | Camera works (G056); Fab packs have no first-person arm animations; next: local-only weapon plus arms view model | OPEN |
+| **R-19** | `L_RedGum_01` and the soldier Blueprints reference git-ignored Fab packs; a clone without them cannot load the map or bodies | Packs listed in L-0016 (re-add from Fab); decide later whether adapted copies move under project folders | OPEN |
+| **R-20** | Soldier bodies not yet visually checked (rendered run closed early); the Quantum character has a back patch that may carry insignia | Rendered check, then hide or replace any insignia material | OPEN |
 
 ## 8. Open Questions For The Producer
 

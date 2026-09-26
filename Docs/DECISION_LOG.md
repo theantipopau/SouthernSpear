@@ -499,3 +499,35 @@ original design. Dry River's **layout** stays original (ADR-013, ADR-015); third
 **Consequences.** Raw packs stay git-ignored until adapted. Adapted assets follow the LFS rules (R-14),
 and the Fab Standard License forbids redistributing source files publicly (the public site never
 carries assets).
+
+## ADR-022 — Red Gum Station: first playable map from the Fab "Rural Australia" pack; Fab soldier bodies
+
+**Status:** Accepted (producer direction, 2026-09-27: "use the Rural Australia map as the base for our
+first map"). Supersedes ADR-013/ADR-015's original-layout rule **for this map only** (Dry River stays
+original). Extends ADR-021 to whole-map reuse and to character bodies.
+**Date:** 2026-09-27
+
+**Decision.**
+
+- `L_RedGum_01` ("Red Gum Station") is built by `Tools/Unreal/build_redgum_level.py` from the Fab
+  pack's `RuralAustralia_Example_01` (1 km landscape, single level, not World Partition). It is saved as
+  a new map; the pack's own map is never saved. Objectives: Bore Pump, Homestead, Shearing Shed. Two
+  deployments sit 560 m apart.
+- Wire fences carry no collision, on the pack's two fence meshes. Pawns pass through (Lyra has no vault)
+  and the fences do not split the nav mesh. The fence Blueprint rebuilds its components on load, so a
+  per-instance change does not persist.
+- `build_redgum_nav.py` builds navigation. It then moves any objective or deployment that cannot reach
+  the centre objective, and fails unless every leg connects.
+- Soldier bodies are Fab characters shown by `ASSCharacterPartActor` (SouthernSpearTeam). Each mesh
+  follows Lyra's animated mannequin by bone name (leader pose); no retarget is needed because all
+  three packs use UE-mannequin bone names. The viewer's own team is shown as 3 ACR (Quantum military
+  character) and the other team as MAF. MAF uses parts of the "Modern Insurgent 7" pack chosen for a
+  conventional uniform: head, hands, sweater, military trousers, shoes, plate carrier and beret. No
+  balaclava, beard, pakol, scarf or other irregular gear (ADR-016). Pack names that say "insurgent"
+  never appear in data, UI or public docs.
+- Architecture: new `ISSLocalityPresentable` interface in Core, which the Lyra bridge calls. No new
+  module dependencies; the guard passes.
+
+**Consequences.** The map and the soldier Blueprints reference git-ignored Fab content, so a clone
+needs the same packs added from Fab (R-19). The soldier looks still need a visual check for real
+insignia or patches (R-20).
