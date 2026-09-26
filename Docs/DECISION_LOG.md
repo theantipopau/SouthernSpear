@@ -475,3 +475,27 @@ sockets so Lyra's animations keep working. Gear and uniforms (CMECU) come next, 
 mannequin skeleton. Quality starts at placeholder and improves over time. Marketplace or commissioned
 art is not used unless a later decision says so. No real-weapon CAD, brand marks, or copied patterns.
 
+
+## ADR-021 — Licensed third-party art: free Fab and cleared Sketchfab assets
+
+**Status:** Accepted (producer decision, 2026-09-27). Partly supersedes ADR-013 (no third-party
+environments) and narrows ADR-020 (original art only).
+**Date:** 2026-09-27
+
+**Decision.** Alongside original Blender art (ADR-020), the project may use:
+
+- **Fab** assets under the Fab Standard License (free or purchased), added to the project from the
+  producer's Epic account. Licence class A.
+- **Sketchfab** assets whose model page shows **CC0** (class A) or **CC-BY** (class B, credited). Not
+  allowed: CC-BY-NC, CC-BY-ND, editorial-only, or any upload the uploader cannot own (game rips).
+  CC-BY-SA needs a separate decision.
+
+Every such asset needs a licence-register entry with its source URL **before** it is used, and is adapted
+to the fiction: no real insignia, manufacturer marks, ADF branding or Multicam/Auscam patterns. Weapons
+remain fictional A-series: a third-party weapon model may be used only after it has been reshaped into an
+original design. Dry River's **layout** stays original (ADR-013, ADR-015); third-party assets may dress it
+(materials, foliage, rocks, props).
+
+**Consequences.** Raw packs stay git-ignored until adapted. Adapted assets follow the LFS rules (R-14),
+and the Fab Standard License forbids redistributing source files publicly (the public site never
+carries assets).
