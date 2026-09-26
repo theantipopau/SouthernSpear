@@ -1,0 +1,19 @@
+LogPython: [DryRiver] deleted stale level /Game/Maps/L_DryRiver_01
+LogPython: [DryRiver] OK   new_level /Game/Maps/L_DryRiver_01
+LogPython: [DryRiver] OK   import_fbx 1 object(s): ['/Game/Art/Blockout/SS_MAP_DryRiver_01.SS_MAP_DryRiver_01']
+LogPython: [DryRiver] OK   find_mesh /Game/Art/Blockout/SS_MAP_DryRiver_01.SS_MAP_DryRiver_01
+LogPython: [DryRiver] FAIL collision_complexity StaticMesh: Failed to find property 'collision_complexity' for attribute 'collision_complexity' on 'StaticMesh'
+LogPython: [DryRiver] OK   body_setup_trace_flag_fallback 
+LogPython: [DryRiver]   can_ever_affect_navigation not settable; default is true
+LogPython: [DryRiver] OK   save_mesh_asset /Game/Art/Blockout/SS_MAP_DryRiver_01.SS_MAP_DryRiver_01
+LogPython: [DryRiver] OK   spawn_mesh_actor SS_MAP_DryRiver_01
+LogPython: [DryRiver] OK   spawn_gameplay_actors 4 placed
+LogPython: [DryRiver] OK   spawn_nav_volume scale (34.0,24.0,8.0) confirmed after 1 set(s)
+LogPython: [DryRiver] OK   ensure_nav_data deferred to the navigation pass, by design
+LogPython: [DryRiver] path not found on attempt 1; growing nav volume
+LogPython: [DryRiver] path check: found=False points=0
+LogPython: [DryRiver] path not found on attempt 2; growing nav volume
+LogPython: [DryRiver] FAIL navmesh_path_verified no path after 2 attempts
+LogPython: [DryRiver] OK   save_level save_current_level() -> /Game/Maps/L_DryRiver_01
+LogPython: [DryRiver] REPORT_WRITTEN ../../../../../SouthernSpear/Build\dryriver_level_report.json
+LogPython: [DryRiver] COMPLETE ok=False

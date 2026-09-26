@@ -1,0 +1,113 @@
+{
+  "ok": true,
+  "steps": [
+    {
+      "step": "load_map",
+      "ok": true,
+      "detail": "/Game/Maps/L_DryRiver_01 -> L_DryRiver_01"
+    },
+    {
+      "step": "nav_bounds_volume_present",
+      "ok": true,
+      "detail": "1 volume(s) in world"
+    },
+    {
+      "step": "nav_data_present",
+      "ok": true,
+      "detail": "1 RecastNavMesh actor(s)"
+    },
+    {
+      "step": "build_paths",
+      "ok": true,
+      "detail": "BUILDPATHS issued"
+    },
+    {
+      "step": "path_verification",
+      "ok": true,
+      "detail": "2 path point(s)"
+    },
+    {
+      "step": "save",
+      "ok": true,
+      "detail": "save_current_level"
+    }
+  ],
+  "warnings": [],
+  "errors": [],
+  "world_name": "L_DryRiver_01",
+  "nav_bounds_volume_count": 1,
+  "nav_volume_world_scale": [
+    136.0,
+    96.0,
+    18.0
+  ],
+  "recast_navmesh_count": 1,
+  "static_mesh_actor_count": 1,
+  "mesh_actors": [
+    {
+      "label": "SS_Blockout_Geometry",
+      "mesh": "SS_MAP_DryRiver_01",
+      "collision_profile": "BlockAll",
+      "collision_enabled": "<CollisionEnabled.QUERY_AND_PHYSICS: 3>",
+      "can_ever_affect_navigation": true,
+      "nav_collision_enabled_error": "StaticMeshComponent: Failed to find property 'bUseComplexAsSimpleForNavigation' for attribute 'bUseComplexAsSimpleForNavigation' on 'StaticMeshComponent'"
+    }
+  ],
+  "hitrESULT_keys": [
+    "blocking_hit",
+    "bone_name",
+    "distance",
+    "element_index",
+    "face_index",
+    "hit_actor",
+    "hit_bone_name",
+    "hit_component",
+    "hit_item",
+    "impact_normal",
+    "impact_point",
+    "initial_overlap",
+    "location",
+    "normal",
+    "phys_mat",
+    "time",
+    "trace_end",
+    "trace_start"
+  ],
+  "ground_hit_key": "impact_point",
+  "ground_check": [
+    {
+      "name": "SS_MAP_DryRiver_DeployAlpha",
+      "traced_z_cm": 64.28127670288086,
+      "csv_z_cm": 34.300000000000004,
+      "delta_cm": 29.981276702880855
+    },
+    {
+      "name": "SS_MAP_DryRiver_DeployBravo",
+      "traced_z_cm": 1332.02294921875,
+      "csv_z_cm": 1302.0,
+      "delta_cm": 30.02294921875
+    }
+  ],
+  "path_points": 2,
+  "path_start": [
+    0.0,
+    8500.0,
+    66.28127670288086
+  ],
+  "path_end": [
+    0.0,
+    -8500.0,
+    1334.02294921875
+  ],
+  "path_first": [
+    -0.0,
+    8500.0,
+    42.064777327935225
+  ],
+  "path_last": [
+    -0.0,
+    -8500.0,
+    1343.8699690402477
+  ],
+  "result_summary": "path verified=True saved=True"
+}

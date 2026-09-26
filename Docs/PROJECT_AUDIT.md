@@ -291,6 +291,7 @@ Binary assets route through LFS; text is not. Probe artefacts were removed. A `g
 | G0.8 | **Lyra fork compiles on UE 5.8.3** | ✅ **PASS** — see below |
 | G0.9 | **Dedicated server target builds** | ❌ **FAIL — BLOCKED** — see §6.1 and R-09 |
 | G0.10 | **Project loads under its new name** | ✅ **PASS** — see §6.2 |
+| G1.1 | **Dry River builds with a valid NavMesh** | ✅ **PASS** — see §6.3 |
 
 ### Gate G0.8 result — PASSED (2026-09-26)
 
@@ -328,7 +329,7 @@ The build-log transcript is retained at `Build/g08.log`.
 A successful compile is not a running game. Still outstanding before anything may be called "working":
 
 - ~~The project has **never been opened in the editor** under its new name.~~ **Closed by G0.10 below.**
-- No map has been imported, so **NavMesh generation is still unvalidated**.
+- ~~No map has been imported, so **NavMesh generation is still unvalidated**.~~ **Closed by G1.1 below.**
 - No server or client binary has been built or launched. **The server binary cannot be built on this engine distribution — see G0.9.**
 - No automation test has run.
 
@@ -413,6 +414,35 @@ Two details worth recording:
 Retained evidence (tracked in `Docs/evidence/`, because `Build/` is gitignored):
 - `G010_editorload_keylines.txt` — the 12 lines that constitute the entire pass/fail determination
 - `G010_editorload_filtered.txt` — the full log with Epic telemetry DNS-failure spam removed (this environment cannot resolve `datarouter.ol.epicgames.com`; it is harmless and unrelated)
+
+---
+
+## 6.3 Gate G1.1 result — PASSED (2026-09-26)
+
+**NavMesh generation is validated, and the map is built entirely from version-controlled scripts.** P1-02 is closed. The map is no longer a Blender file that nobody has seen inside the engine.
+
+| Check | Expected | Observed |
+|---|---|---|
+| FBX import | 162 blockout objects as one mesh | `SS_MAP_DryRiver_01` (Interchange pipeline) |
+| Collision | blocks movement and carries navigation | `CTF_USE_COMPLEX_AS_SIMPLE`, profile `BlockAll` |
+| Gameplay actors | 2 deployments, 2 objectives | 4 placed from the layout CSV |
+| Map check | no errors | **0 errors, 0 warnings** |
+| Nav bounds | cover the 260 × 180 m map | Min (-13600, -9600, -1000) → Max (13600, 9600, 2600) cm |
+| Tiles generated | non-zero | **560** |
+| **Path, DeployAlpha → DeployBravo (170 m)** | **traversable** | ✅ **verified, 2 path points** |
+| Saved map | contains serialised nav data | 248 KB vs 8.5 KB empty |
+
+The acceptance check is deliberately a **path query**, not "a navmesh actor exists". A navmesh actor existed, and was reported as such, while the navmesh covered nothing at all. A non-empty `find_path_to_location_synchronously` result across the full map is the only check that means what it says.
+
+### Defect found and fixed: the Y axis
+
+**The layout CSV is Blender space; Unreal mirrors Y.** Using it un-negated silently **swaps the two deployments**. Because Dry River is symmetric in Y, nothing looks wrong — every distance in the map spec still holds, since a mirror preserves distance. This is the most dangerous class of bug in this map and it was caught only by cross-checking traced ground height against the recorded CSV heights. Pass 2 now asserts that delta and warns on regression. See `MAPS_DRYRIVER.md` §11.2.
+
+Evidence: `Docs/evidence/G011_*`.
+
+### Also fixed
+
+`MapCheck` reported `PlayerStart_0 is a normal APlayerStart, replace with ALyraPlayerStart`. The level now uses `ALyraPlayerStart`, and map check is clean.
 
 ---
 

@@ -1,0 +1,163 @@
+{
+  "ok": false,
+  "steps": [
+    {
+      "step": "new_level",
+      "ok": true,
+      "detail": "/Game/Maps/L_DryRiver_01"
+    },
+    {
+      "step": "import_fbx",
+      "ok": true,
+      "detail": "1 object(s): ['/Game/Art/Blockout/SS_MAP_DryRiver_01.SS_MAP_DryRiver_01']"
+    },
+    {
+      "step": "find_mesh",
+      "ok": true,
+      "detail": "/Game/Art/Blockout/SS_MAP_DryRiver_01.SS_MAP_DryRiver_01"
+    },
+    {
+      "step": "collision_complexity",
+      "ok": false,
+      "detail": "StaticMesh: Failed to find property 'collision_complexity' for attribute 'collision_complexity' on 'StaticMesh'"
+    },
+    {
+      "step": "body_setup_trace_flag_fallback",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "step": "save_mesh_asset",
+      "ok": true,
+      "detail": "/Game/Art/Blockout/SS_MAP_DryRiver_01.SS_MAP_DryRiver_01"
+    },
+    {
+      "step": "spawn_mesh_actor",
+      "ok": true,
+      "detail": "SS_MAP_DryRiver_01"
+    },
+    {
+      "step": "spawn_gameplay_actors",
+      "ok": true,
+      "detail": "4 placed"
+    },
+    {
+      "step": "spawn_nav_volume",
+      "ok": true,
+      "detail": "scale (34.0,24.0,8.0) confirmed after 1 set(s)"
+    },
+    {
+      "step": "ensure_nav_data",
+      "ok": true,
+      "detail": "deferred to the navigation pass, by design"
+    },
+    {
+      "step": "navmesh_path_verified",
+      "ok": false,
+      "detail": "no path after 2 attempts"
+    },
+    {
+      "step": "save_level",
+      "ok": true,
+      "detail": "save_current_level() -> /Game/Maps/L_DryRiver_01"
+    }
+  ],
+  "warnings": [],
+  "errors": [],
+  "path_verification": {
+    "start": [
+      0.0,
+      -8500.0,
+      44.300000000000004
+    ],
+    "end": [
+      0.0,
+      8500.0,
+      1312.0
+    ],
+    "path_found": false,
+    "point_count": 0
+  },
+  "imported_object_paths": [
+    "/Game/Art/Blockout/SS_MAP_DryRiver_01.SS_MAP_DryRiver_01"
+  ],
+  "collision_complexity_enum": "raw integer 2 (UseComplexAsSimple)",
+  "collision_trace_flag": "<CollisionTraceFlag.CTF_USE_COMPLEX_AS_SIMPLE: 3>",
+  "layout_rows": [
+    {
+      "name": "SS_MAP_DryRiver_ObjA_WaterPoint",
+      "x": -15.0,
+      "y": 0.0,
+      "z": -3.226,
+      "kind": "Objective"
+    },
+    {
+      "name": "SS_MAP_DryRiver_ObjB_Farmstead",
+      "x": 40.0,
+      "y": 52.0,
+      "z": 6.947,
+      "kind": "Objective"
+    },
+    {
+      "name": "SS_MAP_DryRiver_DeployAlpha",
+      "x": 0.0,
+      "y": -85.0,
+      "z": 0.343,
+      "kind": "Deployment"
+    },
+    {
+      "name": "SS_MAP_DryRiver_DeployBravo",
+      "x": 0.0,
+      "y": 85.0,
+      "z": 13.02,
+      "kind": "Deployment"
+    }
+  ],
+  "gameplay_actors": [
+    {
+      "name": "SS_MAP_DryRiver_ObjA_WaterPoint",
+      "kind": "Objective",
+      "ok": true,
+      "unreal_x": -15.0,
+      "unreal_y": -0.0,
+      "unreal_z": -3.226
+    },
+    {
+      "name": "SS_MAP_DryRiver_ObjB_Farmstead",
+      "kind": "Objective",
+      "ok": true,
+      "unreal_x": 40.0,
+      "unreal_y": -52.0,
+      "unreal_z": 6.947
+    },
+    {
+      "name": "SS_MAP_DryRiver_DeployAlpha",
+      "kind": "Deployment",
+      "ok": true,
+      "unreal_x": 0.0,
+      "unreal_y": 85.0,
+      "unreal_z": 0.343
+    },
+    {
+      "name": "SS_MAP_DryRiver_DeployBravo",
+      "kind": "Deployment",
+      "ok": true,
+      "unreal_x": 0.0,
+      "unreal_y": -85.0,
+      "unreal_z": 13.02
+    }
+  ],
+  "nav_volume_scale_attempts": 1,
+  "nav_volume_scale": [
+    34.0,
+    24.0,
+    8.0
+  ],
+  "nav_volume_final_scale": [
+    136.0,
+    96.0,
+    18.0
+  ],
+  "result_summary": "nav path verified=False level saved=True",
+  "navmesh_actor_count": null
+}

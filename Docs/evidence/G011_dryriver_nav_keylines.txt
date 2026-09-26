@@ -1,0 +1,17 @@
+LogNavigation:   FRecastNavMeshGenerator::UpdateNavigationBounds TotalNavBounds: Min=(X=-13600.000 Y=-9600.000 Z=-1000.000), Max=(X=13600.000 Y=9600.000 Z=2600.000).
+LogPython: [DryRiverNav] OK   load_map /Game/Maps/L_DryRiver_01 -> L_DryRiver_01
+LogPython: [DryRiverNav]   volume SS_NavMeshBoundsVolume at <Struct 'Vector' (0x000001EBE5817A30) {x: 0.000000, y: 0.000000, z: 800.000000}> scale (136.0,96.0,18.0)
+LogPython: [DryRiverNav] OK   nav_bounds_volume_present 1 volume(s) in world
+LogPython: [DryRiverNav]   navdata RecastNavMesh label=RecastNavMesh-Default
+LogPython: [DryRiverNav] OK   nav_data_present 1 RecastNavMesh actor(s)
+LogPython: [DryRiverNav]   1 StaticMeshActor(s) in loaded level
+LogPython: [DryRiverNav]   mesh actor: {'label': 'SS_Blockout_Geometry', 'mesh': 'SS_MAP_DryRiver_01', 'collision_profile': Name("BlockAll"), 'collision_enabled': <CollisionEnabled.QUERY_AND_PHYSICS: 3>, 'can_ever_affect_navigation': True, 'nav_collision_enabled_error': "StaticMeshComponent: Failed to find property 'bUseComplexAsSimpleForNavigation' for attribute 'bUseComplexAsSimpleForNavigation' on 'StaticMeshComponent'"}
+LogNavigation:   FRecastNavMeshGenerator::UpdateNavigationBounds TotalNavBounds: Min=(X=-13600.000 Y=-9600.000 Z=-1000.000), Max=(X=13600.000 Y=9600.000 Z=2600.000).
+LogPython: [DryRiverNav] OK   build_paths BUILDPATHS issued
+LogPython: [DryRiverNav]   SS_MAP_DryRiver_DeployAlpha ground z=64.3cm vs CSV 34.3cm (delta 30.0cm)
+LogPython: [DryRiverNav]   SS_MAP_DryRiver_DeployBravo ground z=1332.0cm vs CSV 1302.0cm (delta 30.0cm)
+LogPython: [DryRiverNav] OK   path_verification 2 path point(s)
+LogPython: [DryRiverNav] OK   save save_current_level
+LogPython: [DryRiverNav] REPORT_WRITTEN ../../../../../SouthernSpear/Build\dryriver_nav_report.json
+LogPython: [DryRiverNav] COMPLETE ok=True
+tiles=560

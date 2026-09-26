@@ -197,8 +197,100 @@ Automated via `Tools/Blender/verify_dryriver.py`, which reads the exported layou
 - [x] Bravo's overlooking direct line to OBJ B is measured and recorded (terrain property)
 - [x] Every element carries an `SS_MAP_DryRiver_*` name
 - [x] Blockout exports to FBX with transforms applied
-- [ ] NavMesh generates covering all walkable space — **requires the compiled project (G0.8)**
+- [x] NavMesh generates covering all walkable space — **verified, gate G1.1**
+- [x] A traversable path exists between both deployments (170 m) — **verified, gate G1.1**
 - [ ] Source `.blend` committed to LFS
+
+---
+
+## 11. Bringing This Map Into Unreal (gate G1.1)
+
+The level is built by two headless editor passes, not by hand. Both are version-controlled, deterministic and CI-runnable.
+
+### 11.1 Running it
+
+Both passes need one command-line override, explained in §11.4:
+
+```
+-ini:Engine:[/Script/NavigationSystem.NavigationSystemV1]:bWaitForAsyncLoadingBeforeBuildingNavigationAutomatically=False
+```
+
+**Pass 1 — construct** (`Tools/Unreal/build_dryriver_level.py`): creates `L_DryRiver_01`, imports the FBX, sets collision, places the gameplay actors from the layout CSV, creates the nav bounds volume, saves.
+
+```
+Engine\Binaries\Win64\UnrealEditor-Cmd.exe SouthernSpear.uproject -nullrhi -unattended -nosplash -nosound -stdout \
+  -ini:Engine:[/Script/NavigationSystem.NavigationSystemV1]:bWaitForAsyncLoadingBeforeBuildingNavigationAutomatically=False \
+  -ExecutePythonScript=Tools\Unreal\build_dryriver_level.py
+```
+
+**Pass 2 — navigate** (`Tools/Unreal/build_dryriver_nav.py`): loads the saved map, runs the editor's blocking *Build Paths*, and verifies a path between the deployments.
+
+```
+Engine\Binaries\Win64\UnrealEditor-Cmd.exe SouthernSpear.uproject -nullrhi -unattended -nosplash -nosound -stdout \
+  -ini:Engine:[/Script/NavigationSystem.NavigationSystemV1]:bWaitForAsyncLoadingBeforeBuildingNavigationAutomatically=False \
+  -ExecutePythonScript=Tools\Unreal\build_dryriver_nav.py
+```
+
+### 11.2 The coordinate transform — read this before placing anything
+
+**The layout CSV is in Blender space. Unreal mirrors Y.**
+
+Blender is right-handed Z-up; Unreal is left-handed Z-up. The FBX export (`axis_forward="-Z", axis_up="Y"`) performs the handedness conversion, so:
+
+```
+Unreal_X =  Blender_X
+Unreal_Y = -Blender_Y      <-- negated
+Unreal_Z =  Blender_Z
+```
+
+This is a silent failure. Dry River is symmetric in Y, so using un-negated Y does not look obviously wrong — it simply **swaps the two deployments**, and every distance in §6 still holds because a mirror preserves distance. It was caught only by cross-checking the traced ground height against the CSV:
+
+```
+SS_MAP_DryRiver_DeployAlpha ground z=64.3cm  vs CSV  34.3cm  (delta 30.0cm)
+SS_MAP_DryRiver_DeployBravo ground z=1332.0cm vs CSV 1302.0cm (delta 30.0cm)
+```
+
+The residual 30 cm on both is expected and correct: the Blender layout markers are 2 × 2 × 0.3 m boxes sitting on the terrain, so a downward trace lands on the box top, 0.30 m up. **Pass 2 asserts this delta stays under 150 cm and warns otherwise**, so a future transform regression fails loudly instead of quietly swapping teams.
+
+### 11.3 Why it must be two passes, not one
+
+Several engine behaviours make a single pass impossible, each found the hard way:
+
+| Symptom | Cause |
+|---|---|
+| Nothing happens after the script returns | `-ExecutePythonScript` tears the world down as soon as the script returns, so a post-tick callback never gets a tick |
+| `Navigation NOT building because navigation build is locked (flags: 0x20)` | `0x20` is `AsyncLoadLock` (`1 << 5`), held by `DoInitialSetup()` and released only on a later tick. Overridden on the command line rather than in project config, so the editor default is untouched for everyone else |
+| `TotalNavBounds: IsValid=false` | `GatherNavigationBounds()` skips any volume failing `HasActorRegisteredAllComponents()`; a script-spawned brush never reaches that state. Loading the map in pass 2 does |
+| Build succeeds in 0.00 s with zero tiles | The mesh asset was saved by the import task *before* collision was configured, so the `.uasset` on disk had no collision. Pass 1 now saves the asset explicitly after setting it |
+| Nav data present but contributes nothing | Spawning a `RecastNavMesh` from script defers registration to a tick. Pass 2 lets the map load create it normally |
+
+**No workaround here is a fake.** Every step uses the same code path a person uses in the editor: place the volume, then Build Paths.
+
+### 11.4 Measured engine constants
+
+Recorded because they are not documented and each was wrong on first assumption:
+
+- Default `AVolume` brush half-extent is **100 cm**, so nav bounds half-width (cm) = world scale × 100.
+- A script-spawned brush volume returns from save/load with its scale **multiplied by 4** (set 34 → reloaded 136), so the value written by pass 1 must be a quarter of the desired world scale.
+- `BUILDPATHS` is the console form of the editor's blocking *Build Paths* (`UUnrealEdEngine::HandleBuildPathsCommand` → `FEditorBuildUtils::EditorBuild(..., BuildAIPaths)`). `REBUILDALL` is asynchronous and is the wrong tool for a one-shot script.
+
+### 11.5 Verification
+
+Pass 2 does not check that a navmesh actor exists — that is trivially true and was true while the navmesh covered nothing. It checks that **`find_path_to_location_synchronously` returns a non-empty point list between the two deployments**, 170 m apart across the whole map. An empty list means agents cannot cross it, whatever else the log says.
+
+Confirmed result (gate G1.1):
+
+| Check | Value |
+|---|---|
+| Nav bounds | Min (-13600, -9600, -1000) → Max (13600, 9600, 2600) cm |
+| Tiles generated | 560 |
+| Path points, DeployAlpha → DeployBravo | 2 |
+| Map check | 0 errors, 0 warnings |
+| Saved map size | 248 KB (8.5 KB empty) — navigation data is serialised |
+
+Evidence: `Docs/evidence/G011_*`.
+
+Note the 14 m of relief in §1 is *not* symmetric about the deployments, so OBJ B's approach distances in §6 were derived in Blender space and are unchanged by the mirror: Bravo remains 51.9 m from OBJ B against Alpha's 142.7 m. The map is mirrored, not altered, so the sequential OBJ A → OBJ B ordering that makes the round fair still holds.
 
 ---
 

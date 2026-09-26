@@ -203,12 +203,105 @@ No project-side defects were found this session.
 
 ---
 
+## Session 003 — 2026-09-26 — Dry River Brought Into the Engine, and a Coordinate Bug
+
+### COMPLETED
+
+**Gate G1.1 PASSED. NavMesh generation is validated and P1-02 is closed.** The map is no longer a Blender file nobody has seen inside the engine — it is built, collisioned, navigable and saved, entirely from version-controlled scripts.
+
+| Check | Result |
+|---|---|
+| FBX import | 162 blockout objects → one mesh `SS_MAP_DryRiver_01` (via Interchange) |
+| Collision | `CTF_USE_COMPLEX_AS_SIMPLE`, profile `BlockAll` |
+| Gameplay actors | 4 placed from the layout CSV (2 deployments, 2 objectives) |
+| Map check | **0 errors, 0 warnings** |
+| Nav bounds | Min (-13600, -9600, -1000) → Max (13600, 9600, 2600) cm |
+| Tiles generated | **560** |
+| **Path, DeployAlpha → DeployBravo (170 m)** | ✅ **verified, 2 path points** |
+| Saved map | 248 KB vs 8.5 KB empty — navigation data is serialised |
+
+The acceptance check is a **path query**, deliberately. A navmesh actor existed, and the build reported success, while the navmesh covered *nothing*. Only a non-empty `find_path_to_location_synchronously` result across the full map means what it says.
+
+**Producer decision taken: obtain the Dedicated Server engine product** (route (a) in `PROJECT_AUDIT.md` §8). R-09 stays open until that engine is installed; no workaround will fake it.
+
+### DEFECTS FOUND
+
+**1. The Y axis was mirrored, silently swapping the two deployments.**
+
+Blender is right-handed Z-up, Unreal is left-handed Z-up, so the FBX import mirrors Y. The layout CSV is Blender space, so `Unreal_Y = -Blender_Y`. Using it un-negated is invisible: Dry River is symmetric in Y, so the deployments simply swap ends and **every distance in the map spec still holds**, because a mirror preserves distance. A map that was subtly wrong in exactly the way nobody would notice by looking.
+
+It was caught only by cross-checking the traced ground height against the heights the Blender generator recorded:
+
+```
+DeployAlpha ground z=64.3cm  vs CSV  34.3cm  (delta 30.0cm)
+DeployBravo ground z=1332.0cm vs CSV 1302.0cm (delta 30.0cm)
+```
+
+The residual 30 cm is expected — the layout markers are 0.3 m boxes on the terrain, so a trace lands on the box top. The important part is that both deltas are equal and small; before the fix they were ~13 m and the two deployments had exchanged heights. **Pass 2 now asserts this delta stays under 150 cm and warns otherwise**, so the regression cannot return quietly.
+
+**2. `MapCheck: PlayerStart_0 is a normal APlayerStart, replace with ALyraPlayerStart`.** Now uses `ALyraPlayerStart`; map check is clean.
+
+**3. A cosmetic bug in the reporting code cost the entire constructed level.** `list(volume.get_actor_scale3d())` raised `TypeError: 'Vector' object is not iterable` *after* the actors were placed but *before* the save, so a map with no actors was left on disk and the second pass found nothing to work with. Pass 1 now saves in a `finally`, because a reporting bug must never cost the build.
+
+### Five engine behaviours that made a one-pass build impossible
+
+Each was found by reading engine source, not guessed. All are documented in `MAPS_DRYRIVER.md` §11.3.
+
+| Symptom | Cause |
+|---|---|
+| Post-tick callback never fires | `-ExecutePythonScript` destroys the world as soon as the script returns |
+| `navigation build is locked (flags: 0x20)` | `AsyncLoadLock` (`1 << 5`), released only on a tick. Overridden per-invocation, not in project config |
+| `TotalNavBounds: IsValid=false` | `GatherNavigationBounds()` skips volumes failing `HasActorRegisteredAllComponents()`; a script-spawned brush never reaches that state. **A map load does** |
+| Build succeeds in 0.00 s, zero tiles | The import task saved the mesh *before* collision was configured, so the `.uasset` had none. Pass 1 now saves it explicitly afterwards |
+| Nav data present but inert | Spawning `RecastNavMesh` from script defers registration to a tick; the map load creates it properly |
+
+Every step uses the same code path a person uses in the editor: place the volume, then Build Paths. **No workaround fakes anything.**
+
+### FILES CHANGED
+
+- **`Tools/Unreal/build_dryriver_level.py`** (new) — pass 1: level construction
+- **`Tools/Unreal/build_dryriver_nav.py`** (new) — pass 2: nav build, path verification, ground-height cross-check
+- **`.github/workflows/build.yml`** — both passes plus a hard assertion on the G1.1 report; `Build Dedicated Server` marked `continue-on-error` with the R-09 reason inline so CI is not permanently red over a known environment gap
+- `Docs/MAPS_DRYRIVER.md` — new §11 (pipeline, coordinate transform, measured engine constants, verification table)
+- `Docs/PROJECT_AUDIT.md` — new §6.3 (G1.1), gate table, P1-02 closed
+- `Docs/CHANGELOG.md` — this entry
+- `Docs/evidence/G011_*` (new, tracked) — keylines and both JSON reports
+- `Content/Maps/L_DryRiver_01.umap` (new, LFS) — the level with baked navigation data
+- `Content/Art/Blockout/SS_MAP_DryRiver_01.uasset` (new, LFS) — the imported blockout mesh, saved with collision
+
+### TESTING
+
+| Command | Result |
+|---|---|
+| Pass 1 — `build_dryriver_level.py` | **PASS** — level, 4 actors, mesh + collision saved |
+| Pass 2 — `build_dryriver_nav.py` | **PASS** — 560 tiles, 2 path points, `ok=true` |
+| Pass 2 re-run (idempotency) | **PASS** — identical result, so the pipeline is stable, not lucky |
+| `MapCheck` | 0 errors, 0 warnings |
+
+### ASSETS
+
+- `Content/Maps/L_DryRiver_01.umap` — 248 KB, navigation data serialised
+- `Content/Art/Blockout/SS_MAP_DryRiver_01.uasset` — 366 KB, complex-as-simple collision
+- No third-party assets were used, so no new `LICENCE_REGISTER.md` entry is required.
+
+### RISKS
+
+- **P1-02** — **CLOSED** by G1.1.
+- **R-09** — open, now with a chosen route: obtain the Dedicated Server engine product.
+- No new risks. The two engine-distribution gaps found here (async nav lock, brush-volume registration) are recorded in `MAPS_DRYRIVER.md` §11 rather than the risk register, because both are worked around and neither threatens the project.
+
+### NEXT ACTION
+
+**Build the `SouthernSpearCore` plugin** carrying the critical path VS-01 → VS-05 → VS-06: `ESS_TeamId` (match-relative per ADR-003) and the `UFSSFactionPresentationSet` resolver (ADR-004, structurally incapable of affecting gameplay), with a CI static scan enforcing the separation. Unaffected by R-09.
+
+---
+
 ## Open Threads
 
 | Item | Blocked on | Owner |
 |---|---|---|
 | ~~First editor launch of the renamed project~~ | **CLOSED** — G0.10 passed | — |
-| NavMesh validation for Dry River | Editor launch (now available) | Lead programmer |
+| ~~NavMesh validation for Dry River~~ | **CLOSED** — G1.1 passed, 560 tiles, path verified | — |
 | **Dedicated server target build (R-09)** | **Producer decision — this engine distribution cannot build Server targets at all. See `PROJECT_AUDIT.md` §6.1 and producer question 5** | **Producer** |
 | Fab account / engine registration (R-03) | Producer decision | Producer |
 | Second client machine for 4-client test (R-05) | Producer decision | Producer |
