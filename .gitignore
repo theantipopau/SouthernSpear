@@ -187,3 +187,6 @@ desktop.ini
 
 # Third-party source drops: never committed until cleared in Docs/LICENCE_REGISTER.md (see Docs/SOURCED_ASSET_REVIEW.md)
 Content/Sourced/
+
+# Generated solution files
+*.slnx
