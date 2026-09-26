@@ -109,6 +109,18 @@ def ensure_game_feature_data():
         grants.append(g)
     written = unreal.SSObjectivesEditorLibrary.set_game_feature_component_grants(gfd, grants)
     step("component_grants", written == len(grants), "{} entr(ies)".format(written))
+    # Respawn: grant ShooterCore's AbilitySet_Elimination (GA_AutoRespawn and the
+    # leaderboard ability) to every player state. Lyra's FGameFeatureAbilitiesEntry
+    # is not exposed to Python, so the list is written from text.
+    abilities = unreal.new_object(load_class("/Script/LyraGame.GameFeatureAction_AddAbilities"), outer=gfd)
+    text = ('((ActorClass="/Script/LyraGame.LyraPlayerState",'
+            'GrantedAbilitySets=("/ShooterCore/Elimination/AbilitySet_Elimination.AbilitySet_Elimination")))')
+    ok = unreal.SSObjectivesEditorLibrary.set_property_from_text(abilities, "AbilitiesList", text)
+    actions = [a for a in gfd.get_editor_property("actions")
+               if a.get_class().get_name() != "GameFeatureAction_AddAbilities"]
+    gfd.set_editor_property("actions", actions + [abilities])
+    step("respawn_abilities", ok, "AbilitySet_Elimination -> LyraPlayerState")
+
     saved = eal.save_loaded_asset(gfd, False)
     return step("game_feature_data", saved, path)
 

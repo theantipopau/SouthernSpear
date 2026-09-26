@@ -42,6 +42,27 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Teams")
 	int32 TeamTwoGenericId = 2;
 
+	/**
+	 * Server: send idle AI bots to the active objective. A bot counts as busy,
+	 * and is left to its own behaviour tree, while BotBusyBlackboardKey holds a
+	 * value (Lyra's shooter bot uses TargetEnemy). Player controllers are never
+	 * touched. Identical for both teams.
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Bots")
+	bool bSteerIdleBotsToObjective = true;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Bots", meta = (ClampMin = "0.25"))
+	float BotSteerInterval = 2.f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Bots")
+	FName BotBusyBlackboardKey = TEXT("TargetEnemy");
+
+	/** Number of move orders issued on the last steer pass (server, diagnostics/tests). */
+	int32 GetLastSteeredBotCount() const { return LastSteeredBotCount; }
+
+	/** Server: one steer pass now. Public for tests. */
+	int32 SteerIdleBots();
+
 	UFUNCTION(BlueprintPure, Category = "Round")
 	const FSSRoundState& GetRoundState() const { return RoundState; }
 
@@ -70,4 +91,8 @@ private:
 
 	UPROPERTY(Transient)
 	TArray<TObjectPtr<ASSObjectiveActor>> Objectives;
+
+	float SteerAccumulator = 0.f;
+	int32 LastSteeredBotCount = 0;
+	int32 LastSteerLogSignature = INDEX_NONE;
 };
