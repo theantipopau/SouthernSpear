@@ -26,7 +26,9 @@
 # See build_dryriver_level.py for the construction pass and Docs/CHANGELOG.md
 # for the evidence trail.
 
+import csv
 import json
+import math
 import os
 import traceback
 
@@ -42,6 +44,10 @@ LAYOUT_CSV = os.path.join(PROJECT_DIR, "Content", "Art", "Blockout", "SS_MAP_Dry
 QUERY_Z_OFFSET_M = 0.1
 
 report = {"ok": False, "steps": [], "warnings": [], "errors": []}
+
+# Populated by describe_level(); one actor of each solid dressing type, used by
+# dressing_is_solid() for a direct hit test.
+DRESSING_SAMPLES = []
 
 
 def log(msg):
@@ -66,6 +72,11 @@ def read_layout():
         for row in csv.DictReader(fh):
             rows.append({k: row[k] for k in row})
     return rows
+
+
+def current_world():
+    level = unreal.get_editor_subsystem(unreal.LevelEditorSubsystem).get_current_level()
+    return level.get_world() if level else None
 
 
 def load_level():
@@ -142,27 +153,54 @@ def describe_level():
     world = unreal.get_editor_subsystem(unreal.LevelEditorSubsystem).get_current_level().get_world()
     actors = unreal.GameplayStatics.get_all_actors_of_class(world, unreal.StaticMeshActor)
     report["static_mesh_actor_count"] = len(actors)
-    log("  {} StaticMeshActor(s) in loaded level".format(len(actors)))
 
+    # Dressing adds hundreds of actors. Count them by label, inspect the
+    # blockout in detail, and take a SAMPLE of dressing — the difference between
+    # a colliding and a non-colliding set is the whole diagnosis, and dumping
+    # 290 actors would bury it.
+    blockout, dressing, samples = [], 0, []
+    sample_labels = set()
     for a in actors:
-        entry = {"label": a.get_actor_label()}
+        try:
+            label = a.get_actor_label()
+        except Exception as exc:  # noqa: BLE001
+            warn("could not read an actor label: {}".format(exc))
+            continue
+        if label.startswith("SS_Dressing_"):
+            dressing += 1
+            # Sample by TYPE, not by iteration order: the first dressing actors
+            # in the level are scrub, which is deliberately non-colliding, and
+            # reporting only those proves nothing about the rest.
+            for token in ("Post", "Rail", "Wreck"):
+                if token in label and token not in sample_labels:
+                    samples.append(a)
+                    sample_labels.add(token)
+                    break
+        else:
+            blockout.append(a)
+
+    report["dressing_actor_count"] = dressing
+    # Shared with dressing_is_solid(), which needs one actor of each solid type
+    # to test directly. A local would be invisible to it.
+    global DRESSING_SAMPLES
+    DRESSING_SAMPLES = samples
+    log("  {} StaticMeshActor(s): {} blockout, {} dressing".format(
+        len(actors), len(blockout), dressing))
+
+    def describe(actor):
+        entry = {"label": actor.get_actor_label()}
         smc = None
         try:
-            smc = a.static_mesh_component
+            smc = actor.static_mesh_component
         except Exception as exc:  # noqa: BLE001
             entry["component_error"] = str(exc)
         if smc is not None:
-            # Each field is read independently: one unavailable symbol must not
-            # cost us the whole report, which is the only diagnostic we have
-            # for a build that silently produces no tiles.
             for key, fn in (
                 ("mesh", lambda: smc.get_editor_property("static_mesh")),
                 ("collision_profile", lambda: smc.get_collision_profile_name()),
                 ("collision_enabled", lambda: smc.get_collision_enabled()),
                 ("can_ever_affect_navigation",
                  lambda: smc.get_editor_property("can_ever_affect_navigation")),
-                ("nav_collision_enabled", lambda: smc.get_editor_property(
-                    "bUseComplexAsSimpleForNavigation")),
             ):
                 try:
                     v = fn()
@@ -170,10 +208,23 @@ def describe_level():
                         bool(v) if isinstance(v, bool) else v)
                 except Exception as exc:  # noqa: BLE001
                     entry[key + "_error"] = str(exc)
+            # The asset-level collision setup, which is where the two sets
+            # differ if they differ at all.
+            try:
+                mesh = smc.get_editor_property("static_mesh")
+                entry["body_trace_flag"] = str(
+                    mesh.get_editor_property("body_setup").get_editor_property(
+                        "collision_trace_flag"))
+            except Exception as exc:  # noqa: BLE001
+                entry["body_trace_flag_error"] = str(exc)
+        return entry
+
+    for a in blockout + samples:
+        entry = describe(a)
         report.setdefault("mesh_actors", []).append(entry)
         log("  mesh actor: {}".format(entry))
 
-    return bool(actors)
+    return bool(blockout)
 
 
 def build_paths():
@@ -302,6 +353,149 @@ def path_exists(rows):
     return step("path_verification", bool(points), "{} path point(s)".format(len(points)))
 
 
+def dressing_is_solid():
+    """Prove the dressing is cover, not scenery, AFTER a save and reload.
+
+    A fence that renders but does not collide is worse than no fence: it looks
+    like a tactical option and quietly is not one, and no screenshot or actor
+    count would reveal it. The dressing pass already proves solidity at
+    placement time; repeating it here is what catches collision that does not
+    survive the round trip through the map file.
+
+    UNITS: every coordinate in this function is CENTIMETRES. get_actor_location
+    returns centimetres and the CSVs are metres, so the conversion happens once,
+    at the point the CSV is read. An earlier version multiplied by 100 inside
+    the trace helper while callers already passed centimetres, which put the
+    probes 100x away from the world and reported every fence as pass-through.
+    """
+    world = current_world()
+    if not world:
+        return step("dressing_solid", False, "no world")
+
+    def blocked_cm(ax, ay, bx, by, z):
+        """(hit, hit_actor_label). The label matters: without it a trace that
+        stops on the terrain looks identical to one that stops on a fence."""
+        try:
+            res = unreal.SystemLibrary.line_trace_single(
+                world, unreal.Vector(ax, ay, z), unreal.Vector(bx, by, z),
+                unreal.TraceTypeQuery.TRACE_TYPE_QUERY1, True,
+                [], unreal.DrawDebugTrace.NONE, True,
+            )
+        except Exception:  # noqa: BLE001
+            return None, None
+        if not isinstance(res, (list, tuple)) or len(res) < 2 or not res[0]:
+            return False, None
+        try:
+            fields = res[1].to_dict()
+            hit_actor = fields.get("actor")
+            label = hit_actor.get_name() if hasattr(hit_actor, "get_name") else str(hit_actor)
+        except Exception:  # noqa: BLE001
+            label = "?"
+        return True, label
+
+    # --- one actor of each solid type, ray straight down onto it -----------
+    report["dressing_actor_hits"] = []
+    for actor in DRESSING_SAMPLES:
+        try:
+            loc = actor.get_actor_location()
+            label = actor.get_actor_label()
+        except Exception as exc:  # noqa: BLE001
+            warn("could not read a dressing sample: {}".format(exc))
+            continue
+        # Probe above and below the origin: a mesh whose origin sits at
+        # mid-height has all of its geometry below loc.z.
+        hit, by = blocked_cm(loc.x, loc.y, loc.x, loc.y, loc.z + 400.0)
+        if not hit:
+            hit, by = blocked_cm(loc.x, loc.y, loc.x, loc.y, loc.z - 400.0)
+        entry = {"label": label, "at_cm": [loc.x, loc.y, loc.z], "vertical_hit": hit, "by": by}
+        report["dressing_actor_hits"].append(entry)
+        log("  vertical ray onto {} -> hit={} by={}".format(label, hit, by))
+
+    tested_samples = [e for e in report["dressing_actor_hits"] if e["vertical_hit"] is not None]
+    solid_samples = [e for e in tested_samples if e["vertical_hit"]]
+    if tested_samples:
+        detail = "{}/{} sampled dressing actors still collide after reload".format(
+            len(solid_samples), len(tested_samples))
+        # Recorded, NOT gated. See MAPS_DRYRIVER.md 12.4: dressing is verifiably
+        # solid where it is placed (the dress pass proves 5/5 by ray), and
+        # verifiably NOT solid once the map has been saved and reopened, while
+        # the blockout in the same map is. The engine-level cause has not been
+        # isolated. Making this a gate would fail CI forever for a reason we
+        # cannot yet fix; making it silently pass would be a lie. It is
+        # therefore an explicit, visible warning until it is understood.
+        step("dressing_actors_collide_after_reload", False, detail)
+        warn("KNOWN LIMITATION: " + detail + ". The dress pass verifies the same "
+             "actors ARE solid at placement. Tracked as R-10; see "
+             "Docs/MAPS_DRYRIVER.md section 12.4. Navigation therefore does not "
+             "yet include fencing, and the map is traversable but the fences are "
+             "not yet load-bearing cover.")
+        report["dressing_collision_persists"] = len(solid_samples) == len(tested_samples)
+    else:
+        step("dressing_actors_collide_after_reload", True, "no dressing present")
+
+    # --- across each fence run --------------------------------------------
+    fences_path = os.path.join(PROJECT_DIR, "Content", "Art", "Blockout",
+                               "SS_MAP_DryRiver_02_Fences.csv")
+    if not os.path.isfile(fences_path):
+        return step("dressing_solid", True, "no fences CSV; fencing not applied")
+    with open(fences_path, "r", encoding="utf-8") as fh:
+        runs = list(csv.DictReader(fh))
+
+    # 55 and 105 cm are the two rails; 150 cm is above the 140 cm posts, so it
+    # must pass over the fence. That is the control: it proves the probe can see
+    # past the fence, so a block lower down is the fence and not the terrain.
+    HEIGHTS = (55.0, 105.0, 150.0)
+    results = []
+    for r in runs:
+        # CSV is metres and mirrored in Y; Unreal is centimetres.
+        ax, ay = float(r["x1"]) * 100.0, -float(r["y1"]) * 100.0
+        bx, by = float(r["x2"]) * 100.0, -float(r["y2"]) * 100.0
+        mx, my = (ax + bx) * 0.5, (ay + by) * 0.5
+        dx, dy = bx - ax, by - ay
+        length = math.hypot(dx, dy)
+        if length < 1e-3:
+            continue
+        nx, ny = -dy / length, dx / length
+
+        ground = trace_ground(mx / 100.0, my / 100.0)
+        if ground is None:
+            continue
+        gz = ground[2]
+
+        per_height = {}
+        for h in HEIGHTS:
+            hit, label = blocked_cm(mx + nx * 800.0, my + ny * 800.0,
+                                    mx - nx * 800.0, my - ny * 800.0, gz + h)
+            per_height["{:.0f}".format(h)] = {"hit": hit, "by": label}
+            log("    {} at +{:.0f}cm -> hit={} by={}".format(
+                r["name"].replace("SS_DryRiver_Fence_", ""), h, hit, label))
+
+        results.append({
+            "fence": r["name"],
+            "blocked_at_rail": per_height.get("105", {}).get("hit"),
+            "clear_above": per_height.get("150", {}).get("hit") is False,
+            "heights": per_height,
+        })
+
+    report["dressing_solidity"] = {"fences": results}
+    log("  fence solidity: {}".format(
+        ", ".join("{} rail={} clearAbove={}".format(
+            d["fence"].replace("SS_DryRiver_Fence_", ""),
+            d.get("blocked_at_rail"), d.get("clear_above")) for d in results)))
+
+    tested = [d for d in results if d.get("heights")]
+    if not tested:
+        return step("dressing_solid", True, "no fence could be tested; none placed")
+    solid = [d for d in tested if d.get("blocked_at_rail") and d.get("clear_above")]
+    detail = "{}/{} fence runs block at rail height and are clear above".format(
+        len(solid), len(tested))
+    # Non-gating for the same reason as the actor check above: the failure is
+    # the reload behaviour, not the data, and the data is already proven good by
+    # Tools/verify_dressing.py.
+    step("dressing_solid_after_reload", len(solid) == len(tested), detail)
+    return None
+
+
 def save():
     sub = unreal.get_editor_subsystem(unreal.LevelEditorSubsystem)
     for name in ("save_current_level", "save_all_dirty_levels"):
@@ -343,10 +537,13 @@ def main():
         if d <= 0:
             build_paths()
         path_ok = path_exists(read_layout())
+        dressing_is_solid()
         saved = save()
 
         report["ok"] = bool(path_ok and saved)
-        report["result_summary"] = "path verified={} saved={}".format(path_ok, saved)
+        report["result_summary"] = (
+            "path verified={} saved={} | dressing collision persists across reload={}"
+        ).format(path_ok, saved, report.get("dressing_collision_persists"))
         return finish()
     except Exception:  # noqa: BLE001
         report["errors"].append(traceback.format_exc())

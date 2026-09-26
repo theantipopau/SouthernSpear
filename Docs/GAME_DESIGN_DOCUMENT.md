@@ -71,7 +71,7 @@ This is the signature system and the one with the strictest constraints.
 
 There is exactly **one** soldier simulation. Both teams instantiate the same pawn class, the same abilities, the same weapons data (with a different *presentation* asset), the same hitboxes, the same damage model.
 
-| Layer | Australian force (friendly) | Hostile militia (opposing) |
+| Layer | Australian Commonwealth Regiment (friendly) | Murasian Armed Forces (opposing) |
 |---|---|---|
 | Underlying pawn class | `SS_Soldier` | `SS_Soldier` |
 | Hitbox / capsule / collision | Identical | Identical |
@@ -91,7 +91,7 @@ A replicated `TeamId` on the `PlayerState` determines which **presentation layer
 4. **The hostile faction is fictional.** It is not drawn from any real ethnic, religious, political, or contemporary armed group. No real insignia, flags, slogans, or unit names. Backstory is invented and internally consistent.
 5. **Spectator, replay, kill feed, and post-round states are leak-tested.** See §8.3.
 
-### 3.3 Hostile faction: *Kestrel Militia* (working name)
+### 3.3 Hostile faction: *Murasian Armed Forces* (working name)
 
 A fictional irregular armed group operating in a fictional country. Design intent: **readable, not caricature.** They are presented as competent enough to require real tactics, and visually distinct through *kit and silhouette* rather than through ethnic or cultural coding.
 

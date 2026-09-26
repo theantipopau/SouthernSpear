@@ -1,0 +1,102 @@
+{
+  "assets": [
+    {
+      "asset": "/Game/Art/Dressing/SS_Dressing_Barrel.SS_Dressing_Barrel",
+      "elems": {
+        "box_elems": 0,
+        "capsule_elems": "n/a: KAggregateGeom: Failed to find property 'capsule_elems' for attribute 'capsule_elems' on 'KAggregateGeom'",
+        "convex_elems": 1,
+        "geom_elems": "n/a: KAggregateGeom: Failed to find property 'geom_elems' for attribute 'geom_elems' on 'KAggregateGeom'",
+        "level_set_elems": 0,
+        "sphere_elems": 0,
+        "tapered_capsule_elems": 0
+      },
+      "trace_flag_after": "<CollisionTraceFlag.CTF_USE_DEFAULT: 0>",
+      "trace_flag_before": "<CollisionTraceFlag.CTF_USE_DEFAULT: 0>"
+    },
+    {
+      "asset": "/Game/Art/Dressing/SS_Dressing_Crate.SS_Dressing_Crate",
+      "elems": {
+        "box_elems": 0,
+        "capsule_elems": "n/a: KAggregateGeom: Failed to find property 'capsule_elems' for attribute 'capsule_elems' on 'KAggregateGeom'",
+        "convex_elems": 1,
+        "geom_elems": "n/a: KAggregateGeom: Failed to find property 'geom_elems' for attribute 'geom_elems' on 'KAggregateGeom'",
+        "level_set_elems": 0,
+        "sphere_elems": 0,
+        "tapered_capsule_elems": 0
+      },
+      "trace_flag_after": "<CollisionTraceFlag.CTF_USE_DEFAULT: 0>",
+      "trace_flag_before": "<CollisionTraceFlag.CTF_USE_DEFAULT: 0>"
+    },
+    {
+      "asset": "/Game/Art/Dressing/SS_Dressing_FencePost.SS_Dressing_FencePost",
+      "elems": {
+        "box_elems": 0,
+        "capsule_elems": "n/a: KAggregateGeom: Failed to find property 'capsule_elems' for attribute 'capsule_elems' on 'KAggregateGeom'",
+        "convex_elems": 1,
+        "geom_elems": "n/a: KAggregateGeom: Failed to find property 'geom_elems' for attribute 'geom_elems' on 'KAggregateGeom'",
+        "level_set_elems": 0,
+        "sphere_elems": 0,
+        "tapered_capsule_elems": 0
+      },
+      "trace_flag_after": "<CollisionTraceFlag.CTF_USE_DEFAULT: 0>",
+      "trace_flag_before": "<CollisionTraceFlag.CTF_USE_DEFAULT: 0>"
+    },
+    {
+      "asset": "/Game/Art/Dressing/SS_Dressing_FenceRail.SS_Dressing_FenceRail",
+      "elems": {
+        "box_elems": 0,
+        "capsule_elems": "n/a: KAggregateGeom: Failed to find property 'capsule_elems' for attribute 'capsule_elems' on 'KAggregateGeom'",
+        "convex_elems": 1,
+        "geom_elems": "n/a: KAggregateGeom: Failed to find property 'geom_elems' for attribute 'geom_elems' on 'KAggregateGeom'",
+        "level_set_elems": 0,
+        "sphere_elems": 0,
+        "tapered_capsule_elems": 0
+      },
+      "trace_flag_after": "<CollisionTraceFlag.CTF_USE_DEFAULT: 0>",
+      "trace_flag_before": "<CollisionTraceFlag.CTF_USE_DEFAULT: 0>"
+    },
+    {
+      "asset": "/Game/Art/Dressing/SS_Dressing_Scrub.SS_Dressing_Scrub",
+      "elems": {
+        "box_elems": 0,
+        "capsule_elems": "n/a: KAggregateGeom: Failed to find property 'capsule_elems' for attribute 'capsule_elems' on 'KAggregateGeom'",
+        "convex_elems": 1,
+        "geom_elems": "n/a: KAggregateGeom: Failed to find property 'geom_elems' for attribute 'geom_elems' on 'KAggregateGeom'",
+        "level_set_elems": 0,
+        "sphere_elems": 0,
+        "tapered_capsule_elems": 0
+      },
+      "trace_flag_after": "<CollisionTraceFlag.CTF_USE_DEFAULT: 0>",
+      "trace_flag_before": "<CollisionTraceFlag.CTF_USE_DEFAULT: 0>"
+    },
+    {
+      "asset": "/Game/Art/Dressing/SS_Dressing_Wreck.SS_Dressing_Wreck",
+      "elems": {
+        "box_elems": 0,
+        "capsule_elems": "n/a: KAggregateGeom: Failed to find property 'capsule_elems' for attribute 'capsule_elems' on 'KAggregateGeom'",
+        "convex_elems": 1,
+        "geom_elems": "n/a: KAggregateGeom: Failed to find property 'geom_elems' for attribute 'geom_elems' on 'KAggregateGeom'",
+        "level_set_elems": 0,
+        "sphere_elems": 0,
+        "tapered_capsule_elems": 0
+      },
+      "trace_flag_after": "<CollisionTraceFlag.CTF_USE_DEFAULT: 0>",
+      "trace_flag_before": "<CollisionTraceFlag.CTF_USE_DEFAULT: 0>"
+    }
+  ],
+  "enum": [
+    "CTF_USE_COMPLEX_AS_SIMPLE",
+    "CTF_USE_DEFAULT",
+    "CTF_USE_SIMPLE_AND_COMPLEX",
+    "CTF_USE_SIMPLE_AS_COMPLEX",
+    "cast",
+    "get_display_name",
+    "name",
+    "static_enum",
+    "value"
+  ],
+  "set_probe": {
+    "requested": "<CollisionTraceFlag.CTF_USE_DEFAULT: 0>"
+  }
+}

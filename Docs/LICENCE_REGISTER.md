@@ -103,29 +103,43 @@ Anything class **D** or **E** is a release blocker. There is no exception.
 | **Rule** | Original, properly licensed, or properly attributed audio only. **No recorded real voice content.** Voice chat is never recorded without explicit per-player consent and a documented privacy design |
 | **Action** | Every future audio entry added here before import |
 
-### L-0012 — Electric Dreams environment (reference + selective harvest only)
+### L-0012 — Electric Dreams environment (DECLINED — historical evaluation record only)
 
 | Field | Value |
 |---|---|
-| **Component** | "Electric Dreams" environment pack, staged at `E:\Unreal\Environment\` |
-| **Status** | 🔴 **ACQUISED, TERMS NOT YET VERIFIED** |
-| **Licence** | **UNREAD** |
-| **Class** | **E — unresolved. Treated as class D (prohibited) until the licence text is read and recorded here.** |
-| **Approved use** | **Generic modular pieces only** (e.g. concrete, steel, modular walls) — explicitly *not* as a base map |
-| **Rejected use** | Base map, art direction, or any map derived from its layout or art style |
+| **Component** | "Electric Dreams" environment pack, briefly staged outside the repository at `E:\Unreal\Environment\` |
+| **Status** | 🔴 **DECLINED** |
+| **Import status** | **NOT IMPORTED** — no asset from this pack has ever entered the repository, the project, or a build |
+| **Project use** | **NOT PERMITTED** |
+| **Licence** | **UNREAD — and no longer relevant, because the pack is not used** |
+| **Class** | **D — prohibited for project use** |
+| **Authoritative decision** | **ADR-013** — maps are built original; third-party environments are not used |
 
-**Constraints on use:**
-1. The environment's aesthetic is incompatible with the Australian bushland/industrial setting. It is **not** to be used as a base map, and no Southern Spear map may derive its layout or visual identity from it.
-2. Only **generic, non-branded, non-stylised** modular pieces may be harvested. Anything carrying the pack's distinctive art direction, signature look, or branding is excluded.
-3. Every harvested piece gets its **own** register row (L-0012.x) naming the specific piece, before it enters the repository.
-4. Harvested pieces are to be **re-lit and re-surfaced** in our own original materials so they do not carry the source pack's visual signature into a shipping build.
-5. The pack may additionally be used **outside the project** as a standalone GPU/Lumen/Nanite performance stress scene. That use carries no shipping obligation.
+**No selective harvesting is authorised.** An earlier revision of this register read
+"reference + selective harvest only" and listed "approved use: generic modular pieces
+only". That wording directly contradicted ADR-013, which declined the pack **entirely**,
+and it left the register reading as though harvesting had been permitted. It was not.
+ADR-013 is the authority; this row now agrees with it.
+
+**Constraints:**
+1. No asset, material, mesh, texture, layout or art-style reference from this pack may enter the repository or any build.
+2. It may not be used as a base map, as art direction, or as the source of any Southern Spear map.
+3. Southern Spear map layout and art direction are original work (ADR-015, Dry River).
+4. Historical evaluation record is **retained** below so the decision and its reasoning survive. Retention is not authorisation.
+
+**Historical evaluation record (retained, non-authoritative).** Before the pack was
+declined it was evaluated and recorded deliberately at class **E** with the note that
+"free" is not a licence category and an unread licence is treated as prohibited. The
+evaluation considered using it as a base map, and separately as a source of generic
+modular pieces. Both were rejected in ADR-013 on originality grounds: the vertical slice
+is to be built original, and a third-party environment's art direction cannot enter a
+product that claims entirely fictional authorship. The pack was never imported and the
+licence text was never read, because the decision was made before extraction was
+necessary.
 
 | Field | Value |
 |---|---|
-| **Action** | Read the Fab/EULA licence text in full, record the actual terms, then reclassify. If commercial packaging is not explicitly permitted, the harvest is abandoned. |
-
-> Recorded before extraction, deliberately at class **E**. "Free" is not a licence category — an unread licence is treated as prohibited.
+| **Action** | None. The pack is declined and unused. If it is ever revisited, it requires a **new** ADR superseding ADR-013, plus a full licence read, **not** a reclassification of this row. |
 
 ---
 
@@ -205,13 +219,45 @@ Everything in this list is created specifically for Southern Spear and carries n
 
 ## 5. Original-Fiction Constraints (not licence law, but binding)
 
-Separately from copyright, the following are **hard constraints** on the fiction:
+Separately from copyright, the following are **hard constraints** on the fiction.
 
-1. **The hostile faction is fictional.** It must not represent any real ethnic, religious, political, or contemporary armed group.
-2. **No culturally derogatory imagery, language or stereotypes.** The faction is designed to be tactically credible, not caricatured.
+### 5.1 Fictional organisations (ADR-016)
+
+Every organisation below is **invented for Southern Spear** and is not affiliated with,
+endorsed by, or derived from any real body:
+
+- **Commonwealth Defence Service (CDS)** — fictional
+- **Commonwealth Land Service (CLS)** — fictional
+- **Australian Commonwealth Regiment (ACR)**, incl. 1/3/5/7 ACR — fictional
+- **2nd Commando Group (2 CG)** — fictional, and **not** the real 2nd Commando Regiment
+- **Special Operations Regiment (SOR)** — fictional, and **not** the SASR
+- **Murasian Armed Forces (MAF)** — fictional; not a real state, ethnicity, religion, political movement or contemporary armed group
+- **Commonwealth Multi-Environment Combat Uniform (CMECU)** — an original fictional camouflage and uniform system
+
+**No official affiliation or endorsement is claimed** by the Australian Government, the
+Department of Defence, the Australian Defence Force or the Australian Army.
+
+### 5.2 Prohibited real-world material
+
+- **No ADF/Army emblems.** No Rising Sun, corps badge, colour patch, unit emblem, motto, battle honour, ceremonial tradition or official rank-slide artwork is used, reproduced or traced. L-0003 remains on legal hold.
+- **No real battalion titles or mottos**, and nothing derived from the Royal Australian Regiment.
+- **No manufacturer logos, roll marks or CAD.** All weapon geometry is original or appropriately licensed.
+- **No copied commercial-game assets, and no ripped assets**, under any circumstances.
+- **AMCU and commercial MultiCam are not reproduced exactly**, nor traced from photographed fabric.
+- **Historical Musorian camouflage is not reproduced exactly.** The broad red-earth exercise-OPFOR idea is inspiration only; the pattern, shapes and colour arrangement are original.
+
+### 5.3 Fictional-fiction constraints
+
+1. **The opposing force is fictional** and must not represent any real ethnic, religious, political or contemporary armed group.
+2. **No culturally derogatory imagery, language or stereotypes.** The Murasian Armed Forces are presented as a credible **conventional military force**, never as terrorists, extremists, an ethnic or religious militia, or a racial caricature.
 3. **Fictional insignia, names and backstory** throughout.
 4. **No real base, installation or operationally useful site layout** in any map.
-5. **No realistic manufacturing, modification or unlawful-use instructions.** All weapon work is game simulation.
+5. **No realistic manufacturing, modification or unlawful-use instructions.** All weapon work is game simulation. Placeholder weapon silhouettes carry no dimensioned, functional or manufacturing-revealing detail.
+6. **Faction recognition must never depend on colour alone** — silhouette, equipment arrangement, insignia shape and weapon silhouette carry it too, so the product remains legible to colour-blind players.
+
+> Renaming alone does not confer legal clearance. Final branding, insignia, camouflage,
+> uniforms, weapons and store presentation are flagged for **independent Australian legal
+> review before release**.
 
 ---
 

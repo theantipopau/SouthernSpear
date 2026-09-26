@@ -1,0 +1,11 @@
+======================================================================
+SOUTHERN SPEAR - ARCHITECTURE GUARD
+======================================================================
+FAIL - 2 violation(s):
+
+  SS002: Plugins/SouthernSpearCore/Source/SouthernSpearCore/SouthernSpearCore.Build.cs
+      SouthernSpearCore depends on Lyra gameplay module(s): LyraGame. It must stay independent of weapons, damage, health, abilities, roles, objectives and UI.
+
+  SS006: Plugins/SouthernSpearCore/Source/SouthernSpearCore/Public/SSTeamTypes.h
+      authoritative team enum ESSTeamId declares a 'Friendly' value. Friendly/Opposing are viewer-relative and must never be replicated world-team values (ADR-017).
+

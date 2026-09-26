@@ -292,6 +292,16 @@ Binary assets route through LFS; text is not. Probe artefacts were removed. A `g
 | G0.9 | **Dedicated server target builds** | ❌ **FAIL — BLOCKED** — see §6.1 and R-09 |
 | G0.10 | **Project loads under its new name** | ✅ **PASS** — see §6.2 |
 | G1.1 | **Dry River builds with a valid NavMesh** | ✅ **PASS** — see §6.3 |
+| G1.2 | **Dry River data-driven dressing** | ✅ **PASS** — 19/19 data checks, 290 actors placed — see §6.4 |
+| G2.0 | **SouthernSpearCore builds; team identity and locality verified** | ✅ **PASS** — 9/9 automation tests — see §6.5 |
+| G2.1 | **Architecture boundaries enforced by an automated guard** | ✅ **PASS** — guard fails on a deliberate violation — see §6.5 |
+
+**Dry River navigation re-verification after the G2.0 change: NOT RUN.** The G2.0 work added a
+plugin and changed no map or map-generation input, and the G1.1/G1.2 map artefacts are
+byte-unchanged (`L_DryRiver_01.umap` still carries the timestamp of the last verified nav
+pass), so there is no evidence of regression. That is an inference, not a test. A nav
+re-run was started and interrupted during editor startup; the editor was killed before
+the Python pass began, so it wrote nothing. It remains outstanding — see R-11.
 
 ### Gate G0.8 result — PASSED (2026-09-26)
 
@@ -446,6 +456,76 @@ Evidence: `Docs/evidence/G011_*`.
 
 ---
 
+### 6.4 Gate G1.2 result — PASSED (2026-09-26)
+
+Dry River dressing became a **data edit**. `Tools/Unreal/dress_dryriver.py` places 67 dressing
+instances and 7 fence runs (expanded to 79 posts and 144 rails) from two CSVs, re-snapping
+every item to the terrain by ray trace. 290 dressing actors are placed; the nav pass then
+builds, so fences are present before navigation rather than after.
+
+| Check | Result |
+|---|---|
+| `Tools/verify_dressing.py` | **19/19 PASS** — no Blender, no editor |
+| Dressing placed | 67 (46 scrub, 10 barrel, 8 crate, 3 wreck) + 223 fence parts = **290 actors** |
+| Collision at placement | **5/5** solid types, ray-verified |
+| Dress report warnings | **6 → 0** (see Defects below) |
+| NavMesh tiles | **560**, unchanged |
+| Path, DeployAlpha → DeployBravo | still verified |
+
+**Known limitation, R-10 (open).** Dressing collision does not survive a headless save and
+reload: 5/5 solid at placement, 0/3 after reopening, 0/7 fence runs blocking. The nav pass
+**reports** this as two failing steps plus a `WARN` and deliberately does **not** gate
+`report["ok"]`. Dry River is traversable but its fences are not yet load-bearing cover.
+
+Evidence: `Docs/evidence/G012_*`.
+
+---
+
+### 6.5 Gate G2.0 and G2.1 result — PASSED (2026-09-26)
+
+`Plugins/SouthernSpearCore` now exists as the root of the Southern Spear dependency graph.
+
+**G2.0 — build and behaviour.**
+
+| Check | Result |
+|---|---|
+| `SouthernSpearCoreEditor` compile | **Succeeded**, 0 errors |
+| Automation tests `SouthernSpear.Core.*` | **9/9 PASS** |
+| `SouthernSpearCore` module startup | logged, no validation errors |
+| Lyra Game Features on load | **5/5** `TopDownArena`, `ShooterCore`, `ShooterExplorer`, `ShooterMaps`, `ShooterTests` → `[Registered, Active]` |
+| Project errors on load | **0** |
+| Lyra source modified | **none** — ADR-002 preserved |
+
+The 9 tests cover team validity, the full 2×2 locality matrix, safe failure on `None` and on
+an out-of-range enum, determinism across repeats, spectator/replay vantage requirements,
+stable ID validation and duplicate detection, team and Gameplay Tag validation, and native
+tag registration.
+
+**The two-concept split is enforced structurally, not by convention.** One test reflects over
+every `UClass` in the module and fails if any `CPF_Net` property has type `ESSLocality`, so a
+replicated locality cannot be added later without a test failing. `ESSTeamId` is the
+replicated value; `ESSLocality` is derived per viewer.
+
+**G2.1 — architecture guard.** `Tools/validate_architecture.py` (8 rules, stdlib only, ~1 s,
+no editor) fails the build on: a sibling SS plugin dependency (SS001), a Lyra or gameplay
+dependency in `SouthernSpearCore` (SS002), a gameplay include in a presentation public header
+(SS003), an SS source file inside a Lyra module (SS004), a gameplay→UI dependency (SS005),
+and `Friendly`/`Opposing` reappearing as authoritative team values (SS006), plus positive
+checks that the team enum keeps a `None` member and the locality enum keeps both values.
+
+The guard was **verified by deliberately breaking the build it guards**: a `Friendly` member
+was added to the authoritative `ESSTeamId` and a `LyraGame` dependency was added to the
+module, then the guard was run. It reported **both** violations and exited **1**. Both were
+reverted, the guard re-run, and it exited **0**. The reverted source is byte-identical to the
+pre-violation state (verified by `md5sum`). Evidence: `Docs/evidence/G020_*`.
+
+**A false positive was found and fixed before that.** The first version of rule SS006 flagged
+`ESSLocality` for declaring `Friendly`/`Opposing` — which is that enum's entire purpose. The
+rule was wrong, not the code. It now applies the prohibition to the team enum only, and
+inverts into a positive check for the locality enum.
+
+---
+
 ## 7. Risks
 
 | ID | Risk | Impact | Mitigation |
@@ -459,14 +539,16 @@ Evidence: `Docs/evidence/G011_*`.
 | **R-07** | UE 5.8.3 is a recent release | Ecosystem content and Fab assets may lag the engine | Prefer engine-native solutions; verify every plugin on 5.8 before adoption |
 | **R-08** | Installed Build — no engine modules | Cannot patch engine C++ | All divergence is expressed in project/plugin code and documented |
 | **R-09** | **This engine distribution cannot build Server targets at all** | The "packaged client → packaged dedicated server" acceptance criterion is unsatisfiable here. Blocks gate G0.9 and the vertical slice sign-off | Escalated as producer question 5. Resolve by obtaining a server-capable engine (Launcher *Dedicated Server* product, or a source build). Do **not** substitute a listen server — the roadmap forbids it. Interim: develop against the Game target's authority model, which is identical, and prove the DS at gate time |
+| **R-10** | **Dressing collision does not survive a headless save/reload** | Fences and wrecks are solid where placed (5/5 verified) but not after the map is reopened (0/7), so navigation does not yet include them and the fencing is not load-bearing cover | Characterised, not yet fixed. Ruled out by measurement: placement position, collision profile, asset contents, stale imports, the assets as saved (all six `BodySetup`s read back in a fresh editor at `CTF_USE_DEFAULT` with one `convex_elems` entry each), and the collision trace flag — the last of these only after the dress pass was found to request a nonexistent enum member, meaning the earlier “complex-as-simple also fails” result came from a write that never applied; retested with the flag verifiably set, R-10 reproduces identically. Leading remaining hypothesis is now which session last touched the asset. The blockout in the same map is unaffected. See `MAPS_DRYRIVER.md` §12.4. Interim: treat fencing as art direction; the nav pass reports the failure explicitly rather than hiding it. Resolve by testing an interactive editor save, or by keeping the dressing assets rather than deleting and re-importing them each run |
 
 ---
+| ~~**R-11**~~ | ~~Dry River navigation not re-verified after the G2.0 change~~ | **CLOSED Session 006.** `build_dryriver_nav.py` re-run against the current binary: exit 0, level loaded, 1 nav bounds volume, 1 RecastNavMesh, path DeployAlpha→DeployBravo = 2 points. Evidence `Docs/evidence/R11_dryriver_nav_report.json`. Note: the script does not report a tile count, and no retained evidence file records the earlier "560 tiles"; that figure is unverified by evidence. The script re-saves the map by design (nav data), so the `.umap` hash changed | CLOSED |
 
 ## 8. Open Questions For The Producer
 
 1. ~~**Repository path**~~ — **resolved**: relocated to `E:\SouthernSpear` (ADR-014).
 2. **Second client machine** — available for true 4-client + dedicated-server testing? (R-05).
-3. **Fab account** — is there a team account with an EULA-accepted licence seat, and will the engine be registered in the Launcher? (R-03). This also governs the Electric Dreams harvest (L-0012).
+3. **Fab account** — is there a team account with an EULA-accepted licence seat, and will the engine be registered in the Launcher? (R-03). Note this **no longer governs the Electric Dreams pack**, which is declined outright by ADR-013 and was never imported (L-0012).
 4. **Project path/naming** — **resolved**: `SouthernSpear`, both the code name and the folder name.
 5. **How do we obtain a dedicated-server-capable engine?** (R-09 — the highest-priority open question.) This install is a game/editor-only distribution and cannot build `TargetType.Server` at all, so the vertical slice's own acceptance criterion cannot be met on it. Three routes, with materially different costs:
    - **(a)** Install the *Unreal Engine Dedicated Server* product for 5.8.3 from the Launcher. Requires an **Unreal Engine** licence seat, not a **Game** licence seat. Cheapest if the seat already exists; keeps the vendored fork and all toolchain assumptions intact.

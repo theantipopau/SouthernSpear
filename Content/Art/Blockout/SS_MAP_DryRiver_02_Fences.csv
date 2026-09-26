@@ -1,0 +1,8 @@
+name,x1,y1,x2,y2,post_spacing
+SS_DryRiver_Fence_PaddockEast,78.000,34.000,78.000,74.000,2.50
+SS_DryRiver_Fence_PaddockNorth,78.000,74.000,100.000,74.000,2.50
+SS_DryRiver_Fence_CreekWest,-74.000,-34.000,-74.000,6.000,2.50
+SS_DryRiver_Fence_NorthEastBoundary,100.000,70.000,122.000,70.000,2.50
+SS_DryRiver_Fence_CreekBankSouth,6.000,10.000,18.000,10.000,2.50
+SS_DryRiver_Fence_WestMidLine,-96.000,-12.000,-96.000,12.000,2.50
+SS_DryRiver_Fence_SouthBankEast,60.000,-14.000,78.000,-14.000,2.50

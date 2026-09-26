@@ -54,8 +54,16 @@ Architecture decisions with their reasoning, alternatives and consequences. A de
 
 ## ADR-003 — Match-relative team identity
 
-**Status:** Accepted
+**Status:** SUPERSEDED by ADR-017 (2026-09-26)
 **Date:** 2026-09-26
+
+> **Superseded.** The *intent* of this decision is retained: presentation resolves only
+> relative to the viewer. The *mechanism* is not. An identifier whose value depends on
+> the observer cannot be replicated, used as a scoreboard key, compared for equality, or
+> trusted by a server, and code that stores `Friendly` on a PlayerState produces a system
+> where the server and its clients silently disagree about who is on which team. ADR-017
+> keeps the guarantee and moves it out of the enum into a pure resolver. See ADR-017 for
+> the full reasoning. This entry is retained, not deleted, as the record of what was tried.
 
 **Context.** Both teams must be the same game with different presentation. Neither can be hardcoded as "the good guys".
 
@@ -219,9 +227,9 @@ Test.md:         filter: unspecified           text: set
 **Status:** Accepted
 **Date:** 2026-09-26
 
-**Context.** The brief requires a fictional insurgent/militia presentation, and prohibits any real ethnic, religious, political or contemporary conflict group, and any derogatory imagery or stereotypes.
+**Context.** The brief requires a fictional fictional opposing force presentation, and prohibits any real ethnic, religious, political or contemporary conflict group, and any derogatory imagery or stereotypes.
 
-**Decision.** The opposing faction (working name *Kestrel Militia*) is invented: invented insignia, invented unit names, an internally consistent backstory, and a visual design driven by **kit and silhouette** rather than ethnic or cultural coding.
+**Decision.** The opposing faction (working name *Murasian Armed Forces*) is invented: invented insignia, invented unit names, an internally consistent backstory, and a visual design driven by **kit and silhouette** rather than ethnic or cultural coding.
 
 **Alternatives.**
 - *A generic "insurgent" look* — rejected: "generic" tends to converge on real-world stereotypes, which is exactly the failure mode to avoid.
@@ -310,14 +318,87 @@ Test.md:         filter: unspecified           text: set
 
 ---
 
+## ADR-016 — Canonical fictional organisations and uniform terminology
+
+**Status:** Accepted
+**Date:** 2026-09-26
+**Supersedes:** the working names recorded in ADR-011 and throughout pre-2026-09-26 design documents
+
+**Context.** The project began with placeholder organisation names (a generic "Australian Defence Service", an "Australian Service Regiment", a "Murasian Armed Forces" working title, and an "AMECU" uniform working title). Those names were never intended to ship. Three of them are actively unhelpful: the first two sit uncomfortably close to real Australian Defence naming, and "Murasian Armed Forces" encodes exactly the ethnic-militia framing ADR-011 exists to avoid. They are replaced with a settled fictional set.
+
+**Decision.** The canonical fictional organisations are:
+
+| Short | Name | Role |
+|---|---|---|
+| **CDS** | Commonwealth Defence Service | The fictional national military the player serves in |
+| **CLS** | Commonwealth Land Service | Land-warfare component of the CDS; the infantry home |
+| **ACR** | Australian Commonwealth Regiment | Primary conventional infantry formation; Phase 1 player force |
+| **2 CG** | 2nd Commando Group | Fictional CLS special-operations formation; later phase |
+| **SOR** | Special Operations Regiment | Fictional CLS special-operations formation; later phase |
+| **MAF** | Murasian Armed Forces | The fictional contextual opposing force |
+| **CMECU** | Commonwealth Multi-Environment Combat Uniform | Original fictional camouflage and uniform system |
+
+The recommended Phase 1 player formation is **3rd Battalion, Australian Commonwealth Regiment (3 ACR)**, presented as "Rifleman, 3 ACR". Only the CLS is in scope for Phase 1; maritime and air service are explicitly out of scope until the infantry slice ships.
+
+The MAF are presented as a **credible conventional military force**, not as terrorists, extremists, an ethnic or religious militia, or an imitation of any current conflict participant. Visual direction is original red-earth disruptive camouflage in ochre, rust, dark brown, muted burgundy and charcoal.
+
+**Alternatives.**
+- *Keep the working names and clarify later* — rejected. A name that reads as a real organisation stays that way through every intermediate build, and the "Murasian Armed Forces" framing is the precise stereotype ADR-011 prohibits.
+- *Use obviously placeholder names* — rejected. They cannot be evaluated honestly in playtesting, and they push the real naming work to the end when it is most expensive.
+
+**Consequences.**
+- `Docs/ORIGINAL_BRIEF.md` retains its original wording as an immutable historical record; this ADR is the superseding authority for all active documents, code, data and UI.
+- No Australian Defence Force emblem, corps badge, colour patch, Rising Sun, unit emblem, motto or battle honour is used or may be created. All insignia, mottos, rank devices and qualification badges are original work.
+- Faction recognition must never depend on colour alone; silhouette, equipment arrangement, insignia shape and weapon silhouette carry it too.
+- The CMECU is an original pattern. AMCU and commercial MultiCam are not reproduced, traced or approximated tile-for-tile.
+- Renaming assets is done with redirectors and validation, never a blind mass rename of binaries.
+
+---
+
+## ADR-017 — Stable team identity, viewer-relative locality
+
+**Status:** Accepted
+**Date:** 2026-09-26
+**Supersedes:** ADR-003
+
+**Context.** ADR-003 defined `ESSTeamId` as *match-relative*, with the enum values themselves being `Friendly` and `Opposing` — that is, the value of a player's team depended on who was looking at it. That was a clean idea, and it does produce the trust boundary ADR-003 wanted. But it is unworkable as written: an identifier that means different things to different observers cannot be stored on a replicated PlayerState, cannot be used as a scoreboard key, cannot index an objective's owning team, and cannot be compared for equality in a kill-feed. Every one of those needs a value that means the same thing to everyone.
+
+The failure mode is not hypothetical. Code that stores `Friendly` on a PlayerState produces a system where the server and two clients disagree about the same player's team, and nothing detects it.
+
+**Decision.** Split the concept in two.
+
+- **`ESSTeamId { None, TeamOne, TeamTwo }` is authoritative and replicated.** It names a team in the world and carries no alignment. `None` is a real, representable state so that resolution can fail explicitly rather than defaulting.
+- **`ESSLocality { Friendly, Opposing }` is derived locally and never replicated.** Each client computes it from `(ViewerTeam, SubjectTeam)`. Two clients in the same match legitimately hold opposite values for the same pair of actors, and that is correct.
+- Resolution goes through `FSSTeamIdentity::ResolveLocality`, which is pure, deterministic, and returns a `FSSLocalityResolution` that carries either a locality or a typed failure reason. It never defaults.
+- Spectators and replays resolve through an explicit `FSSViewerContext` that must name an authorised vantage. A spectator that has not stated one gets **no** resolution, rather than one team's view being shown to the other.
+- `ESSLocality` has no `None` member, so a default-constructed value is `Friendly`. The safety therefore lives in the API: callers must go through the resolver rather than default-constructing. This is recorded as a known sharp edge rather than left as a trap.
+
+**Alternatives.**
+- *Keep ADR-003's match-relative enum as written* — rejected for the reasons above. The intent (viewers may only resolve presentation relative to themselves) is preserved in full; only the *storage* of that intent moves from the enum to the resolver.
+- *Absolute factions on the PlayerState* (`CDS` / `MAF`) — rejected, as in ADR-003. It makes presentation resolvable without viewer context and invites faction logic leaking into gameplay.
+- *Add a `None` to `ESSLocality`* — rejected. It would be a safer default, but the published architecture fixes the two-value set, and adding a third would make every switch over it need a dead branch. The resolver API carries the safety instead.
+
+**Consequences.**
+- ADR-003's core guarantee is retained and strengthened: presentation still resolves only through an explicit `(viewer, subject)` pair, and now that pair is computed from two independently meaningful values.
+- An automation test reflects over every class in `SouthernSpearCore` and fails if any replicated property has type `ESSLocality`, so the boundary holds structurally rather than by convention.
+- `SouthernSpearCore` is the root of the SS dependency graph: it depends on no other Southern Spear plugin and on no Lyra module, so team identity cannot reach weapons, damage, health, abilities, roles, objectives or UI. `Tools/validate_architecture.py` enforces this statically and runs in CI.
+- Kill-feed, scoreboard and post-round presentation must draw from `ESSTeamId` and resolve locality locally, never from a replicated locality value.
+
+---
+
 ## Open Decisions
+
+> Renumbered 2026-09-26. ADR-016 and ADR-017 were previously unused placeholders for
+> Phase 5 questions; they are now taken by the two decisions recorded above, and the
+> placeholders moved to ADR-018..ADR-021. No question was answered or dropped by the
+> renumbering.
 
 | ID | Question | Needed by |
 |---|---|---|
-| ADR-016 | Online services: EOS vs Steam vs custom, and in what order? | Phase 5 |
-| ADR-017 | Anti-cheat: vendor, platform-provided, or bespoke? | Phase 5 |
-| ADR-018 | Match size: 16, 32 or 64 baseline? | Phase 4, after performance profiling |
-| ADR-019 | Whether to retain or drop Lyra's third example experience (Exploder) | Phase 1 |
+| ADR-018 | Online services: EOS vs Steam vs custom, and in what order? | Phase 5 |
+| ADR-019 | Anti-cheat: vendor, platform-provided, or bespoke? | Phase 5 |
+| ADR-020 | Match size: 16, 32 or 64 baseline? | Phase 4, after performance profiling |
+| ADR-021 | Whether to retain or drop Lyra's third example experience (Exploder) | Phase 1 |
 
 ### Resolved
 
@@ -325,3 +406,4 @@ Test.md:         filter: unspecified           text: set
 |---|---|---|
 | ADR-013 | Repository path: relocate off a space-containing path? | Relocated — ADR-014 |
 | ADR-013 | Electric Dreams: use as a base map or harvest art? | Declined entirely — ADR-013 |
+| ADR-003 | Match-relative team identity | Superseded by ADR-017 — stable `ESSTeamId` plus locally derived `ESSLocality` |

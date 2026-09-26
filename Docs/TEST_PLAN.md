@@ -266,9 +266,9 @@ Every surface where a player could receive information they should not have.
 
 1. Start a 2-client PIE session on a listen server, one player per team.
 2. Client A: confirm own team renders as the friendly Australian force.
-3. Client A: confirm the opposing team renders as the fictional hostile militia.
+3. Client A: confirm the opposing team renders as the Murasian Armed Forces.
 4. Client B: confirm own team renders as the friendly Australian force.
-5. Client B: confirm the opposing team renders as the fictional hostile militia.
+5. Client B: confirm the opposing team renders as the Murasian Armed Forces.
 6. Confirm both clients see the **same** player as the same faction.
 7. Repeat with colour-vision presets applied.
 8. Repeat under `NetEmulation` profile `Poor`.

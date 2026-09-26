@@ -1,0 +1,64 @@
+Gate G012 - Dry River data-driven dressing pass.
+Editor: UE 5.8.3 (CL 58210709, ++UE5+Release-5.8), headless -nullrhi -unattended -nosplash -nosound.
+Source: Build/g68_dress.log (dress pass), Build/g70_nav.log (nav pass).
+
+=== DRESS PASS (Tools/Unreal/dress_dryriver.py) ===
+LogPython: [DryRiverDress] OK   load_map /Game/Maps/L_DryRiver_01
+LogPython: [DryRiverDress] OK   read_dressing_csv 67 rows
+LogPython: [DryRiverDress] OK   read_fences_csv 7 rows
+LogPython: [DryRiverDress] OK   import_dressing_meshes 6 imported
+LogPython: [DryRiverDress] OK   load_meshes 6 available
+LogPython: [DryRiverDress] OK   clear_existing 290 removed
+LogPython: [DryRiverDress] OK   place_fences 7 runs -> 79 posts, 144 rails
+LogPython: [DryRiverDress] OK   place_dressing 67 placed {'scrub': 46, 'crate': 8, 'barrel': 10, 'wreck': 3}
+LogPython: [DryRiverDress]   Post SS_Dressing_PaddockEast_Post00: hit=True origin-ground=-0.06m
+LogPython: [DryRiverDress]   Rail SS_Dressing_PaddockEast_Rail00_055: hit=True origin-ground=-1.75m
+LogPython: [DryRiverDress]   Crate SS_Dressing_Crate_01: hit=True origin-ground=-0.496m
+LogPython: [DryRiverDress]   Barrel SS_Dressing_Barrel_01: hit=True origin-ground=0.0m
+LogPython: [DryRiverDress]   Wreck SS_Dressing_Wreck_WestBank: hit=True origin-ground=-1.197m
+LogPython: [DryRiverDress] OK   verify_collision 5/5 sampled solid dressing types collide
+LogPython: [DryRiverDress] OK   save save_current_level
+LogPython: [DryRiverDress] REPORT_WRITTEN ../../../../../SouthernSpear/Build\dryriver_dressing_report.json
+LogPython: [DryRiverDress] COMPLETE ok=True
+
+=== per-mesh simple collision (element counts, not opaque pointers) ===
+  SS_Dressing_Barrel     elements=1  {'box_elems': 0, 'sphere_elems': 0, 'convex_elems': 1, 'tapered_capsule_elems': 0, 'level_set_elems': 0}
+  SS_Dressing_Crate      elements=1  {'box_elems': 0, 'sphere_elems': 0, 'convex_elems': 1, 'tapered_capsule_elems': 0, 'level_set_elems': 0}
+  SS_Dressing_FencePost  elements=1  {'box_elems': 0, 'sphere_elems': 0, 'convex_elems': 1, 'tapered_capsule_elems': 0, 'level_set_elems': 0}
+  SS_Dressing_FenceRail  elements=1  {'box_elems': 0, 'sphere_elems': 0, 'convex_elems': 1, 'tapered_capsule_elems': 0, 'level_set_elems': 0}
+  SS_Dressing_Scrub      elements=1  {'box_elems': 0, 'sphere_elems': 0, 'convex_elems': 1, 'tapered_capsule_elems': 0, 'level_set_elems': 0}
+  SS_Dressing_Wreck      elements=1  {'box_elems': 0, 'sphere_elems': 0, 'convex_elems': 1, 'tapered_capsule_elems': 0, 'level_set_elems': 0}
+
+=== NAV PASS (Tools/Unreal/build_dryriver_nav.py) ===
+LogPython: [DryRiverNav] OK   load_map /Game/Maps/L_DryRiver_01 -> L_DryRiver_01
+LogPython: [DryRiverNav]   volume SS_NavMeshBoundsVolume at <Struct 'Vector' (0x00000257B4EEB5D0) {x: 0.000000, y: 0.000000, z: 800.000000}> scale (136.0,96.0,18.0)
+LogPython: [DryRiverNav] OK   nav_bounds_volume_present 1 volume(s) in world
+LogPython: [DryRiverNav]   navdata RecastNavMesh label=RecastNavMesh-Default
+LogPython: [DryRiverNav] OK   nav_data_present 1 RecastNavMesh actor(s)
+LogPython: [DryRiverNav]   291 StaticMeshActor(s): 1 blockout, 290 dressing
+LogPython: [DryRiverNav]   mesh actor: {'label': 'SS_Blockout_Geometry', 'mesh': 'SS_MAP_DryRiver_01', 'collision_profile': Name("BlockAll"), 'collision_enabled': <CollisionEnabled.QUERY_AND_PHYSICS: 3>, 'can_ever_affect_navigation': True, 'body_trace_flag': '<CollisionTraceFlag.CTF_USE_COMPLEX_AS_SIMPLE: 3>'}
+LogPython: [DryRiverNav]   mesh actor: {'label': 'SS_Dressing_PaddockEast_Post00', 'mesh': 'SS_Dressing_FencePost', 'collision_profile': Name("BlockAll"), 'collision_enabled': <CollisionEnabled.QUERY_AND_PHYSICS: 3>, 'can_ever_affect_navigation': True, 'body_trace_flag': '<CollisionTraceFlag.CTF_USE_DEFAULT: 0>'}
+LogPython: [DryRiverNav]   mesh actor: {'label': 'SS_Dressing_PaddockEast_Rail00_055', 'mesh': 'SS_Dressing_FenceRail', 'collision_profile': Name("BlockAll"), 'collision_enabled': <CollisionEnabled.QUERY_AND_PHYSICS: 3>, 'can_ever_affect_navigation': True, 'body_trace_flag': '<CollisionTraceFlag.CTF_USE_DEFAULT: 0>'}
+LogPython: [DryRiverNav]   mesh actor: {'label': 'SS_Dressing_Wreck_WestBank', 'mesh': 'SS_Dressing_Wreck', 'collision_profile': Name("BlockAll"), 'collision_enabled': <CollisionEnabled.QUERY_AND_PHYSICS: 3>, 'can_ever_affect_navigation': True, 'body_trace_flag': '<CollisionTraceFlag.CTF_USE_DEFAULT: 0>'}
+LogPython: [DryRiverNav] OK   build_paths BUILDPATHS issued
+LogPython: [DryRiverNav]   SS_MAP_DryRiver_DeployAlpha ground z=64.3cm vs CSV 34.3cm (delta 30.0cm)
+LogPython: [DryRiverNav]   SS_MAP_DryRiver_DeployBravo ground z=1332.0cm vs CSV 1302.0cm (delta 30.0cm)
+LogPython: [DryRiverNav] OK   path_verification 2 path point(s)
+LogPython: [DryRiverNav]   vertical ray onto SS_Dressing_PaddockEast_Post00 -> hit=False by=None
+LogPython: [DryRiverNav]   vertical ray onto SS_Dressing_PaddockEast_Rail00_055 -> hit=False by=None
+LogPython: [DryRiverNav]   vertical ray onto SS_Dressing_Wreck_WestBank -> hit=False by=None
+LogPython: [DryRiverNav] FAIL dressing_actors_collide_after_reload 0/3 sampled dressing actors still collide after reload
+LogPython: [DryRiverNav] WARN KNOWN LIMITATION: 0/3 sampled dressing actors still collide after reload. The dress pass verifies the same actors ARE solid at placement. Tracked as R-10; see Docs/MAPS_DRYRIVER.md section 12.4. Navigation therefore does not yet include fencing, and the map is traversable but the fences are not yet load-bearing cover.
+LogPython: [DryRiverNav]   fence solidity: PaddockEast rail=False clearAbove=True, PaddockNorth rail=False clearAbove=True, CreekWest rail=False clearAbove=True, NorthEastBoundary rail=False clearAbove=True, CreekBankSouth rail=False clearAbove=True, WestMidLine rail=False clearAbove=True, SouthBankEast rail=False clearAbove=True
+LogPython: [DryRiverNav] FAIL dressing_solid_after_reload 0/7 fence runs block at rail height and are clear above
+LogPython: [DryRiverNav] OK   save save_current_level
+LogPython: [DryRiverNav] REPORT_WRITTEN ../../../../../SouthernSpear/Build\dryriver_nav_report.json
+LogPython: [DryRiverNav] COMPLETE ok=True
+LogNavigation:   FRecastNavMeshGenerator::UpdateNavigationBounds TotalNavBounds: Min=(X=-13600.000 Y=-9600.000 Z=-1000.000), Max=(X=13600.000 Y=9600.000 Z=2600.000).
+
+=== R-10: live ECollisionTraceFlag enum (Tools/Unreal/probe_collision_flag.py) ===
+  members: ['CTF_USE_COMPLEX_AS_SIMPLE', 'CTF_USE_DEFAULT', 'CTF_USE_SIMPLE_AND_COMPLEX', 'CTF_USE_SIMPLE_AS_COMPLEX']
+  CTF_USE_SIMPLE_AS_SIMPLE does not exist. All six dressing BodySetups read
+  back from disk at CTF_USE_DEFAULT with one convex_elems entry each.
+  CTF_USE_COMPLEX_AS_SIMPLE was applied and verified by read-back as an R-10
+  experiment and failed identically (0/3), so the flag is eliminated.

@@ -1,0 +1,47 @@
+Gate G020 - SouthernSpearCore: team identity, viewer locality, architecture guard.
+Editor: UE 5.8.3 (CL 58210709, ++UE5+Release-5.8), headless -nullrhi -unattended -nosplash -nosound.
+Source: Build/g20_build.log, Build/g21_tests.log.
+
+=== BUILD ===
+Result: Succeeded
+Total execution time: 4.50 seconds
+
+=== AUTOMATION TESTS (9/9) ===
+  Success  LocalityFailsSafely
+  Success  LocalityIsDeterministic
+  Success  LocalityIsNotReplicated
+  Success  LocalityMatrix
+  Success  PlayableTeams
+  Success  SpectatorContext
+  Success  NativeTags
+  Success  StableId
+  Success  TeamsAndTags
+
+=== MODULE STARTUP + NO VALIDATION ERRORS ===
+LogSSCore: SouthernSpearCore module started.
+
+=== GAME FEATURES (no Lyra regression) ===
+  TopDownArena -> Registered [Registered, Active]
+  ShooterCore -> Registered [Registered, Active]
+  ShooterExplorer -> Registered [Registered, Active]
+  ShooterTests -> Registered [Registered, Active]
+  ShooterMaps -> Registered [Registered, Active]
+
+=== PROJECT ERRORS (excluding offline telemetry) ===
+  count: 0
+
+=== ARCHITECTURE GUARD, NEGATIVE RUN (2 deliberate violations injected) ===
+  FAIL - 2 violation(s):
+  
+    SS002: Plugins/SouthernSpearCore/Source/SouthernSpearCore/SouthernSpearCore.Build.cs
+        SouthernSpearCore depends on Lyra gameplay module(s): LyraGame. It must stay independent of weapons, damage, health, abilities, roles, objectives and UI.
+  
+    SS006: Plugins/SouthernSpearCore/Source/SouthernSpearCore/Public/SSTeamTypes.h
+        authoritative team enum ESSTeamId declares a 'Friendly' value. Friendly/Opposing are viewer-relative and must never be replicated world-team values (ADR-017).
+  
+  exit code: 1
+
+=== ARCHITECTURE GUARD, POSITIVE RUN (violations reverted) ===
+  PASS - no architecture violations found.
+  exit code: 0
+  reverted source verified byte-identical to pre-violation state by md5sum

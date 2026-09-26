@@ -1,0 +1,257 @@
+{
+  "ok": true,
+  "steps": [
+    {
+      "step": "load_map",
+      "ok": true,
+      "detail": "/Game/Maps/L_DryRiver_01"
+    },
+    {
+      "step": "read_dressing_csv",
+      "ok": true,
+      "detail": "67 rows"
+    },
+    {
+      "step": "read_fences_csv",
+      "ok": true,
+      "detail": "7 rows"
+    },
+    {
+      "step": "import_dressing_meshes",
+      "ok": true,
+      "detail": "6 imported"
+    },
+    {
+      "step": "load_meshes",
+      "ok": true,
+      "detail": "6 available"
+    },
+    {
+      "step": "clear_existing",
+      "ok": true,
+      "detail": "290 removed"
+    },
+    {
+      "step": "place_fences",
+      "ok": true,
+      "detail": "7 runs -> 79 posts, 144 rails"
+    },
+    {
+      "step": "place_dressing",
+      "ok": true,
+      "detail": "67 placed {'scrub': 46, 'crate': 8, 'barrel': 10, 'wreck': 3}"
+    },
+    {
+      "step": "verify_collision",
+      "ok": true,
+      "detail": "5/5 sampled solid dressing types collide"
+    },
+    {
+      "step": "save",
+      "ok": true,
+      "detail": "save_current_level"
+    }
+  ],
+  "warnings": [],
+  "errors": [],
+  "placed": {
+    "scrub": 46,
+    "crate": 8,
+    "barrel": 10,
+    "wreck": 3
+  },
+  "resnapped": 146,
+  "fences": {
+    "runs": [
+      {
+        "name": "SS_DryRiver_Fence_PaddockEast",
+        "length_m": 40.0,
+        "posts": 17,
+        "rails": 32
+      },
+      {
+        "name": "SS_DryRiver_Fence_PaddockNorth",
+        "length_m": 22.0,
+        "posts": 10,
+        "rails": 18
+      },
+      {
+        "name": "SS_DryRiver_Fence_CreekWest",
+        "length_m": 40.0,
+        "posts": 17,
+        "rails": 32
+      },
+      {
+        "name": "SS_DryRiver_Fence_NorthEastBoundary",
+        "length_m": 22.0,
+        "posts": 10,
+        "rails": 18
+      },
+      {
+        "name": "SS_DryRiver_Fence_CreekBankSouth",
+        "length_m": 12.0,
+        "posts": 6,
+        "rails": 10
+      },
+      {
+        "name": "SS_DryRiver_Fence_WestMidLine",
+        "length_m": 24.0,
+        "posts": 11,
+        "rails": 20
+      },
+      {
+        "name": "SS_DryRiver_Fence_SouthBankEast",
+        "length_m": 18.0,
+        "posts": 8,
+        "rails": 14
+      }
+    ],
+    "posts": 79,
+    "rails": 144
+  },
+  "trace_flag": {
+    "SS_Dressing_Barrel": "<CollisionTraceFlag.CTF_USE_DEFAULT: 0>",
+    "SS_Dressing_Crate": "<CollisionTraceFlag.CTF_USE_DEFAULT: 0>",
+    "SS_Dressing_FencePost": "<CollisionTraceFlag.CTF_USE_DEFAULT: 0>",
+    "SS_Dressing_FenceRail": "<CollisionTraceFlag.CTF_USE_DEFAULT: 0>",
+    "SS_Dressing_Scrub": "<CollisionTraceFlag.CTF_USE_DEFAULT: 0>",
+    "SS_Dressing_Wreck": "<CollisionTraceFlag.CTF_USE_DEFAULT: 0>"
+  },
+  "mesh_info": [
+    {
+      "name": "SS_Dressing_Barrel",
+      "bounds": null,
+      "simple_collision_elements": [
+        1,
+        {
+          "box_elems": 0,
+          "sphere_elems": 0,
+          "convex_elems": 1,
+          "tapered_capsule_elems": 0,
+          "level_set_elems": 0
+        }
+      ],
+      "collision_complexity": "n/a"
+    },
+    {
+      "name": "SS_Dressing_Crate",
+      "bounds": null,
+      "simple_collision_elements": [
+        1,
+        {
+          "box_elems": 0,
+          "sphere_elems": 0,
+          "convex_elems": 1,
+          "tapered_capsule_elems": 0,
+          "level_set_elems": 0
+        }
+      ],
+      "collision_complexity": "n/a"
+    },
+    {
+      "name": "SS_Dressing_FencePost",
+      "bounds": null,
+      "simple_collision_elements": [
+        1,
+        {
+          "box_elems": 0,
+          "sphere_elems": 0,
+          "convex_elems": 1,
+          "tapered_capsule_elems": 0,
+          "level_set_elems": 0
+        }
+      ],
+      "collision_complexity": "n/a"
+    },
+    {
+      "name": "SS_Dressing_FenceRail",
+      "bounds": null,
+      "simple_collision_elements": [
+        1,
+        {
+          "box_elems": 0,
+          "sphere_elems": 0,
+          "convex_elems": 1,
+          "tapered_capsule_elems": 0,
+          "level_set_elems": 0
+        }
+      ],
+      "collision_complexity": "n/a"
+    },
+    {
+      "name": "SS_Dressing_Scrub",
+      "bounds": null,
+      "simple_collision_elements": [
+        1,
+        {
+          "box_elems": 0,
+          "sphere_elems": 0,
+          "convex_elems": 1,
+          "tapered_capsule_elems": 0,
+          "level_set_elems": 0
+        }
+      ],
+      "collision_complexity": "n/a"
+    },
+    {
+      "name": "SS_Dressing_Wreck",
+      "bounds": null,
+      "simple_collision_elements": [
+        1,
+        {
+          "box_elems": 0,
+          "sphere_elems": 0,
+          "convex_elems": 1,
+          "tapered_capsule_elems": 0,
+          "level_set_elems": 0
+        }
+      ],
+      "collision_complexity": "n/a"
+    }
+  ],
+  "meshes_imported": [
+    "SS_Dressing_Barrel",
+    "SS_Dressing_Crate",
+    "SS_Dressing_FencePost",
+    "SS_Dressing_FenceRail",
+    "SS_Dressing_Scrub",
+    "SS_Dressing_Wreck"
+  ],
+  "meshes_failed": [],
+  "removed_existing": 290,
+  "fence_failures": [],
+  "dressing_failures": [],
+  "collision_check": [
+    {
+      "type": "Post",
+      "label": "SS_Dressing_PaddockEast_Post00",
+      "hit": true,
+      "origin_minus_ground_m": -0.06
+    },
+    {
+      "type": "Rail",
+      "label": "SS_Dressing_PaddockEast_Rail00_055",
+      "hit": true,
+      "origin_minus_ground_m": -1.75
+    },
+    {
+      "type": "Crate",
+      "label": "SS_Dressing_Crate_01",
+      "hit": true,
+      "origin_minus_ground_m": -0.496
+    },
+    {
+      "type": "Barrel",
+      "label": "SS_Dressing_Barrel_01",
+      "hit": true,
+      "origin_minus_ground_m": 0.0
+    },
+    {
+      "type": "Wreck",
+      "label": "SS_Dressing_Wreck_WestBank",
+      "hit": true,
+      "origin_minus_ground_m": -1.197
+    }
+  ],
+  "result_summary": "dressing=True fences=True collide=True saved=True resnapped=146"
+}

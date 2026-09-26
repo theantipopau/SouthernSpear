@@ -122,13 +122,13 @@ Lyra content is a **technical foundation, not Southern Spear art.** It is a plac
 | C-011 | Gloves | `PLACEHOLDER` | — | |
 | C-012 | Boots | `PLACEHOLDER` | — | |
 | C-013 | Role-appropriate pouches | `PLACEHOLDER` | — | |
-| C-014 | **Original multicam-style camouflage material** | `PLACEHOLDER` | — | **Original pattern. Must not reproduce a protected commercial texture.** Licence **L-0003** applies to review |
-| C-015 | Hostile militia clothing set | `PLACEHOLDER` | — | Mixed field clothing, chest rigs, distinct silhouette |
-| C-016 | Fictional unit insignia (friendly) | `PLACEHOLDER` | — | Original. Licence **L-0003** |
-| C-017 | Fictional non-national insignia (hostile) | `PLACEHOLDER` | — | Original, non-national, non-real |
+| C-014 | **Commonwealth Multi-Environment Combat Uniform (CMECU) material** | `PLACEHOLDER` | — | **Original pattern. Must not reproduce AMCU, commercial MultiCam or any protected texture.** Licence **L-0003** applies to review |
+| C-015 | Murasian Armed Forces clothing set | `PLACEHOLDER` | — | Red-earth disruptive camouflage (ochre, rust, dark brown, muted burgundy, charcoal), chest rigs, distinct silhouette. Conventional military, **not** an ethnic or religious militia |
+| C-016 | Fictional unit insignia (CDS/CLS/ACR) | `PLACEHOLDER` | — | Original. **No ADF corps badge, Rising Sun, colour patch, motto or battle honour.** Licence **L-0003** |
+| C-017 | Fictional Murasian Armed Forces insignia | `PLACEHOLDER` | — | Original, invented, not drawn from any real armed group |
 | C-018 | Rank slides / progression insignia | `PLACEHOLDER` | — | **Original placeholders only** until legal clearance — Licence **L-0003** |
 
-> **Fictional hostile faction.** The opposing force is a fictional armed group (working name *Kestrel Militia*). It must not be drawn from any real ethnic, religious, political or contemporary armed group, and must carry no derogatory imagery, language or stereotypes.
+> **Fictional opposing force (ADR-016).** The **Murasian Armed Forces** are a fictional conventional military force. They must not be drawn from any real state, ethnicity, religion, political movement or contemporary armed group, and must carry no derogatory imagery, language or stereotypes. They are presented as a credible professional military, never as terrorists, extremists or a racial caricature. Faction recognition must never rely on colour alone.
 
 ### 4.5 Animation
 

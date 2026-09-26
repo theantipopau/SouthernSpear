@@ -296,6 +296,250 @@ Every step uses the same code path a person uses in the editor: place the volume
 
 ---
 
+## Session 004 — 2026-09-26 — Data-Driven Dressing, and a Limit I Could Not Remove
+
+### COMPLETED
+
+**Dry River dressing is now a data edit.** Moving a fence or deleting a wreck is a one-line diff in a CSV, with no editor involved. Verified end to end: 19/19 data checks, 290 dressing actors placed from the CSVs, and the path across the map still verified.
+
+| Artefact | Result |
+|---|---|
+| Dressing placement data | 67 instances (46 scrub, 10 barrel, 8 crate, 3 wreck) |
+| Fence runs | 7 runs → 79 posts, 144 rails generated from the run lines |
+| `Tools/verify_dressing.py` | **19/19 PASS**, no Blender, no editor, seconds |
+| Collision at placement | **5/5** solid types, ray-verified |
+| Path, DeployAlpha → DeployBravo | still verified |
+
+The pipeline is now `construct → dress → navigate`. Dressing runs **before** navigation deliberately: placed afterwards, the fences would be invisible to the NavMesh and agents would walk through them, which is worse than a map that is plainly undressed.
+
+### DEFECTS FOUND
+
+**1. All 290 dressing actors were placed 100× too close to the origin.** `spawn()` divided by 100 on the way in and handed **metres** to `spawn_actor_from_class`, which takes **centimetres**. Everything clustered in a 1.3 m knot at (0,0): the map looked correct in the data file and bare in the engine, and every ray at the real coordinates hit open ground. Found by adding the collision self-check, which was the only thing that could tell "wrong place" from "no collision".
+
+**2. Hand-placed wrecks bypassed the clearance check.** `WRECKS` were authored by hand and never passed through `clear_of_protected`, so two of three sat inside a deployment zone — 59 m from a spawn that requires 84. The CI validator caught it; the generator now routes hand-placement through the same check, refusing with a reason rather than emitting.
+
+**3. The first four authored fence runs were bad and the validator said so.** Two of five were rejected: one passed 20.6 m from a deployment zone needing 74, the other 24.2 m from OBJ B needing 30. Relocated and re-validated rather than quietly accepted. The deployment radii are large enough that almost the whole northern and southern thirds are off-limits to long fences, which is a useful thing to learn about this map.
+
+**4. A barrel stood 1.23 m from a fence line**, caught by a new check. The generator was not fence-aware; it is now, and the data is correct by construction.
+
+**5. A `KAggregateGeom` string test misfired**, so a collision-type change silently did not apply and the report claimed a change that never happened. Replaced with an unconditional set plus a read-back.
+
+**6. The replacement for defect 5 never actually ran.** The unconditional set asked for `unreal.CollisionTraceFlag.CTF_USE_SIMPLE_AS_SIMPLE`, an enum member that **does not exist** — the live 5.8.3 enum has only `CTF_USE_DEFAULT`, `CTF_USE_COMPLEX_AS_SIMPLE`, `CTF_USE_SIMPLE_AND_COMPLEX` and `CTF_USE_SIMPLE_AS_COMPLEX`. A broad `except` caught the `AttributeError` and downgraded it to a warning, so the set silently no-opped on all six meshes and the run still reported `ok`. The claim in defect 5's fix that it was “replaced with an unconditional set plus a read-back” was true of the *code* and false of the *effect*: the read-back existed, the write never happened. Found by reading the report's own warnings instead of skimming past them, then confirming the real member list by introspecting the enum in a live editor rather than trusting the C++ header from memory.
+
+It was harmless in effect — the importer had already left every mesh at `CTF_USE_DEFAULT`, which is what the code meant to set — so this was not R-10's cause. But a pass whose job is to guarantee collision was reporting success without having written the value it reported writing, and the dress report was carrying six warnings that all read as benign. Fixed: the correct member is used, the applied value is compared against the requested one, and **both** a mismatched trace flag and a mesh with zero simple-collision elements are now hard failures rather than warnings.
+
+**8. Fixing defect 6 exposed a bad experiment, which is the more useful half of this.** The project had recorded “collision type” as ruled out for R-10, with both complex-as-simple and simple tried and both failing. The complex-as-simple attempt had gone through the very write that defect 6 shows never ran, so the flag never changed and **the experiment proved nothing while sitting in the docs as settled fact.** With the write fixed, `CTF_USE_COMPLEX_AS_SIMPLE` was applied and confirmed by read-back (`<CollisionTraceFlag.CTF_USE_COMPLEX_AS_SIMPLE: 3>`) — and R-10 reproduced identically, 0/3 after reload. The hypothesis is now closed by measurement. A conclusion drawn from a call that silently did not happen is worse than no conclusion, because it removes the hypothesis from the list without ever testing it.
+
+**7. The collision diagnostic could not detect missing collision.** `str(KAggregateGeom)` is an opaque pointer whether or not the struct holds anything, so the `body_agg_geom` report field could never tell “this asset has no collision” from “this asset is fine” — precisely the two cases it existed to separate. It also listed `capsule_elems` and `geom_elems`, which are not properties of `KAggregateGeom` on this engine and raised a property error on every run. Now counts the element arrays, and the first real run immediately showed all six meshes carrying exactly one `convex_elems` entry.
+
+Net effect on the pass: **6 warnings → 0**, and the collision state of every mesh is now positively asserted rather than assumed.
+
+### The one I could not remove
+
+**Dressing collision does not survive a headless save and reload.** Solid 5/5 immediately after placement; 0/3 after reopening the map, 0/7 fence runs blocking. The map is traversable but the fences are **not yet load-bearing cover**, and navigation does not include them.
+
+Ruled out by measurement, not assumption: placement position (a PaddockEast post reads 78.0, −34.0 m — exactly the CSV), collision profile (`BlockAll` and `QUERY_AND_PHYSICS` both survive), asset contents, collision type (see defect 8 — now genuinely tested rather than assumed), and stale imports (reproduced after deleting all six assets and re-importing). Later still exonerated the assets *as saved*: `Tools/Unreal/probe_collision_flag.py` reopens the project in a fresh editor with no import in play and reads every dressing `BodySetup` back off disk — all six at `CTF_USE_DEFAULT`, each with one `convex_elems` entry, so the simple collision is genuinely in the `.uasset` files.
+
+What remains is sharper than before. Every observable is correct after reload — position, profile, `collision_enabled`, `can_ever_affect_navigation`, the asset's trace flag and its convex hull — and the ray still returns `hit=False by=None`, while the blockout in the same map with the same profile and save path collides. The one live difference left is **which session last touched the asset**: the blockout was imported once in the construct session and carried forward untouched, while the dress pass deletes and re-imports all six dressing meshes on every run and saves the map in that same session. That is the next thing to vary, and it is a one-line change. The blockout mesh still collides correctly, so the cause is narrower than any of the ruled-out items, but I did not isolate the engine mechanism and stopped rather than keep guessing.
+
+I have **not** hidden this. The nav pass reports the two `*_after_reload` steps as failures, sets `dressing_collision_persists: false`, and emits a `WARN`. They deliberately do not gate `report["ok"]`, because CI would be permanently red for a reason we cannot fix and the data is already proven good by `verify_dressing.py`. Gating them would be honest but useless; passing them silently would be a lie. Tracked as **R-10**, with the most likely next step being a test of an interactive editor save.
+
+### FILES CHANGED
+
+- **`Tools/Common/dryriver_spec.py`** (new) — the Dry River layout and terrain in pure Python, no `bpy`. The blockout, the dressing generator and the CI validator all import it, so they cannot disagree about where the ground is. Refactoring the committed blockout generator to use it was verified behaviour-preserving: layout CSV **byte-identical**, still 162 objects / 8,944 faces, `verify_dryriver.py` still passing.
+- **`Tools/Blender/dryriver_dressing.py`** (new) — mesh library (6 meshes) + initial layout
+- **`Tools/Unreal/dress_dryriver.py`** (new) — the dressing pass
+- **`Tools/verify_dressing.py`** (new) — the 19-check data validator
+- **`Tools/Unreal/probe_collision_flag.py`** (new) — one-off diagnostic that introspects the live `ECollisionTraceFlag` enum and counts `KAggregateGeom` element arrays per dressing mesh. Kept because it is what narrowed R-10 on the asset side, and because re-running it is how that conclusion would be rechecked.
+- `Content/Art/Blockout/SS_Dressing_*.fbx` + `_HI.blend` (new, LFS) — 6 meshes, 160 faces total
+- `Content/Art/Blockout/SS_MAP_DryRiver_02_Dressing.csv` / `_Fences.csv` (new) — the placement data
+- `Content/Art/Dressing/SS_Dressing_*.uasset` (new, LFS) — imported meshes
+- `Tools/Blender/dryriver_blockout.py` — now imports the shared spec; **behaviour proven unchanged**
+- `Tools/Unreal/build_dryriver_nav.py` — dressing-aware diagnostics, plus the reload collision report
+- `.github/workflows/build.yml` — data validator + dressing pass
+- `Docs/MAPS_DRYRIVER.md` — new §12; `Docs/PROJECT_AUDIT.md` — R-10
+
+### TESTING
+
+| Check | Result |
+|---|---|
+| `python Tools/verify_dressing.py` | **19/19 PASS** |
+| `python Tools/Blender/verify_dryriver.py` after the spec refactor | **PASS**, layout CSV byte-identical |
+| Dressing pass | 67 + 79 posts + 144 rails placed, **5/5 solid**, `ok=true` |
+| Nav pass | path verified (2 points), saved, `ok=true` |
+| Dressing collision after reload | **0/3** — reported, not hidden, tracked as R-10 |
+
+### ASSETS
+
+Six original greybox dressing meshes (160 faces total), all generated procedurally. No third-party assets, so no `LICENCE_REGISTER.md` entry. The wreck is deliberately anonymous: a recognisable real vehicle would be a trademark problem, and the opposing force is fictional in any case.
+
+### RISKS
+
+- **R-10 (NEW)** — dressing collision does not survive a headless save/reload. Characterised, not fixed. Detailed above and in `MAPS_DRYRIVER.md` §12.4.
+- **R-09** — unchanged, open, route (a) chosen.
+
+### NEXT ACTION
+
+**Build the `SouthernSpearCore` plugin** — `ESS_TeamId` (ADR-003) and the `UFSSFactionPresentationSet` resolver (ADR-004) — unaffected by R-09 and R-10. R-10's next concrete step is now the cheapest untried variable, not the editor test: keep the existing dressing assets instead of deleting and re-importing them in `dress_dryriver.py`, and re-run the dress and nav passes. That is the one difference still standing between the dressing and the blockout, which survives.
+
+---
+
+## Session 005 — 2026-09-26 — Terminology Settled, ADR-003 Superseded, and SouthernSpearCore Built
+
+### COMPLETED
+
+**The fictional canon is now fixed, and the team-identity architecture it depends on is
+implemented and tested.**
+
+Two architecture decisions were recorded this cycle, both superseding earlier work:
+
+- **ADR-016** — canonical organisations. **CDS** (Commonwealth Defence Service), **CLS**
+  (Commonwealth Land Service), **ACR** (Australian Commonwealth Regiment), **2 CG**, **SOR**,
+  **MAF** (Murasian Armed Forces), **CMECU**. `Docs/ORIGINAL_BRIEF.md` is left untouched as an
+  immutable historical record; ADR-016 is the superseding authority.
+- **ADR-017** — **supersedes ADR-003.** `ESSTeamId {None, TeamOne, TeamTwo}` is authoritative
+  and replicated; `ESSLocality {Friendly, Opposing}` is derived per viewer and never
+  replicated. ADR-003's intent survives; its mechanism did not.
+
+ADR-016 and ADR-017 were previously *unused placeholders* for Phase 5 questions. They are
+now taken, and the placeholders were renumbered to ADR-018..ADR-021. No question was answered
+or dropped by the renumbering.
+
+`Plugins/SouthernSpearCore` is created and is the root of the SS dependency graph: it depends
+on **no other Southern Spear plugin and on no Lyra module**, so team identity cannot reach
+weapons, damage, health, abilities, roles, objectives or UI. It provides `ESSTeamId`,
+`ESSLocality`, `FSSViewerContext`, `FSSStableId`, `USSProjectSettings`, `LogSSCore`, shared
+validation helpers, and 32 native Gameplay Tags under the `SS.` root.
+
+Terminology was migrated across active documents. `Kestrel Militia`, "hostile militia",
+"insurgent" and "Australian force (friendly)" are gone from active design docs. Historical
+occurrences inside ADR bodies are **retained deliberately** — a rejected alternative stays in
+the record.
+
+The **Electric Dreams contradiction is corrected**. `LICENCE_REGISTER.md` L-0012 previously
+read "reference + selective harvest only" and listed "approved use: generic modular pieces
+only", directly contradicting ADR-013, which declined the pack **entirely**. It now reads
+DECLINED / NOT IMPORTED / NOT PERMITTED, states that no selective harvesting is authorised,
+and retains the historical evaluation as a non-authoritative record.
+
+### FILES CHANGED
+
+**Created**
+- `Plugins/SouthernSpearCore/SouthernSpearCore.uplugin`
+- `Plugins/SouthernSpearCore/Source/SouthernSpearCore/SouthernSpearCore.Build.cs`
+- `.../Public/` — `SSCoreLog.h`, `SSTeamTypes.h`, `SSViewerContext.h`, `SSTeamIdentityLibrary.h`, `SSStableId.h`, `SSCoreValidation.h`, `SSNativeGameplayTags.h`, `SSProjectSettings.h`
+- `.../Private/` — `SouthernSpearCoreModule.cpp`, `SSTeamIdentityLibrary.cpp`, `SSStableId.cpp`, `SSCoreValidation.cpp`, `SSNativeGameplayTags.cpp`, `SSProjectSettings.cpp`
+- `.../Private/Tests/` — `SSTeamIdentityTests.cpp`, `SSDataValidationTests.cpp`
+- `Tools/validate_architecture.py`
+- `Docs/evidence/G020_*` (4 files)
+
+**Modified**
+- `SouthernSpear.uproject` — registers the plugin
+- `.github/workflows/build.yml` — architecture guard step + report upload
+- `Docs/DECISION_LOG.md` — ADR-016, ADR-017, ADR-003 superseded, placeholders renumbered
+- `Docs/PROJECT_AUDIT.md` — gates G1.2/G2.0/G2.1, §6.4, §6.5, R-11
+- `Docs/LICENCE_REGISTER.md` — L-0012 corrected; §5 rewritten
+- `Docs/ASSET_REGISTER.md` — C-014..C-017 terminology
+- `Docs/ASSET_NAMING_STANDARDS.md`, `Docs/GAME_DESIGN_DOCUMENT.md`, `Docs/DEVELOPMENT_ROADMAP.md`, `Docs/TEST_PLAN.md` — terminology
+
+**Removed:** none.
+
+### TESTING
+
+All commands run from `E:\SouthernSpear`.
+
+| # | Command | Exit | Result |
+|---|---|---|---|
+| 1 | `Build.bat SouthernSpearEditor Win64 Development` | **0** | `Result: Succeeded`, 0 errors |
+| 2 | `UnrealEditor-Cmd … -ExecCmds="Automation RunTests SouthernSpear.Core; Quit" -TestExit=…` | **0** | **9/9 PASS** |
+| 3 | `python Tools/verify_dressing.py` | **0** | 19/19 PASS |
+| 4 | `blender -b --python Tools/Blender/verify_dryriver.py` | **0** | ALL CHECKS PASSED |
+| 5 | `python Tools/validate_architecture.py` | **0** | PASS, no violations |
+| 6 | Guard, 2 violations injected | **1** | Both violations reported (SS002, SS006) |
+| 7 | Guard, violations reverted | **0** | PASS; source byte-identical (`md5sum`) |
+
+**Project load and Game Feature activation** were observed in run 2, which loads the project
+before running tests: `LogSSCore: SouthernSpearCore module started.`, all 5 Lyra features
+(`TopDownArena`, `ShooterCore`, `ShooterExplorer`, `ShooterMaps`, `ShooterTests`) reach
+`[Registered, Active]`, and the run contains **0 project errors** excluding offline
+telemetry warnings.
+
+**NOT RUN — Dry River navigation regression.** A nav re-run was started and interrupted
+during editor startup; the editor was killed before the Python pass began, so it wrote
+nothing. `L_DryRiver_01.umap` retains the timestamp of the last verified pass and was not
+touched. G2.0 changed no map or map-generation input, so there is no evidence of regression,
+but that is an inference and not a test. Tracked as **R-11**.
+
+**NOT RUN — a dedicated load-only invocation.** A separate `-ExecCmds="Quit"` load check
+exceeded 600 s in this environment: the editor wedges in telemetry retry loops because the
+sandbox has no DNS for `datarouter.ol.epicgames.com`, and `Quit` does not take effect. This
+is an environment limitation, not a project defect, and the same load is covered by run 2.
+A CI-safe flag set for it is still to be found.
+
+**NOT RUN — anything from Session 004 onward that is not listed above.** In particular
+`SouthernSpearTeam`, the cosmetic faction-presentation resolver, the 3 ACR / MAF
+presentation data, the `SSExp_ObjectiveAssault` skeleton and A88 integration are all
+**not started this cycle**.
+
+### ASSETS
+
+No assets created, imported or modified this cycle. No Blender work. The 6 dressing FBX and
+`SS_Dressing_HI.blend` remain **PLACEHOLDER** and uncommitted from Session 004.
+Asset Register entries C-014..C-017 were updated for terminology. No new register rows were
+required — the cycle added code, not content. Licence Register L-0012 corrected; no new
+licences.
+
+### RISKS
+
+- **R-11 (new, LOW)** — Dry River navigation not re-verified after G2.0. Noted above.
+- **R-10 (open)** — dressing collision does not survive save/reload. Unchanged.
+- **R-09 (open, unchanged)** — this engine distribution cannot build `TargetType.Server`. The
+  dedicated-server acceptance criterion remains unsatisfiable; route (a) still chosen.
+- **Branding** — final insignia, camouflage, uniforms, weapons and store presentation still
+  require **independent Australian legal review**. Renaming does not confer clearance.
+- **Technical debt** — `ESSLocality` has no `None` member, so a default-constructed value is
+  `Friendly`. Safety lives in the resolver API, not the type. Recorded in ADR-017 as a known
+  sharp edge rather than left as a trap.
+
+### DEFECTS FOUND
+
+**1. `SSCORE_API` was undefined, and the first build failed with 20 errors.** UBT
+auto-generates `SOUTHERNSPEARCORE_API`, not the short `SSCORE_API` the naming standard wants.
+Aliased in `Build.cs` via `PublicDefinitions`. Found by the build, as it should be.
+
+**2. A `class FGameplayTag;` forward declaration in `SSCoreValidation.h` collided with the
+engine's definition as a `struct`**, producing a confusing cascade inside engine headers
+(`GameplayTagContainer.generated.h`), not in my file. Replaced with the real include. The
+error pointed at engine code; the cause was ours.
+
+**3. Two of my own tests failed for the wrong reason.** `LocalityFailsSafely` and
+`SpectatorContext` both assert on code that logs an error **on purpose**, and UE treats an
+undeclared error log as a test failure. The behaviour was correct — the log shows all three
+failure reasons firing exactly as designed — and the fix was to declare the errors expected,
+so the tests still fail if the messages ever stop being produced. Worth recording: a test that
+fails because it correctly provoked an error is not a failing feature, and reading the log
+before changing code is what told the difference.
+
+**4. The architecture guard's first version had a false positive.** Rule SS006 flagged
+`ESSLocality` for declaring `Friendly`/`Opposing` — that is precisely what the enum is for.
+The rule was wrong, not the code. Rewritten to apply the prohibition to the authoritative
+team enum only, and inverted into a positive check that the locality enum keeps both values.
+Caught by running the guard against real code rather than trusting that it was correct.
+
+**5. A dangling `const TCHAR*` in `FSSStableId::ValidateAndLog`.** One branch assigned
+`*FString::Printf(...)` to a `const TCHAR*`, which points into a temporary that dies at the
+end of the switch. Changed to `FString`. Found while reviewing my own code after the build
+was green, not by the compiler.
+
+### NEXT ACTION
+
+**Re-run the Dry River navigation regression to close R-11** — run
+`Tools/Unreal/build_dryriver_nav.py` and assert 560 tiles plus a non-empty
+`find_path_to_location_synchronously` path between the two deployments. It is the only
+outstanding verification from work already done, and it is a single 6-minute command.
+
+---
+
 ## Open Threads
 
 | Item | Blocked on | Owner |

@@ -1,0 +1,14 @@
+{
+  "counts": {
+    "SS001_sibling_dependency": 0,
+    "SS002_core_lyra_dependency": 0,
+    "SS003_presentation_include": 0,
+    "SS004_ss_type_in_lyra": 0,
+    "SS005_gameplay_depends_on_ui": 0,
+    "SS006_locality_as_team_value": 0,
+    "SS007_team_enum_missing_none": 0,
+    "SS008_locality_missing_value": 0
+  },
+  "findings": [],
+  "ok": true
+}

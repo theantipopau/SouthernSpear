@@ -294,6 +294,103 @@ Note the 14 m of relief in §1 is *not* symmetric about the deployments, so OBJ 
 
 ---
 
+## 12. Dressing
+
+Dressing is the layer on top of the structural blockout: scrub, vehicle wrecks, crates, barrels, and fence runs. The blockout is the playable shape; dressing is what makes a lane a lane.
+
+**The placement CSVs are the source of truth. Moving a fence or deleting a wreck is a one-line diff that needs no editor.**
+
+| File | Holds |
+|---|---|
+| `Content/Art/Blockout/SS_MAP_DryRiver_02_Dressing.csv` | point dressing: `name,type,x,y,z,rot_y,scale` |
+| `Content/Art/Blockout/SS_MAP_DryRiver_02_Fences.csv` | fence runs: `name,x1,y1,x2,y2,post_spacing` |
+
+A fence is a *line*, not a set of objects, so a run is six numbers. Posts and both rails are generated from it, which means changing a boundary fence into a tight paddock is one CSV edit rather than a rebuild.
+
+### 12.1 The pipeline
+
+```
+construct  ->  dress  ->  navigate
+```
+
+Dressing runs **before** navigation, not after. Placed afterwards, the fences and wrecks would be invisible to the NavMesh and agents would walk through them — a map that looks dressed and plays wrong, which is worse than one that is plainly undressed.
+
+Inside the dressing pass, fences are placed **before** point dressing. Every placement snaps its height with a downward ray, and once crates and wrecks exist that ray hits *them* rather than the ground, leaving a fence post standing on a barrel. `Tools/verify_dressing.py` additionally keeps solid dressing 1.5 m clear of fence lines, so the data cannot create the situation in the first place.
+
+Regenerating the meshes and the initial layout:
+
+```
+blender -b --factory-startup --python Tools/Blender/dryriver_dressing.py
+blender -b --factory-startup --python Tools/Blender/dryriver_dressing.py -- --force
+```
+
+**Existing CSVs are never overwritten** without `--force`. A re-run regenerates the mesh library and leaves hand-placed dressing alone.
+
+### 12.2 Validation without an editor
+
+`python Tools/verify_dressing.py` — **19/19 checks, no Blender, no editor, seconds not minutes.** It is in CI, and it is the check that matters most, because it runs before anything is built:
+
+- schema and headers, known types, name conventions, unique names, sane scales
+- everything inside the playable area, and clear of every protected zone by a per-type clearance (a wreck is a sight-line breaker and needs far more room than scrub)
+- no two solid dressing items intersecting; scrub may touch
+- recorded `z` agreeing with the terrain
+- fence runs within length limits, endpoints inside the map, clearing every protected zone
+- **no fence bisecting the deployment line** — the one fence fault that makes a round unplayable
+- solid dressing clear of fence lines
+
+It has already earned its keep. It rejected two hand-placed wrecks sitting inside a deployment zone, because the generator's hand-placement path originally bypassed the clearance check that scattered dressing goes through. Hand placement overrides *where*, never *whether*.
+
+### 12.3 Placement, and one unit trap
+
+The level pass re-snaps every item to the terrain with a ray trace, so the CSV's `z` column is advisory: move a fence in a text editor and it re-sits itself on the ground rather than hovering or sinking.
+
+**`spawn_actor_from_class` takes centimetres.** An early version divided by 100 on the way in, which placed all 290 dressing actors 100× too close to the world origin — a 1.3 m knot at (0,0). Every ray at the real coordinates hit open ground, and the map looked correct in the data file and bare in the engine. Every coordinate in the dressing pass is now centimetres end to end; metres appear only where a CSV is read.
+
+Scrub is deliberately `NoCollision`. It conceals without obstructing; colliding scrub would carve holes in the NavMesh and make the map feel sticky to cross.
+
+### 12.4 Known limitation: dressing collision does not survive a save and reload
+
+**Stated plainly because it is not yet fixed. Tracked as R-10.**
+
+| Moment | Result |
+|---|---|
+| Immediately after placement | **5/5 solid dressing types** (fence post, rail, wreck, crate, barrel), verified by ray |
+| After the map is saved and reopened | **0/3** sampled actors collide; **0/7** fence runs block |
+
+What is *not* the cause, each measured rather than assumed:
+
+- not the placement — the actors are at exactly the CSV coordinates (a PaddockEast post reads 78.0, −34.0 m, which is what the CSV says)
+- not the collision profile — `BlockAll` and `QUERY_AND_PHYSICS` both survive the round trip
+- not the asset — FBX and `.uasset` sizes are healthy, geometry is present
+- not the collision *type* — **now properly tested, not merely assumed.** The earlier “tried complex-as-simple, it failed too” note was not trustworthy: it went through the silent no-op described below, so the flag never actually changed and the experiment proved nothing. With the write fixed, `CTF_USE_COMPLEX_AS_SIMPLE` was applied and verified by read-back (`<CollisionTraceFlag.CTF_USE_COMPLEX_AS_SIMPLE: 3>`), and R-10 reproduced identically: 0/3 actors, 0/7 fence runs. The flag is therefore eliminated as a cause by measurement
+- not a stale import — reproduced after deleting all six dressing assets and re-importing them cleanly
+- not the assets as saved — `Tools/Unreal/probe_collision_flag.py` reopens the project in a **fresh** editor with no import in play and reads every dressing `BodySetup` back off disk. All six are at `CTF_USE_DEFAULT` and each carries exactly one `convex_elems` entry, so the simple collision the map depends on really is present in the `.uasset` files. This exonerates the whole asset side, not merely the flag
+- **and not the map** — the blockout mesh in the same map, in the same session, with the same profile, still collides correctly after reload
+
+So the cause is narrower than any of those: collision on *script-spawned dressing components* is not being rebuilt when the map is reopened, while a component whose asset was imported in the same session as the map's original build is. The engine-level mechanism has not been isolated, and further blind iteration is not a good use of the time available.
+
+#### The silent no-op found while investigating this
+
+Probing the collision flag turned up a genuine defect in the dress pass, now fixed. The pass asked for `unreal.CollisionTraceFlag.CTF_USE_SIMPLE_AS_SIMPLE`, and **no such enum member exists** — introspecting the live enum on 5.8.3 yields only `CTF_USE_DEFAULT`, `CTF_USE_COMPLEX_AS_SIMPLE`, `CTF_USE_SIMPLE_AND_COMPLEX` and `CTF_USE_SIMPLE_AS_COMPLEX`. The `AttributeError` was caught by a broad `except` and downgraded to a warning, so the intended write never happened on any of the six meshes while the run still reported `ok`. The dress report was carrying six such warnings and they were read as benign.
+
+It was benign *in effect*, which is why R-10 outlived it: the importer had already left every mesh at `CTF_USE_DEFAULT`, and that is the value the code meant to set. But the code's stated purpose — making collision explicit — was not happening, and a pass whose job is to guarantee collision could not report a collision failure.
+
+The same block also reported `body_agg_geom` via `str(KAggregateGeom)`, which is an opaque pointer whether or not the struct holds anything, so the one field meant to distinguish "this asset has no collision" from "this asset is fine" could never distinguish them. It now counts the element arrays, and it also no longer lists `capsule_elems` or `geom_elems`, which are not properties of `KAggregateGeom` on this engine and raised a property error on every run.
+
+The dress report went from **6 warnings to 0**, and two conditions that were previously silent no-ops are now hard failures: a trace flag that does not read back as requested, and a mesh with zero simple-collision elements.
+
+The fix paid for itself immediately. Because the write now works, the collision trace flag became a variable that could actually be varied — and varying it, the one experiment the project had recorded as “already ruled out” without having really run it, produced `<CollisionTraceFlag.CTF_USE_COMPLEX_AS_SIMPLE: 3>` on every mesh and **still** 0/3 after reload. A hypothesis that was quietly crossed off the list on the strength of a call that never executed is now genuinely closed. The flag is not R-10's cause.
+
+`CTF_USE_DEFAULT` is what ships: 290 small meshes instanced across the map, each carrying one verified convex hull, is the case per-asset simple collision exists for. Both values now write, read back and are asserted, so the decision is one constant edit away if a future experiment needs the other.
+
+**What R-10 now is, precisely.** Every observable is correct after reload: the actors exist at the right coordinates, `collision_profile` is `BlockAll`, `collision_enabled` is `QUERY_AND_PHYSICS`, `can_ever_affect_navigation` is `True`, the asset is at `CTF_USE_DEFAULT` with one `convex_elems` entry, and the trace flag is not the variable. Yet a ray cast at the same actor that was solid at placement returns `hit=False by=None`. The blockout in the same map, with the same profile and the same save path, does collide. The remaining live difference is **which session last touched the asset**: the blockout was imported in the construct session and carried forward unchanged, whereas every dressing mesh is deleted and re-imported by the dress pass and then saved in that same session. That is the next thing to vary, and it is a one-line change — stop deleting and re-importing the dressing assets, keep them, and re-run.
+
+The nav pass therefore **reports this rather than hiding it**: the two `*_after_reload` steps appear in the report as failures, `report["dressing_collision_persists"]` is `false`, and a `WARN` explains it. They deliberately do **not** gate `report["ok"]`, because CI would then be permanently red for a reason we cannot yet fix, and because the data itself is already proven correct by §12.2. Gating them would be honest but useless; passing them silently would be a lie.
+
+**Practical consequence: Dry River is currently traversable but its fences are not yet load-bearing cover, and navigation does not yet include them.** Treat the fencing as art direction until R-10 is closed. Everything else about the pass — data-driven placement, terrain snapping, collision at placement, map-check cleanliness, path verification — is verified and working.
+
+---
+
 ## 10. What This Map Does Not Do
 
 Stated plainly so it is never over-claimed:

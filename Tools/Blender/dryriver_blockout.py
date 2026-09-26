@@ -23,30 +23,39 @@ Standards (TECHNICAL_DESIGN_DOCUMENT.md 12.2):
 import math
 import os
 import random
+import sys
 
 import bpy
 from mathutils import Vector
 
+# The layout spec and the terrain function live in a pure-Python module with no
+# bpy dependency, because the CI validator needs to check dressing against the
+# same ground the blockout is built on and Blender is not available there. See
+# Tools/Common/dryriver_spec.py for why this must not be duplicated.
+sys.path.insert(0, os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "Common")))
+from dryriver_spec import (  # noqa: E402
+    PLAY_WIDTH,
+    PLAY_DEPTH,
+    VERTICAL_RELIEF,
+    DEPLOY_ZONE_DEPTH,
+    DEPLOY_OFFSET,
+    OBJ_A_POS,
+    OBJ_B_POS,
+    CREEK_MEAN_Y,
+    CREEK_DEPTH,
+    CREEK_HALF_WIDTH,
+    CREEK_MEANDER,
+    FARM_POS,
+    PROTECTED,
+    terrain_height,
+    is_protected,
+)
+
 # ---------------------------------------------------------------------------
-# Layout constants - each carries the gameplay reason it has that value.
+# Blockout-only constants. Anything the dressing layer also needs to know lives
+# in dryriver_spec.py instead.
 # ---------------------------------------------------------------------------
 
-PLAY_WIDTH = 260.0          # m, x extent. Small enough to polish.
-PLAY_DEPTH = 180.0          # m, y extent.
-VERTICAL_RELIEF = 14.0      # m. Enough that elevation matters.
-DEPLOY_ZONE_DEPTH = 15.0    # m, depth of each spawn band.
-DEPLOY_OFFSET = 85.0        # m, spawn band centre from map centre.
-
-OBJ_A_POS = (-15.0, 0.0)    # Water Point  - first contact, map centre in Y
-                           # so both teams reach it at an equal distance
-OBJ_B_POS = (40.0, 52.0)    # Farmstead    - the round's pivot
-
-CREEK_MEAN_Y = 0.0          # m, creek runs east-west through the centre
-CREEK_DEPTH = 2.5           # m, cut into the terrain
-CREEK_HALF_WIDTH = 5.5      # m, meanders +/-2.5 about this
-CREEK_MEANDER = 2.5         # m, lateral sine amplitude
-
-FARM_POS = (40.0, 52.0)     # same as OBJ B
 SHED_SIZE = (18.0, 10.0, 6.0)
 HOUSE_SIZE = (12.0, 9.0, 4.0)
 
@@ -58,14 +67,6 @@ ROCK_COUNT = 40
 TREE_COUNT = 20
 SCRUB_COUNT = 30
 COVER_PER_ROUTE = 1 / 12.0  # one object per 12 m of intended route
-
-# Bounds used to keep scatter off the objectives and deployments.
-PROTECTED = [
-    (OBJ_A_POS[0], OBJ_A_POS[1], 18.0),
-    (OBJ_B_POS[0], OBJ_B_POS[1], 26.0),
-    (0.0, -DEPLOY_OFFSET, 70.0),
-    (0.0, DEPLOY_OFFSET, 70.0),
-]
 
 RNG = random.Random(20260926)  # Fixed seed: the map must be reproducible.
 
@@ -113,13 +114,6 @@ def emit(obj, name, coll_name):
     return link(obj, coll_name)
 
 
-def is_protected(x, y, clearance=6.0):
-    for px, py, pr in PROTECTED:
-        if math.hypot(x - px, y - py) < pr + clearance:
-            return True
-    return False
-
-
 def new_box(name, size, location, coll_name, collection_name):
     bpy.ops.mesh.primitive_cube_add(size=1.0, location=location)
     obj = bpy.context.active_object
@@ -131,37 +125,6 @@ def new_box(name, size, location, coll_name, collection_name):
 # ---------------------------------------------------------------------------
 # Terrain
 # ---------------------------------------------------------------------------
-
-def terrain_height(x, y):
-    """
-    Analytic terrain height. Two ridges, a creek cut, and gentle roll.
-
-    The creek is cut rather than raised so that a player inside it is
-    concealed from the ridge but must climb out to shoot - the map's
-    central tactical trade (MAPS_DRYRIVER.md 4.3).
-    """
-    h = 0.0
-
-    # Northern ridge - the map's only strong elevation.
-    ridge = math.exp(-((y - 78.0) ** 2) / (2.0 * 22.0 ** 2))
-    h += VERTICAL_RELIEF * ridge
-
-    # A low rise on the eastern third, to break the long north-south lane.
-    h += 4.5 * math.exp(-((x - 85.0) ** 2 + (y + 30.0) ** 2) / (2.0 * 34.0 ** 2))
-
-    # Gentle roll so the ground is not a table.
-    h += 1.1 * math.sin(x / 38.0) * math.cos(y / 47.0)
-    h += 0.55 * math.sin(x / 17.0 + y / 23.0)
-
-    # Creek channel.
-    centre = CREEK_MEAN_Y + CREEK_MEANDER * math.sin(x / 45.0)
-    d = abs(y - centre)
-    if d < CREEK_HALF_WIDTH:
-        t = 1.0 - (d / CREEK_HALF_WIDTH) ** 2
-        h -= CREEK_DEPTH * t
-
-    return h
-
 
 def build_terrain():
     """Subdivided grid, displaced by terrain_height. Flat shaded (greybox)."""

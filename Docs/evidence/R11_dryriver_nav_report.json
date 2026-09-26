@@ -1,0 +1,320 @@
+{
+  "ok": true,
+  "steps": [
+    {
+      "step": "load_map",
+      "ok": true,
+      "detail": "/Game/Maps/L_DryRiver_01 -> L_DryRiver_01"
+    },
+    {
+      "step": "nav_bounds_volume_present",
+      "ok": true,
+      "detail": "1 volume(s) in world"
+    },
+    {
+      "step": "nav_data_present",
+      "ok": true,
+      "detail": "1 RecastNavMesh actor(s)"
+    },
+    {
+      "step": "build_paths",
+      "ok": true,
+      "detail": "BUILDPATHS issued"
+    },
+    {
+      "step": "path_verification",
+      "ok": true,
+      "detail": "2 path point(s)"
+    },
+    {
+      "step": "dressing_actors_collide_after_reload",
+      "ok": false,
+      "detail": "0/3 sampled dressing actors still collide after reload"
+    },
+    {
+      "step": "dressing_solid_after_reload",
+      "ok": false,
+      "detail": "0/7 fence runs block at rail height and are clear above"
+    },
+    {
+      "step": "save",
+      "ok": true,
+      "detail": "save_current_level"
+    }
+  ],
+  "warnings": [
+    "KNOWN LIMITATION: 0/3 sampled dressing actors still collide after reload. The dress pass verifies the same actors ARE solid at placement. Tracked as R-10; see Docs/MAPS_DRYRIVER.md section 12.4. Navigation therefore does not yet include fencing, and the map is traversable but the fences are not yet load-bearing cover."
+  ],
+  "errors": [],
+  "world_name": "L_DryRiver_01",
+  "nav_bounds_volume_count": 1,
+  "nav_volume_world_scale": [
+    136.0,
+    96.0,
+    18.0
+  ],
+  "recast_navmesh_count": 1,
+  "static_mesh_actor_count": 291,
+  "dressing_actor_count": 290,
+  "mesh_actors": [
+    {
+      "label": "SS_Blockout_Geometry",
+      "mesh": "SS_MAP_DryRiver_01",
+      "collision_profile": "BlockAll",
+      "collision_enabled": "<CollisionEnabled.QUERY_AND_PHYSICS: 3>",
+      "can_ever_affect_navigation": true,
+      "body_trace_flag": "<CollisionTraceFlag.CTF_USE_COMPLEX_AS_SIMPLE: 3>"
+    },
+    {
+      "label": "SS_Dressing_PaddockEast_Post00",
+      "mesh": "SS_Dressing_FencePost",
+      "collision_profile": "BlockAll",
+      "collision_enabled": "<CollisionEnabled.QUERY_AND_PHYSICS: 3>",
+      "can_ever_affect_navigation": true,
+      "body_trace_flag": "<CollisionTraceFlag.CTF_USE_DEFAULT: 0>"
+    },
+    {
+      "label": "SS_Dressing_PaddockEast_Rail00_055",
+      "mesh": "SS_Dressing_FenceRail",
+      "collision_profile": "BlockAll",
+      "collision_enabled": "<CollisionEnabled.QUERY_AND_PHYSICS: 3>",
+      "can_ever_affect_navigation": true,
+      "body_trace_flag": "<CollisionTraceFlag.CTF_USE_DEFAULT: 0>"
+    },
+    {
+      "label": "SS_Dressing_Wreck_WestBank",
+      "mesh": "SS_Dressing_Wreck",
+      "collision_profile": "BlockAll",
+      "collision_enabled": "<CollisionEnabled.QUERY_AND_PHYSICS: 3>",
+      "can_ever_affect_navigation": true,
+      "body_trace_flag": "<CollisionTraceFlag.CTF_USE_DEFAULT: 0>"
+    }
+  ],
+  "hitrESULT_keys": [
+    "blocking_hit",
+    "bone_name",
+    "distance",
+    "element_index",
+    "face_index",
+    "hit_actor",
+    "hit_bone_name",
+    "hit_component",
+    "hit_item",
+    "impact_normal",
+    "impact_point",
+    "initial_overlap",
+    "location",
+    "normal",
+    "phys_mat",
+    "time",
+    "trace_end",
+    "trace_start"
+  ],
+  "ground_hit_key": "impact_point",
+  "ground_check": [
+    {
+      "name": "SS_MAP_DryRiver_DeployAlpha",
+      "traced_z_cm": 64.28127670288086,
+      "csv_z_cm": 34.300000000000004,
+      "delta_cm": 29.981276702880855
+    },
+    {
+      "name": "SS_MAP_DryRiver_DeployBravo",
+      "traced_z_cm": 1332.02294921875,
+      "csv_z_cm": 1302.0,
+      "delta_cm": 30.02294921875
+    }
+  ],
+  "path_points": 2,
+  "path_start": [
+    0.0,
+    8500.0,
+    66.28127670288086
+  ],
+  "path_end": [
+    0.0,
+    -8500.0,
+    1334.02294921875
+  ],
+  "path_first": [
+    -0.0,
+    8500.0,
+    42.064777327935225
+  ],
+  "path_last": [
+    -0.0,
+    -8500.0,
+    1343.8699690402477
+  ],
+  "dressing_actor_hits": [
+    {
+      "label": "SS_Dressing_PaddockEast_Post00",
+      "at_cm": [
+        7800.0,
+        -3400.0,
+        326.5929016113296
+      ],
+      "vertical_hit": false,
+      "by": null
+    },
+    {
+      "label": "SS_Dressing_PaddockEast_Rail00_055",
+      "at_cm": [
+        7800.0,
+        -3525.0,
+        399.5756042480498
+      ],
+      "vertical_hit": false,
+      "by": null
+    },
+    {
+      "label": "SS_Dressing_Wreck_WestBank",
+      "at_cm": [
+        -5200.0,
+        800.0,
+        -111.10522308349027
+      ],
+      "vertical_hit": false,
+      "by": null
+    }
+  ],
+  "dressing_collision_persists": false,
+  "dressing_solidity": {
+    "fences": [
+      {
+        "fence": "SS_DryRiver_Fence_PaddockEast",
+        "blocked_at_rail": false,
+        "clear_above": true,
+        "heights": {
+          "55": {
+            "hit": false,
+            "by": null
+          },
+          "105": {
+            "hit": false,
+            "by": null
+          },
+          "150": {
+            "hit": false,
+            "by": null
+          }
+        }
+      },
+      {
+        "fence": "SS_DryRiver_Fence_PaddockNorth",
+        "blocked_at_rail": false,
+        "clear_above": true,
+        "heights": {
+          "55": {
+            "hit": false,
+            "by": null
+          },
+          "105": {
+            "hit": false,
+            "by": null
+          },
+          "150": {
+            "hit": false,
+            "by": null
+          }
+        }
+      },
+      {
+        "fence": "SS_DryRiver_Fence_CreekWest",
+        "blocked_at_rail": false,
+        "clear_above": true,
+        "heights": {
+          "55": {
+            "hit": false,
+            "by": null
+          },
+          "105": {
+            "hit": false,
+            "by": null
+          },
+          "150": {
+            "hit": false,
+            "by": null
+          }
+        }
+      },
+      {
+        "fence": "SS_DryRiver_Fence_NorthEastBoundary",
+        "blocked_at_rail": false,
+        "clear_above": true,
+        "heights": {
+          "55": {
+            "hit": false,
+            "by": null
+          },
+          "105": {
+            "hit": false,
+            "by": null
+          },
+          "150": {
+            "hit": false,
+            "by": null
+          }
+        }
+      },
+      {
+        "fence": "SS_DryRiver_Fence_CreekBankSouth",
+        "blocked_at_rail": false,
+        "clear_above": true,
+        "heights": {
+          "55": {
+            "hit": false,
+            "by": null
+          },
+          "105": {
+            "hit": false,
+            "by": null
+          },
+          "150": {
+            "hit": false,
+            "by": null
+          }
+        }
+      },
+      {
+        "fence": "SS_DryRiver_Fence_WestMidLine",
+        "blocked_at_rail": false,
+        "clear_above": true,
+        "heights": {
+          "55": {
+            "hit": false,
+            "by": null
+          },
+          "105": {
+            "hit": false,
+            "by": null
+          },
+          "150": {
+            "hit": false,
+            "by": null
+          }
+        }
+      },
+      {
+        "fence": "SS_DryRiver_Fence_SouthBankEast",
+        "blocked_at_rail": false,
+        "clear_above": true,
+        "heights": {
+          "55": {
+            "hit": false,
+            "by": null
+          },
+          "105": {
+            "hit": false,
+            "by": null
+          },
+          "150": {
+            "hit": false,
+            "by": null
+          }
+        }
+      }
+    ]
+  },
+  "result_summary": "path verified=True saved=True | dressing collision persists across reload=False"
+}

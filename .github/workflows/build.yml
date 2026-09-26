@@ -105,6 +105,28 @@ jobs:
         shell: cmd
         run: python Tools\Blender\verify_dryriver.py
 
+      # Dressing is a pure data edit, so it gets a pure data check. This runs in
+      # seconds with no Blender and no editor, which is the point: a fence dragged
+      # through an objective must not cost a six minute editor start to discover.
+      - name: Verify Dry River dressing data
+        shell: cmd
+        run: python Tools\verify_dressing.py
+
+      # ADR-004 and ADR-017 are only worth anything if they are enforced rather
+      # than remembered. This guard fails the build if SouthernSpearCore gains a
+      # sibling-plugin or Lyra dependency, if a presentation header reaches
+      # gameplay types, or if Friendly/Opposing reappear as authoritative team
+      # values. Runs in a second with no editor, so the boundary is cheaper to
+      # keep than to break.
+      - name: Verify architecture boundaries
+        shell: cmd
+        run: python Tools\validate_architecture.py
+
+      - name: Upload architecture guard report
+        if: always()
+        shell: cmd
+        run: python Tools\validate_architecture.py --json > "%PROJECT_DIR%\Build\architecture_report.json"
+
       - name: Build Editor
         shell: cmd
         run: |
@@ -129,6 +151,17 @@ jobs:
               -nullrhi -unattended -nosplash -nosound -stdout ^
               -ini:Engine:[/Script/NavigationSystem.NavigationSystemV1]:bWaitForAsyncLoadingBeforeBuildingNavigationAutomatically=False ^
               -ExecutePythonScript="%PROJECT_DIR%\Tools\Unreal\build_dryriver_level.py"
+
+      # Dressing runs BEFORE navigation, or the fences and wrecks are invisible
+      # to the NavMesh and agents walk through them.
+      - name: Dress Dry River from placement data
+        shell: cmd
+        run: |
+          "%UE_ROOT%\Engine\Binaries\Win64\UnrealEditor-Cmd.exe" ^
+              "%PROJECT_DIR%\%PROJECT_NAME%.uproject" ^
+              -nullrhi -unattended -nosplash -nosound -stdout ^
+              -ini:Engine:[/Script/NavigationSystem.NavigationSystemV1]:bWaitForAsyncLoadingBeforeBuildingNavigationAutomatically=False ^
+              -ExecutePythonScript="%PROJECT_DIR%\Tools\Unreal\dress_dryriver.py"
 
       - name: Build Dry River NavMesh and verify path
         shell: cmd
@@ -159,6 +192,7 @@ jobs:
           name: dryriver-gate-evidence
           path: |
             %PROJECT_DIR%\Build\dryriver_level_report.json
+            %PROJECT_DIR%\Build\dryriver_dressing_report.json
             %PROJECT_DIR%\Build\dryriver_nav_report.json
 
       # D-05: the dedicated server is a first-class target, not a later step.

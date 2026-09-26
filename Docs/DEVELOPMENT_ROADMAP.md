@@ -63,7 +63,7 @@ Networking, team presentation, authority and persistence are expensive to get wr
 |---|---|
 | Map | **Dry River**, greybox, one layout |
 | Teams | Two replicated teams, assignment, respawn |
-| Presentation | Friendly Australian force vs hostile militia, from both perspectives |
+| Presentation | Friendly Australian force vs Murasian Armed Forces, from both perspectives |
 | Weapons | One rifle, one weapon per team, placeholder mesh |
 | Mode | **Objective Assault**, one objective sequence |
 | Server | Packaged **dedicated server** build |
