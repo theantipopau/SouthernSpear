@@ -47,3 +47,18 @@ The only licence-related file in the whole drop is an author credit in `M4_alt/s
    the drop: real Australian terrain for Dry River look-development.
 3. For the gloves, helmet, grenades and soldiers, send the source URL and licence, or treat them as
    reference only.
+
+## Addendum 2026-09-27 — `Content/Sourced/ADF/` (ADFRC addons)
+
+About 1,681 files (43 MB) copied from the ADFRC Arma 3 repository: 1,256 `.paa` textures, 240 `.rvmat`
+materials, configs, `.wss`/`.wav` sounds and `.rtm` animations. There are **0 models** (no `.p3d`, `.fbx` or `.obj`).
+**Verdict: not usable.**
+
+- Licence: APL-SA (Arma games only, non-commercial, share-alike), or the ADFRC Developer Licence for
+  protected legacy work. Neither permits use in an Unreal game.
+- Configs name other authors (Brucey, Exer, Growlor, Louetta), whose work is theirs alone (DEV_LICENSE 1.1).
+- The content is ADF-branded (EF88/F88/F89/Minimi/HK/SR25, AMCU/Auscam camouflage), which ADR-016 forbids anyway.
+- Anything the producer personally authored can be relicensed to Southern Spear with a written
+  sole-author statement. Arma-format textures and animations would still need rework.
+
+The folder stays git-ignored, and nothing was imported.
