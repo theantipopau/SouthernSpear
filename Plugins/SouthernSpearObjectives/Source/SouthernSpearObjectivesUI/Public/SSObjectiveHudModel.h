@@ -26,6 +26,29 @@ struct SSOBJUI_API FSSObjectiveHudModel
 {
 	FText Header;
 	FText Objective;
+
+	/** Structured parts of Header/Score/Objective for styled display. */
+	FText RoundLabel;      // "Round 3"
+	FText PhaseLabel;      // "Starts in", "Capture", "Draw", "Friendly win"
+	FText Clock;           // "2:06", empty after the round
+	FText ObjectiveName;   // "OBJ B  Farmstead"
+	FText ObjectiveStatus; // "Opposing capturing"
+	FText FirstSide, SecondSide;
+	int32 FirstScore = 0, SecondScore = 0;
+	ESSObjectiveHudTone FirstTone = ESSObjectiveHudTone::Neutral;
+	ESSObjectiveHudTone SecondTone = ESSObjectiveHudTone::Neutral;
+
+	struct FChip
+	{
+		FText Letter;
+		ESSObjectiveHudTone OwnerTone = ESSObjectiveHudTone::Neutral;
+		bool bActive = false;
+	};
+	/** One chip per objective in sequence; empty unless BuildChips is called. */
+	TArray<FChip> Chips;
+
+	/** Fill Chips from every objective's state, in sequence order. */
+	void BuildChips(TConstArrayView<FSSObjectiveState> Objectives, int32 ActiveIndex, ESSTeamId ViewerTeam);
 	FText Score;
 	float Progress = 0.f;
 	ESSObjectiveHudTone ProgressTone = ESSObjectiveHudTone::Neutral;

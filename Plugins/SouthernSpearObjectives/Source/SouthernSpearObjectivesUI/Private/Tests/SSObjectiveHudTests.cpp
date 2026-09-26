@@ -86,4 +86,25 @@ bool FSSHudPhases::RunTest(const FString& Parameters)
 	return true;
 }
 
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FSSHudChips, "SouthernSpear.Objectives.Hud.Chips", SSHudTestFlags)
+bool FSSHudChips::RunTest(const FString& Parameters)
+{
+	TArray<FSSObjectiveState> States;
+	States.Add(FSSObjectiveRules::ResetObjective(false));
+	States[0].OwnerTeam = ESSTeamId::TeamOne;
+	States.Add(FSSObjectiveRules::ResetObjective(true));
+
+	FSSObjectiveHudModel Model = FSSObjectiveHudModel::Build(InProgressRound(), &States[1], FText::FromString(TEXT("B")), ESSTeamId::TeamTwo);
+	Model.BuildChips(States, 1, ESSTeamId::TeamTwo);
+	TestEqual(TEXT("one chip per objective"), Model.Chips.Num(), 2);
+	TestEqual(TEXT("letters"), Model.Chips[1].Letter.ToString(), FString(TEXT("B")));
+	TestTrue(TEXT("A held by the other side"), Model.Chips[0].OwnerTone == ESSObjectiveHudTone::Opposing);
+	TestTrue(TEXT("B active, unowned"), Model.Chips[1].bActive && Model.Chips[1].OwnerTone == ESSObjectiveHudTone::Neutral);
+	TestEqual(TEXT("structured clock"), Model.Clock.ToString(), FString(TEXT("2:06")));
+
+	Model.BuildChips(States, 1, ESSTeamId::None);
+	TestTrue(TEXT("spectator sees no side"), Model.Chips[0].OwnerTone == ESSObjectiveHudTone::Neutral);
+	return true;
+}
+
 #endif // WITH_DEV_AUTOMATION_TESTS

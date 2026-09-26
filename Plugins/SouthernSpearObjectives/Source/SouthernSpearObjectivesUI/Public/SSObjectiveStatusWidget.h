@@ -7,7 +7,9 @@
 #include "SSObjectiveAssaultDirector.h"
 #include "SSObjectiveStatusWidget.generated.h"
 
-class UProgressBar;
+class UBorder;
+class UHorizontalBox;
+class USizeBox;
 class UTextBlock;
 
 /**
@@ -32,15 +34,29 @@ protected:
 private:
 	TWeakObjectPtr<ASSObjectiveAssaultDirector> Director;
 
-	UPROPERTY(Transient)
-	TObjectPtr<UTextBlock> HeaderText;
+	struct FChipWidgets
+	{
+		UBorder* Outline = nullptr;
+		UBorder* Fill = nullptr;
+		UTextBlock* Letter = nullptr;
+	};
+	// Owned by WidgetTree (UPROPERTY there keeps them alive); raw pointers here.
+	TArray<FChipWidgets> Chips;
 
-	UPROPERTY(Transient)
-	TObjectPtr<UTextBlock> ObjectiveText;
+	UPROPERTY(Transient) TObjectPtr<UTextBlock> RoundText;
+	UPROPERTY(Transient) TObjectPtr<UTextBlock> PhaseText;
+	UPROPERTY(Transient) TObjectPtr<UTextBlock> ClockText;
+	UPROPERTY(Transient) TObjectPtr<UHorizontalBox> ObjectiveRow;
+	UPROPERTY(Transient) TObjectPtr<UTextBlock> ObjectiveNameText;
+	UPROPERTY(Transient) TObjectPtr<UTextBlock> StatusText;
+	UPROPERTY(Transient) TObjectPtr<USizeBox> BarSizeBox;
+	UPROPERTY(Transient) TObjectPtr<UBorder> BarFill;
+	UPROPERTY(Transient) TObjectPtr<UBorder> BarRest;
+	UPROPERTY(Transient) TObjectPtr<UTextBlock> FirstSideText;
+	UPROPERTY(Transient) TObjectPtr<UTextBlock> FirstScoreText;
+	UPROPERTY(Transient) TObjectPtr<UTextBlock> SecondScoreText;
+	UPROPERTY(Transient) TObjectPtr<UTextBlock> SecondSideText;
 
-	UPROPERTY(Transient)
-	TObjectPtr<UProgressBar> ProgressBar;
-
-	UPROPERTY(Transient)
-	TObjectPtr<UTextBlock> ScoreText;
+	class UHorizontalBoxSlot* BarFillSlot = nullptr;
+	class UHorizontalBoxSlot* BarRestSlot = nullptr;
 };
