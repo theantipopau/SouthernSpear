@@ -1,0 +1,11 @@
+12:LogInit: Display: Running engine for game: SouthernSpear
+91:LogPluginManager: Found matching target receipt: ../../../../../SouthernSpear/Binaries/Win64/SouthernSpearEditor.target
+93:LogPluginManager: Found matching target receipt: ../../../../../SouthernSpear/Binaries/Win64/SouthernSpearEditor.target
+573:LogInit: Build: ++UE5+Release-5.8-CL-58210709
+577:LogInit: Engine Version: 5.8.3-58210709+++UE5+Release-5.8
+578:LogInit: Compatible Engine Version: 5.8.0-55116800+++UE5+Release-5.8
+1935:LogGameFeatures: Display: Game feature 'TopDownArena' transitioned successfully. Ending state: Registered [Registered, Active]
+1939:LogGameFeatures: Display: Game feature 'ShooterCore' transitioned successfully. Ending state: Registered [Registered, Active]
+1940:LogGameFeatures: Display: Game feature 'ShooterExplorer' transitioned successfully. Ending state: Registered [Registered, Active]
+1942:LogGameFeatures: Display: Game feature 'ShooterMaps' transitioned successfully. Ending state: Registered [Registered, Active]
+1944:LogGameFeatures: Display: Game feature 'ShooterTests' transitioned successfully. Ending state: Registered [Registered, Active]

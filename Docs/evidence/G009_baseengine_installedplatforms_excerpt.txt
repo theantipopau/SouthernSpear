@@ -1,0 +1,13 @@
+[InstalledPlatforms]
+HasInstalledPlatformInfo=true
++InstalledPlatformConfigurations=(PlatformName="Win64", Configuration="Development", PlatformType="Editor", Architecture="arm64", bCanBeDisplayed=False)
++InstalledPlatformConfigurations=(PlatformName="Win64", Configuration="DebugGame", PlatformType="Editor", Architecture="arm64", bCanBeDisplayed=False)
++InstalledPlatformConfigurations=(PlatformName="Win64", Configuration="Development", PlatformType="Editor", Architecture="x64", bCanBeDisplayed=False)
++InstalledPlatformConfigurations=(PlatformName="Win64", Configuration="DebugGame", PlatformType="Editor", Architecture="x64", bCanBeDisplayed=False)
++InstalledPlatformConfigurations=(PlatformName="Win64", Configuration="DebugGame", PlatformType="Game", Architecture="arm64", RequiredFile="Engine\Binaries\Win64\UnrealGame-Win64-Developmentarm64.target", ProjectType="Any", bCanBeDisplayed=False)
++InstalledPlatformConfigurations=(PlatformName="Win64", Configuration="DebugGame", PlatformType="Game", Architecture="x64", RequiredFile="Engine\Binaries\Win64\UnrealGame.target", ProjectType="Any", bCanBeDisplayed=False)
++InstalledPlatformConfigurations=(PlatformName="Win64", Configuration="Development", PlatformType="Game", Architecture="arm64", RequiredFile="Engine\Binaries\Win64\UnrealGame-Win64-Developmentarm64.target", ProjectType="Any", bCanBeDisplayed=False)
++InstalledPlatformConfigurations=(PlatformName="Win64", Configuration="Development", PlatformType="Game", Architecture="x64", RequiredFile="Engine\Binaries\Win64\UnrealGame.target", ProjectType="Any", bCanBeDisplayed=False)
++InstalledPlatformConfigurations=(PlatformName="Win64", Configuration="Shipping", PlatformType="Game", Architecture="arm64", RequiredFile="Engine\Binaries\Win64\UnrealGame-Win64-Shippingarm64.target", ProjectType="Any", bCanBeDisplayed=False)
++InstalledPlatformConfigurations=(PlatformName="Win64", Configuration="Shipping", PlatformType="Game", Architecture="x64", RequiredFile="Engine\Binaries\Win64\UnrealGame-Win64-Shipping.target", ProjectType="Any", bCanBeDisplayed=False)
++InstalledPlatformConfigurations=(PlatformName="Android", Configuration="DebugGame", PlatformType="Game", Architecture="arm64", RequiredFile="Engine\Binaries\Android\UnrealGame.target", ProjectType="Any", bCanBeDisplayed=False)

@@ -1,0 +1,50 @@
+[InstalledPlatforms]
+HasInstalledPlatformInfo=true
++InstalledPlatformConfigurations=(PlatformName="Win64", Configuration="Development", PlatformType="Editor", Architecture="arm64", bCanBeDisplayed=False)
++InstalledPlatformConfigurations=(PlatformName="Win64", Configuration="DebugGame", PlatformType="Editor", Architecture="arm64", bCanBeDisplayed=False)
++InstalledPlatformConfigurations=(PlatformName="Win64", Configuration="Development", PlatformType="Editor", Architecture="x64", bCanBeDisplayed=False)
++InstalledPlatformConfigurations=(PlatformName="Win64", Configuration="DebugGame", PlatformType="Editor", Architecture="x64", bCanBeDisplayed=False)
++InstalledPlatformConfigurations=(PlatformName="Win64", Configuration="DebugGame", PlatformType="Game", Architecture="arm64", RequiredFile="Engine\Binaries\Win64\UnrealGame-Win64-Developmentarm64.target", ProjectType="Any", bCanBeDisplayed=False)
++InstalledPlatformConfigurations=(PlatformName="Win64", Configuration="DebugGame", PlatformType="Game", Architecture="x64", RequiredFile="Engine\Binaries\Win64\UnrealGame.target", ProjectType="Any", bCanBeDisplayed=False)
++InstalledPlatformConfigurations=(PlatformName="Win64", Configuration="Development", PlatformType="Game", Architecture="arm64", RequiredFile="Engine\Binaries\Win64\UnrealGame-Win64-Developmentarm64.target", ProjectType="Any", bCanBeDisplayed=False)
++InstalledPlatformConfigurations=(PlatformName="Win64", Configuration="Development", PlatformType="Game", Architecture="x64", RequiredFile="Engine\Binaries\Win64\UnrealGame.target", ProjectType="Any", bCanBeDisplayed=False)
++InstalledPlatformConfigurations=(PlatformName="Win64", Configuration="Shipping", PlatformType="Game", Architecture="arm64", RequiredFile="Engine\Binaries\Win64\UnrealGame-Win64-Shippingarm64.target", ProjectType="Any", bCanBeDisplayed=False)
++InstalledPlatformConfigurations=(PlatformName="Win64", Configuration="Shipping", PlatformType="Game", Architecture="x64", RequiredFile="Engine\Binaries\Win64\UnrealGame-Win64-Shipping.target", ProjectType="Any", bCanBeDisplayed=False)
++InstalledPlatformConfigurations=(PlatformName="Android", Configuration="DebugGame", PlatformType="Game", Architecture="arm64", RequiredFile="Engine\Binaries\Android\UnrealGame.target", ProjectType="Any", bCanBeDisplayed=False)
++InstalledPlatformConfigurations=(PlatformName="Android", Configuration="DebugGame", PlatformType="Game", Architecture="x64", RequiredFile="Engine\Binaries\Android\UnrealGame.target", ProjectType="Any", bCanBeDisplayed=False)
++InstalledPlatformConfigurations=(PlatformName="Android", Configuration="Development", PlatformType="Game", Architecture="arm64", RequiredFile="Engine\Binaries\Android\UnrealGame.target", ProjectType="Any", bCanBeDisplayed=False)
++InstalledPlatformConfigurations=(PlatformName="Android", Configuration="Development", PlatformType="Game", Architecture="x64", RequiredFile="Engine\Binaries\Android\UnrealGame.target", ProjectType="Any", bCanBeDisplayed=False)
++InstalledPlatformConfigurations=(PlatformName="Android", Configuration="Shipping", PlatformType="Game", Architecture="arm64", RequiredFile="Engine\Binaries\Android\UnrealGame-Android-Shipping.target", ProjectType="Any", bCanBeDisplayed=False)
++InstalledPlatformConfigurations=(PlatformName="Android", Configuration="Shipping", PlatformType="Game", Architecture="x64", RequiredFile="Engine\Binaries\Android\UnrealGame-Android-Shipping.target", ProjectType="Any", bCanBeDisplayed=False)
++InstalledPlatformConfigurations=(PlatformName="IOS", Configuration="DebugGame", PlatformType="Game", Architecture="arm64", RequiredFile="Engine\Binaries\IOS\UnrealGame.target", ProjectType="Any", bCanBeDisplayed=False)
++InstalledPlatformConfigurations=(PlatformName="IOS", Configuration="Development", PlatformType="Game", Architecture="arm64", RequiredFile="Engine\Binaries\IOS\UnrealGame.target", ProjectType="Any", bCanBeDisplayed=False)
++InstalledPlatformConfigurations=(PlatformName="IOS", Configuration="Shipping", PlatformType="Game", Architecture="arm64", RequiredFile="Engine\Binaries\IOS\UnrealGame-IOS-Shipping.target", ProjectType="Any", bCanBeDisplayed=False)
++InstalledPlatformConfigurations=(PlatformName="TVOS", Configuration="DebugGame", PlatformType="Game", Architecture="arm64", RequiredFile="Engine\Binaries\TVOS\UnrealGame.target", ProjectType="Any", bCanBeDisplayed=False)
++InstalledPlatformConfigurations=(PlatformName="TVOS", Configuration="Development", PlatformType="Game", Architecture="arm64", RequiredFile="Engine\Binaries\TVOS\UnrealGame.target", ProjectType="Any", bCanBeDisplayed=False)
++InstalledPlatformConfigurations=(PlatformName="TVOS", Configuration="Shipping", PlatformType="Game", Architecture="arm64", RequiredFile="Engine\Binaries\TVOS\UnrealGame-TVOS-Shipping.target", ProjectType="Any", bCanBeDisplayed=False)
++InstalledPlatformConfigurations=(PlatformName="Linux", Configuration="DebugGame", PlatformType="Game", Architecture="x64", RequiredFile="Engine\Binaries\Linux\UnrealGame.target", ProjectType="Any", bCanBeDisplayed=False)
++InstalledPlatformConfigurations=(PlatformName="Linux", Configuration="Development", PlatformType="Game", Architecture="x64", RequiredFile="Engine\Binaries\Linux\UnrealGame.target", ProjectType="Any", bCanBeDisplayed=False)
++InstalledPlatformConfigurations=(PlatformName="Linux", Configuration="Shipping", PlatformType="Game", Architecture="x64", RequiredFile="Engine\Binaries\Linux\UnrealGame-Linux-Shipping.target", ProjectType="Any", bCanBeDisplayed=False)
++InstalledPlatformConfigurations=(PlatformName="LinuxArm64", Configuration="DebugGame", PlatformType="Game", Architecture="arm64", RequiredFile="Engine\Binaries\LinuxArm64\UnrealGame.target", ProjectType="Any", bCanBeDisplayed=False)
++InstalledPlatformConfigurations=(PlatformName="LinuxArm64", Configuration="Development", PlatformType="Game", Architecture="arm64", RequiredFile="Engine\Binaries\LinuxArm64\UnrealGame.target", ProjectType="Any", bCanBeDisplayed=False)
+			// Make sure this target type is supported. Allow UHT in installed builds as a special case for now.
+			if (!InstalledPlatformInfo.IsValid(RulesObject.Type, Descriptor.Platform, Descriptor.Configuration, EProjectType.Code, InstalledPlatformState.Downloaded) && Descriptor.Name != "UnrealHeaderTool")
+			{
+				if (InstalledPlatformInfo.IsValid(RulesObject.Type, Descriptor.Platform, Descriptor.Configuration, EProjectType.Code, InstalledPlatformState.Supported))
+				{
+					throw new BuildException("Download support for building {0} {1} targets from the launcher.", Descriptor.Platform, RulesObject.Type);
+				}
+				else if (!InstalledPlatformInfo.IsValid(RulesObject.Type, null, null, EProjectType.Code, InstalledPlatformState.Supported))
+				{
+					throw new BuildException("{0} targets are not currently supported from this engine distribution.", RulesObject.Type);
+				}
+				else if (!InstalledPlatformInfo.IsValid(null, RulesObject.Platform, null, EProjectType.Code, InstalledPlatformState.Supported))
+				{
+					throw new BuildException("The {0} platform is not currently supported from this engine distribution.", RulesObject.Platform);
+				}
+				else if (!InstalledPlatformInfo.IsValid(RulesObject.Type, RulesObject.Platform, null, EProjectType.Code, InstalledPlatformState.Supported))
+				{
+					throw new BuildException("{0} targets for the {1} platform are not currently supported from this engine distribution.", RulesObject.Type, RulesObject.Platform);
+				}
+				else
+				{

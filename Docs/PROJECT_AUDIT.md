@@ -289,6 +289,8 @@ Binary assets route through LFS; text is not. Probe artefacts were removed. A `g
 | G0.6 | Git repo + LFS established | **PASS** |
 | G0.7 | Design documents authored | **PASS** — see `Docs/` |
 | G0.8 | **Lyra fork compiles on UE 5.8.3** | ✅ **PASS** — see below |
+| G0.9 | **Dedicated server target builds** | ❌ **FAIL — BLOCKED** — see §6.1 and R-09 |
+| G0.10 | **Project loads under its new name** | ✅ **PASS** — see §6.2 |
 
 ### Gate G0.8 result — PASSED (2026-09-26)
 
@@ -325,10 +327,92 @@ The build-log transcript is retained at `Build/g08.log`.
 
 A successful compile is not a running game. Still outstanding before anything may be called "working":
 
-- The project has **never been opened in the editor** under its new name.
+- ~~The project has **never been opened in the editor** under its new name.~~ **Closed by G0.10 below.**
 - No map has been imported, so **NavMesh generation is still unvalidated**.
-- No server or client binary has been built or launched.
+- No server or client binary has been built or launched. **The server binary cannot be built on this engine distribution — see G0.9.**
 - No automation test has run.
+
+---
+
+## 6.1 Gate G0.9 result — FAILED, AND NOT FIXABLE IN-PROJECT (2026-09-26)
+
+**The dedicated server target cannot be built from this engine installation. This is an engine-distribution limitation, not a project defect and not a mistake in `SouthernSpearServer.Target.cs`.**
+
+Attempted and refused:
+
+```
+Engine\Build\BatchFiles\Build.bat SouthernSpearServer Win64 Development -Project=...\SouthernSpear.uproject -WaitMutex
+
+LyraGameEOS and dynamic target options are disabled when packaging from an installed version of the engine
+Server targets are not currently supported from this engine distribution.
+
+Result: Failed (OtherCompilationError)
+Total execution time: 2.06 seconds
+```
+
+The failure happens in **under three seconds, before a single C++ file is compiled**, so it cannot be a source error.
+
+### Root cause, traced to the engine's own configuration
+
+1. `Unreal.IsEngineInstalled()` is `true` — `Engine/Build/InstalledBuild.txt` contains `UE_5.8`.
+2. `UEBuildTarget.cs:1396` calls `InstalledPlatformInfo.IsValid(RulesObject.Type, …, InstalledPlatformState.Supported)`.
+3. `InstalledPlatformInfo` reads `[InstalledPlatforms]` from the **engine's own** `Engine/Config/BaseEngine.ini` (line 3996).
+4. That section declares **28** configurations. The distinct `PlatformType` values across all of them are:
+
+   ```
+   PlatformType="Editor"
+   PlatformType="Game"
+   ```
+
+   There is **no `PlatformType="Server"` entry anywhere in the whitelist.**
+5. `IsValid` therefore returns `false`, and `UEBuildTarget.cs:1404` throws *"Server targets are not currently supported from this engine distribution."*
+
+Corroborating evidence: there is no `UnrealServer*.target` or `UnrealServer` binary anywhere in `Engine/Binaries/Win64/`. The engine distribution does not ship the server target at all.
+
+**This engine install is a game/editor distribution only.** Epic ships dedicated-server capability as a separate product from the Launcher, or it is present in a source build. It is not present here, and no project-side setting can add it.
+
+Retained evidence (tracked in `Docs/evidence/`, because `Build/` is gitignored):
+- `G009_server_build_failure.txt` — the full failure transcript
+- `G009_baseengine_installedplatforms_excerpt.txt` — lines 3996–4008 of the engine's own `BaseEngine.ini`
+- `G009_installedplatforms_primarysource.txt` — the whitelist plus the `UEBuildTarget.cs:1395–1415` throw site
+
+### Consequence for the project's stated acceptance criteria
+
+`DEVELOPMENT_ROADMAP.md` requires the vertical slice to be proven by a **packaged client connecting to a packaged dedicated server**, and explicitly refuses a listen server as proof. **That criterion is currently unsatisfiable on this machine.** This is escalated to the producer as open question 5. Tracked as **R-09**.
+
+`SouthernSpearServer.Target.cs` is retained, correct, and ready to build the moment a server-capable engine is available. No workaround will be written that fakes a dedicated server.
+
+---
+
+## 6.2 Gate G0.10 result — PASSED (2026-09-26)
+
+**Risk P1-01 is closed: the project loads under its new name with every game feature active.** This was the last unproven assumption inherited from the fork.
+
+```
+Engine\Binaries\Win64\UnrealEditor-Cmd.exe SouthernSpear.uproject -nullrhi -unattended -nosplash -nosound -stdout
+```
+
+| Check | Expected | Observed |
+|---|---|---|
+| Project identity | Loads as the renamed project | `LogInit: Display: Running engine for game: SouthernSpear` |
+| Engine build | 5.8.3 CL 58210709 | `Build: ++UE5+Release-5.8-CL-58210709` / `Engine Version: 5.8.3-58210709+++UE5+Release-5.8` |
+| Target receipt | Renamed target used | `Found matching target receipt: Binaries/Win64/SouthernSpearEditor.target` |
+| Game feature plugins come from the **vendored** tree | `E:/SouthernSpear/Plugins/…` | `UnrealEditor-ShooterCoreRuntime.dll` loaded from `E:/SouthernSpear/Plugins/GameFeatures/ShooterCore/…` |
+| `TopDownArena` | `[Registered, Active]` | ✅ |
+| `ShooterCore` | `[Registered, Active]` | ✅ |
+| `ShooterExplorer` | `[Registered, Active]` | ✅ |
+| `ShooterMaps` | `[Registered, Active]` | ✅ |
+| `ShooterTests` | `[Registered, Active]` | ✅ |
+| Errors / fatals | 0 | **0** |
+
+Two details worth recording:
+
+- The game feature DLLs resolve to the **vendored** copies under `E:\SouthernSpear`, not the original Lyra staging directory at `E:\Unreal\Lyra`. The vendor step is therefore confirmed to be what actually runs, and the staging copy is correctly inert.
+- The run did **not** exit cleanly: it was still in DDC maintenance and EOS config updates when the harness timeout terminated it, so there is no `LogExit: Exiting.` line. The **load itself is complete and error-free**; only the shutdown is missing. This is a harness artefact (`-ExecCmds="quit"` does not fire early enough during editor cold start), not a project defect, and it is recorded here rather than glossed over.
+
+Retained evidence (tracked in `Docs/evidence/`, because `Build/` is gitignored):
+- `G010_editorload_keylines.txt` — the 12 lines that constitute the entire pass/fail determination
+- `G010_editorload_filtered.txt` — the full log with Epic telemetry DNS-failure spam removed (this environment cannot resolve `datarouter.ol.epicgames.com`; it is harmless and unrelated)
 
 ---
 
@@ -341,9 +425,10 @@ A successful compile is not a running game. Still outstanding before anything ma
 | **R-03** | Engine not registered in Epic Games Launcher | In-editor Fab plugin cannot resolve this engine version, blocking compliant third-party asset acquisition | Register the engine in the Launcher, or acquire assets by manual download with mandatory `LICENCE_REGISTER.md` verification |
 | **R-04** | MSVC margin over the engine minimum is ~0.0001 | A silent toolchain downgrade produces confusing build failures | CI asserts MSVC version; treat any compiler error as suspect-version first |
 | **R-05** | 32 GB RAM for editor + DS + 4 clients | Cannot validate the 4-client acceptance test comfortably in one pass | Stagger client start, close the editor during soak, or run clients on a second machine (see §8) |
-| **R-06** | E: has 488.6 GB free | Cook + package + LFS objects can exhaust it | Monitor; move `DerivedDataCache` to F:; enforce LFS quotas |
+| ~~**R-06**~~ | ~~E: has 488.6 GB free~~ **RESOLVED 2026-09-26** — re-measured at **475 GB free / 51 % used** of 954 GB. The earlier 488.6 GB figure was measured before the 2.4 GB LFS clone landed; headroom is ample, not tight | — | Closed. Monitor only if a source-engine build is ever attempted (route (b) in §8) |
 | **R-07** | UE 5.8.3 is a recent release | Ecosystem content and Fab assets may lag the engine | Prefer engine-native solutions; verify every plugin on 5.8 before adoption |
 | **R-08** | Installed Build — no engine modules | Cannot patch engine C++ | All divergence is expressed in project/plugin code and documented |
+| **R-09** | **This engine distribution cannot build Server targets at all** | The "packaged client → packaged dedicated server" acceptance criterion is unsatisfiable here. Blocks gate G0.9 and the vertical slice sign-off | Escalated as producer question 5. Resolve by obtaining a server-capable engine (Launcher *Dedicated Server* product, or a source build). Do **not** substitute a listen server — the roadmap forbids it. Interim: develop against the Game target's authority model, which is identical, and prove the DS at gate time |
 
 ---
 
@@ -353,6 +438,12 @@ A successful compile is not a running game. Still outstanding before anything ma
 2. **Second client machine** — available for true 4-client + dedicated-server testing? (R-05).
 3. **Fab account** — is there a team account with an EULA-accepted licence seat, and will the engine be registered in the Launcher? (R-03). This also governs the Electric Dreams harvest (L-0012).
 4. **Project path/naming** — **resolved**: `SouthernSpear`, both the code name and the folder name.
+5. **How do we obtain a dedicated-server-capable engine?** (R-09 — the highest-priority open question.) This install is a game/editor-only distribution and cannot build `TargetType.Server` at all, so the vertical slice's own acceptance criterion cannot be met on it. Three routes, with materially different costs:
+   - **(a)** Install the *Unreal Engine Dedicated Server* product for 5.8.3 from the Launcher. Requires an **Unreal Engine** licence seat, not a **Game** licence seat. Cheapest if the seat already exists; keeps the vendored fork and all toolchain assumptions intact.
+   - **(b)** Build the engine from source. Adds roughly 250 GB and many hours, invalidates the vendored Lyra binaries (full recompile), and re-opens the MSVC/R-04 question against a different toolchain. Largest risk.
+   - **(c)** Re-scope the acceptance criterion to a listen/host-authoritative harness for the slice, keeping a packaged-DS test as a *later* gate. Fastest to progress, but the roadmap currently forbids exactly this, so it is an explicit, documented deviation rather than a silent one.
+
+   Recommendation: **(a)** if an Unreal Engine seat is available, else **(c)** with the deviation recorded in `DECISION_LOG.md` as a new ADR. **(b)** is not worth its cost for this project.
 
 ---
 
