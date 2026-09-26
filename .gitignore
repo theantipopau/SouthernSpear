@@ -190,3 +190,13 @@ Content/Sourced/
 
 # Generated solution files
 *.slnx
+
+# Raw Fab packs (ADR-021): ignored until adapted into Southern Spear folders
+Content/AK-47/
+Content/Insurgent_2/
+Content/Modern_Insurgent_7/
+Content/FPS_Weapon_Bundle/
+Content/Downloaded/
+Content/QuantumCharacter/
+Content/__ExternalActors__/
+Content/__ExternalObjects__/
