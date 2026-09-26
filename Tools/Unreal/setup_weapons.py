@@ -1,4 +1,6 @@
-# Southern Spear - A88 rifle into the game (ADR-016, ADR-019, ADR-020).
+# Southern Spear - original weapons into the game (ADR-016, ADR-019, ADR-020).
+#
+# For each weapon in WEAPONS (built by Tools/Blender/<name>_*.py into Art/Weapons/<NAME>/):
 #
 # 1. Imports Art/Weapons/A88/SM_A88.fbx (built by Tools/Blender/a88_rifle.py).
 # 2. Creates a flat PBR master material and palette material instances, and
@@ -20,9 +22,9 @@ import traceback
 import unreal
 
 PROJECT_DIR = unreal.Paths.convert_relative_path_to_full(unreal.Paths.project_dir())
-FBX = os.path.join(PROJECT_DIR, "Art", "Weapons", "A88", "SM_A88.fbx")
-REPORT = os.path.join(PROJECT_DIR, "Build", "a88_setup.json")
-DEST = "/SSExp_ObjectiveAssault/Weapons/A88"
+WEAPONS = ["A88", "A89"]
+W = FBX = DEST = None  # set per weapon by main()
+REPORT = os.path.join(PROJECT_DIR, "Build", "weapons_setup.json")
 MAT_DIR = "/SSExp_ObjectiveAssault/Materials"
 LYRA_WID = "/ShooterCore/Weapons/Rifle/WID_Rifle"
 LYRA_ID = "/ShooterCore/Weapons/Rifle/ID_Rifle"
@@ -43,7 +45,7 @@ report = {"ok": False, "steps": [], "errors": []}
 
 
 def step(name, ok, detail=""):
-    report["steps"].append({"step": name, "ok": bool(ok), "detail": str(detail)})
+    report["steps"].append({"step": "{}:{}".format(W, name), "ok": bool(ok), "detail": str(detail)})
     return ok
 
 
@@ -51,7 +53,7 @@ def import_mesh():
     task = unreal.AssetImportTask()
     task.filename = FBX
     task.destination_path = DEST
-    task.destination_name = "SM_A88"
+    task.destination_name = "SM_" + W
     task.replace_existing = True
     task.automated = True
     task.save = True
@@ -66,13 +68,13 @@ def import_mesh():
     ui.static_mesh_import_data.auto_generate_collision = False
     task.options = ui
     tools.import_asset_tasks([task])
-    mesh = unreal.load_asset(DEST + "/SM_A88")
+    mesh = unreal.load_asset(DEST + "/SM_" + W)
     if mesh:
         box = mesh.get_bounding_box()
         size = box.max - box.min
-        report["mesh_size_cm"] = [round(size.x, 1), round(size.y, 1), round(size.z, 1)]
-        report["muzzle_socket"] = mesh.find_socket("Muzzle") is not None
-    return step("import_mesh", mesh is not None, report.get("mesh_size_cm")) and mesh
+        report.setdefault("mesh_size_cm", {})[W] = [round(size.x, 1), round(size.y, 1), round(size.z, 1)]
+        report.setdefault("muzzle_socket", {})[W] = mesh.find_socket("Muzzle") is not None
+    return step("import_mesh", mesh is not None, report["mesh_size_cm"][W]) and mesh
 
 
 def master_material():
@@ -105,9 +107,9 @@ def finishes(mesh):
         key = next((k for k in FINISHES if name.startswith(k)), None)
         if not key:
             continue
-        mi_path = DEST + "/MI_A88_" + key
+        mi_path = DEST + "/MI_" + W + "_" + key
         mi = unreal.load_asset(mi_path) if eal.does_asset_exist(mi_path) else tools.create_asset(
-            "MI_A88_" + key, DEST, unreal.MaterialInstanceConstant, unreal.MaterialInstanceConstantFactoryNew())
+            "MI_" + W + "_" + key, DEST, unreal.MaterialInstanceConstant, unreal.MaterialInstanceConstantFactoryNew())
         mi.set_editor_property("parent", parent)
         f = FINISHES[key]
         mel.set_material_instance_vector_parameter_value(mi, "BaseColor", unreal.LinearColor(*f["BaseColor"], 1.0))
@@ -117,17 +119,17 @@ def finishes(mesh):
         mesh.set_material(i, mi)
         assigned.append(name)
     eal.save_loaded_asset(mesh)
-    return step("finishes", len(assigned) == len(FINISHES), assigned)
+    return step("finishes", len(assigned) == len(slots) and assigned, assigned)
 
 
 def visual_blueprint(mesh):
-    path = DEST + "/B_SS_A88"
+    path = DEST + "/B_SS_" + W
     if eal.does_asset_exist(path):
         bp = unreal.load_asset(path)
     else:
         factory = unreal.BlueprintFactory()
         factory.set_editor_property("parent_class", unreal.SSHeldItemVisualActor)
-        bp = tools.create_asset("B_SS_A88", DEST, unreal.Blueprint, factory)
+        bp = tools.create_asset("B_SS_" + W, DEST, unreal.Blueprint, factory)
     cdo = unreal.get_default_object(bp.generated_class())
     cdo.set_editor_property("visual_mesh", mesh)
     # Lyra attaches with -90 yaw (its meshes face +Y); ours faces +X, so cancel it.
@@ -145,22 +147,22 @@ def copy_definition(src, name):
 
 
 def equipment_definition(visual_bp):
-    wid = copy_definition(LYRA_WID, "WID_SS_A88")
+    wid = copy_definition(LYRA_WID, "WID_SS_" + W)
     cdo = unreal.get_default_object(wid.generated_class())
     text = lib.get_property_as_text(cdo, "ActorsToSpawn")
     ours = visual_bp.generated_class().get_path_name()
     new = text.replace(LYRA_VISUAL, ours)
     ok = new != text or ours in text
     ok = ok and lib.set_property_from_text(cdo, "ActorsToSpawn", new)
-    report["actors_to_spawn"] = lib.get_property_as_text(cdo, "ActorsToSpawn")
+    report.setdefault("actors_to_spawn", {})[W] = lib.get_property_as_text(cdo, "ActorsToSpawn")
     eal.save_loaded_asset(wid)
-    return step("equipment_definition", ok, report["actors_to_spawn"]) and wid
+    return step("equipment_definition", ok, report["actors_to_spawn"][W]) and wid
 
 
 def item_definition(wid):
-    item = copy_definition(LYRA_ID, "ID_SS_A88")
+    item = copy_definition(LYRA_ID, "ID_SS_" + W)
     cdo = unreal.get_default_object(item.generated_class())
-    lib.set_property_from_text(cdo, "DisplayName", 'NSLOCTEXT("SSWeapons", "A88", "A88")')
+    lib.set_property_from_text(cdo, "DisplayName", 'NSLOCTEXT("SSWeapons", "{0}", "{0}")'.format(W))
     ours = wid.generated_class()
     pointed = 0
     for fragment in cdo.get_editor_property("fragments"):
@@ -168,11 +170,11 @@ def item_definition(wid):
             if lib.set_property_from_text(fragment, "EquipmentDefinition", ours.get_path_name()):
                 pointed += 1
     eal.save_loaded_asset(item)
-    report["item_class"] = item.generated_class().get_path_name()
+    report.setdefault("item_class", {})[W] = item.generated_class().get_path_name()
     return step("item_definition", pointed == 1, "{} equippable fragment(s) -> {}".format(pointed, ours.get_name()))
 
 
-def main():
+def build_one():
     mesh = import_mesh()
     if not mesh:
         return False
@@ -180,6 +182,17 @@ def main():
     bp = visual_blueprint(mesh)
     wid = equipment_definition(bp) if bp else None
     return item_definition(wid) if wid else False
+
+
+def main():
+    global W, FBX, DEST
+    results = []
+    for name in WEAPONS:
+        W = name
+        FBX = os.path.join(PROJECT_DIR, "Art", "Weapons", name, "SM_" + name + ".fbx")
+        DEST = "/SSExp_ObjectiveAssault/Weapons/" + name
+        results.append(bool(build_one()))
+    return all(results)
 
 
 try:
@@ -190,4 +203,4 @@ except Exception:
 os.makedirs(os.path.dirname(REPORT), exist_ok=True)
 with open(REPORT, "w") as fh:
     json.dump(report, fh, indent=2)
-unreal.log("[A88] result ok={} -> {}".format(report["ok"], REPORT))
+unreal.log("[Weapons] result ok={} -> {}".format(report["ok"], REPORT))

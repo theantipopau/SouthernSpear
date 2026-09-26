@@ -103,8 +103,8 @@ Blender source: `Tools/Blender/dryriver_blockout.py`, `dryriver_dressing.py`; sh
 
 ## Weapons pipeline (ADR-020)
 
-`blender --background --factory-startup --python Tools/Blender/a88_rifle.py` → `Art/Weapons/A88/SM_A88.fbx`, then
-`UnrealEditor-Cmd ... -ExecutePythonScript=E:/SouthernSpear/Tools/Unreal/setup_a88.py` → mesh, `MI_A88_*`, `B_SS_A88`
+`blender --background --factory-startup --python Tools/Blender/<a88_rifle|a89_support>.py` (shared helpers `ss_weapon_kit.py`) → `Art/Weapons/<NAME>/SM_<NAME>.fbx`, then
+`UnrealEditor-Cmd ... -ExecutePythonScript=E:/SouthernSpear/Tools/Unreal/setup_weapons.py` → mesh, `MI_A88_*`, `B_SS_A88`
 (`ASSHeldItemVisualActor`, +90° yaw offset cancels Lyra's -90° attach), `WID_SS_A88`/`ID_SS_A88` (copies of Lyra's
 rifle definitions, pointed at ours). The starting loadout is data: `Config/DefaultGame.ini` `[/Script/SouthernSpearLyraBridge.SSLoadoutSettings]`.
 `Content/Sourced/` is an **unlicensed drop — reference only, git-ignored** (`Docs/SOURCED_ASSET_REVIEW.md`, R-17).

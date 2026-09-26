@@ -1,0 +1,90 @@
+{
+  "ok": true,
+  "steps": [
+    {
+      "step": "A88:import_mesh",
+      "ok": true,
+      "detail": "[89.0, 8.4, 31.3]"
+    },
+    {
+      "step": "A88:master_material",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "step": "A88:finishes",
+      "ok": true,
+      "detail": "['Polymer', 'Metal', 'Glass']"
+    },
+    {
+      "step": "A88:visual_blueprint",
+      "ok": true,
+      "detail": "/SSExp_ObjectiveAssault/Weapons/A88/B_SS_A88"
+    },
+    {
+      "step": "A88:equipment_definition",
+      "ok": true,
+      "detail": "((ActorToSpawn=\"/Script/Engine.BlueprintGeneratedClass'/SSExp_ObjectiveAssault/Weapons/A88/B_SS_A88.B_SS_A88_C'\",AttachSocket=\"weapon_r\",AttachTransform=(Rotation=(X=0.000000,Y=0.000000,Z=-0.707107,W=0.707107))))"
+    },
+    {
+      "step": "A88:item_definition",
+      "ok": true,
+      "detail": "1 equippable fragment(s) -> WID_SS_A88_C"
+    },
+    {
+      "step": "A89:import_mesh",
+      "ok": true,
+      "detail": "[119.0, 10.0, 28.2]"
+    },
+    {
+      "step": "A89:master_material",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "step": "A89:finishes",
+      "ok": true,
+      "detail": "['Polymer', 'Metal']"
+    },
+    {
+      "step": "A89:visual_blueprint",
+      "ok": true,
+      "detail": "/SSExp_ObjectiveAssault/Weapons/A89/B_SS_A89"
+    },
+    {
+      "step": "A89:equipment_definition",
+      "ok": true,
+      "detail": "((ActorToSpawn=\"/Script/Engine.BlueprintGeneratedClass'/SSExp_ObjectiveAssault/Weapons/A89/B_SS_A89.B_SS_A89_C'\",AttachSocket=\"weapon_r\",AttachTransform=(Rotation=(X=0.000000,Y=0.000000,Z=-0.707107,W=0.707107))))"
+    },
+    {
+      "step": "A89:item_definition",
+      "ok": true,
+      "detail": "1 equippable fragment(s) -> WID_SS_A89_C"
+    }
+  ],
+  "errors": [],
+  "mesh_size_cm": {
+    "A88": [
+      89.0,
+      8.4,
+      31.3
+    ],
+    "A89": [
+      119.0,
+      10.0,
+      28.2
+    ]
+  },
+  "muzzle_socket": {
+    "A88": true,
+    "A89": true
+  },
+  "actors_to_spawn": {
+    "A88": "((ActorToSpawn=\"/Script/Engine.BlueprintGeneratedClass'/SSExp_ObjectiveAssault/Weapons/A88/B_SS_A88.B_SS_A88_C'\",AttachSocket=\"weapon_r\",AttachTransform=(Rotation=(X=0.000000,Y=0.000000,Z=-0.707107,W=0.707107))))",
+    "A89": "((ActorToSpawn=\"/Script/Engine.BlueprintGeneratedClass'/SSExp_ObjectiveAssault/Weapons/A89/B_SS_A89.B_SS_A89_C'\",AttachSocket=\"weapon_r\",AttachTransform=(Rotation=(X=0.000000,Y=0.000000,Z=-0.707107,W=0.707107))))"
+  },
+  "item_class": {
+    "A88": "/SSExp_ObjectiveAssault/Weapons/A88/ID_SS_A88.ID_SS_A88_C",
+    "A89": "/SSExp_ObjectiveAssault/Weapons/A89/ID_SS_A89.ID_SS_A89_C"
+  }
+}
