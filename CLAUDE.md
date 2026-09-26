@@ -77,7 +77,10 @@ python Tools/verify_dressing.py
   real source in a deliberately broken state.
 - `-game` runs print only Display+ to stdout; read `Saved/Logs/SouthernSpear.log` for `LogSSObjectives`.
 - In Git Bash prefix map-path args with `MSYS_NO_PATHCONV=1` (e.g. `/Game/Maps/L_DryRiver_01`).
-- Live check: `UnrealEditor-Cmd ... "/Game/Maps/L_DryRiver_01?NumBots=6" -game -nullrhi ...`
+- Live check: `UnrealEditor-Cmd ... "/Game/Maps/L_DryRiver_01?NumBots=8?RoundSeconds=60" -game -nullrhi ... -FORCELOGFLUSH`
+  (without `-FORCELOGFLUSH` a timeout kill loses the log tail; URL also takes `PreRoundSeconds`/`PostRoundSeconds`).
+- Source files are CRLF: Python `str.replace` edits must preserve `
+` or they silently no-op — verify with grep.
 
 ## Dry River pipeline (order matters; see `Docs/MAPS_DRYRIVER.md`)
 

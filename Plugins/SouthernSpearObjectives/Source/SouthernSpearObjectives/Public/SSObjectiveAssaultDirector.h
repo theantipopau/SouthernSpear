@@ -57,6 +57,17 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Bots")
 	FName BotBusyBlackboardKey = TEXT("TargetEnemy");
 
+	/**
+	 * Server: when a round resets, send every pawn back to a deployment start
+	 * (destroy pawn, GameMode RestartPlayer). Without it the next round starts
+	 * wherever the last one ended. Identical for both teams.
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Round")
+	bool bRespawnAllOnRoundReset = true;
+
+	/** Server: respawn every controlled pawn at a start. Returns the count. Public for tests. */
+	int32 RespawnAllPlayers();
+
 	/** Number of move orders issued on the last steer pass (server, diagnostics/tests). */
 	int32 GetLastSteeredBotCount() const { return LastSteeredBotCount; }
 
@@ -91,6 +102,10 @@ private:
 
 	UPROPERTY(Transient)
 	TArray<TObjectPtr<ASSObjectiveActor>> Objectives;
+
+	void RestartPawnlessControllers();
+
+	TArray<TWeakObjectPtr<AController>> PendingRespawn;
 
 	float SteerAccumulator = 0.f;
 	int32 LastSteeredBotCount = 0;

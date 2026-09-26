@@ -6,6 +6,9 @@
 #include "Navigation/PathFollowingComponent.h"
 #include "BehaviorTree/BlackboardComponent.h"
 #include "EngineUtils.h"
+#include "GameFramework/GameModeBase.h"
+#include "Kismet/GameplayStatics.h"
+#include "TimerManager.h"
 #include "Net/UnrealNetwork.h"
 #include "SSObjectiveActor.h"
 #include "SSObjectiveRules.h"
@@ -83,6 +86,15 @@ void ASSObjectiveAssaultDirector::BeginPlay()
 		return;
 	}
 
+	// Playtest overrides from the map URL, e.g. ?RoundSeconds=60
+	if (const AGameModeBase* GameMode = GetWorld()->GetAuthGameMode())
+	{
+		const FString& Options = GameMode->OptionsString;
+		RoundRules.RoundSeconds = UGameplayStatics::GetIntOption(Options, TEXT("RoundSeconds"), FMath::RoundToInt(RoundRules.RoundSeconds));
+		RoundRules.PreRoundSeconds = UGameplayStatics::GetIntOption(Options, TEXT("PreRoundSeconds"), FMath::RoundToInt(RoundRules.PreRoundSeconds));
+		RoundRules.PostRoundSeconds = UGameplayStatics::GetIntOption(Options, TEXT("PostRoundSeconds"), FMath::RoundToInt(RoundRules.PostRoundSeconds));
+	}
+
 	FSSRoundEvents Events;
 	const FSSRoundState Previous = RoundState;
 	RoundState = FSSObjectiveRules::StartRound(RoundState, bOk ? Objectives.Num() : 0, RoundRules, Events);
@@ -133,6 +145,11 @@ void ASSObjectiveAssaultDirector::ApplyEvents(const FSSRoundEvents& Events)
 		for (ASSObjectiveActor* Objective : Objectives)
 		{
 			Objective->ServerSetState(FSSObjectiveRules::ResetObjective(false));
+		}
+		// Round 1 players are freshly spawned already; later rounds need it.
+		if (bRespawnAllOnRoundReset && RoundState.RoundNumber > 1)
+		{
+			RespawnAllPlayers();
 		}
 	}
 	if (Events.bRoundStarted || Events.bObjectiveAdvanced)
@@ -232,4 +249,47 @@ int32 ASSObjectiveAssaultDirector::SteerIdleBots()
 			LastSteeredBotCount, RoundState.ActiveObjectiveIndex);
 	}
 	return LastSteeredBotCount;
+}
+
+int32 ASSObjectiveAssaultDirector::RespawnAllPlayers()
+{
+	UWorld* World = GetWorld();
+	if (!HasAuthority() || !World || !World->GetAuthGameMode())
+	{
+		return 0;
+	}
+	PendingRespawn.Reset();
+	for (FConstControllerIterator It = World->GetControllerIterator(); It; ++It)
+	{
+		if (AController* Controller = It->Get(); Controller && Controller->GetPawn())
+		{
+			PendingRespawn.Add(Controller);
+			Controller->GetPawn()->Destroy();
+		}
+	}
+	// The game mode normally restarts a controller whose pawn is destroyed.
+	// After a second, restart any player controller it did not.
+	FTimerHandle Handle;
+	World->GetTimerManager().SetTimer(Handle, this, &ThisClass::RestartPawnlessControllers, 1.f, false);
+	UE_LOG(LogSSObjectives, Log, TEXT("Round reset: sending %d player(s) back to deployment."), PendingRespawn.Num());
+	return PendingRespawn.Num();
+}
+
+void ASSObjectiveAssaultDirector::RestartPawnlessControllers()
+{
+	AGameModeBase* GameMode = GetWorld() ? GetWorld()->GetAuthGameMode() : nullptr;
+	int32 Restarted = 0;
+	for (const TWeakObjectPtr<AController>& Weak : PendingRespawn)
+	{
+		AController* Controller = Weak.Get();
+		// AI controllers are left to their own respawn path (Lyra bots may
+		// already have one pending from a death), so only players get this.
+		if (GameMode && Controller && Controller->IsPlayerController() && !Controller->GetPawn())
+		{
+			GameMode->RestartPlayer(Controller);
+			++Restarted;
+		}
+	}
+	PendingRespawn.Reset();
+	UE_LOG(LogSSObjectives, Log, TEXT("Round reset: restarted %d controller(s) directly."), Restarted);
 }

@@ -1,0 +1,82 @@
+{
+  "ok": true,
+  "steps": [
+    {
+      "step": "component_grants",
+      "ok": true,
+      "detail": "4 entr(ies)"
+    },
+    {
+      "step": "respawn_abilities",
+      "ok": true,
+      "detail": "AbilitySet_Elimination -> LyraPlayerState"
+    },
+    {
+      "step": "game_feature_data",
+      "ok": true,
+      "detail": "/SSExp_ObjectiveAssault/SSExp_ObjectiveAssault"
+    },
+    {
+      "step": "experience",
+      "ok": true,
+      "detail": "/SSExp_ObjectiveAssault/Experiences/B_SS_ObjectiveAssault"
+    },
+    {
+      "step": "load_map",
+      "ok": true,
+      "detail": "/Game/Maps/L_DryRiver_01"
+    },
+    {
+      "step": "objectives_placed",
+      "ok": true,
+      "detail": "2/2 objective(s)"
+    },
+    {
+      "step": "deployment_starts",
+      "ok": true,
+      "detail": "14 extra start(s) across 2 deployment(s)"
+    },
+    {
+      "step": "director_placed",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "step": "world_experience",
+      "ok": true,
+      "detail": "<Object '/SSExp_ObjectiveAssault/Experiences/B_SS_ObjectiveAssault.B_SS_ObjectiveAssault_C' (0x0000029E49668500) Class 'BlueprintGeneratedClass'>"
+    },
+    {
+      "step": "save_map",
+      "ok": true,
+      "detail": "/Game/Maps/L_DryRiver_01"
+    }
+  ],
+  "errors": [],
+  "removed_existing": 3,
+  "objectives": [
+    {
+      "label": "SS_MAP_DryRiver_ObjA_WaterPoint",
+      "sequence_index": 0,
+      "location_cm": [
+        -1500.0,
+        0.0,
+        -322.6
+      ]
+    },
+    {
+      "label": "SS_MAP_DryRiver_ObjB_Farmstead",
+      "sequence_index": 1,
+      "location_cm": [
+        4000.0,
+        -5200.0,
+        694.7
+      ]
+    }
+  ],
+  "extra_starts": {
+    "primaries": 2,
+    "placed": 14,
+    "no_ground": 0
+  }
+}

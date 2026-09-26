@@ -1,0 +1,23 @@
+[2026.09.26-08.39.08:510][  0]LogSSObjectives: Objective Assault: 2 objective(s) in sequence.
+[2026.09.26-08.39.08:525][  0]LogSSObjectives: Round 1: WaitingToStart -> PreRound, objective -1/2, outcome None, captures T1=0 T2=0.
+[2026.09.26-08.39.21:409][693]LogSSObjectives: Round 1: PreRound -> InProgress, objective 0/2, outcome None, captures T1=0 T2=0.
+[2026.09.26-08.40.35:680][180]LogSSObjectives: Round 1: InProgress -> PostRound, objective -1/2, outcome Draw, captures T1=0 T2=0.
+[2026.09.26-08.40.42:264][123]LogSSObjectives: Round 2: PostRound -> PreRound, objective -1/2, outcome None, captures T1=0 T2=0.
+[2026.09.26-08.40.42:281][142]LogSSObjectives: Round reset: sending 9 player(s) back to deployment.
+[2026.09.26-08.40.42:732][630]LogSSObjectives: Round reset: restarted 0 controller(s) directly.
+[2026.09.26-08.40.46:477][813]LogSSObjectives: Round 2: PreRound -> InProgress, objective 0/2, outcome None, captures T1=0 T2=0.
+[2026.09.26-08.41.46:577][326]LogSSObjectives: Round 2: InProgress -> PostRound, objective -1/2, outcome Draw, captures T1=0 T2=0.
+[2026.09.26-08.42.01:578][ 82]LogSSObjectives: Round 3: PostRound -> PreRound, objective -1/2, outcome None, captures T1=0 T2=0.
+[2026.09.26-08.42.01:594][ 98]LogSSObjectives: Round reset: sending 9 player(s) back to deployment.
+[2026.09.26-08.42.02:551][214]LogSSObjectives: Round reset: restarted 0 controller(s) directly.
+[2026.09.26-08.42.11:649][400]LogSSObjectives: Round 3: PreRound -> InProgress, objective 0/2, outcome None, captures T1=0 T2=0.
+[2026.09.26-08.43.11:650][158]LogSSObjectives: Round 3: InProgress -> PostRound, objective -1/2, outcome Draw, captures T1=0 T2=0.
+[2026.09.26-08.43.26:750][ 65]LogSSObjectives: Round 4: PostRound -> PreRound, objective -1/2, outcome None, captures T1=0 T2=0.
+[2026.09.26-08.43.26:757][ 65]LogSSObjectives: Round reset: sending 9 player(s) back to deployment.
+[2026.09.26-08.43.27:721][174]LogSSObjectives: Round reset: restarted 0 controller(s) directly.
+[2026.09.26-08.43.36:822][301]LogSSObjectives: Round 4: PreRound -> InProgress, objective 0/2, outcome None, captures T1=0 T2=0.
+[2026.09.26-08.44.36:922][999]LogSSObjectives: Round 4: InProgress -> PostRound, objective -1/2, outcome Draw, captures T1=0 T2=0.
+[2026.09.26-08.44.51:921][894]LogSSObjectives: Round 5: PostRound -> PreRound, objective -1/2, outcome None, captures T1=0 T2=0.
+[2026.09.26-08.44.51:930][894]LogSSObjectives: Round reset: sending 9 player(s) back to deployment.
+[2026.09.26-08.44.52:895][ 28]LogSSObjectives: Round reset: restarted 0 controller(s) directly.
+[2026.09.26-08.45.01:894][ 71]LogSSObjectives: Round 5: PreRound -> InProgress, objective 0/2, outcome None, captures T1=0 T2=0.

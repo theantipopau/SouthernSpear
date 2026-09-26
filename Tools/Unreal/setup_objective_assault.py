@@ -149,6 +149,52 @@ def ensure_experience():
     return saved, bp.generated_class()
 
 
+EXTRA_STARTS_PER_TEAM = 7
+START_SPACING_CM = 400.0
+
+
+def ground_z(world, x, y):
+    hit = unreal.SystemLibrary.line_trace_single(
+        world, unreal.Vector(x, y, 50000.0), unreal.Vector(x, y, -50000.0),
+        unreal.TraceTypeQuery.TRACE_TYPE_QUERY1, True, [], unreal.DrawDebugTrace.NONE, True)
+    if hit is None:
+        return None
+    hr = hit[1] if isinstance(hit, (list, tuple)) else hit
+    return hr.to_dict()["impact_point"].z
+
+
+def place_deployment_starts(world, actor_sub):
+    """A line of extra LyraPlayerStarts beside each deployment's primary start,
+    so a team does not spawn stacked on one point. Mirrored for both teams."""
+    # Traces return nothing until the world has been through a nav/physics build.
+    unreal.SystemLibrary.execute_console_command(world, "BUILDPATHS")
+    starts = unreal.GameplayStatics.get_all_actors_of_class(world, unreal.PlayerStart)
+    for a in starts:
+        if "_Extra" in a.get_actor_label():
+            actor_sub.destroy_actor(a)
+    primaries = [a for a in unreal.GameplayStatics.get_all_actors_of_class(world, unreal.PlayerStart)
+                 if "_Extra" not in a.get_actor_label()]
+    placed, missed = 0, 0
+    for primary in primaries:
+        base = primary.get_actor_location()
+        rot = primary.get_actor_rotation()
+        offsets = [(i // 2 + 1) * START_SPACING_CM * (1 if i % 2 == 0 else -1)
+                   for i in range(EXTRA_STARTS_PER_TEAM)]
+        for n, dx in enumerate(offsets):
+            z = ground_z(world, base.x + dx, base.y)
+            if z is None:
+                missed += 1
+                continue
+            actor = actor_sub.spawn_actor_from_class(
+                primary.get_class(), unreal.Vector(base.x + dx, base.y, z + 100.0), rot)
+            if actor:
+                actor.set_actor_label("{}_Extra{:02d}".format(primary.get_actor_label(), n + 1))
+                placed += 1
+    report["extra_starts"] = {"primaries": len(primaries), "placed": placed, "no_ground": missed}
+    return step("deployment_starts", len(primaries) == 2 and missed == 0,
+                "{} extra start(s) across {} deployment(s)".format(placed, len(primaries)))
+
+
 def wire_map(experience_class):
     world = unreal.EditorLoadingAndSavingUtils.load_map(MAP)
     if not world:
@@ -180,6 +226,8 @@ def wire_map(experience_class):
         report["objectives"].append({"label": row["name"], "sequence_index": index, "location_cm": [loc.x, loc.y, loc.z]})
     step("objectives_placed", len(report["objectives"]) == len(rows) and rows,
          "{}/{} objective(s)".format(len(report["objectives"]), len(rows)))
+
+    place_deployment_starts(world, actor_sub)
 
     director = actor_sub.spawn_actor_from_class(unreal.SSObjectiveAssaultDirector, unreal.Vector(0, 0, 0),
                                                 unreal.Rotator(roll=0, pitch=0, yaw=0))
