@@ -326,7 +326,7 @@ def spawn_gameplay_actors(rows):
             # Lyra's game mode expects ALyraPlayerStart; a plain APlayerStart is
             # reported by map check.
             start_class = getattr(unreal, "LyraPlayerStart", unreal.PlayerStart)
-            actor = actors.spawn_actor_from_class(start_class, loc, unreal.Rotator(0, 180, 0))
+            actor = actors.spawn_actor_from_class(start_class, loc, unreal.Rotator(roll=0, pitch=0, yaw=180))  # positional order is (roll, pitch, yaw)
             if actor:
                 actor.set_actor_label(row["name"])
                 # Default capsule half-height is 88 cm; stand the pawn on the deck.

@@ -236,7 +236,7 @@ def build_paths():
         return step("build_paths", False, str(exc))
 
 
-def trace_ground(x_m, y_m):
+def trace_ground(x_m, y_m, ignore=None):
     """Find the real terrain height at a map position by tracing straight down.
 
     The layout CSV carries the height Blender computed, but the navmesh sits on
@@ -255,7 +255,7 @@ def trace_ground(x_m, y_m):
             world, start, end,
             unreal.TraceTypeQuery.TRACE_TYPE_QUERY1,   # Visibility
             True,                                       # trace complex
-            [], unreal.DrawDebugTrace.NONE, True,
+            list(ignore or []), unreal.DrawDebugTrace.NONE, True,
         )
     except Exception as exc:  # noqa: BLE001
         warn("line_trace_single failed: {}".format(exc))
@@ -372,23 +372,29 @@ def dressing_is_solid():
     if not world:
         return step("dressing_solid", False, "no world")
 
-    def blocked_cm(ax, ay, bx, by, z):
+    def blocked_cm(ax, ay, bx, by, z, z_end=None):
         """(hit, hit_actor_label). The label matters: without it a trace that
         stops on the terrain looks identical to one that stops on a fence."""
         try:
             res = unreal.SystemLibrary.line_trace_single(
-                world, unreal.Vector(ax, ay, z), unreal.Vector(bx, by, z),
+                world, unreal.Vector(ax, ay, z), unreal.Vector(bx, by, z if z_end is None else z_end),
                 unreal.TraceTypeQuery.TRACE_TYPE_QUERY1, True,
                 [], unreal.DrawDebugTrace.NONE, True,
             )
         except Exception:  # noqa: BLE001
             return None, None
-        if not isinstance(res, (list, tuple)) or len(res) < 2 or not res[0]:
+        # UE 5.8 Python returns a bare HitResult on a hit and None on a miss.
+        # An earlier version accepted only a (bHit, HitResult) tuple, so every
+        # real hit read as a miss - which is what R-10 actually was.
+        if res is None:
             return False, None
+        if isinstance(res, (list, tuple)):
+            if len(res) < 2 or not res[0]:
+                return False, None
+            res = res[1]
         try:
-            fields = res[1].to_dict()
-            hit_actor = fields.get("actor")
-            label = hit_actor.get_name() if hasattr(hit_actor, "get_name") else str(hit_actor)
+            hit_actor = res.to_dict().get("hit_actor")
+            label = hit_actor.get_actor_label() if hit_actor else None
         except Exception:  # noqa: BLE001
             label = "?"
         return True, label
@@ -404,9 +410,12 @@ def dressing_is_solid():
             continue
         # Probe above and below the origin: a mesh whose origin sits at
         # mid-height has all of its geometry below loc.z.
-        hit, by = blocked_cm(loc.x, loc.y, loc.x, loc.y, loc.z + 400.0)
-        if not hit:
-            hit, by = blocked_cm(loc.x, loc.y, loc.x, loc.y, loc.z - 400.0)
+        # A real vertical ray through the actor. The earlier version traced
+        # from a point to the same point (zero length), which can never hit.
+        hit, by = blocked_cm(loc.x, loc.y, loc.x, loc.y, loc.z + 400.0, loc.z - 400.0)
+        # A terrain hit proves nothing. A stacked neighbour (the upper rail
+        # above a lower one) is still dressing collision, so it counts.
+        hit = bool(hit) and bool(by) and by.startswith("SS_Dressing_")
         entry = {"label": label, "at_cm": [loc.x, loc.y, loc.z], "vertical_hit": hit, "by": by}
         report["dressing_actor_hits"].append(entry)
         log("  vertical ray onto {} -> hit={} by={}".format(label, hit, by))
@@ -416,19 +425,11 @@ def dressing_is_solid():
     if tested_samples:
         detail = "{}/{} sampled dressing actors still collide after reload".format(
             len(solid_samples), len(tested_samples))
-        # Recorded, NOT gated. See MAPS_DRYRIVER.md 12.4: dressing is verifiably
-        # solid where it is placed (the dress pass proves 5/5 by ray), and
-        # verifiably NOT solid once the map has been saved and reopened, while
-        # the blockout in the same map is. The engine-level cause has not been
-        # isolated. Making this a gate would fail CI forever for a reason we
-        # cannot yet fix; making it silently pass would be a lie. It is
-        # therefore an explicit, visible warning until it is understood.
-        step("dressing_actors_collide_after_reload", False, detail)
-        warn("KNOWN LIMITATION: " + detail + ". The dress pass verifies the same "
-             "actors ARE solid at placement. Tracked as R-10; see "
-             "Docs/MAPS_DRYRIVER.md section 12.4. Navigation therefore does not "
-             "yet include fencing, and the map is traversable but the fences are "
-             "not yet load-bearing cover.")
+        persists = len(solid_samples) == len(tested_samples)
+        step("dressing_actors_collide_after_reload", persists, detail)
+        if not persists:
+            warn("Dressing collision missing after reload: " + detail + ". See R-10 in "
+                 "Docs/PROJECT_AUDIT.md.")
         report["dressing_collision_persists"] = len(solid_samples) == len(tested_samples)
     else:
         step("dressing_actors_collide_after_reload", True, "no dressing present")
@@ -445,6 +446,10 @@ def dressing_is_solid():
     # must pass over the fence. That is the control: it proves the probe can see
     # past the fence, so a block lower down is the fence and not the terrain.
     HEIGHTS = (55.0, 105.0, 150.0)
+    dressing_actors = [
+        a for a in unreal.GameplayStatics.get_all_actors_of_class(world, unreal.StaticMeshActor)
+        if a.get_actor_label().startswith("SS_Dressing_")
+    ]
     results = []
     for r in runs:
         # CSV is metres and mirrored in Y; Unreal is centimetres.
@@ -457,7 +462,9 @@ def dressing_is_solid():
             continue
         nx, ny = -dy / length, dx / length
 
-        ground = trace_ground(mx / 100.0, my / 100.0)
+        # Ignore dressing: with collision working, a ray at a post station
+        # lands on the post top and would put every probe above the fence.
+        ground = trace_ground(mx / 100.0, my / 100.0, dressing_actors)
         if ground is None:
             continue
         gz = ground[2]

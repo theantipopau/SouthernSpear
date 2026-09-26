@@ -423,7 +423,7 @@ def spawn(mesh, label, loc_cm, yaw_deg, scale):
     actor = actors.spawn_actor_from_class(
         unreal.StaticMeshActor,
         unreal.Vector(loc_cm.x, loc_cm.y, loc_cm.z),
-        unreal.Rotator(0.0, yaw_deg, 0.0),
+        unreal.Rotator(roll=0.0, pitch=0.0, yaw=yaw_deg),  # positional order is (roll, pitch, yaw)
     )
     if not actor:
         return None

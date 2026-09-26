@@ -348,7 +348,16 @@ The level pass re-snaps every item to the terrain with a ray trace, so the CSV's
 
 Scrub is deliberately `NoCollision`. It conceals without obstructing; colliding scrub would carve holes in the NavMesh and make the map feel sticky to cross.
 
-### 12.4 Known limitation: dressing collision does not survive a save and reload
+### 12.4 Resolved (Session 007): dressing collision after save and reload
+
+**R-10 is closed.** Collision did survive reload. The failure was caused by (1) the nav script's
+trace wrapper reading every hit as a miss (UE 5.8 Python returns a bare `HitResult` on a hit,
+`None` on a miss), (2) a zero-length "vertical" ray, and (3) a genuine placement bug:
+`unreal.Rotator` takes positional arguments as **(roll, pitch, yaw)**, so `Rotator(0, yaw, 0)`
+pitched every rotated post, rail and wreck onto its side. Always construct rotators with keyword
+arguments. After the fix: 3/3 sampled actors, 7/7 fence runs solid after reload
+(`Docs/evidence/R10_dryriver_nav_report.json`). The analysis below is kept as the historical record.
+
 
 **Stated plainly because it is not yet fixed. Tracked as R-10.**
 

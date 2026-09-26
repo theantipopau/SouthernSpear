@@ -622,6 +622,59 @@ before new gameplay (SSExp_ObjectiveAssault / A88) begins.
 
 ---
 
+## Session 007 — 2026-09-26 — R-10 Closed: the Fences Were Lying Down
+
+### COMPLETED
+
+- Diagnosed R-10 with a read-only probe (`Tools/Unreal/probe_dressing_reload.py`): after reload,
+  dressing *does* collide, but a fence post measured 12 cm tall and 140 cm long and a rail 250 cm tall.
+- Fixed `dress_dryriver.py`: `unreal.Rotator(0.0, yaw, 0.0)` → keyword form; positional order is
+  (roll, pitch, yaw), so yaw had been applied as pitch. Same bug fixed in `build_dryriver_level.py`
+  (player starts: pitch 180 → yaw 180).
+- Fixed `build_dryriver_nav.py` checks: bare-`HitResult` handling, real vertical ray, actor check
+  now gates on its result, and fence ground trace ignores dressing (it was landing on post tops).
+- Re-dressed Dry River and re-ran the nav regression.
+
+### FILES CHANGED
+
+Modified: `Tools/Unreal/dress_dryriver.py`, `Tools/Unreal/build_dryriver_nav.py`,
+`Tools/Unreal/build_dryriver_level.py`, `Content/Maps/L_DryRiver_01.umap`, six
+`Content/Art/Dressing/*.uasset` (re-imported from the unchanged FBX by the dress pass),
+`Docs/PROJECT_AUDIT.md`, `Docs/MAPS_DRYRIVER.md`. Created: `Tools/Unreal/probe_dressing_reload.py`,
+`Docs/evidence/R10_*`.
+
+### TESTING
+
+| Test | Command | Exit | Result | Evidence |
+|---|---|---|---|---|
+| Dress pass | `UnrealEditor-Cmd ... -ExecutePythonScript=Tools/Unreal/dress_dryriver.py` | 0 | ok; 290 removed and re-placed; collide=True | `R10_dryriver_dressing_report.json` |
+| Nav regression | documented command | 0 | path 2 points; 3/3 actors and 7/7 fences solid after reload; no warnings | `R10_dryriver_nav_report.json` |
+| Dressing data | `python Tools/verify_dressing.py` | 0 | all checks passed | — |
+| Player-start orientation in the map | — | — | NOT RUN — script fixed, map starts not regenerated | — |
+
+### ASSETS
+
+No new assets. Dressing `.uasset`s re-imported from existing registered FBX sources.
+
+### RISKS
+
+~~R-10~~ closed. New **R-13** (low): Dry River player starts in the saved map were spawned with
+pitch 180 by the old level script; correct when `build_dryriver_level.py` is next run.
+
+### DEFECTS FOUND
+
+1. Rotator positional-order bug in two level scripts (found by measuring actor bounds).
+2. Nav checker treated every hit as a miss, and traced a zero-length ray (found by a control trace).
+3. Fence ground trace hit post tops once collision worked (found when 4/7 passed exactly on the
+   runs whose midpoint is a post station).
+
+### NEXT ACTION
+
+**Begin SSExp_ObjectiveAssault** — the presentation increment builds and passes, and no defect
+remains open in built work other than R-09 (engine distribution) and low-risk R-13.
+
+---
+
 ## Open Threads
 
 | Item | Blocked on | Owner |

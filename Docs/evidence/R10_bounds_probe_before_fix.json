@@ -1,0 +1,377 @@
+{
+  "samples": [
+    {
+      "label": "SS_Dressing_PaddockEast_Post00",
+      "before": {
+        "loc": [
+          7800.0,
+          -3400.0,
+          326.5929016113296
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "actor_bounds": [
+          320.5929016113296,
+          332.5929016113296,
+          70.00000048876245,
+          6.000011444091797
+        ],
+        "mesh_bounds": [
+          -9.775241096576792e-07,
+          140.0
+        ],
+        "mesh": "SS_Dressing_FencePost",
+        "convex": 1,
+        "boxes": 0,
+        "trace_flag": "<CollisionTraceFlag.CTF_USE_DEFAULT: 0>",
+        "collision_enabled": "<CollisionEnabled.QUERY_AND_PHYSICS: 3>",
+        "profile": "BlockAll",
+        "mobility": "<ComponentMobility.STATIC: 0>",
+        "down": {
+          "hit": true,
+          "actor": "SS_Dressing_PaddockEast_Post00",
+          "z": 332.59290140595834
+        },
+        "across_x": {
+          "hit": false,
+          "actor": null,
+          "z": null
+        },
+        "across_y": {
+          "hit": true,
+          "actor": "SS_Dressing_PaddockEast_Rail00_055",
+          "z": 346.59290189897274
+        },
+        "across_simple": {
+          "hit": false,
+          "actor": null,
+          "z": null
+        },
+        "down_simple": {
+          "hit": true,
+          "actor": "SS_Dressing_PaddockEast_Post00",
+          "z": 332.69290130716803
+        },
+        "ground_control": {
+          "hit": true,
+          "actor": "SS_Dressing_PaddockEast_Post00",
+          "z": 332.59290140595834
+        }
+      },
+      "after_recreate": {
+        "loc": [
+          7800.0,
+          -3400.0,
+          326.5929016113296
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "actor_bounds": [
+          320.5929016113296,
+          332.5929016113296,
+          70.00000048876245,
+          6.000011444091797
+        ],
+        "mesh_bounds": [
+          -9.775241096576792e-07,
+          140.0
+        ],
+        "mesh": "SS_Dressing_FencePost",
+        "convex": 1,
+        "boxes": 0,
+        "trace_flag": "<CollisionTraceFlag.CTF_USE_DEFAULT: 0>",
+        "collision_enabled": "<CollisionEnabled.QUERY_AND_PHYSICS: 3>",
+        "profile": "Custom",
+        "mobility": "<ComponentMobility.STATIC: 0>",
+        "down": {
+          "hit": true,
+          "actor": "SS_Dressing_PaddockEast_Post00",
+          "z": 332.59290140595834
+        },
+        "across_x": {
+          "hit": false,
+          "actor": null,
+          "z": null
+        },
+        "across_y": {
+          "hit": true,
+          "actor": "SS_Dressing_PaddockEast_Rail00_055",
+          "z": 346.59290189897274
+        },
+        "across_simple": {
+          "hit": false,
+          "actor": null,
+          "z": null
+        },
+        "down_simple": {
+          "hit": true,
+          "actor": "SS_Dressing_PaddockEast_Post00",
+          "z": 332.69290130716803
+        },
+        "ground_control": {
+          "hit": true,
+          "actor": "SS_Dressing_PaddockEast_Post00",
+          "z": 332.59290140595834
+        }
+      }
+    },
+    {
+      "label": "SS_Dressing_PaddockEast_Rail00_055",
+      "before": {
+        "loc": [
+          7800.0,
+          -3525.0,
+          399.5756042480498
+        ],
+        "scale": [
+          2.5,
+          1.0,
+          1.0
+        ],
+        "actor_bounds": [
+          274.5756042480498,
+          524.5756042480498,
+          4.500000476837158,
+          2.5000007152557373
+        ],
+        "mesh_bounds": [
+          -4.500000476837158,
+          4.500000476837158
+        ],
+        "mesh": "SS_Dressing_FenceRail",
+        "convex": 1,
+        "boxes": 0,
+        "trace_flag": "<CollisionTraceFlag.CTF_USE_DEFAULT: 0>",
+        "collision_enabled": "<CollisionEnabled.QUERY_AND_PHYSICS: 3>",
+        "profile": "BlockAll",
+        "mobility": "<ComponentMobility.STATIC: 0>",
+        "down": {
+          "hit": true,
+          "actor": "SS_Dressing_PaddockEast_Rail00_105",
+          "z": 574.5755999694823
+        },
+        "across_x": {
+          "hit": true,
+          "actor": "SS_Dressing_PaddockEast_Rail00_055",
+          "z": 419.5756034094505
+        },
+        "across_y": {
+          "hit": true,
+          "actor": "SS_Dressing_PaddockEast_Rail01_055",
+          "z": 419.5756062006458
+        },
+        "across_simple": {
+          "hit": true,
+          "actor": "SS_Dressing_PaddockEast_Rail00_055",
+          "z": 419.5756034080327
+        },
+        "down_simple": {
+          "hit": true,
+          "actor": "SS_Dressing_PaddockEast_Rail00_105",
+          "z": 574.825599960925
+        },
+        "ground_control": {
+          "hit": true,
+          "actor": "SS_Dressing_PaddockEast_Rail00_105",
+          "z": 574.5755999694823
+        }
+      },
+      "after_recreate": {
+        "loc": [
+          7800.0,
+          -3525.0,
+          399.5756042480498
+        ],
+        "scale": [
+          2.5,
+          1.0,
+          1.0
+        ],
+        "actor_bounds": [
+          274.5756042480498,
+          524.5756042480498,
+          4.500000476837158,
+          2.5000007152557373
+        ],
+        "mesh_bounds": [
+          -4.500000476837158,
+          4.500000476837158
+        ],
+        "mesh": "SS_Dressing_FenceRail",
+        "convex": 1,
+        "boxes": 0,
+        "trace_flag": "<CollisionTraceFlag.CTF_USE_DEFAULT: 0>",
+        "collision_enabled": "<CollisionEnabled.QUERY_AND_PHYSICS: 3>",
+        "profile": "Custom",
+        "mobility": "<ComponentMobility.STATIC: 0>",
+        "down": {
+          "hit": true,
+          "actor": "SS_Dressing_PaddockEast_Rail00_105",
+          "z": 574.5755999694823
+        },
+        "across_x": {
+          "hit": true,
+          "actor": "SS_Dressing_PaddockEast_Rail00_105",
+          "z": 419.57560702822616
+        },
+        "across_y": {
+          "hit": true,
+          "actor": "SS_Dressing_PaddockEast_Rail01_055",
+          "z": 419.5756062006458
+        },
+        "across_simple": {
+          "hit": true,
+          "actor": "SS_Dressing_PaddockEast_Rail00_105",
+          "z": 419.57560702680837
+        },
+        "down_simple": {
+          "hit": true,
+          "actor": "SS_Dressing_PaddockEast_Rail00_105",
+          "z": 574.825599960925
+        },
+        "ground_control": {
+          "hit": true,
+          "actor": "SS_Dressing_PaddockEast_Rail00_105",
+          "z": 574.5755999694823
+        }
+      }
+    },
+    {
+      "label": "SS_Dressing_Wreck_WestBank",
+      "before": {
+        "loc": [
+          -5200.0,
+          800.0,
+          -111.10522308349027
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "actor_bounds": [
+          -189.76987848988827,
+          146.10103650787912,
+          248.62122569952862,
+          110.00000762939453
+        ],
+        "mesh_bounds": [
+          -2.3881739252828993e-05,
+          190.00003051757812
+        ],
+        "mesh": "SS_Dressing_Wreck",
+        "convex": 1,
+        "boxes": 0,
+        "trace_flag": "<CollisionTraceFlag.CTF_USE_DEFAULT: 0>",
+        "collision_enabled": "<CollisionEnabled.QUERY_AND_PHYSICS: 3>",
+        "profile": "BlockAll",
+        "mobility": "<ComponentMobility.STATIC: 0>",
+        "down": {
+          "hit": true,
+          "actor": "SS_Dressing_Wreck_WestBank",
+          "z": 8.614775742762774
+        },
+        "across_x": {
+          "hit": true,
+          "actor": "SS_Dressing_Wreck_WestBank",
+          "z": -91.10522319339051
+        },
+        "across_y": {
+          "hit": true,
+          "actor": "SS_Blockout_Geometry",
+          "z": -91.10522308349027
+        },
+        "across_simple": {
+          "hit": true,
+          "actor": "SS_Dressing_Wreck_WestBank",
+          "z": -91.10522319339051
+        },
+        "down_simple": {
+          "hit": true,
+          "actor": "SS_Dressing_Wreck_WestBank",
+          "z": 91.19500946004214
+        },
+        "ground_control": {
+          "hit": true,
+          "actor": "SS_Dressing_Wreck_WestBank",
+          "z": 8.614775742760273
+        }
+      },
+      "after_recreate": {
+        "loc": [
+          -5200.0,
+          800.0,
+          -111.10522308349027
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "actor_bounds": [
+          -189.76987848988827,
+          146.10103650787912,
+          248.62122569952862,
+          110.00000762939453
+        ],
+        "mesh_bounds": [
+          -2.3881739252828993e-05,
+          190.00003051757812
+        ],
+        "mesh": "SS_Dressing_Wreck",
+        "convex": 1,
+        "boxes": 0,
+        "trace_flag": "<CollisionTraceFlag.CTF_USE_DEFAULT: 0>",
+        "collision_enabled": "<CollisionEnabled.QUERY_AND_PHYSICS: 3>",
+        "profile": "Custom",
+        "mobility": "<ComponentMobility.STATIC: 0>",
+        "down": {
+          "hit": true,
+          "actor": "SS_Dressing_Wreck_WestBank",
+          "z": 8.614775742762774
+        },
+        "across_x": {
+          "hit": true,
+          "actor": "SS_Dressing_Wreck_WestBank",
+          "z": -91.10522319339051
+        },
+        "across_y": {
+          "hit": true,
+          "actor": "SS_Blockout_Geometry",
+          "z": -91.10522308349027
+        },
+        "across_simple": {
+          "hit": true,
+          "actor": "SS_Dressing_Wreck_WestBank",
+          "z": -91.10522319339051
+        },
+        "down_simple": {
+          "hit": true,
+          "actor": "SS_Dressing_Wreck_WestBank",
+          "z": 91.19500946004214
+        },
+        "ground_control": {
+          "hit": true,
+          "actor": "SS_Dressing_Wreck_WestBank",
+          "z": 8.614775742760273
+        }
+      }
+    }
+  ],
+  "ground_before_buildpaths": {
+    "hit": false,
+    "actor": null,
+    "z": null
+  },
+  "ground_after_buildpaths": {
+    "hit": true,
+    "actor": "SS_Blockout_Geometry",
+    "z": 64.28127670288086
+  }
+}
