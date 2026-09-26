@@ -1,0 +1,54 @@
+{
+  "ok": true,
+  "steps": [
+    {
+      "step": "load_map",
+      "ok": true,
+      "detail": "/Game/Maps/L_DryRiver_01"
+    },
+    {
+      "step": "spawn_Sun",
+      "ok": true,
+      "detail": "DirectionalLight"
+    },
+    {
+      "step": "spawn_Atmosphere",
+      "ok": true,
+      "detail": "SkyAtmosphere"
+    },
+    {
+      "step": "spawn_SkyLight",
+      "ok": true,
+      "detail": "SkyLight"
+    },
+    {
+      "step": "spawn_HeightFog",
+      "ok": true,
+      "detail": "ExponentialHeightFog"
+    },
+    {
+      "step": "spawn_PostProcess",
+      "ok": true,
+      "detail": "PostProcessVolume"
+    },
+    {
+      "step": "placed_all",
+      "ok": true,
+      "detail": "5/5"
+    },
+    {
+      "step": "save_map",
+      "ok": true,
+      "detail": "/Game/Maps/L_DryRiver_01"
+    }
+  ],
+  "errors": [],
+  "removed_existing": 0,
+  "placed": [
+    "SS_Light_Sun",
+    "SS_Light_Atmosphere",
+    "SS_Light_SkyLight",
+    "SS_Light_HeightFog",
+    "SS_Light_PostProcess"
+  ]
+}

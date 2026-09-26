@@ -163,6 +163,16 @@ jobs:
               -ini:Engine:[/Script/NavigationSystem.NavigationSystemV1]:bWaitForAsyncLoadingBeforeBuildingNavigationAutomatically=False ^
               -ExecutePythonScript="%PROJECT_DIR%\Tools\Unreal\dress_dryriver.py"
 
+      # Daylight rig (sun, sky, fog). Movable lights, so no light build.
+      - name: Light Dry River
+        shell: cmd
+        run: |
+          "%UE_ROOT%\Engine\Binaries\Win64\UnrealEditor-Cmd.exe" ^
+              "%PROJECT_DIR%\%PROJECT_NAME%.uproject" ^
+              -nullrhi -unattended -nosplash -nosound -stdout ^
+              -ExecutePythonScript="%PROJECT_DIR%\Tools\Unreal\light_dryriver.py"
+          python -c "import json,sys; r=json.load(open(r'%PROJECT_DIR%\Build\dryriver_lighting_report.json')); sys.exit(0 if r['ok'] else 1)"
+
       # Objectives, round director and the map's experience (ADR-018). Before
       # navigation, because the nav pass is the last one to save the map.
       - name: Set up Objective Assault on Dry River

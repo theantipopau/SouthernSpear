@@ -51,6 +51,7 @@ Southern Spear is an original, fictional, Australian-inspired tactical multiplay
 | `Plugins/SouthernSpearCore` | `ESSTeamId {None,TeamOne,TeamTwo}` (authoritative, replicated), `ESSLocality {Friendly,Opposing}` (local only, **never replicated**), `FSSViewerContext`, `FSSTeamIdentity::ResolveLocality`, stable ids, tags, settings | engine only — **no SS plugin, no Lyra** |
 | `Plugins/SouthernSpearTeam` | Cosmetic-only faction presentation; stateless `FSSFactionPresentationResolver` (viewer sees own team as 3 ACR, other as MAF) | Core only |
 | `Plugins/SouthernSpearObjectives` | ADR-018 Objective Assault: pure `FSSObjectiveRules`, replicated `ASSObjectiveActor`, `ASSObjectiveAssaultDirector` (server round loop, idle-bot steering); team via `IGenericTeamAgentInterface` (Lyra ids 1/2 → TeamOne/TeamTwo) | Core, AIModule — **no Team, no Lyra** |
+| `SouthernSpearObjectivesUI` | Objective HUD: pure `FSSObjectiveHudModel` (viewer-relative text/tone, neutral Team One/Two vantage without a team), C++-built `USSObjectiveStatusWidget`, `USSObjectiveHudSubsystem` (adds it for the local player) | Objectives, Core, UMG — **no Lyra**; gameplay never depends on it (SS005) |
 | `SouthernSpearObjectivesEditor` (editor module) | Python-callable authoring helpers (`SetGameFeatureComponentGrants`, `SetPropertyFromText`) | GameFeatures, Core |
 | `Plugins/GameFeatures/SSExp_ObjectiveAssault` | Content-only Game Feature + experience `B_SS_ObjectiveAssault` | ShooterCore, Objectives |
 | `Source/`, other `Plugins/` | Vendored Lyra — **do not modify**; any departure needs an ADR + `Docs/LYRA_ADOPTION.md` entry | — |
@@ -58,8 +59,8 @@ Southern Spear is an original, fictional, Australian-inspired tactical multiplay
 Rules: ADR-004 — presentation may never expose/modify damage, health, ammo, recoil, movement, collision,
 hitboxes, abilities, authority, roles or objectives. ADR-017 — resolution fails loudly, never defaults to a
 side; spectators/replays need an explicit authorised vantage. Gameplay logic is C++; Blueprints configure.
-Export macros: `SSCORE_API`, `SSTEAM_API`, `SSOBJ_API` (aliased in each `Build.cs`).
-Extend the guard when adding a module (SS001 sibling deps, SS002 no-Lyra list, SS003 presentation includes).
+Export macros: `SSCORE_API`, `SSTEAM_API`, `SSOBJ_API`, `SSOBJUI_API` (aliased in each `Build.cs`).
+Extend the guard when adding a module (SS001 sibling deps — a `<Module>UI` may depend on `<Module>`; SS002 no-Lyra list; SS003 presentation includes; SS005 only `*UI` modules may use UMG/CommonUI).
 
 ## Build and test (run from repo root; Git Bash)
 
@@ -70,7 +71,7 @@ python Tools/validate_architecture.py
 python Tools/verify_dressing.py
 ```
 
-- Tests: `SouthernSpear.Core.*` (9), `SouthernSpear.Presentation.*` (6), `SouthernSpear.Objectives.*` (11). Count
+- Tests: `SouthernSpear.Core.*` (9), `SouthernSpear.Presentation.*` (6), `SouthernSpear.Objectives.*` (14, incl. `.Hud.*`). Count
   `Result={Success}` in the log; declare intentionally-logged errors with `AddExpectedError`.
 - Bare test worlds: use `World->GetWorldSettings()->NotifyBeginPlay()` (no GameMode → `World->BeginPlay()` does nothing).
 - Guard negative test: copy `Tools/` + SS plugins to the scratchpad, inject violations, expect exit 1. Never leave
@@ -90,8 +91,9 @@ Each is `UnrealEditor-Cmd ... -nullrhi -unattended -nosplash -nosound -stdout
 
 1. `build_dryriver_level.py` (its own pass-1 `ok=False` path check is known, R-15)
 2. `dress_dryriver.py`
-3. `setup_objective_assault.py` (GFD, experience, objectives, director, extra starts, default experience) → `Build/objective_assault_setup.json`
-4. `build_dryriver_nav.py` (authoritative: path + dressing solidity; re-saves the map by design) → `Build/dryriver_nav_report.json`
+3. `light_dryriver.py` (sun, sky atmosphere, sky light, fog, post-process; `SS_Light_*`, idempotent) → `Build/dryriver_lighting_report.json`
+4. `setup_objective_assault.py` (GFD, experience, objectives, director, extra starts, default experience) → `Build/objective_assault_setup.json`
+5. `build_dryriver_nav.py` (authoritative: path + dressing solidity; re-saves the map by design) → `Build/dryriver_nav_report.json`
 
 Blender source: `Tools/Blender/dryriver_blockout.py`, `dryriver_dressing.py`; shared spec `Tools/Common/dryriver_spec.py`.
 
@@ -105,6 +107,7 @@ Blender source: `Tools/Blender/dryriver_blockout.py`, `dryriver_dressing.py`; sh
 - `EditDefaultsOnly` props (e.g. `LyraWorldSettings.DefaultGameplayExperience`) and non-BlueprintType structs
   (`FGameFeatureComponentEntry`, `FGameFeatureAbilitiesEntry`) need `SSObjectivesEditorLibrary` helpers.
 - Some classes aren't module attributes: use `unreal.load_class(None, "/Script/Module.Class")`.
+- `-nosound` makes Lyra weapon audio print on-screen Blueprint errors (`WeaponAudioFunctions.EarlyReflections`); not a defect.
 - Engine Toolset Python import errors in logs are unrelated noise.
 
 ## Git, LFS, publishing

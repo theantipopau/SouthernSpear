@@ -293,3 +293,16 @@ void ASSObjectiveAssaultDirector::RestartPawnlessControllers()
 	PendingRespawn.Reset();
 	UE_LOG(LogSSObjectives, Log, TEXT("Round reset: restarted %d controller(s) directly."), Restarted);
 }
+
+ESSTeamId ASSObjectiveAssaultDirector::ToTeamId(FGenericTeamId GenericId) const
+{
+	if (GenericId == FGenericTeamId(static_cast<uint8>(TeamOneGenericId)))
+	{
+		return ESSTeamId::TeamOne;
+	}
+	if (GenericId == FGenericTeamId(static_cast<uint8>(TeamTwoGenericId)))
+	{
+		return ESSTeamId::TeamTwo;
+	}
+	return ESSTeamId::None;
+}

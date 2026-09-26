@@ -22,6 +22,11 @@
 			"LoadingPhase": "Default"
 		},
 		{
+			"Name": "SouthernSpearObjectivesUI",
+			"Type": "Runtime",
+			"LoadingPhase": "Default"
+		},
+		{
 			"Name": "SouthernSpearObjectivesEditor",
 			"Type": "Editor",
 			"LoadingPhase": "Default"

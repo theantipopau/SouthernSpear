@@ -419,6 +419,13 @@ from WorldSettings and round 1 reaches InProgress with OBJ A active
 as if they were centimetres (both within 2 m of the centre) and pitched them 180°. They are now at
 y = ±85 m, facing the map centre.
 
+## 9b. Lighting (Session 013)
+
+`Tools/Unreal/light_dryriver.py`, run after dressing and before Objective Assault setup, places a movable
+daylight rig labelled `SS_Light_*`: sun (pitch -52°, yaw 35°, warm), sky atmosphere, real-time sky light,
+height fog and an unbound post-process volume (exposure 0.5–2.0). Before it, the map had no lights and
+rendered black. Evidence: `Docs/evidence/G051_hud_lit_dryriver.png`.
+
 ## 10. What This Map Does Not Do
 
 Stated plainly so it is never over-claimed:

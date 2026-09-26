@@ -164,6 +164,8 @@ def check(f):
             if d.startswith("SouthernSpear") and d != module
             # Every SS plugin may build on the root; the root builds on nothing.
             and not (d == "SouthernSpearCore" and module != "SouthernSpearCore")
+            # A plugin's UI module sits on top of its own gameplay module.
+            and not (module.endswith("UI") and d == module[:-2])
         )
         if sibling:
             findings.append(Finding(
@@ -174,7 +176,8 @@ def check(f):
                 "only on it, and it on no SS plugin.".format(module, ", ".join(sibling)),
             ))
 
-        if module in ("SouthernSpearCore", "SouthernSpearTeam", "SouthernSpearObjectives"):
+        if module in ("SouthernSpearCore", "SouthernSpearTeam", "SouthernSpearObjectives",
+                      "SouthernSpearObjectivesUI"):
             lyra = sorted(d for d in deps if d in LYRA_GAMEPLAY_MODULES)
             if lyra:
                 findings.append(Finding(
@@ -236,7 +239,8 @@ def check(f):
     for build_cs, module, text in iter_module_rules():
         deps = parse_dependencies(text)
         ui = sorted(d for d in deps if d in UI_MODULES)
-        if ui:
+        # UI modules are the one place UI dependencies belong.
+        if ui and not module.endswith("UI"):
             findings.append(Finding(
                 "SS005",
                 os.path.relpath(build_cs, PROJECT_ROOT).replace("\\", "/"),

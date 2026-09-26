@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+#include "GenericTeamAgentInterface.h"
 #include "SSObjectiveTypes.h"
 #include "SSObjectiveAssaultDirector.generated.h"
 
@@ -67,6 +68,9 @@ public:
 
 	/** Server: respawn every controlled pawn at a start. Returns the count. Public for tests. */
 	int32 RespawnAllPlayers();
+
+	/** Map a generic team id to ESSTeamId using this director's mapping; None if neither. */
+	ESSTeamId ToTeamId(FGenericTeamId GenericId) const;
 
 	/** Number of move orders issued on the last steer pass (server, diagnostics/tests). */
 	int32 GetLastSteeredBotCount() const { return LastSteeredBotCount; }
