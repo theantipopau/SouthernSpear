@@ -143,7 +143,7 @@ def ensure_experience():
     cdo.set_editor_property("action_sets", [
         unreal.load_asset("/ShooterCore/Experiences/LAS_ShooterGame_SharedInput"),
         unreal.load_asset("/ShooterCore/Experiences/LAS_ShooterGame_StandardComponents"),
-        unreal.load_asset("/ShooterCore/Experiences/LAS_ShooterGame_StandardHUD"),
+        # Lyra's StandardHUD is replaced by the Southern Spear HUD (setup_ui.py).
     ])
     saved = eal.save_loaded_asset(bp, False)
     step("experience", saved, path)

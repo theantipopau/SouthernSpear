@@ -1,0 +1,31 @@
+{
+	"FileVersion": 3,
+	"Version": 1,
+	"VersionName": "0.1",
+	"FriendlyName": "Southern Spear UI",
+	"Description": "Southern Spear player HUD (health, ammunition, crosshair), pause menu, front-end menu and loading screen, built in C++ in the project's art style. Reads SouthernSpearCore HUD state only; no Lyra dependency.",
+	"Category": "UI",
+	"CreatedBy": "Southern Spear",
+	"CreatedByURL": "",
+	"DocsURL": "",
+	"MarketplaceURL": "",
+	"SupportURL": "",
+	"EnabledByDefault": true,
+	"CanContainContent": true,
+	"IsBetaVersion": false,
+	"IsExperimentalVersion": false,
+	"Installed": false,
+	"Modules": [
+		{
+			"Name": "SouthernSpearUI",
+			"Type": "Runtime",
+			"LoadingPhase": "Default"
+		}
+	],
+	"Plugins": [
+		{
+			"Name": "SouthernSpearCore",
+			"Enabled": true
+		}
+	]
+}

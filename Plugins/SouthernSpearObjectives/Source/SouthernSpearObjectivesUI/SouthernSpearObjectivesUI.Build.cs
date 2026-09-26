@@ -35,6 +35,7 @@ public class SouthernSpearObjectivesUI : ModuleRules
 				"AIModule",
 				"Slate",
 				"SlateCore",
+				"InputCore",
 			}
 		);
 	}

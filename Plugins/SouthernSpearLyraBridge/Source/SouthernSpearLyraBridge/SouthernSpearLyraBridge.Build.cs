@@ -30,6 +30,7 @@ public class SouthernSpearLyraBridge : ModuleRules
 			new string[]
 			{
 				"LyraGame",
+				"GameplayTags",
 			}
 		);
 	}

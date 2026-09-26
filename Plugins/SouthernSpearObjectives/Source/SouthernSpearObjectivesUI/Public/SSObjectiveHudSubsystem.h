@@ -30,6 +30,13 @@ private:
 	UPROPERTY(Transient)
 	TObjectPtr<USSObjectiveStatusWidget> StatusWidget;
 
+	UPROPERTY(Transient)
+	TObjectPtr<class USSMinimapWidget> Minimap;
+
+	/** Full map, toggled with M. */
+	UPROPERTY(Transient)
+	TObjectPtr<class USSMinimapWidget> FullMap;
+
 	float RetryAccumulator = 0.f;
 	float ElapsedSeconds = 0.f;
 	bool bShotTaken = false;

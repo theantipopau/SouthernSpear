@@ -531,3 +531,21 @@ original). Extends ADR-021 to whole-map reuse and to character bodies.
 **Consequences.** The map and the soldier Blueprints reference git-ignored Fab content, so a clone
 needs the same packs added from Fab (R-19). The soldier looks still need a visual check for real
 insignia or patches (R-20).
+
+## ADR-023 — Southern Spear UI replaces Lyra's HUD, front end and loading screen
+
+**Status:** Accepted (producer direction, 2026-09-27: "still has lyra stuff everywhere ... do a pass for the
+ui/ux"). **Date:** 2026-09-27
+
+**Decision.**
+
+- New plugin `SouthernSpearUI` (Core and UMG only; no Lyra) holds the player HUD, match menu, front end
+  (`ASSFrontEndGameMode` on `L_SS_FrontEnd`) and loading screen.
+- The HUD data is `USSLocalHudState` in Core: plain values, client-only, never read by gameplay. Only the
+  Lyra bridge writes it.
+- Minimap and full map live in `SouthernSpearObjectivesUI`, because they draw objectives.
+- The experience no longer uses Lyra's StandardHUD. Lyra's reticle, kill feed and nameplates are gone
+  until Southern Spear equivalents exist.
+
+**Consequences.** The Esc menu and M map read raw keys, not Enhanced Input actions; rebinding needs a
+later pass. The UI is C++-built, so there are no Blueprint widget assets to maintain.

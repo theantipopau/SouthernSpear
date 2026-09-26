@@ -1,0 +1,147 @@
+// Copyright Southern Spear. All Rights Reserved.
+
+#include "SSPlayerHudWidget.h"
+
+#include "Engine/World.h"
+#include "GameFramework/Pawn.h"
+#include "SSLocalHudState.h"
+#include "SSWidgetKit.h"
+
+using namespace SSWidgetKit;
+
+bool USSPlayerHudWidget::Initialize()
+{
+	if (!Super::Initialize())
+	{
+		return false;
+	}
+	if (!WidgetTree || WidgetTree->RootWidget)
+	{
+		return true;
+	}
+	UWidgetTree* T = WidgetTree;
+	UCanvasPanel* Root = T->ConstructWidget<UCanvasPanel>();
+	T->RootWidget = Root;
+
+	// Hit flash: a clay wash over the whole screen, faded out in NativeTick.
+	DamageFlash = Plate(T, SSPalette::Opfor500(0.f), FMargin(0.f));
+	DamageFlash->SetVisibility(ESlateVisibility::HitTestInvisible);
+	Fill(Root, DamageFlash);
+
+	// Health, bottom left: label, number, two-segment bar.
+	UVerticalBox* Health = T->ConstructWidget<UVerticalBox>();
+	HealthPanel = Health;
+	Pin(Root, Health, FVector2D(0.f, 1.f), FVector2D(32.f, -32.f));
+	AddV(Health, Rule(T, SSPalette::Brass500(), 2.f, 260.f));
+	UBorder* HealthPlate = Plate(T, SSPalette::Ink900(0.82f), FMargin(14.f, 8.f, 14.f, 12.f));
+	AddV(Health, HealthPlate);
+	UVerticalBox* HealthBody = T->ConstructWidget<UVerticalBox>();
+	HealthPlate->SetContent(HealthBody);
+	UHorizontalBox* HealthRow = T->ConstructWidget<UHorizontalBox>();
+	AddV(HealthBody, HealthRow);
+	UTextBlock* HealthLabel = Text(T, 11, true, SSPalette::Sage400(), 200);
+	HealthLabel->SetText(NSLOCTEXT("SSHud", "Health", "HEALTH"));
+	AddH(HealthRow, HealthLabel, false, VAlign_Bottom)->SetPadding(FMargin(0.f, 0.f, 0.f, 4.f));
+	AddH(HealthRow, T->ConstructWidget<USpacer>(), true);
+	HealthText = Text(T, 26, true, SSPalette::Sand100());
+	AddH(HealthRow, HealthText, false, VAlign_Bottom);
+	USizeBox* BarSize = T->ConstructWidget<USizeBox>();
+	BarSize->SetWidthOverride(232.f);
+	BarSize->SetHeightOverride(6.f);
+	AddV(HealthBody, BarSize, 6.f);
+	UHorizontalBox* Bar = T->ConstructWidget<UHorizontalBox>();
+	BarSize->AddChild(Bar);
+	HealthFill = Plate(T, SSPalette::Sage200(), FMargin(0.f));
+	HealthFillSlot = AddH(Bar, HealthFill, true, VAlign_Fill);
+	HealthEmptySlot = AddH(Bar, Plate(T, SSPalette::Field700(), FMargin(0.f)), true, VAlign_Fill);
+
+	// Ammunition, bottom right: weapon name, magazine / reserve.
+	UVerticalBox* Ammo = T->ConstructWidget<UVerticalBox>();
+	AmmoPanel = Ammo;
+	Pin(Root, Ammo, FVector2D(1.f, 1.f), FVector2D(-32.f, -32.f));
+	AddV(Ammo, Rule(T, SSPalette::Brass500(), 2.f, 240.f));
+	UBorder* AmmoPlate = Plate(T, SSPalette::Ink900(0.82f), FMargin(14.f, 8.f, 14.f, 10.f));
+	AddV(Ammo, AmmoPlate);
+	UVerticalBox* AmmoBody = T->ConstructWidget<UVerticalBox>();
+	AmmoPlate->SetContent(AmmoBody);
+	WeaponText = Text(T, 12, true, SSPalette::Brass300(), 200);
+	AddV(AmmoBody, WeaponText, 0.f, HAlign_Right);
+	UHorizontalBox* Counts = T->ConstructWidget<UHorizontalBox>();
+	AddV(AmmoBody, Counts, 2.f, HAlign_Right);
+	MagazineText = Text(T, 34, true, SSPalette::Sand100());
+	AddH(Counts, MagazineText, false, VAlign_Bottom);
+	ReserveText = Text(T, 16, true, SSPalette::Sage400());
+	AddH(Counts, ReserveText, false, VAlign_Bottom)->SetPadding(FMargin(8.f, 0.f, 0.f, 6.f));
+
+	// Crosshair: four ticks and a centre dot on a fixed 80 px canvas.
+	UCanvasPanel* Cross = T->ConstructWidget<UCanvasPanel>();
+	Crosshair = Cross;
+	UCanvasPanelSlot* CrossSlot = Root->AddChildToCanvas(Cross);
+	CrossSlot->SetAnchors(FAnchors(0.5f, 0.5f));
+	CrossSlot->SetAlignment(FVector2D(0.5f, 0.5f));
+	CrossSlot->SetSize(FVector2D(80.f, 80.f));
+	auto AddTick = [&](const FVector2D& Size)
+	{
+		UBorder* B = Plate(T, SSPalette::Sand100(0.9f), FMargin(0.f));
+		UCanvasPanelSlot* S = Cross->AddChildToCanvas(B);
+		S->SetSize(Size);
+		S->SetAlignment(FVector2D(0.5f, 0.5f));
+		S->SetPosition(FVector2D(40.f, 40.f));
+		return B;
+	};
+	CrosshairTicks.Add(AddTick(FVector2D(2.f, 9.f)));  // up
+	CrosshairTicks.Add(AddTick(FVector2D(2.f, 9.f)));  // down
+	CrosshairTicks.Add(AddTick(FVector2D(9.f, 2.f)));  // left
+	CrosshairTicks.Add(AddTick(FVector2D(9.f, 2.f)));  // right
+	AddTick(FVector2D(2.f, 2.f));                      // centre dot
+	return true;
+}
+
+void USSPlayerHudWidget::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
+{
+	Super::NativeTick(MyGeometry, InDeltaTime);
+	const USSLocalHudState* State = GetWorld() ? GetWorld()->GetSubsystem<USSLocalHudState>() : nullptr;
+	if (!State || !HealthText)
+	{
+		return;
+	}
+	HealthPanel->SetVisibility(State->bHasPawn ? ESlateVisibility::HitTestInvisible : ESlateVisibility::Collapsed);
+	Crosshair->SetVisibility(State->bHasPawn && !State->bAiming ? ESlateVisibility::HitTestInvisible : ESlateVisibility::Collapsed);
+	AmmoPanel->SetVisibility(State->bHasPawn && State->Magazine >= 0 ? ESlateVisibility::HitTestInvisible : ESlateVisibility::Collapsed);
+
+	const float Fraction = State->GetHealthFraction();
+	const bool bLow = Fraction <= 0.3f;
+	HealthText->SetText(FText::AsNumber(FMath::CeilToInt(State->Health)));
+	HealthText->SetColorAndOpacity(bLow ? SSPalette::Opfor300() : SSPalette::Sand100());
+	HealthFill->SetBrushColor(bLow ? SSPalette::Opfor300() : SSPalette::Sage200());
+	FSlateChildSize FillSize(ESlateSizeRule::Fill), EmptySize(ESlateSizeRule::Fill);
+	FillSize.Value = FMath::Max(Fraction, 0.001f);
+	EmptySize.Value = FMath::Max(1.f - Fraction, 0.001f);
+	HealthFillSlot->SetSize(FillSize);
+	HealthEmptySlot->SetSize(EmptySize);
+
+	// Clay flash when health drops, scaled by the size of the hit.
+	if (State->bHasPawn && LastHealth > 0.f && State->Health < LastHealth && State->MaxHealth > 0.f)
+	{
+		FlashAlpha = FMath::Min(0.45f, FlashAlpha + 0.15f + (LastHealth - State->Health) / State->MaxHealth);
+	}
+	LastHealth = State->bHasPawn ? State->Health : -1.f;
+	FlashAlpha = FMath::FInterpConstantTo(FlashAlpha, 0.f, InDeltaTime, 0.9f);
+	DamageFlash->SetBrushColor(SSPalette::Opfor500(FlashAlpha));
+
+	MagazineText->SetText(FText::AsNumber(FMath::Max(State->Magazine, 0)));
+	MagazineText->SetColorAndOpacity(State->Magazine == 0 ? SSPalette::Opfor300() : SSPalette::Sand100());
+	ReserveText->SetText(FText::Format(NSLOCTEXT("SSHud", "Reserve", "/ {0}"), FText::AsNumber(FMath::Max(State->Reserve, 0))));
+	WeaponText->SetText(State->WeaponName.ToUpper());
+
+	// Crosshair opens with movement speed.
+	const APawn* Pawn = GetOwningPlayerPawn();
+	const float Speed = Pawn ? Pawn->GetVelocity().Size2D() : 0.f;
+	Spread = FMath::FInterpTo(Spread, 10.f + FMath::Clamp(Speed / 600.f, 0.f, 1.f) * 16.f, InDeltaTime, 10.f);
+	const FVector2D Centre(40.f, 40.f);
+	const FVector2D Offsets[] = { {0.f, -Spread}, {0.f, Spread}, {-Spread, 0.f}, {Spread, 0.f} };
+	for (int32 Index = 0; Index < CrosshairTicks.Num(); ++Index)
+	{
+		Cast<UCanvasPanelSlot>(CrosshairTicks[Index]->Slot)->SetPosition(Centre + Offsets[Index]);
+	}
+}

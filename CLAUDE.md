@@ -55,6 +55,7 @@ Southern Spear is an original, fictional, Australian-inspired tactical multiplay
 | `SouthernSpearObjectivesUI` | Objective HUD: pure `FSSObjectiveHudModel` (viewer-relative text/tone, neutral Team One/Two vantage without a team), C++-built `USSObjectiveStatusWidget`, `USSObjectiveHudSubsystem` (adds it for the local player) | Objectives, Core, UMG — **no Lyra**; gameplay never depends on it (SS005) |
 | `SouthernSpearObjectivesEditor` (editor module) | Python-callable authoring helpers (`SetGameFeatureComponentGrants`, `SetPropertyFromText`) | GameFeatures, Core |
 | `Plugins/GameFeatures/SSExp_ObjectiveAssault` | Content-only Game Feature + experience `B_SS_ObjectiveAssault` | ShooterCore, Objectives |
+| `Plugins/SouthernSpearUI` | ADR-023 player HUD, match menu (Esc), front end (`L_SS_FrontEnd`), loading screen; reads `USSLocalHudState` (Core), which the bridge fills | Core, UMG — **no Lyra** |
 | `Plugins/SouthernSpearLyraBridge` | ADR-019: the **only** SS module allowed to depend on Lyra. Client `USSViewerTeamTintSubsystem` (own team sage, other OPFOR clay, via `ResolveLocality`); future SS health/ammo HUD | Core, LyraGame — **nothing may depend on it** |
 | `Source/`, other `Plugins/` | Vendored Lyra — **do not modify**; any departure needs an ADR + `Docs/LYRA_ADOPTION.md` entry | — |
 

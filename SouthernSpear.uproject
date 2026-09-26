@@ -395,6 +395,10 @@
 			"Enabled": true
 		},
 		{
+			"Name": "SouthernSpearUI",
+			"Enabled": true
+		},
+		{
 			"Name": "SouthernSpearLyraBridge",
 			"Enabled": true
 		},

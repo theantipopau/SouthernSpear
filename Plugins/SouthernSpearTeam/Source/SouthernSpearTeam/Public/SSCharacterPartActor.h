@@ -9,6 +9,7 @@
 
 class USkeletalMesh;
 class USkeletalMeshComponent;
+class USkinnedMeshComponent;
 
 /**
  * Cosmetic soldier body, spawned as a character part on the pawn's mesh.
@@ -42,6 +43,7 @@ public:
 	bool HasResolvedLocality() const { return bResolved; }
 
 private:
+	USkinnedMeshComponent* FindLeader() const;
 	void BuildSet(const TArray<TObjectPtr<USkeletalMesh>>& Meshes, TArray<TObjectPtr<USkeletalMeshComponent>>& Out);
 
 	UPROPERTY(Transient)

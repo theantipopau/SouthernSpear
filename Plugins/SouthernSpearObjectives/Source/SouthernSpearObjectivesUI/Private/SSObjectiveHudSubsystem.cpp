@@ -7,6 +7,8 @@
 #include "GameFramework/PlayerController.h"
 #include "SSObjectiveAssaultDirector.h"
 #include "SSObjectiveStatusWidget.h"
+#include "SSMinimapWidget.h"
+#include "InputCoreTypes.h"
 #include "SSObjectiveTypes.h"
 #include "Misc/CommandLine.h"
 #include "Misc/Parse.h"
@@ -45,6 +47,16 @@ void USSObjectiveHudSubsystem::Tick(float DeltaTime)
 
 	if (StatusWidget)
 	{
+		APlayerController* Owner = StatusWidget->GetOwningPlayer();
+		if (FullMap && Owner && Owner->WasInputKeyJustPressed(EKeys::M))
+		{
+			const bool bOpen = !FullMap->IsVisible();
+			FullMap->SetVisibility(bOpen ? ESlateVisibility::HitTestInvisible : ESlateVisibility::Collapsed);
+			if (bOpen)
+			{
+				FullMap->Refresh();
+			}
+		}
 		return;
 	}
 	// The local player and the (replicated) director can arrive in any order.
@@ -75,5 +87,19 @@ void USSObjectiveHudSubsystem::Tick(float DeltaTime)
 	}
 	StatusWidget->SetDirector(*It);
 	StatusWidget->AddToViewport(10);
+
+	Minimap = CreateWidget<USSMinimapWidget>(Player, USSMinimapWidget::StaticClass());
+	if (Minimap)
+	{
+		Minimap->Setup(*It, /*bFullMap=*/ false);
+		Minimap->AddToViewport(9);
+	}
+	FullMap = CreateWidget<USSMinimapWidget>(Player, USSMinimapWidget::StaticClass());
+	if (FullMap)
+	{
+		FullMap->Setup(*It, /*bFullMap=*/ true);
+		FullMap->SetVisibility(ESlateVisibility::Collapsed);
+		FullMap->AddToViewport(20);
+	}
 	UE_LOG(LogSSObjectives, Log, TEXT("Objective status widget shown for %s."), *Player->GetName());
 }

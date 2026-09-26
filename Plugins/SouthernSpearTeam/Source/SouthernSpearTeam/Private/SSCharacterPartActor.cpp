@@ -16,8 +16,7 @@ ASSCharacterPartActor::ASSCharacterPartActor()
 void ASSCharacterPartActor::BuildSet(const TArray<TObjectPtr<USkeletalMesh>>& Meshes,
 	TArray<TObjectPtr<USkeletalMeshComponent>>& Out)
 {
-	// The part is attached to the pawn's (invisible) body mesh; follow its pose.
-	USkinnedMeshComponent* Leader = Cast<USkinnedMeshComponent>(RootComponent->GetAttachParent());
+	USkinnedMeshComponent* Leader = FindLeader();
 	for (USkeletalMesh* Mesh : Meshes)
 	{
 		if (!Mesh)
@@ -40,11 +39,28 @@ void ASSCharacterPartActor::BuildSet(const TArray<TObjectPtr<USkeletalMesh>>& Me
 	}
 }
 
+USkinnedMeshComponent* ASSCharacterPartActor::FindLeader() const
+{
+	// Lyra spawns parts through a ChildActorComponent attached to the pawn's
+	// (invisible, animated) body mesh: walk up to the first skinned mesh.
+	for (USceneComponent* Parent = RootComponent->GetAttachParent(); Parent; Parent = Parent->GetAttachParent())
+	{
+		if (USkinnedMeshComponent* Skinned = Cast<USkinnedMeshComponent>(Parent))
+		{
+			return Skinned;
+		}
+	}
+	const AActor* ParentActor = GetParentActor() ? GetParentActor() : GetAttachParentActor();
+	return ParentActor ? ParentActor->FindComponentByClass<USkeletalMeshComponent>() : nullptr;
+}
+
 void ASSCharacterPartActor::BeginPlay()
 {
 	Super::BeginPlay();
 	BuildSet(FriendlyParts, FriendlyComponents);
 	BuildSet(OpposingParts, OpposingComponents);
+	UE_LOG(LogTemp, Log, TEXT("SSCharacterPart %s: %d+%d part(s), leader %s."), *GetName(),
+		FriendlyComponents.Num(), OpposingComponents.Num(), *GetNameSafe(FindLeader()));
 }
 
 void ASSCharacterPartActor::ApplyViewerLocality(ESSLocality Locality)

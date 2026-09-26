@@ -1273,6 +1273,90 @@ first-person view model (R-18).
 
 ---
 
+## Session 021 — 2026-09-27 — Southern Spear UI Pass; Animated Soldiers; First-Person Weapon
+
+### COMPLETED
+
+- **Soldier animation fixed.** Lyra attaches parts through a ChildActorComponent, so the part's direct
+  parent was never the animated mesh. `ASSCharacterPartActor` now walks up to the first skinned mesh,
+  and all 9 pawns log "leader CharacterMesh0".
+- **First-person weapon view model.** `USSFirstPersonSubsystem` puts an owner-only copy of the held
+  weapon's mesh on the camera:
+  - hip and aimed (ADS) placements;
+  - look sway and walk bob;
+  - the body copy of the weapon is hidden from the owner.
+  - Arms are not done yet (R-18 stays open).
+- **Southern Spear UI replaces Lyra's** (ADR-023):
+  - `SouthernSpearUI` plugin with a player HUD: health bar, ammunition and weapon name, a crosshair that
+    opens with movement and hides when aiming, and a clay flash when hit.
+  - Esc match menu: Resume, Leave Match, Quit.
+  - Title front end `L_SS_FrontEnd`: key art; Red Gum Station and Dry River with bots; Quit. It is now
+    `GameDefaultMap`.
+  - Loading screen: the new key art (`Docs/images/loadingscreen.png`), an animated label and tips.
+  - Lyra's StandardHUD action set is removed from `B_SS_ObjectiveAssault`; `ProjectName` is now
+    Southern Spear.
+- **Minimap and full map** (`SouthernSpearObjectivesUI`): a north-up minimap centred on the player, and
+  the full map on M. Both use a client-local orthographic scene capture and show objective markers in
+  viewer-relative tones, plus a player arrow.
+- `USSLocalHudState` (Core) is the plain HUD data. The Lyra bridge (`USSHudStateSubsystem`) fills it
+  from Lyra's health component and quick-bar ammunition stats; UI modules only read it.
+- **New weapon files reviewed; none imported:**
+  - AKM and PKM: producer-supplied .blend files; real designs, needing A-series reshaping.
+  - C4A1: the file embeds "Cycles-Ready M4 Carbine … Licensed CC-BY" (author file name kkanamalla),
+    so it is third-party and needs its source URL and credit.
+  - A88/New: no licence text; the .mtl texture names do not match the supplied PNGs; 72k faces, 4K maps.
+    Source URL and terms needed.
+
+### FILES CHANGED
+
+Created:
+- `Plugins/SouthernSpearUI/*` (plugin, palette, widget kit, HUD, menu, loading screen, front-end game
+  mode, HUD subsystem);
+- `SSLocalHudState.h`, `SSHudStateSubsystem.{h,cpp}`, `SSMinimapWidget.{h,cpp}`;
+- `Tools/Unreal/setup_ui.py`, `Content/Maps/L_SS_FrontEnd.umap`,
+  `Plugins/SouthernSpearUI/Content/Textures/T_SS_KeyArt`, `Docs/images/loadingscreen.png`.
+
+Modified:
+- `SSCharacterPartActor.{h,cpp}`, `SSFirstPersonSubsystem.{h,cpp}`, bridge Build.cs;
+- `SSObjectiveHudSubsystem.{h,cpp}`, ObjectivesUI Build.cs;
+- `SouthernSpear.uproject`, `Config/DefaultGame.ini`, `Config/DefaultEngine.ini`;
+- `setup_objective_assault.py`, `B_SS_ObjectiveAssault`, `CLAUDE.md`, `DECISION_LOG.md`.
+
+### TESTING
+
+| Test | Command | Exit | Result | Evidence |
+|---|---|---|---|---|
+| Guard | `python Tools/validate_architecture.py` | 0 | PASS | — |
+| Build | `Build.bat SouthernSpearEditor ...` | 0 | Succeeded (after fixing 2 compile errors) | — |
+| Automation | `Automation RunTests SouthernSpear` | 0 | 30 Success, 0 Fail | — |
+| UI content | `setup_ui.py` | 0 | ok=true (key art, experience HUD removed, front-end map) | `Build/ui_setup.json` |
+| Front end boots | `-game -nullrhi` (no map) | 124 | `LoadMap /Game/Maps/L_SS_FrontEnd`, game class SSFrontEndGameMode, "front end shown" | log |
+| Red Gum live | `L_RedGum_01?NumBots=8 -game -nullrhi` | 124 | 9 soldier parts, leader CharacterMesh0; SS player HUD shown; view model shows SM_A88; objective widget shown | log |
+| Rendered look (HUD, menu, loading, minimap, soldiers, view model) | — | — | **NOT RUN** (headless only; placements may need tuning) | — |
+| Esc / M / menu buttons with real input | — | — | **NOT RUN** | — |
+
+### ASSETS
+
+T_SS_KeyArt (producer key art). New weapon source files are not imported and not registered: they await
+source URLs and licences, and A-series reshaping.
+
+### RISKS
+
+R-18 partly mitigated (weapon view model; no arms). R-20 is still open (no rendered check).
+
+### DEFECTS FOUND
+
+1. Soldier bodies were unanimated: leader pose looked only at the direct attach parent (reported by the
+   producer; confirmed by the new "leader" log line).
+2. Three compile errors: palette alpha overload, and `FSlateChildSize` fill weights (found by the build).
+
+### NEXT ACTION
+
+**Rendered UI check.** One windowed run from the front end into Red Gum, with screenshots of the menu,
+loading screen, HUD, minimap and view model; then tune placements.
+
+---
+
 ## Open Threads
 
 | Item | Blocked on | Owner |
