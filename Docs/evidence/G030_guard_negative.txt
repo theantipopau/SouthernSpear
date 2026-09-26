@@ -1,0 +1,17 @@
+======================================================================
+SOUTHERN SPEAR - ARCHITECTURE GUARD
+======================================================================
+FAIL - 4 violation(s):
+
+  SS001: Plugins/SouthernSpearCore/Source/SouthernSpearCore/SouthernSpearCore.Build.cs
+      Southern Spear plugin 'SouthernSpearCore' depends on sibling module(s): SouthernSpearTeam. SouthernSpearCore is the root of the SS graph; SS plugins may depend only on it, and it on no SS plugin.
+
+  SS002: Plugins/SouthernSpearTeam/Source/SouthernSpearTeam/SouthernSpearTeam.Build.cs
+      SouthernSpearTeam depends on Lyra gameplay module(s): LyraGame. It must stay independent of weapons, damage, health, abilities, roles, objectives and UI.
+
+  SS003: Plugins/SouthernSpearTeam/Source/SouthernSpearTeam/Public/Presentation/SSFactionPresentationTypes.h
+      Presentation public header includes '#include "LyraHealthComponent.h"', which names the forbidden fragment 'Health'. A presentation header must not be able to reach gameplay types.
+
+  SS003: Plugins/SouthernSpearTeam/Source/SouthernSpearTeam/Public/Presentation/SSFactionPresentationTypes.h
+      Presentation public header includes '#include "LyraHealthComponent.h"', which names the forbidden fragment 'Lyra'. A presentation header must not be able to reach gameplay types.
+

@@ -1,0 +1,22 @@
+LogGameFeatures: Display: Game feature 'TopDownArena' transitioned successfully. Ending state: Registered [Registered, Active]
+LogGameFeatures: Display: Game feature 'ShooterCore' transitioned successfully. Ending state: Registered [Registered, Active]
+LogGameFeatures: Display: Game feature 'ShooterExplorer' transitioned successfully. Ending state: Registered [Registered, Active]
+LogGameFeatures: Display: Game feature 'ShooterMaps' transitioned successfully. Ending state: Registered [Registered, Active]
+LogGameFeatures: Display: Game feature 'ShooterTests' transitioned successfully. Ending state: Registered [Registered, Active]
+LogAutomationController: Display: Test Completed. Result={Success} Name={LocalityFailsSafely} Path={SouthernSpear.Core.Identity.LocalityFailsSafely}
+LogAutomationController: Display: Test Completed. Result={Success} Name={LocalityIsDeterministic} Path={SouthernSpear.Core.Identity.LocalityIsDeterministic}
+LogAutomationController: Display: Test Completed. Result={Success} Name={LocalityIsNotReplicated} Path={SouthernSpear.Core.Identity.LocalityIsNotReplicated}
+LogAutomationController: Display: Test Completed. Result={Success} Name={LocalityMatrix} Path={SouthernSpear.Core.Identity.LocalityMatrix}
+LogAutomationController: Display: Test Completed. Result={Success} Name={PlayableTeams} Path={SouthernSpear.Core.Identity.PlayableTeams}
+LogAutomationController: Display: Test Completed. Result={Success} Name={SpectatorContext} Path={SouthernSpear.Core.Identity.SpectatorContext}
+LogAutomationController: Display: Test Completed. Result={Success} Name={NativeTags} Path={SouthernSpear.Core.Validation.NativeTags}
+LogAutomationController: Display: Test Completed. Result={Success} Name={StableId} Path={SouthernSpear.Core.Validation.StableId}
+LogAutomationController: Display: Test Completed. Result={Success} Name={TeamsAndTags} Path={SouthernSpear.Core.Validation.TeamsAndTags}
+LogAutomationController: Display: Test Completed. Result={Success} Name={Deterministic} Path={SouthernSpear.Presentation.Deterministic}
+LogAutomationController: Display: Test Completed. Result={Success} Name={DualPerspective} Path={SouthernSpear.Presentation.DualPerspective}
+LogAutomationController: Display: Test Completed. Result={Success} Name={FailsSafely} Path={SouthernSpear.Presentation.FailsSafely}
+LogAutomationController: Display: Test Completed. Result={Success} Name={MissingDataFailsVisibly} Path={SouthernSpear.Presentation.MissingDataFailsVisibly}
+LogAutomationController: Display: Test Completed. Result={Success} Name={ReflectionIsCosmeticOnly} Path={SouthernSpear.Presentation.ReflectionIsCosmeticOnly}
+LogAutomationController: Display: Test Completed. Result={Success} Name={SameGameplayIdentity} Path={SouthernSpear.Presentation.SameGameplayIdentity}
+Total time in Unreal Build Accelerator local executor: 10.77 seconds
+Result: Succeeded

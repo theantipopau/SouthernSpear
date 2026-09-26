@@ -540,6 +540,80 @@ outstanding verification from work already done, and it is a single 6-minute com
 
 ---
 
+## Session 006 — 2026-09-26 — R-11 Closed, Guard Blind Spot Fixed, SouthernSpearTeam Presentation
+
+### COMPLETED
+
+- Audited the uncommitted tree (Sessions 004/005) and committed it as `8d3bd762`.
+- Reviewed SouthernSpearCore: no SS sibling or Lyra dependency, no SS source in Lyra modules,
+  ESSLocality not replicated (reflection test), no deliberately broken guard state left behind.
+- Closed R-11 (Dry River navigation re-verified).
+- Added `Plugins/SouthernSpearTeam`: cosmetic `FSSFactionPresentation` / `FSSFactionPresentationTable`,
+  `ESSFactionPresentationId {None, ACR3, MAF}`, stateless `FSSFactionPresentationResolver`
+  with explicit failure (no fallback), placeholder table using engine placeholder paths only.
+- Extended the architecture guard: SS plugins may depend on SouthernSpearCore (and only it);
+  SS002 now also applies to SouthernSpearTeam; presentation headers may not include `Lyra`,
+  `Attribute` or `GameplayEffect` headers.
+- README.md now opens with a Southern Spear overview and fictional-work disclaimer.
+
+### FILES CHANGED
+
+Created: `Plugins/SouthernSpearTeam/**`, `Docs/evidence/G030_*`, `Docs/evidence/R11_dryriver_nav_report.json`.
+Modified: `Tools/validate_architecture.py`, `SouthernSpear.uproject` (enable SouthernSpearTeam),
+`README.md`, `Docs/PROJECT_AUDIT.md` (R-11), `Docs/CHANGELOG.md`, `Content/Maps/L_DryRiver_01.umap` (re-saved by nav script).
+
+### TESTING
+
+| Test | Command | Exit | Result | Evidence |
+|---|---|---|---|---|
+| Architecture guard | `python Tools/validate_architecture.py` | 0 | PASS, 0 violations | `G030_guard_positive.txt` |
+| Guard negative (scratch copy: Core→Team, Team→LyraGame, Lyra include in presentation header) | same, on copy | 1 | 4 findings: SS001×1, SS002×1, SS003×2 | `G030_guard_negative.txt` |
+| SouthernSpearEditor build | `Build.bat SouthernSpearEditor Win64 Development -Project=...` | 0 | Succeeded, 0 errors | `G030_tests_keylines.txt` |
+| Core + Presentation tests | `UnrealEditor-Cmd ... -ExecCmds="Automation RunTests SouthernSpear;Quit"` | 0 | 15/15 Success (Core 9, Presentation 6), 0 failed | `G030_tests_keylines.txt` |
+| Game Feature check | same run | 0 | ShooterCore, ShooterExplorer, ShooterMaps, ShooterTests, TopDownArena transitioned successfully; log ending state reads `Registered` (not `Active`) in this commandlet run — activation not proven here | `G030_tests_keylines.txt` |
+| Dry River nav (R-11) | documented command in `MAPS_DRYRIVER.md` | 0 | level loaded, 1 bounds volume, 1 RecastNavMesh, path 2 points. Tile count not reported by script | `R11_dryriver_nav_report.json` |
+| Dressing data | `python Tools/verify_dressing.py` | 0 | 19/19 | console |
+| Git LFS | staged-diff pointer check | — | all staged png/fbx/blend/uasset/umap are LFS pointers | — |
+| Blender Dry River verification | — | — | NOT RUN (no Blender input changed) | — |
+| Dedicated server | — | — | NOT RUN — R-09 open | — |
+
+Presentation tests cover: all four viewer/subject pairs; invalid viewer; invalid subject; spectator
+and replay without vantage; authorised spectator; missing and incomplete data (no substitution);
+determinism (100 runs); reflected fields are non-replicated, never ESSLocality/ESSTeamId, and only
+text/soft-path/presentation-enum kinds; 3 ACR and MAF views carry the same ESSTeamId.
+
+### ASSETS
+
+None created or imported. Placeholder table references engine-shipped assets by path only
+(`SkeletalCube`, `DefaultMaterial`, `DefaultTexture`); no register entry required.
+
+### RISKS
+
+- ~~R-11~~ closed.
+- R-09 (no Server target) and R-10 (dressing collision lost after reload; re-observed: 0/3 sampled,
+  0/7 fences) remain open.
+- New **R-12**: the "560 tiles" figure is not in any retained evidence and the nav script does not
+  measure tiles; nav acceptance currently rests on the path check only.
+
+### DEFECTS FOUND
+
+1. **Guard rule SS003 never scanned presentation headers.** `iter_ss_headers` only yielded files
+   whose immediate directory was `Public`, so anything in `Public/Presentation/` was skipped.
+   Found by the negative test: an injected `LyraHealthComponent.h` include passed. Fixed.
+2. **Guard SS001 forbade every SS→SS dependency**, contradicting the rule that SS plugins may build
+   on SouthernSpearCore. Fixed.
+3. **Game Feature "Active" claim not reproduced**: this run logs ending state `Registered`. Earlier
+   evidence should be re-checked in a PIE/game run.
+4. Minor, not fixed: Core reports `UnrecognisedViewingTeam` when the *subject* team is an unknown
+   non-None value (`SSTeamIdentityLibrary.cpp`).
+
+### NEXT ACTION
+
+**Re-verify Lyra Game Feature activation in a real game/PIE run** — the commandlet log shows
+`Registered`, not `Active`, so G-gate evidence claiming activation is unconfirmed.
+
+---
+
 ## Open Threads
 
 | Item | Blocked on | Owner |

@@ -1,0 +1,31 @@
+{
+	"FileVersion": 3,
+	"Version": 1,
+	"VersionName": "0.1",
+	"FriendlyName": "Southern Spear Team",
+	"Description": "Cosmetic-only faction presentation data and a stateless viewer-relative presentation resolver (3 ACR / MAF). Depends only on SouthernSpearCore; exposes no gameplay types (ADR-004, ADR-017).",
+	"Category": "Gameplay",
+	"CreatedBy": "Southern Spear",
+	"CreatedByURL": "",
+	"DocsURL": "",
+	"MarketplaceURL": "",
+	"SupportURL": "",
+	"EnabledByDefault": true,
+	"CanContainContent": false,
+	"IsBetaVersion": false,
+	"IsExperimentalVersion": false,
+	"Installed": false,
+	"Modules": [
+		{
+			"Name": "SouthernSpearTeam",
+			"Type": "Runtime",
+			"LoadingPhase": "Default"
+		}
+	],
+	"Plugins": [
+		{
+			"Name": "SouthernSpearCore",
+			"Enabled": true
+		}
+	]
+}

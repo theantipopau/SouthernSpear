@@ -188,9 +188,7 @@
 				"WinGDK"
 			],
 			"SupportedTargetPlatforms": [
-				"XB1",
-				"XSX",
-				"WinGDK"
+				"Win64"
 			]
 		},
 		{
@@ -351,16 +349,14 @@
 			"Name": "XInputDevice",
 			"Enabled": true,
 			"SupportedTargetPlatforms": [
-				"Win64",
-				"WinGDK"
+				"Win64"
 			]
 		},
 		{
 			"Name": "GameInputWindows",
 			"Enabled": true,
 			"SupportedTargetPlatforms": [
-				"Win64",
-				"WinGDK"
+				"Win64"
 			]
 		},
 		{
@@ -384,6 +380,14 @@
 		},
 		{
 			"Name": "PlatformDLC",
+			"Enabled": true
+		},
+		{
+			"Name": "SouthernSpearCore",
+			"Enabled": true
+		},
+		{
+			"Name": "SouthernSpearTeam",
 			"Enabled": true
 		}
 	],
