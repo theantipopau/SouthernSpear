@@ -1,0 +1,11 @@
+======================================================================
+SOUTHERN SPEAR - ARCHITECTURE GUARD
+======================================================================
+FAIL - 2 violation(s):
+
+  SS001: Plugins/SouthernSpearObjectives/Source/SouthernSpearObjectives/SouthernSpearObjectives.Build.cs
+      Southern Spear plugin 'SouthernSpearObjectives' depends on sibling module(s): SouthernSpearTeam. SouthernSpearCore is the root of the SS graph; SS plugins may depend only on it, and it on no SS plugin.
+
+  SS002: Plugins/SouthernSpearObjectives/Source/SouthernSpearObjectives/SouthernSpearObjectives.Build.cs
+      SouthernSpearObjectives depends on Lyra gameplay module(s): LyraGame. It must stay independent of weapons, damage, health, abilities, roles, objectives and UI.
+

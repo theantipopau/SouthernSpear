@@ -400,6 +400,25 @@ The nav pass therefore **reports this rather than hiding it**: the two `*_after_
 
 ---
 
+## 9a. Objective Assault wiring (Session 008, ADR-018)
+
+Run after the level and dressing passes, before navigation:
+
+```
+Engine\Binaries\Win64\UnrealEditor-Cmd.exe SouthernSpear.uproject -nullrhi -unattended -nosplash -nosound -stdout ^
+  -ExecutePythonScript=Tools\Unreal\setup_objective_assault.py
+```
+
+It places one `SSObjectiveActor` per Objective row of the layout CSV (OBJ A Water Point = sequence 0,
+OBJ B Farmstead = sequence 1, 10 m capture radius), one `SSObjectiveAssaultDirector`, and sets the map's
+`DefaultGameplayExperience` to `B_SS_ObjectiveAssault`. Verified in a `-game` run: the experience loads
+from WorldSettings and round 1 reaches InProgress with OBJ A active
+(`Docs/evidence/G040_dryriver_objective_assault_game_keylines.txt`).
+
+**Player starts fixed in the same session.** The level script had placed both deployments in metres
+as if they were centimetres (both within 2 m of the centre) and pitched them 180°. They are now at
+y = ±85 m, facing the map centre.
+
 ## 10. What This Map Does Not Do
 
 Stated plainly so it is never over-claimed:

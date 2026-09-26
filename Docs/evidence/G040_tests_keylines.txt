@@ -1,0 +1,28 @@
+Test Completed. Result={Success} Name={LocalityFailsSafely} Path={SouthernSpear.Core.Identity.LocalityFailsSafely}
+Test Completed. Result={Success} Name={LocalityIsDeterministic} Path={SouthernSpear.Core.Identity.LocalityIsDeterministic}
+Test Completed. Result={Success} Name={LocalityIsNotReplicated} Path={SouthernSpear.Core.Identity.LocalityIsNotReplicated}
+Test Completed. Result={Success} Name={LocalityMatrix} Path={SouthernSpear.Core.Identity.LocalityMatrix}
+Test Completed. Result={Success} Name={PlayableTeams} Path={SouthernSpear.Core.Identity.PlayableTeams}
+Test Completed. Result={Success} Name={SpectatorContext} Path={SouthernSpear.Core.Identity.SpectatorContext}
+Test Completed. Result={Success} Name={NativeTags} Path={SouthernSpear.Core.Validation.NativeTags}
+Test Completed. Result={Success} Name={StableId} Path={SouthernSpear.Core.Validation.StableId}
+Test Completed. Result={Success} Name={TeamsAndTags} Path={SouthernSpear.Core.Validation.TeamsAndTags}
+Test Completed. Result={Success} Name={ContestedAndNeutralise} Path={SouthernSpear.Objectives.Capture.ContestedAndNeutralise}
+Test Completed. Result={Success} Name={DecayAndInvalidInput} Path={SouthernSpear.Objectives.Capture.DecayAndInvalidInput}
+Test Completed. Result={Success} Name={Symmetric} Path={SouthernSpear.Objectives.Capture.Symmetric}
+Test Completed. Result={Success} Name={Uncontested} Path={SouthernSpear.Objectives.Capture.Uncontested}
+Test Completed. Result={Success} Name={CompletesSequentially} Path={SouthernSpear.Objectives.Round.CompletesSequentially}
+Test Completed. Result={Success} Name={Deterministic} Path={SouthernSpear.Objectives.Round.Deterministic}
+Test Completed. Result={Success} Name={FailsAndRestarts} Path={SouthernSpear.Objectives.Round.FailsAndRestarts}
+Test Completed. Result={Success} Name={FailsSafely} Path={SouthernSpear.Objectives.Round.FailsSafely}
+Test Completed. Result={Success} Name={FullRound} Path={SouthernSpear.Objectives.World.FullRound}
+Test Completed. Result={Success} Name={NoObjectivesFailsVisibly} Path={SouthernSpear.Objectives.World.NoObjectivesFailsVisibly}
+Test Completed. Result={Success} Name={ReplicationContract} Path={SouthernSpear.Objectives.ReplicationContract}
+Test Completed. Result={Success} Name={Deterministic} Path={SouthernSpear.Presentation.Deterministic}
+Test Completed. Result={Success} Name={DualPerspective} Path={SouthernSpear.Presentation.DualPerspective}
+Test Completed. Result={Success} Name={FailsSafely} Path={SouthernSpear.Presentation.FailsSafely}
+Test Completed. Result={Success} Name={MissingDataFailsVisibly} Path={SouthernSpear.Presentation.MissingDataFailsVisibly}
+Test Completed. Result={Success} Name={ReflectionIsCosmeticOnly} Path={SouthernSpear.Presentation.ReflectionIsCosmeticOnly}
+Test Completed. Result={Success} Name={SameGameplayIdentity} Path={SouthernSpear.Presentation.SameGameplayIdentity}
+Total time in Unreal Build Accelerator local executor: 7.34 seconds
+Result: Succeeded

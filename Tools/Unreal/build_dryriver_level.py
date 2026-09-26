@@ -45,6 +45,7 @@ import json
 import os
 import traceback
 
+import math
 import unreal
 
 # --------------------------------------------------------------------------
@@ -317,21 +318,26 @@ def spawn_gameplay_actors(rows):
         # wrong is silent — the map is symmetric in Y, so the two deployments
         # simply swap ends and everything still looks plausible. The navigation
         # pass now cross-checks traced ground height against the CSV to catch it.
-        x_m = float(row["x"])
-        y_m = -float(row["y"])
-        z_m = float(row["z"])
-        loc = unreal.Vector(x_m, y_m, z_m)
+        # The CSV is in metres and Unreal is in centimetres. An earlier version
+        # passed metres straight through, which put both deployments within
+        # 2 m of the map centre.
+        x_cm = float(row["x"]) * 100.0
+        y_cm = -float(row["y"]) * 100.0
+        z_cm = float(row["z"]) * 100.0
+        loc = unreal.Vector(x_cm, y_cm, z_cm)
+        # Face the map centre, so both teams deploy looking at the fight.
+        facing_yaw = math.degrees(math.atan2(-y_cm, -x_cm)) if (x_cm or y_cm) else 0.0
 
         if row["kind"] == "Deployment":
             # Lyra's game mode expects ALyraPlayerStart; a plain APlayerStart is
             # reported by map check.
             start_class = getattr(unreal, "LyraPlayerStart", unreal.PlayerStart)
-            actor = actors.spawn_actor_from_class(start_class, loc, unreal.Rotator(roll=0, pitch=0, yaw=180))  # positional order is (roll, pitch, yaw)
+            actor = actors.spawn_actor_from_class(start_class, loc, unreal.Rotator(roll=0, pitch=0, yaw=facing_yaw))  # positional order is (roll, pitch, yaw)
             if actor:
                 actor.set_actor_label(row["name"])
                 # Default capsule half-height is 88 cm; stand the pawn on the deck.
                 actor.set_actor_location(
-                    unreal.Vector(x_m, y_m, z_m + 100.0), False, True
+                    unreal.Vector(x_cm, y_cm, z_cm + 100.0), False, True
                 )
         else:
             actor = actors.spawn_actor_from_class(unreal.Actor, loc, unreal.Rotator(0, 0, 0))
@@ -341,9 +347,9 @@ def spawn_gameplay_actors(rows):
             "name": row["name"],
             "kind": row["kind"],
             "ok": bool(actor),
-            "unreal_x": x_m,
-            "unreal_y": y_m,
-            "unreal_z": z_m,
+            "unreal_x_cm": x_cm,
+            "unreal_y_cm": y_cm,
+            "unreal_z_cm": z_cm,
         })
 
     report["gameplay_actors"] = placed

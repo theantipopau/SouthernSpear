@@ -543,6 +543,7 @@ inverts into a positive check for the locality enum.
 
 ---
 | ~~**R-11**~~ | ~~Dry River navigation not re-verified after the G2.0 change~~ | **CLOSED Session 006.** `build_dryriver_nav.py` re-run against the current binary: exit 0, level loaded, 1 nav bounds volume, 1 RecastNavMesh, path DeployAlpha→DeployBravo = 2 points. Evidence `Docs/evidence/R11_dryriver_nav_report.json`. Note: the script does not report a tile count, and no retained evidence file records the earlier "560 tiles"; that figure is unverified by evidence. The script re-saves the map by design (nav data), so the `.umap` hash changed | CLOSED |
+| ~~**R-13**~~ | ~~Dry River player starts mis-placed/mis-oriented~~ | **CLOSED Session 008.** Worse than recorded: `build_dryriver_level.py` also passed metres as centimetres, so both starts sat within 2 m of the map centre. Fixed (cm, facing the centre) and the level regenerated; starts now at y = ±8500 cm | CLOSED |
 
 ## 8. Open Questions For The Producer
 

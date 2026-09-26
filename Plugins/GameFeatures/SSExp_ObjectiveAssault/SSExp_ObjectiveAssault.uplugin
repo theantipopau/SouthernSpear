@@ -1,0 +1,34 @@
+{
+	"FileVersion": 3,
+	"Version": 1,
+	"VersionName": "1.0",
+	"FriendlyName": "SSExp_ObjectiveAssault",
+	"Description": "Southern Spear Objective Assault experience: sequential neutral objectives, won on the final capture, drawn on time, then reset (ADR-018). Content only; gameplay logic lives in SouthernSpearObjectives.",
+	"Category": "Game Features",
+	"CreatedBy": "Southern Spear",
+	"CreatedByURL": "",
+	"DocsURL": "",
+	"MarketplaceURL": "",
+	"SupportURL": "",
+	"CanContainContent": true,
+	"IsBetaVersion": false,
+	"IsExperimentalVersion": false,
+	"Installed": false,
+	"ExplicitlyLoaded": true,
+	"EnabledByDefault": false,
+	"BuiltInInitialFeatureState": "Registered",
+	"Plugins": [
+		{
+			"Name": "ShooterCore",
+			"Enabled": true
+		},
+		{
+			"Name": "SouthernSpearObjectives",
+			"Enabled": true
+		},
+		{
+			"Name": "ModularGameplay",
+			"Enabled": true
+		}
+	]
+}

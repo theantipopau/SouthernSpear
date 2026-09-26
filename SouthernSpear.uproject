@@ -389,6 +389,14 @@
 		{
 			"Name": "SouthernSpearTeam",
 			"Enabled": true
+		},
+		{
+			"Name": "SouthernSpearObjectives",
+			"Enabled": true
+		},
+		{
+			"Name": "SSExp_ObjectiveAssault",
+			"Enabled": true
 		}
 	],
 	"EpicSampleNameHash": "451731683"

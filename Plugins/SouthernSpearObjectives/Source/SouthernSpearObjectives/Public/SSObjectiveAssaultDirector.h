@@ -1,0 +1,73 @@
+// Copyright Southern Spear. All Rights Reserved.
+
+#pragma once
+
+#include "CoreMinimal.h"
+#include "GameFramework/Actor.h"
+#include "SSObjectiveTypes.h"
+#include "SSObjectiveAssaultDirector.generated.h"
+
+class ASSObjectiveActor;
+
+/**
+ * Runs the Objective Assault round on the server and replicates it.
+ *
+ * One per map. It collects every ASSObjectiveActor in the level, orders them by
+ * SequenceIndex, and drives the pure round rules: pre-round, sequential capture,
+ * win on the final objective or draw on time, post-round, reset.
+ *
+ * Team mapping: Lyra assigns generic team ids (1 and 2 in ShooterCore). This
+ * actor maps them to ESSTeamId so gameplay never needs Lyra types.
+ */
+UCLASS()
+class SSOBJ_API ASSObjectiveAssaultDirector : public AActor
+{
+	GENERATED_BODY()
+
+public:
+	ASSObjectiveAssaultDirector();
+
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+	virtual void BeginPlay() override;
+	virtual void Tick(float DeltaSeconds) override;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Round")
+	FSSRoundRules RoundRules;
+
+	/** Generic team id that maps to ESSTeamId::TeamOne. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Teams")
+	int32 TeamOneGenericId = 1;
+
+	/** Generic team id that maps to ESSTeamId::TeamTwo. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Teams")
+	int32 TeamTwoGenericId = 2;
+
+	UFUNCTION(BlueprintPure, Category = "Round")
+	const FSSRoundState& GetRoundState() const { return RoundState; }
+
+	/** Ordered objectives (server and client). */
+	const TArray<TObjectPtr<ASSObjectiveActor>>& GetObjectives() const { return Objectives; }
+
+	/**
+	 * Collect and order the level's objectives. Returns false, and logs why, if
+	 * the sequence is unusable (none, or duplicate SequenceIndex).
+	 */
+	bool GatherObjectives();
+
+	/** Server: advance round and capture by DeltaSeconds. Public for tests. */
+	void ServerStep(float DeltaSeconds);
+
+protected:
+	UPROPERTY(ReplicatedUsing = OnRep_RoundState, BlueprintReadOnly, Category = "Round")
+	FSSRoundState RoundState;
+
+	UFUNCTION()
+	void OnRep_RoundState(const FSSRoundState& Previous);
+
+private:
+	void ApplyEvents(const FSSRoundEvents& Events);
+	void LogTransition(const FSSRoundState& Previous) const;
+
+	UPROPERTY(Transient)
+	TArray<TObjectPtr<ASSObjectiveActor>> Objectives;
+};

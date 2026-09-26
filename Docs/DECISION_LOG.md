@@ -407,3 +407,38 @@ The failure mode is not hypothetical. Code that stores `Friendly` on a PlayerSta
 | ADR-013 | Repository path: relocate off a space-containing path? | Relocated — ADR-014 |
 | ADR-013 | Electric Dreams: use as a base map or harvest art? | Declined entirely — ADR-013 |
 | ADR-003 | Match-relative team identity | Superseded by ADR-017 — stable `ESSTeamId` plus locally derived `ESSLocality` |
+
+---
+
+## ADR-018 — Objective Assault vertical-slice rules and ownership
+
+**Status:** Accepted
+**Date:** 2026-09-26
+
+**Context.** VS-12 and VS-13 need an objective and a round that can be won, fail and restart.
+`MAPS_DRYRIVER.md` §4.1 and §6.1 fix the map side: two objectives, taken sequentially, contested by
+both teams, with an equidistant opening. The GDD's attacker/defender wording assumes asymmetric
+roles that the vertical slice does not have yet. Gameplay must stay free of Lyra types and
+presentation (ADR-004, ADR-017) so it can be tested headless.
+
+**Decision.**
+
+- **Neutral, sequential objectives.** Every objective starts neutral. Only the active one can
+  change. Capturing it locks it for the rest of the round and play moves to the next.
+- **Capture is presence, not strength.** One uncontested player captures at the same rate as five.
+  Both teams present freezes progress. An opposing team must neutralise existing progress to zero
+  before building its own. An empty objective decays to zero.
+- **Outcome.** The team that captures the final objective wins. If the round clock expires first,
+  the round is a **draw** (the "fails" case). After a post-round hold, the round resets and restarts.
+- **Ownership.** The pure rules (`FSSObjectiveRules`) hold all logic. `ASSObjectiveActor` and
+  `ASSObjectiveAssaultDirector` in `SouthernSpearObjectives` run them on the server and replicate
+  the results. Team membership is read through `IGenericTeamAgentInterface`, and the director maps
+  Lyra's generic team ids (1, 2) to `ESSTeamId`. The module depends on SouthernSpearCore only.
+- **Experience.** `SSExp_ObjectiveAssault` is a content-only Game Feature. Its experience reuses
+  ShooterCore's pawn, input, HUD and Lyra's own two-team setup, spawning rules and bots. Director
+  and objectives are placed in the map by `Tools/Unreal/setup_objective_assault.py`.
+
+**Consequences.** Both teams are mechanically identical by construction. A symmetry test enforces
+it: mirrored inputs give mirrored results. Respawn limits, elimination rules and attacker/defender
+asymmetry are deferred and need their own ADR. Parallel objectives on Dry River are not allowed
+until the OBJ B distance asymmetry in `MAPS_DRYRIVER.md` §6.1 is rebalanced.

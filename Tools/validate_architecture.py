@@ -174,7 +174,7 @@ def check(f):
                 "only on it, and it on no SS plugin.".format(module, ", ".join(sibling)),
             ))
 
-        if module in ("SouthernSpearCore", "SouthernSpearTeam"):
+        if module in ("SouthernSpearCore", "SouthernSpearTeam", "SouthernSpearObjectives"):
             lyra = sorted(d for d in deps if d in LYRA_GAMEPLAY_MODULES)
             if lyra:
                 findings.append(Finding(
