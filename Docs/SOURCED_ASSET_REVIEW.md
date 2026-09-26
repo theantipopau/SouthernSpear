@@ -62,3 +62,14 @@ materials, configs, `.wss`/`.wav` sounds and `.rtm` animations. There are **0 mo
   sole-author statement. Arma-format textures and animations would still need rework.
 
 The folder stays git-ignored, and nothing was imported.
+
+## Addendum 2026-09-27 — Sketchfab licence lookup (ADR-021)
+
+| Item | Sketchfab page | Licence | Result |
+|---|---|---|---|
+| Split Point, VIC | SAVollgger, d95f3ad4… | CC-BY | **Cleared** (L-register) |
+| Bingie Bingie, NSW | SAVollgger, b3cdf865… | CC-BY | **Cleared** |
+| Ross River, NT | jack.simmons, baeea992… | CC-BY | **Cleared** (confirm the file match on import) |
+| Cape Liptrap, VIC | SAVollgger, 5b91377e… | CC-BY-NC-ND | **Rejected** — non-commercial, no derivatives |
+| Petty Beach (`Mission_00022…`) | not found by search | ? | Needs the page URL |
+| Gloves, helmet, grenades, soldiers, insurgent, M4/AK | not identifiable by file name | ? | Need the page URLs |

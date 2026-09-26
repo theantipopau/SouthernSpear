@@ -200,6 +200,42 @@ necessary.
 
 ---
 
+### L-0013 — Split Point, Victoria (Australia) — photogrammetry scan
+
+| Field | Value |
+|---|---|
+| **Component** | Split Point, Victoria (Australia) — photogrammetry scan |
+| **Author** | SAVollgger (Sketchfab) |
+| **Source** | https://sketchfab.com/3d-models/d95f3ad4d0044c20a56ebb7bd507d515 |
+| **Local copy** | `Content/Sourced/Environmental/splitpoint-victoria` (git-ignored until adapted) |
+| **Licence** | CC Attribution 4.0 (read from the Sketchfab API, 2026-09-27) |
+| **Class** | **B** — credit "Split Point, Victoria (Australia)" by SAVollgger, CC BY 4.0, in the shipping credits |
+| **Status** | Cleared for use under ADR-021 as environment reference/dressing; layout stays original (ADR-013) |
+
+### L-0014 — Bingie Bingie, NSW (Australia) — photogrammetry scan
+
+| Field | Value |
+|---|---|
+| **Component** | Bingie Bingie, NSW (Australia) — photogrammetry scan |
+| **Author** | SAVollgger (Sketchfab) |
+| **Source** | https://sketchfab.com/3d-models/b3cdf8650ee44dd786f205c6c849ad59 |
+| **Local copy** | `Content/Sourced/Environmental/bingie-bingie` (git-ignored until adapted) |
+| **Licence** | CC Attribution 4.0 (read from the Sketchfab API, 2026-09-27) |
+| **Class** | **B** — credit "Bingie Bingie, NSW (Australia)" by SAVollgger, CC BY 4.0, in the shipping credits |
+| **Status** | Cleared for use under ADR-021 as environment reference/dressing; layout stays original (ADR-013) |
+
+### L-0015 — Ross River, Northern Territory, Australia — scan
+
+| Field | Value |
+|---|---|
+| **Component** | Ross River, Northern Territory, Australia — scan |
+| **Author** | jack.simmons (Sketchfab) |
+| **Source** | https://sketchfab.com/3d-models/baeea992de754e3c8c7dca203f1daa40 |
+| **Local copy** | `Content/Sourced/Environmental/rossriver-nt (file named untitled.zip; match by title/size to be confirmed on import)` (git-ignored until adapted) |
+| **Licence** | CC Attribution 4.0 (read from the Sketchfab API, 2026-09-27) |
+| **Class** | **B** — credit "Ross River, Northern Territory, Australia" by jack.simmons, CC BY 4.0, in the shipping credits |
+| **Status** | Cleared for use under ADR-021 as environment reference/dressing; layout stays original (ADR-013) |
+
 ## 4. Original Work (Class F)
 
 Everything in this list is created specifically for Southern Spear and carries no third-party obligation. **A new class-F asset is not a licence event**, but it is still tracked in `ASSET_REGISTER.md`.
