@@ -116,17 +116,69 @@ def build_brand():
         print("  brand/southern-spear-emblem-{}.*".format(width), size)
 
 
-    # Favicon suite, derived from the same emblem crop.
-    icon = at_width(emblem, 256).crop((16, 0, 240, 224)).resize((256, 256), Image.LANCZOS)
-    for px in (32, 48, 96, 180, 192, 512):
-        icon.resize((px, px), Image.LANCZOS).convert("RGBA").quantize(
+    # Favicon suite, from the producer-supplied multi-size icon. The game
+    # executable installs this exact file (Tools/build_game_icon.py), so the
+    # browser tab, the game and the installed shortcuts all show one mark.
+    supplied = os.path.join(SRC, "SouthernSpear.ico")
+    if os.path.isfile(supplied):
+        src_icon = Image.open(supplied)
+        src_icon.load()
+        sizes = sorted(src_icon.info.get("sizes") or [])
+        if sizes:
+            # Exact frames where the source carries them
+            # (16/20/24/32/40/48/64/96/128/256); everything else resizes
+            # from the largest frame. PIL reads ICO frames by setting .size,
+            # and reports each candidate as a (w, h) tuple.
+            frames = {}
+            for entry in sizes:
+                side = max(entry)
+                src_icon.size = (side, side)
+                frames[side] = src_icon.copy().convert("RGBA")
+            base = frames[max(frames)]
+        else:
+            base = src_icon.convert("RGBA").resize((256, 256), Image.LANCZOS)
+            frames = {}
+
+        def at(px):
+            # A frame at the exact size wins; otherwise scale the largest
+            # frame. The source tops out at 256, so the 512 manifest icon is
+            # a clean 2x resample of flat-colour badge art.
+            if px in frames:
+                return frames[px]
+            return base.resize((px, px), Image.LANCZOS)
+
+        for px in (32, 48, 96, 180, 192, 512):
+            at(px).quantize(colors=128, method=Image.FASTOCTREE).save(
+                os.path.join(OUT, "favicon-{}.png".format(px)), optimize=True)
+        at(180).quantize(colors=128, method=Image.FASTOCTREE).save(
+            os.path.join(OUT, "apple-touch-icon.png"), optimize=True)
+        # Small sizes only: large ico frames are dead weight because every
+        # browser takes the PNG icons instead.
+        ico_steps = [px for px in (16, 24, 32, 48) if px in frames]
+        if not ico_steps:
+            ico_steps = [32]
+        ico_images = [frames[px].resize((px, px), Image.LANCZOS) for px in ico_steps]
+        # PIL's ICO writer skips any requested size larger than the base
+        # image, so the largest frame must be the one saved; the rest ride
+        # along as exact-size append_images.
+        ico_images.sort(key=lambda im: im.size[0])
+        ico_images[-1].save(
+            os.path.join(OUT, "favicon.ico"), format="ICO",
+            sizes=[(px, px) for px in ico_steps],
+            append_images=ico_images[:-1])
+        print("  favicon suite from SouthernSpear.ico ({} frames), ico, apple-touch-icon".format(len(sizes)))
+    else:
+        # Fallback: the emblem crop, used before the supplied icon arrived.
+        icon = at_width(emblem, 256).crop((16, 0, 240, 224)).resize((256, 256), Image.LANCZOS)
+        for px in (32, 48, 96, 180, 192, 512):
+            icon.resize((px, px), Image.LANCZOS).convert("RGBA").quantize(
+                colors=128, method=Image.FASTOCTREE).save(
+                os.path.join(OUT, "favicon-{}.png".format(px)), optimize=True)
+        icon.resize((180, 180), Image.LANCZOS).convert("RGBA").quantize(
             colors=128, method=Image.FASTOCTREE).save(
-            os.path.join(OUT, "favicon-{}.png".format(px)), optimize=True)
-    icon.resize((180, 180), Image.LANCZOS).convert("RGBA").quantize(
-        colors=128, method=Image.FASTOCTREE).save(
-        os.path.join(OUT, "apple-touch-icon.png"), optimize=True)
-    icon.resize((32, 32), Image.LANCZOS).save(os.path.join(OUT, "favicon.ico"), sizes=[(16, 16), (32, 32)])
-    print("  favicon suite, ico, apple-touch-icon")
+            os.path.join(OUT, "apple-touch-icon.png"), optimize=True)
+        icon.resize((32, 32), Image.LANCZOS).save(os.path.join(OUT, "favicon.ico"), sizes=[(16, 16), (32, 32)])
+        print("  favicon suite from the emblem crop, ico, apple-touch-icon")
 
 
 def hero_crops():
