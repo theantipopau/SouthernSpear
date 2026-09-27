@@ -3,6 +3,8 @@
 #include "SSFirstPersonCameraMode.h"
 
 #include "Components/SkeletalMeshComponent.h"
+#include "Components/StaticMeshComponent.h"
+#include "HAL/IConsoleManager.h"
 #include "GameFramework/Character.h"
 #include "SSUserPrefs.h"
 
@@ -18,6 +20,7 @@ USSFirstPersonADSCameraMode::USSFirstPersonADSCameraMode()
 {
 	FieldOfView = 60.f;
 	FovScale = 60.f / 90.f;
+	bSightEye = true;
 	BlendTime = 0.15f;
 }
 
@@ -38,4 +41,28 @@ void USSFirstPersonCameraMode::UpdateView(float DeltaTime)
 			+ FVector::UpVector * EyeOffset.Z;
 	}
 	View.Rotation = View.ControlRotation;
+
+	// Aiming with an optic: the eye sits behind the held weapon's Sight socket
+	// (Tools/Unreal/add_sight_sockets.py) on the line of sight.
+	static IConsoleVariable* BodyView = IConsoleManager::Get().FindConsoleVariable(TEXT("ss.FP.BodyView"));
+	if (bSightEye && Character && BodyView && BodyView->GetInt() != 0)
+	{
+		static const FName Sight(TEXT("Sight"));
+		TArray<AActor*> Attached;
+		Character->GetAttachedActors(Attached, true, true);
+		for (const AActor* Actor : Attached)
+		{
+			TInlineComponentArray<UStaticMeshComponent*> Meshes(Actor);
+			for (const UStaticMeshComponent* Weapon : Meshes)
+			{
+				if (Weapon->IsVisible() && Weapon->DoesSocketExist(Sight))
+				{
+					static IConsoleVariable* Relief = IConsoleManager::Get().FindConsoleVariable(TEXT("ss.FP.EyeRelief"));
+					const float EyeRelief = Relief ? Relief->GetFloat() : 20.f;
+					View.Location = Weapon->GetSocketLocation(Sight) - View.Rotation.Vector() * EyeRelief;
+					return;
+				}
+			}
+		}
+	}
 }

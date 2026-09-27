@@ -32,9 +32,12 @@ protected:
 
 	/** Multiplier on the player's field-of-view preference (aiming narrows it). */
 	float FovScale = 1.f;
+
+	/** Aiming: put the eye behind the held weapon's Sight socket when it has one. */
+	bool bSightEye = false;
 };
 
-/** Aim-down-sights: same eye position, narrower field of view. */
+/** Aim-down-sights: eye behind the weapon's optic, narrower field of view. */
 UCLASS()
 class SSBRIDGE_API USSFirstPersonADSCameraMode : public USSFirstPersonCameraMode
 {

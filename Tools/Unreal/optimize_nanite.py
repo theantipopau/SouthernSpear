@@ -50,6 +50,12 @@ for path in sorted(paths):
         continue
     mats = materials_of(mesh)
     bases = [base_material(m) for m in mats]
+    # Sky domes, horizon rings and unlit backdrops stay classic (revert_sky_nanite.py).
+    box = mesh.get_bounding_box()
+    size = max(box.max.x - box.min.x, box.max.y - box.min.y, box.max.z - box.min.z)
+    if size > 100000 or any(k in path.lower() for k in ("sky", "cloud", "dome", "atmos", "fog", "horizon", "backdrop")) or any(
+            b and b.get_editor_property("shading_model") == unreal.MaterialShadingModel.MSM_UNLIT for b in bases):
+        continue
     if any(b and b.get_editor_property("blend_mode") in (unreal.BlendMode.BLEND_TRANSLUCENT, unreal.BlendMode.BLEND_ADDITIVE, unreal.BlendMode.BLEND_MODULATE) for b in bases):
         report["meshes_skipped_translucent"].append(path)
         continue

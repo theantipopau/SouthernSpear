@@ -38,9 +38,17 @@ namespace
 		TEXT("Held weapon offset on the arms' ik_hand_gun bone, cm."));
 	TAutoConsoleVariable<FString> CVarWeaponRotation(TEXT("ss.FP.WeaponRotation"), TEXT("0 -90 0"),
 		TEXT("Held weapon rotation on ik_hand_gun, degrees (pitch yaw roll); 90 yaw turns our +X meshes to the pack's +Y."));
+	TAutoConsoleVariable<int32> CVarArms(TEXT("ss.FP.Arms"), 0,
+		TEXT("1: Fab arms pack holding the weapon (its AKS74U poses do not fit our weapons). 0: camera-held weapon view model."));
+	TAutoConsoleVariable<FString> CVarHip(TEXT("ss.FP.Hip"), TEXT("38 13 -16"),
+		TEXT("Camera-held weapon: grip position at the hip, cm (forward right up)."));
+	TAutoConsoleVariable<int32> CVarBodyView(TEXT("ss.FP.BodyView"), 0,
+		TEXT("1: true first person (the body's own hands and weapon, Lyra animations; the eye moves to the optic when aiming). 0: the Fab arms pack view model."));
+	TAutoConsoleVariable<float> CVarDebugPitch(TEXT("ss.FP.DebugPitch"), 0.f,
+		TEXT("Debug: non-zero holds the local view at this pitch, degrees (captures)."));
 	TAutoConsoleVariable<int32> CVarForceAim(TEXT("ss.FP.ForceAim"), 0,
 		TEXT("Debug: 1 holds the first-person view in aim (for sight alignment captures)."));
-	TAutoConsoleVariable<float> CVarEyeRelief(TEXT("ss.FP.EyeRelief"), 20.f,
+	TAutoConsoleVariable<float> CVarEyeRelief(TEXT("ss.FP.EyeRelief"), 13.f,
 		TEXT("Minimum distance, cm, from the eye to the weapon's Sight socket when aiming."));
 
 	FVector ParseVector(const TAutoConsoleVariable<FString>& CVar)
@@ -77,6 +85,13 @@ void USSFirstPersonSubsystem::Tick(float DeltaTime)
 	{
 		return;
 	}
+	if (const float DebugPitch = CVarDebugPitch.GetValueOnGameThread())
+	{
+		APlayerController* Controller = const_cast<APlayerController*>(Player);
+		FRotator Rotation = Controller->GetControlRotation();
+		Rotation.Pitch = DebugPitch;
+		Controller->SetControlRotation(Rotation);
+	}
 	if (HandledPawn.Get() == Pawn)
 	{
 		UpdateViewModel(Pawn, DeltaTime);
@@ -103,7 +118,22 @@ void USSFirstPersonSubsystem::Tick(float DeltaTime)
 
 	Arms = nullptr;
 	Current = nullptr;
-	if (USkeletalMesh* ArmsMesh = LoadObject<USkeletalMesh>(nullptr, ArmsMeshPath))
+	ViewModel = nullptr;
+	if (CVarBodyView.GetValueOnGameThread() != 0)
+	{
+		// True first person: Lyra's full rifle set (run, reload, aim) already
+		// animates the body holding the real weapon; show both to the owner
+		// and hide the head the eye sits in (the soldier parts follow it).
+		if (ACharacter* Character = Cast<ACharacter>(Pawn))
+		{
+			Character->GetMesh()->HideBoneByName(TEXT("head"), EPhysBodyOp::PBO_None);
+		}
+		HandledPawn = Pawn;
+		UE_LOG(LogSSFirstPerson, Log, TEXT("First-person camera active for %s (body view)."), *Pawn->GetName());
+		return;
+	}
+	USkeletalMesh* ArmsMesh = CVarArms.GetValueOnGameThread() != 0 ? LoadObject<USkeletalMesh>(nullptr, ArmsMeshPath) : nullptr;
+	if (ArmsMesh)
 	{
 		Arms = NewObject<USkeletalMeshComponent>(Pawn, TEXT("SS_FirstPersonArms"));
 		Arms->SetupAttachment(Camera);
@@ -206,8 +236,46 @@ void USSFirstPersonSubsystem::UpdateArmsAnimation(APawn* Pawn, float DeltaTime)
 
 void USSFirstPersonSubsystem::UpdateViewModel(APawn* Pawn, float DeltaTime)
 {
+	static bool bListed = false;
+	if (!bListed && Pawn->GetGameTimeSinceCreation() > 8.f && FParse::Param(FCommandLine::Get(), TEXT("SSAnimDebug")))
+	{
+		bListed = true;
+		TArray<AActor*> Actors;
+		Pawn->GetAttachedActors(Actors, true, true);
+		Actors.Add(Pawn);
+		for (const AActor* Actor : Actors)
+		{
+			TInlineComponentArray<UPrimitiveComponent*> Prims(Actor);
+			for (const UPrimitiveComponent* Prim : Prims)
+			{
+				UE_LOG(LogSSFirstPerson, Log, TEXT("FP component %s.%s (%s) visible=%d ownerNoSee=%d mesh=%s"), *Actor->GetName(), *Prim->GetName(),
+					*Prim->GetClass()->GetName(), Prim->IsVisible(), Prim->bOwnerNoSee,
+					Cast<USkeletalMeshComponent>(Prim) ? *GetNameSafe(Cast<USkeletalMeshComponent>(Prim)->GetSkeletalMeshAsset()) : TEXT("-"));
+			}
+		}
+	}
+	if (USSLocalHudState* HudState = GetWorld()->GetSubsystem<USSLocalHudState>())
+	{
+		HudState->bAiming = *bAiming;
+	}
 	if (!ViewModel)
 	{
+		// Body view: the soldier parts and the held weapon hide themselves
+		// from their owner for third-person bodies; undo that here (weapons
+		// change, so every tick; a handful of components).
+		TArray<AActor*> Attached;
+		Pawn->GetAttachedActors(Attached, true, true);
+		for (AActor* Actor : Attached)
+		{
+			TInlineComponentArray<UPrimitiveComponent*> Parts(Actor);
+			for (UPrimitiveComponent* Part : Parts)
+			{
+				if (Part->bOwnerNoSee)
+				{
+					Part->SetOwnerNoSee(false);
+				}
+			}
+		}
 		return;
 	}
 	// The held weapon is a cosmetic actor attached to the pawn's body mesh
@@ -221,7 +289,11 @@ void USSFirstPersonSubsystem::UpdateViewModel(APawn* Pawn, float DeltaTime)
 		TInlineComponentArray<USkeletalMeshComponent*> Bodies(Actor);
 		for (USkeletalMeshComponent* Body : Bodies)
 		{
+			// Hidden locally (this subsystem only runs for the local player),
+			// shadow kept: owner-no-see alone let the beret through from inside.
 			Body->SetOwnerNoSee(true);
+			Body->bCastHiddenShadow = true;
+			Body->SetHiddenInGame(true);
 		}
 		TInlineComponentArray<UStaticMeshComponent*> Meshes(Actor);
 		for (UStaticMeshComponent* Mesh : Meshes)
@@ -237,11 +309,6 @@ void USSFirstPersonSubsystem::UpdateViewModel(APawn* Pawn, float DeltaTime)
 	{
 		ViewModel->SetStaticMesh(Held);
 		UE_LOG(LogSSFirstPerson, Log, TEXT("View model shows %s."), *GetNameSafe(Held));
-	}
-
-	if (USSLocalHudState* HudState = GetWorld()->GetSubsystem<USSLocalHudState>())
-	{
-		HudState->bAiming = *bAiming;
 	}
 	AimAlpha = FMath::FInterpConstantTo(AimAlpha, *bAiming ? 1.f : 0.f, DeltaTime, 6.f);
 
@@ -289,12 +356,46 @@ void USSFirstPersonSubsystem::UpdateViewModel(APawn* Pawn, float DeltaTime)
 		return;
 	}
 
-	// Fallback without the pack: camera-attached weapon with hip/aim placements and bob.
-	static const FVector Hip(32.f, 13.f, -15.f);
-	static const FVector Aim(24.f, 0.f, -10.5f);
+	// Camera-held view model: the whole weapon in view, placed from its own
+	// geometry; motion is procedural (bob, recoil, reload dip) and follows the
+	// gameplay state (magazine count, the body's Lyra reload montage).
+	const USSLocalHudState* State = GetWorld()->GetSubsystem<USSLocalHudState>();
+	const int32 Magazine = State ? State->Magazine : -1;
+	const ACharacter* Character = Cast<ACharacter>(Pawn);
+	const UAnimInstance* Body = Character && Character->GetMesh() ? Character->GetMesh()->GetAnimInstance() : nullptr;
+	const UAnimMontage* Montage = Body ? Body->GetCurrentActiveMontage() : nullptr;
+	const bool bReloading = Montage && Montage->GetName().Contains(TEXT("Reload"));
+	if (Magazine >= 0 && LastMagazine >= 0 && Magazine < LastMagazine && !bReloading)
+	{
+		Recoil = 1.f;
+	}
+	LastMagazine = Magazine;
+	Recoil = FMath::FInterpTo(Recoil, 0.f, DeltaTime, 12.f);
+	ReloadAlpha = FMath::FInterpTo(ReloadAlpha, bReloading ? 1.f : 0.f, DeltaTime, 6.f);
+
+	// Aim: optics put their Sight socket on the line of sight; iron-sight
+	// weapons (no socket) put the top of the mesh just under it.
+	static const FName SightSocket(TEXT("Sight"));
+	const float EyeRelief = CVarEyeRelief.GetValueOnGameThread();
+	FVector Aim(28.f, 0.f, -6.f);
+	if (ViewModel->DoesSocketExist(SightSocket))
+	{
+		const FVector Sight = ViewModel->GetSocketTransform(SightSocket, RTS_Component).GetLocation();
+		Aim = FVector(EyeRelief - Sight.X, -Sight.Y, -Sight.Z);
+	}
+	else if (const UStaticMesh* Mesh = ViewModel->GetStaticMesh())
+	{
+		const FBox Box = Mesh->GetBoundingBox();
+		Aim = FVector(28.f, -Box.GetCenter().Y, -(Box.Max.Z - 1.5f));
+	}
+	const FVector Hip = ParseVector(CVarHip);
 	const float Speed = Pawn->GetVelocity().Size2D();
 	const float Time = GetWorld()->GetTimeSeconds();
 	const float Bob = FMath::Clamp(Speed / 400.f, 0.f, 1.f) * SwayScale;
-	const FVector BobOffset(0.f, FMath::Sin(Time * 6.f) * 0.6f * Bob, FMath::Abs(FMath::Sin(Time * 6.f)) * -0.8f * Bob);
-	ViewModel->SetRelativeLocationAndRotation(FMath::Lerp(Hip, Aim, AimAlpha) + SwayOffset + BobOffset, FRotator::ZeroRotator);
+	const FVector BobOffset(0.f, FMath::Sin(Time * 7.f) * 0.8f * Bob, FMath::Abs(FMath::Sin(Time * 7.f)) * -1.0f * Bob);
+	const FVector Location = FMath::Lerp(Hip, Aim, AimAlpha) + SwayOffset + BobOffset
+		+ FVector(-2.5f * Recoil, 0.f, -12.f * ReloadAlpha);
+	const FRotator Rotation(3.f * Recoil * SwayScale - 18.f * ReloadAlpha, FMath::Lerp(-2.f, 0.f, AimAlpha),
+		FMath::Lerp(-3.f, 0.f, AimAlpha) - 30.f * ReloadAlpha);
+	ViewModel->SetRelativeLocationAndRotation(Location, Rotation);
 }

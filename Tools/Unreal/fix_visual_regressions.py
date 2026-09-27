@@ -66,9 +66,10 @@ for name in WEAPONS:
     changed = False
     for i, slot in enumerate(mesh.get_editor_property("static_materials")):
         slot_name = str(slot.get_editor_property("material_slot_name")).lower()
-        # Lenses only: "glass" slots, and the Specter's _ca (its lens; no glass slot).
-        # Reticle and body alpha slots keep their own instance.
-        if "glass" in slot_name or slot_name == "adfrc_spectr_ca":
+        # Lenses and reticle cards: "glass" slots, the Specter's _ca (its lens; no
+        # glass slot) and *_ret_ca / *_dot_ca (opaque cards would block the view).
+        # Body alpha slots keep their own instance.
+        if "glass" in slot_name or slot_name == "adfrc_spectr_ca" or "ret_ca" in slot_name or "dot_ca" in slot_name:
             mesh.set_material(i, glass)
             out["glass_slots"].append(name + ":" + slot_name)
             changed = True

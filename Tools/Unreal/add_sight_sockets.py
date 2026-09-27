@@ -31,7 +31,7 @@ for name in ["A88", "A88G", "A89", "A4", "A416", "A25", "A9"]:
     c, size = optic["centre_m"], optic["size_m"]
     sight = [0.0, 0.0, 0.0]
     sight[fwd] = fsign * c[0] * 100.0
-    sight[up] = usign * (c[2] + 0.2 * size[2]) * 100.0
+    sight[up] = usign * (c[2] + 0.28 * size[2]) * 100.0
     socket = mesh.find_socket("Sight")
     if not socket:
         socket = unreal.StaticMeshSocket(mesh)

@@ -50,6 +50,8 @@ private:
 	TSharedRef<bool> bAiming = MakeShared<bool>(false);
 	float AimAlpha = 0.f;
 	float OneShotRemaining = 0.f;
+	float Recoil = 0.f;
+	float ReloadAlpha = 0.f;
 	int32 LastMagazine = -1;
 	bool bReloadSeen = false;
 	FRotator LastControlRotation = FRotator::ZeroRotator;
