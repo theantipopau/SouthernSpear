@@ -87,9 +87,11 @@ void USSHudStateSubsystem::Tick(float DeltaTime)
 	State->MaxHealth = Health ? Health->GetMaxHealth() : 0.f;
 
 	static const FGameplayTag MagazineTag = FGameplayTag::RequestGameplayTag(TEXT("Lyra.ShooterGame.Weapon.MagazineAmmo"), false);
+	static const FGameplayTag SizeTag = FGameplayTag::RequestGameplayTag(TEXT("Lyra.ShooterGame.Weapon.MagazineSize"), false);
 	static const FGameplayTag SpareTag = FGameplayTag::RequestGameplayTag(TEXT("Lyra.ShooterGame.Weapon.SpareAmmo"), false);
 	UObject* Item = Pawn ? ActiveSlotItem(Player) : nullptr;
 	State->Magazine = StatCount(Item, MagazineTag);
 	State->Reserve = StatCount(Item, SpareTag);
+	State->MagazineSize = StatCount(Item, SizeTag);
 	State->WeaponName = ItemName(Item);
 }

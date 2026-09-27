@@ -29,6 +29,9 @@ protected:
 	/** Offset from the eye bone, in the control-rotation frame (forward, right, up). */
 	UPROPERTY(EditDefaultsOnly, Category = "First Person")
 	FVector EyeOffset = FVector(10.f, 0.f, 6.f);
+
+	/** Multiplier on the player's field-of-view preference (aiming narrows it). */
+	float FovScale = 1.f;
 };
 
 /** Aim-down-sights: same eye position, narrower field of view. */

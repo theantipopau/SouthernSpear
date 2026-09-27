@@ -73,6 +73,15 @@ bool USSPlayerHudWidget::Initialize()
 	ReserveText = Text(T, 16, true, SSPalette::Sage400());
 	AddH(Counts, ReserveText, false, VAlign_Bottom)->SetPadding(FMargin(8.f, 0.f, 0.f, 6.f));
 
+	// Reload prompt under the crosshair.
+	ReloadHint = Text(T, 13, true, SSPalette::Brass300(), 240);
+	UCanvasPanelSlot* HintSlot = Root->AddChildToCanvas(ReloadHint);
+	HintSlot->SetAnchors(FAnchors(0.5f, 0.5f));
+	HintSlot->SetAlignment(FVector2D(0.5f, 0.f));
+	HintSlot->SetPosition(FVector2D(0.f, 64.f));
+	HintSlot->SetAutoSize(true);
+	ReloadHint->SetVisibility(ESlateVisibility::Collapsed);
+
 	// Crosshair: four ticks and a centre dot on a fixed 80 px canvas.
 	UCanvasPanel* Cross = T->ConstructWidget<UCanvasPanel>();
 	Crosshair = Cross;
@@ -130,7 +139,17 @@ void USSPlayerHudWidget::NativeTick(const FGeometry& MyGeometry, float InDeltaTi
 	DamageFlash->SetBrushColor(SSPalette::Opfor500(FlashAlpha));
 
 	MagazineText->SetText(FText::AsNumber(FMath::Max(State->Magazine, 0)));
-	MagazineText->SetColorAndOpacity(State->Magazine == 0 ? SSPalette::Opfor300() : SSPalette::Sand100());
+	const bool bLowAmmo = State->MagazineSize > 0 && State->Magazine * 4 <= State->MagazineSize;
+	MagazineText->SetColorAndOpacity(bLowAmmo ? SSPalette::Opfor300() : SSPalette::Sand100());
+	Elapsed += InDeltaTime;
+	const bool bEmpty = State->Magazine == 0 && State->Reserve == 0;
+	const bool bHint = State->bHasPawn && State->Magazine >= 0 && (bLowAmmo || bEmpty);
+	ReloadHint->SetVisibility(bHint ? ESlateVisibility::HitTestInvisible : ESlateVisibility::Collapsed);
+	if (bHint)
+	{
+		ReloadHint->SetText(bEmpty ? NSLOCTEXT("SSHud", "NoAmmo", "NO AMMUNITION") : NSLOCTEXT("SSHud", "Reload", "R  ·  RELOAD"));
+		ReloadHint->SetRenderOpacity(0.55f + 0.45f * FMath::Abs(FMath::Sin(Elapsed * 3.f)));
+	}
 	ReserveText->SetText(FText::Format(NSLOCTEXT("SSHud", "Reserve", "/ {0}"), FText::AsNumber(FMath::Max(State->Reserve, 0))));
 	WeaponText->SetText(State->WeaponName.ToUpper());
 

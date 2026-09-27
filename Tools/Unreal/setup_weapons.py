@@ -30,6 +30,19 @@ LYRA_WID = "/ShooterCore/Weapons/Rifle/WID_Rifle"
 LYRA_ID = "/ShooterCore/Weapons/Rifle/ID_Rifle"
 LYRA_VISUAL = "/ShooterCore/Weapons/Rifle/B_Rifle.B_Rifle_C"
 
+# Weapons built from a supplied textured model instead of a Blender script:
+# FBX (from Tools/Blender/<name>_sourced.py) and one colour atlas per slot.
+SOURCED = {
+    "A88": {
+        "fbx": os.path.join("Art", "Weapons", "A88", "New", "SM_A88_Sourced.fbx"),
+        "textures": {
+            "TexBody": os.path.join("Art", "Weapons", "A88", "New", "a22af57e-5818-4ad9-8a01-b0ab3d79048e.png"),
+            "TexFurniture": os.path.join("Art", "Weapons", "A88", "New", "8e6ddb10-a511-410f-9f7b-07b4b2b2eb54.png"),
+            "TexOptic": os.path.join("Art", "Weapons", "A88", "New", "8e6ddb10-a511-410f-9f7b-07b4b2b2eb54.png"),
+        },
+    },
+}
+
 # Palette-derived finishes (Site/styles.css family): olive-drab polymer, dark metal, tinted glass.
 FINISHES = {
     "Polymer": {"BaseColor": (0.060, 0.063, 0.042), "Roughness": 0.72, "Metallic": 0.0},
@@ -95,6 +108,61 @@ def master_material():
     mel.recompile_material(mat)
     eal.save_loaded_asset(mat)
     return mat
+
+
+def textured_master():
+    path = MAT_DIR + "/M_SS_TexturedPBR"
+    if eal.does_asset_exist(path):
+        return unreal.load_asset(path)
+    mat = tools.create_asset("M_SS_TexturedPBR", MAT_DIR, unreal.Material, unreal.MaterialFactoryNew())
+    tex = mel.create_material_expression(mat, unreal.MaterialExpressionTextureSampleParameter2D, -500, 0)
+    tex.set_editor_property("parameter_name", "BaseColorMap")
+    rough = mel.create_material_expression(mat, unreal.MaterialExpressionScalarParameter, -400, 250)
+    rough.set_editor_property("parameter_name", "Roughness")
+    rough.set_editor_property("default_value", 0.55)
+    metal = mel.create_material_expression(mat, unreal.MaterialExpressionScalarParameter, -400, 350)
+    metal.set_editor_property("parameter_name", "Metallic")
+    metal.set_editor_property("default_value", 0.35)
+    mel.connect_material_property(tex, "RGB", unreal.MaterialProperty.MP_BASE_COLOR)
+    mel.connect_material_property(rough, "", unreal.MaterialProperty.MP_ROUGHNESS)
+    mel.connect_material_property(metal, "", unreal.MaterialProperty.MP_METALLIC)
+    mel.recompile_material(mat)
+    eal.save_loaded_asset(mat)
+    return mat
+
+
+def import_texture(path, name):
+    task = unreal.AssetImportTask()
+    task.filename = os.path.join(PROJECT_DIR, path)
+    task.destination_path = DEST
+    task.destination_name = name
+    task.replace_existing = True
+    task.automated = True
+    task.save = True
+    tools.import_asset_tasks([task])
+    return unreal.load_asset(DEST + "/" + name)
+
+
+def textured_finishes(mesh):
+    parent = textured_master()
+    slots = mesh.get_editor_property("static_materials")
+    assigned = []
+    for i, slot in enumerate(slots):
+        name = str(slot.material_slot_name)
+        key = next((k for k in SOURCED[W]["textures"] if name.startswith(k)), None)
+        if not key:
+            continue
+        tex = import_texture(SOURCED[W]["textures"][key], "T_{}_{}".format(W, key.replace("Tex", "")))
+        mi_path = DEST + "/MI_" + W + "_" + key
+        mi = unreal.load_asset(mi_path) if eal.does_asset_exist(mi_path) else tools.create_asset(
+            "MI_" + W + "_" + key, DEST, unreal.MaterialInstanceConstant, unreal.MaterialInstanceConstantFactoryNew())
+        mi.set_editor_property("parent", parent)
+        mel.set_material_instance_texture_parameter_value(mi, "BaseColorMap", tex)
+        eal.save_loaded_asset(mi)
+        mesh.set_material(i, mi)
+        assigned.append(name)
+    eal.save_loaded_asset(mesh)
+    return step("textured_finishes", len(assigned) == len(slots), assigned)
 
 
 def finishes(mesh):
@@ -178,7 +246,7 @@ def build_one():
     mesh = import_mesh()
     if not mesh:
         return False
-    finishes(mesh)
+    textured_finishes(mesh) if W in SOURCED else finishes(mesh)
     bp = visual_blueprint(mesh)
     wid = equipment_definition(bp) if bp else None
     return item_definition(wid) if wid else False
@@ -189,7 +257,7 @@ def main():
     results = []
     for name in WEAPONS:
         W = name
-        FBX = os.path.join(PROJECT_DIR, "Art", "Weapons", name, "SM_" + name + ".fbx")
+        FBX = os.path.join(PROJECT_DIR, SOURCED[name]["fbx"]) if name in SOURCED else             os.path.join(PROJECT_DIR, "Art", "Weapons", name, "SM_" + name + ".fbx")
         DEST = "/SSExp_ObjectiveAssault/Weapons/" + name
         results.append(bool(build_one()))
     return all(results)

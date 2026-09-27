@@ -31,7 +31,8 @@ void USSPlayerHudSubsystem::Tick(float DeltaTime)
 {
 	UWorld* World = GetWorld();
 	APlayerController* Player = World ? World->GetFirstPlayerController() : nullptr;
-	if (!Player || !Player->IsLocalController())
+	// Headless test worlds (e.g. network smoke tests) have no viewport to draw into.
+	if (!Player || !Player->IsLocalController() || !World->GetGameViewport())
 	{
 		return;
 	}
@@ -47,6 +48,10 @@ void USSPlayerHudSubsystem::Tick(float DeltaTime)
 		Hud = CreateWidget<USSPlayerHudWidget>(Player, USSPlayerHudWidget::StaticClass());
 		if (Hud)
 		{
+			// The front end leaves input in UI-only mode across the level load;
+			// a match always starts with game input and no cursor.
+			Player->SetInputMode(FInputModeGameOnly());
+			Player->SetShowMouseCursor(false);
 			Hud->AddToViewport(5);
 			UE_LOG(LogTemp, Log, TEXT("Southern Spear player HUD shown for %s."), *Player->GetName());
 		}
@@ -62,18 +67,18 @@ void USSPlayerHudSubsystem::Tick(float DeltaTime)
 			PauseMenu->AddToViewport(60);
 			PauseMenu->SetVisibility(ESlateVisibility::Collapsed);
 		}
-		const bool bOpen = !PauseMenu->IsVisible();
-		PauseMenu->SetVisibility(bOpen ? ESlateVisibility::Visible : ESlateVisibility::Collapsed);
-		if (bOpen)
+		if (PauseMenu->IsVisible())
 		{
-			FInputModeGameAndUI Input;
-			Input.SetWidgetToFocus(PauseMenu->TakeWidget());
-			Player->SetInputMode(Input);
+			PauseMenu->Close();
 		}
 		else
 		{
-			Player->SetInputMode(FInputModeGameOnly());
+			PauseMenu->SetVisibility(ESlateVisibility::Visible);
+			PauseMenu->Replay();
+			FInputModeGameAndUI Input;
+			Input.SetWidgetToFocus(PauseMenu->TakeWidget());
+			Player->SetInputMode(Input);
+			Player->SetShowMouseCursor(true);
 		}
-		Player->SetShowMouseCursor(bOpen);
 	}
 }

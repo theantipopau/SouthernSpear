@@ -4,6 +4,7 @@
 
 #include "Components/SkeletalMeshComponent.h"
 #include "GameFramework/Character.h"
+#include "SSUserPrefs.h"
 
 USSFirstPersonCameraMode::USSFirstPersonCameraMode()
 {
@@ -16,11 +17,13 @@ USSFirstPersonCameraMode::USSFirstPersonCameraMode()
 USSFirstPersonADSCameraMode::USSFirstPersonADSCameraMode()
 {
 	FieldOfView = 60.f;
+	FovScale = 60.f / 90.f;
 	BlendTime = 0.15f;
 }
 
 void USSFirstPersonCameraMode::UpdateView(float DeltaTime)
 {
+	FieldOfView = FSSUserPrefs::GetFieldOfView() * FovScale; // settings menu preference
 	Super::UpdateView(DeltaTime); // pivot location/rotation, pitch clamp, FOV
 
 	const ACharacter* Character = Cast<ACharacter>(GetTargetActor());

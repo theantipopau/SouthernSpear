@@ -33,6 +33,12 @@ private:
 	UPROPERTY(Transient)
 	TObjectPtr<class USSMinimapWidget> Minimap;
 
+	UPROPERTY(Transient)
+	TObjectPtr<class USSCompassWidget> Compass;
+
+	UPROPERTY(Transient)
+	TObjectPtr<class USSRoundBannerWidget> Banner;
+
 	/** Full map, toggled with M. */
 	UPROPERTY(Transient)
 	TObjectPtr<class USSMinimapWidget> FullMap;

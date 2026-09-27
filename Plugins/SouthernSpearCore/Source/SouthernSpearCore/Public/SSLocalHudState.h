@@ -35,6 +35,10 @@ public:
 	UPROPERTY(Transient, BlueprintReadOnly, Category = "HUD")
 	int32 Reserve = -1;
 
+	/** Full magazine size; -1 when unknown. */
+	UPROPERTY(Transient, BlueprintReadOnly, Category = "HUD")
+	int32 MagazineSize = -1;
+
 	UPROPERTY(Transient, BlueprintReadOnly, Category = "HUD")
 	FText WeaponName;
 

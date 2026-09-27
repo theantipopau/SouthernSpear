@@ -5,6 +5,7 @@ The site source lives in Site/. The public repository
 
     index.html, styles.css, site.js       from Site/
     assets/logo.png, assets/header.png    from Docs/images/ (canonical, unmodified)
+    assets/keyart.jpg                     from Docs/images/keyart.jpg (JPEG of loadingscreen.png)
     data/CHANGELOG.md                     from Docs/CHANGELOG.md
     data/DEVELOPMENT_ROADMAP.md           from Docs/DEVELOPMENT_ROADMAP.md
     README.md                             from Site/README.site.md
@@ -36,6 +37,7 @@ FILES = {
     "README.md": "Site/README.site.md",
     "assets/logo.png": "Docs/images/logo.png",
     "assets/header.png": "Docs/images/header.png",
+    "assets/keyart.jpg": "Docs/images/keyart.jpg",
     "data/CHANGELOG.md": "Docs/CHANGELOG.md",
     "data/DEVELOPMENT_ROADMAP.md": "Docs/DEVELOPMENT_ROADMAP.md",
 }

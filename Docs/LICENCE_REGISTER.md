@@ -350,3 +350,14 @@ Before any public release:
 | **Licence** | Fab Standard License |
 | **Class** | **A** — no attribution required; source files must not be redistributed publicly (R-14) |
 | **Status** | Raw packs git-ignored; project assets reference them by path (R-19) |
+
+### L-0017 — A88 textured model (producer-supplied download)
+
+| Field | Value |
+|---|---|
+| **Component** | Bullpup rifle model with scope, foregrip, laser and suppressor; OBJ/3DS plus three 4K PNG atlases |
+| **Source** | Downloaded by the producer; **source URL not yet recorded** |
+| **Local copy** | `Art/Weapons/A88/New/` (not committed) |
+| **Licence** | Producer states "royalty free"; terms not yet recorded |
+| **Use** | Current A88 cosmetic mesh via `Tools/Blender/a88_sourced.py` and `setup_weapons.py` |
+| **Status** | **Provisional** (R-21): record the URL and terms; reshape into an original A-series design (ADR-021) |

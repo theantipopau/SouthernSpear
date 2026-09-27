@@ -8,6 +8,8 @@
 #include "SSObjectiveAssaultDirector.h"
 #include "SSObjectiveStatusWidget.h"
 #include "SSMinimapWidget.h"
+#include "SSCompassWidget.h"
+#include "SSRoundBannerWidget.h"
 #include "InputCoreTypes.h"
 #include "SSObjectiveTypes.h"
 #include "Misc/CommandLine.h"
@@ -69,7 +71,8 @@ void USSObjectiveHudSubsystem::Tick(float DeltaTime)
 
 	UWorld* World = GetWorld();
 	APlayerController* Player = World ? World->GetFirstPlayerController() : nullptr;
-	if (!Player || !Player->IsLocalController())
+	// Headless test worlds (e.g. network smoke tests) have no viewport to draw into.
+	if (!Player || !Player->IsLocalController() || !World->GetGameViewport())
 	{
 		return;
 	}
@@ -93,6 +96,18 @@ void USSObjectiveHudSubsystem::Tick(float DeltaTime)
 	{
 		Minimap->Setup(*It, /*bFullMap=*/ false);
 		Minimap->AddToViewport(9);
+	}
+	Compass = CreateWidget<USSCompassWidget>(Player, USSCompassWidget::StaticClass());
+	if (Compass)
+	{
+		Compass->Setup(*It);
+		Compass->AddToViewport(9);
+	}
+	Banner = CreateWidget<USSRoundBannerWidget>(Player, USSRoundBannerWidget::StaticClass());
+	if (Banner)
+	{
+		Banner->Setup(*It);
+		Banner->AddToViewport(12);
 	}
 	FullMap = CreateWidget<USSMinimapWidget>(Player, USSMinimapWidget::StaticClass());
 	if (FullMap)

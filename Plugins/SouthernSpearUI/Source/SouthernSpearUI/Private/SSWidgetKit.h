@@ -88,6 +88,22 @@ namespace SSWidgetKit
 		return Slot;
 	}
 
+	/** 0..1 ease-out progress of an animation starting at Delay seconds and lasting Duration. */
+	inline float Ease(float Elapsed, float Delay, float Duration)
+	{
+		return FMath::InterpEaseOut(0.f, 1.f, FMath::Clamp((Elapsed - Delay) / Duration, 0.f, 1.f), 3.f);
+	}
+
+	/** Fade and slide a widget in from the left (or up when Vertical), driven by Ease. */
+	inline void Reveal(UWidget* Widget, float Alpha, float Distance = 24.f, bool bVertical = false)
+	{
+		if (Widget)
+		{
+			Widget->SetRenderOpacity(Alpha);
+			Widget->SetRenderTranslation(bVertical ? FVector2D(0.f, (1.f - Alpha) * Distance) : FVector2D((1.f - Alpha) * -Distance, 0.f));
+		}
+	}
+
 	/** Flat menu button: field plate, brass on hover, sand label. */
 	inline UButton* MenuButton(UWidgetTree* Tree, const FText& Label, float Width = 420.f)
 	{
