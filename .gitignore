@@ -229,3 +229,6 @@ Art/ADFRC_BLEND/
 Art/ADFRC_Player/*
 !Art/ADFRC_Player/README.md
 !Art/ADFRC_Player/LICENSE.md
+
+# Lyra mannequin exported as a Blender reference (Epic content, R-14)
+Art/Characters/ADF/SKM_Manny_ref.fbx

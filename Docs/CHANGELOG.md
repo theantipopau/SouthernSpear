@@ -2424,6 +2424,56 @@ Game Animation Sample.
 
 ---
 
+## Session 031 — 2026-09-27 — ADF Soldiers from ADFRC (ADR-025), Locomotion Decisions (ADR-024), Audit Correction
+
+### COMPLETED
+
+- **Producer decisions recorded:** ADR-024 (locomotion rebuild per `LOCOMOTION_AUDIT.md`) and **ADR-025**
+  (real ADF look from the ADFRC set, overriding ADR-016's pattern rule for the AMCU textures; patches and
+  flags stripped; release needs Defence permission or the CMECU swap: R-27). CLAUDE.md content rule amended.
+- **Audit F2 withdrawn after measurement**: with Lyra's rifle drawn over ours (`ss.Debug.ShowLyraWeapon`) the
+  meshes overlap exactly; socket data agrees. The "rifle pointing up" is Lyra's jog pose (F5).
+- **3 ACR soldiers rebuilt from ADFRC gear** (producer: "very low quality, don't replicate Australian soldiers"):
+  - `Tools/Blender/adfrc_gear_rig.py`: fits Arma gear to the UE5 mannequin. It places the gear with the Memory LOD
+    joints, re-poses the limbs onto the mannequin's joints with a segment-distance rig, transfers skin weights
+    from the mannequin body, and encodes texture and rvmat names in the material slots. Rigid mode is for helmets.
+    Arma helper faces, BIS skin, flags and patches are dropped.
+  - Found: the other converter's `.blend` files carry no bone weights, and the gear files use Arma's true character
+    space, which is offset from the uniform file (`SS_GEAR_SPACE`, measured).
+  - Kit: Crye G3 combat uniform in **AMCU** with gloves and boots, **Ops-Core helmet** (AMCU cover, Peltor
+    headset), **TBAS T5 plate carrier** (AMCU carrier and pouches, belt, holster). Multicam pouches use AMCU or
+    coyote variants, or flat coyote.
+  - `Tools/Unreal/setup_adf_soldier.py`: imports onto Lyra's `SK_Mannequin`; `M_SS_GearPBR`
+    (colour, normal, SMDI; skeletal); matte non-metallic fabric (the SMDI gloss rendered chrome-white).
+    `setup_soldiers.py`: 3 ACR = head + uniform + carrier + helmet on the animated skeleton (audit F3 for the
+    friendly side).
+  - Bugs found on the way: a rigid helmet group named "head.001" (an Arma selection shared the name), and
+    `save_loaded_asset` skipping Python-set materials (not dirty).
+- The parallel session's MAF materials (`Characters/Materials`, `Characters/Textures` and their scripts) are
+  committed with the soldier Blueprint that references them.
+
+### TESTING
+
+| Test | Command | Exit | Result | Evidence |
+|---|---|---|---|---|
+| Gear fit | Blender renders (mannequin overlay, front and side) | 0 | Uniform, helmet and carrier on the mannequin | renders (scratch) |
+| Textures | Blender textured render | 0 | AMCU sleeves and trousers, plain torso (as authored); UVs correct | render |
+| Import | `setup_adf_soldier.py` | 0 | ok=true; every slot has colour, normal and SMDI; materials persisted (verified) | `Build/adf_soldier_setup.json` |
+| In game | Dry River, `ss.Debug.FollowBot` | 124 | ADF soldier animated: helmet on head, AMCU uniform, carrier, matte fabric | captures |
+| Weapon alignment | `ss.Debug.ShowLyraWeapon` | 124 | Lyra's and our meshes coincide | captures |
+
+### RISKS
+
+- **R-27 (new):** AMCU and ADF kit are Commonwealth designs; a commercial release needs Defence permission or
+  the CMECU swap (ADR-025).
+- The uniform's upper sleeves are slightly puffy after the re-pose; the MAF side still uses the Fab parts.
+
+### NEXT ACTION
+
+**S1: `ASSCharacter` + `USSCharacterMovementComponent`** (tactical speeds, momentum, replicated stances; ADR-024).
+
+---
+
 ## Open Threads
 
 | Item | Blocked on | Owner |

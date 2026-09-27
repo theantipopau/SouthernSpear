@@ -47,6 +47,8 @@ namespace
 		TEXT("Camera-held weapon: grip position at the hip, cm (forward right up)."));
 	TAutoConsoleVariable<int32> CVarBodyView(TEXT("ss.FP.BodyView"), 0,
 		TEXT("1: true first person (the body's own hands and weapon, Lyra animations; the eye moves to the optic when aiming). 0: the Fab arms pack view model."));
+	TAutoConsoleVariable<int32> CVarShowLyraWeapon(TEXT("ss.Debug.ShowLyraWeapon"), 0,
+		TEXT("Debug: 1 also draws Lyra's original weapon meshes (hidden under ours) to check alignment."));
 	TAutoConsoleVariable<float> CVarFollowBot(TEXT("ss.Debug.FollowBot"), 0.f,
 		TEXT("Debug: non-zero views the nearest bot from this many cm (behind and to the side), for animation checks."));
 	TAutoConsoleVariable<float> CVarDebugPitch(TEXT("ss.FP.DebugPitch"), 0.f,
@@ -102,6 +104,21 @@ void USSFirstPersonSubsystem::Tick(float DeltaTime)
 			{
 				Best = FVector::DistSquared(It->GetActorLocation(), Pawn->GetActorLocation());
 				Bot = *It;
+			}
+		}
+		if (CVarShowLyraWeapon.GetValueOnGameThread() != 0)
+		{
+			for (TActorIterator<AActor> It(GetWorld()); It; ++It)
+			{
+				if (It->GetClass()->GetName().StartsWith(TEXT("B_SS_")) && It->GetClass()->GetName().Contains(TEXT("_Weapon")))
+				{
+					TInlineComponentArray<USkeletalMeshComponent*> Skels(*It);
+					for (USkeletalMeshComponent* Skel : Skels)
+					{
+						Skel->SetVisibility(true);
+						Skel->SetHiddenInGame(false);
+					}
+				}
 			}
 		}
 		if (Bot)
@@ -285,6 +302,21 @@ void USSFirstPersonSubsystem::UpdateViewModel(APawn* Pawn, float DeltaTime)
 			TInlineComponentArray<UPrimitiveComponent*> Prims(Actor);
 			for (const UPrimitiveComponent* Prim : Prims)
 			{
+				if (const USkeletalMeshComponent* Skel = Cast<USkeletalMeshComponent>(Prim))
+				{
+					for (const FName& Socket : Skel->GetAllSocketNames())
+					{
+						const FTransform T = Skel->GetSocketTransform(Socket, RTS_Component);
+						UE_LOG(LogSSFirstPerson, Log, TEXT("  socket %s.%s loc=%s rot=%s"), *Prim->GetName(), *Socket.ToString(),
+							*T.GetLocation().ToString(), *T.Rotator().ToString());
+					}
+				}
+				if (const UStaticMeshComponent* Static = Cast<UStaticMeshComponent>(Prim); Static && Static->DoesSocketExist(TEXT("Muzzle")))
+				{
+					UE_LOG(LogSSFirstPerson, Log, TEXT("  static %s muzzle(component)=%s relrot=%s parent=%s"), *Prim->GetName(),
+						*Static->GetSocketTransform(TEXT("Muzzle"), RTS_Component).GetLocation().ToString(),
+						*Static->GetRelativeRotation().ToString(), *GetNameSafe(Static->GetAttachParent()));
+				}
 				UE_LOG(LogSSFirstPerson, Log, TEXT("FP component %s.%s (%s) visible=%d ownerNoSee=%d mesh=%s"), *Actor->GetName(), *Prim->GetName(),
 					*Prim->GetClass()->GetName(), Prim->IsVisible(), Prim->bOwnerNoSee,
 					Cast<USkeletalMeshComponent>(Prim) ? *GetNameSafe(Cast<USkeletalMeshComponent>(Prim)->GetSkeletalMeshAsset()) : TEXT("-"));
