@@ -500,6 +500,8 @@ original design. Dry River's **layout** stays original (ADR-013, ADR-015); third
 and the Fab Standard License forbids redistributing source files publicly (the public site never
 carries assets).
 
+**Execution note (2026-09-27).** Under ADR-021, the CC BY 4.0 Sketchfab scans Split Point and Bingie Bingie were staged unchanged as source files at `Content/SouthernSpear/Vendor/SAVollgger/`; see ENV-001/ENV-002 and L-0013/L-0014. Staging does not make them game-ready or imported Unreal assets. Their use still requires asset review and attribution; map layout remains original.
+
 ## ADR-022 — Red Gum Station: first playable map from the Fab "Rural Australia" pack; Fab soldier bodies
 
 **Status:** Accepted (producer direction, 2026-09-27: "use the Rural Australia map as the base for our

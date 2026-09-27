@@ -68,7 +68,9 @@ void USSSettingsSyncSubsystem::Tick(float DeltaTime)
 		CallSetter(Shared, TEXT("SetMouseSensitivityY"), Sensitivity);
 		CallSetter(Shared, TEXT("SetInvertVerticalAxis"), bInvert);
 	}
-	if (UObject* LocalSettings = GEngine ? GEngine->GetGameUserSettings() : nullptr)
+	// Lyra's volume setters need its audio control-bus mix, which is only loaded with an audio device
+	// and a current play world (not under -nosound or in editor test worlds: ensure bSoundControlBusMixLoaded).
+	if (UObject* LocalSettings = GEngine && GEngine->GetMainAudioDeviceRaw() && GEngine->GetCurrentPlayWorld() ? GEngine->GetGameUserSettings() : nullptr)
 	{
 		CallSetter(LocalSettings, TEXT("SetOverallVolume"), Master);
 		CallSetter(LocalSettings, TEXT("SetMusicVolume"), Music);

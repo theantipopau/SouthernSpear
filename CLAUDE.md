@@ -76,10 +76,11 @@ Extend the guard when adding a module (SS001 sibling deps — a `<Module>UI` may
 ```bash
 python Tools/validate_architecture.py
 "/e/Unreal/UE_5.8/Engine/Build/BatchFiles/Build.bat" SouthernSpearEditor Win64 Development "-Project=E:/SouthernSpear/SouthernSpear.uproject" -WaitMutex
-"/e/Unreal/UE_5.8/Engine/Binaries/Win64/UnrealEditor-Cmd.exe" "E:/SouthernSpear/SouthernSpear.uproject" -nullrhi -unattended -nosplash -nosound -stdout "-ExecCmds=Automation RunTests SouthernSpear;Quit" -TestExit="Automation Test Queue Empty"
+"/e/Unreal/UE_5.8/Engine/Binaries/Win64/UnrealEditor-Cmd.exe" "E:/SouthernSpear/SouthernSpear.uproject" -nullrhi -unattended -nosplash -nosound -NoLoadingScreen -stdout "-ExecCmds=Automation RunTests SouthernSpear;Quit" -TestExit="Automation Test Queue Empty"
 python Tools/verify_dressing.py
 ```
 
+- `-NoLoadingScreen` keeps Lyra's loading screen off headless test viewports (its ensure failed the network smoke test).
 - Tests: `SouthernSpear.Core.*` (9), `SouthernSpear.Presentation.*` (6), `SouthernSpear.Objectives.*` (14, incl. `.Hud.*`). Count
   `Result={Success}` in the log; declare intentionally-logged errors with `AddExpectedError`.
 - Bare test worlds: use `World->GetWorldSettings()->NotifyBeginPlay()` (no GameMode → `World->BeginPlay()` does nothing).

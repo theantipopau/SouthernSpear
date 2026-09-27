@@ -2474,6 +2474,97 @@ Game Animation Sample.
 
 ---
 
+## Session 033 — Map playability measured for the first time; the reference map fails its own rules
+
+Run in parallel with the other session's soldier and locomotion work. Nothing outside `Tools/Unreal/`,
+`Docs/MAPS_PLAYABILITY_AUDIT.md` and this entry was touched, and no map asset was written.
+
+### COMPLETED
+
+- **Wrote `Tools/Unreal/audit_map_playability.py`**, a read-only audit that measures the Dry River design
+  rules against every map. It loads a map, builds nothing, places nothing and saves nothing, so it is safe
+  to run while another tool is dressing the same level. It reports walkable ground, open-crossing distance,
+  hard:soft cover ratio, cover density, close-quarters and long-range sightlines, per-objective cover and
+  overwatch, walk parity between the two teams, and spawn exposure.
+- **Ran it on all four maps**: `ok: true`, 0 errors, report at `Build/map_playability.json`.
+- **Wrote `Docs/MAPS_PLAYABILITY_AUDIT.md`** with the scoreboard, the per-map findings and the method.
+
+Headline results, all measured:
+
+- **Dry River fails its own design rules.** 13% of the ground has no cover within 30 m (the document
+  promises under 20 m), 44 blocking cover props on the whole map against a documented ~120, 0.09 props per
+  walkable cell, a 291.5 m maximum sightline against a 220 m limit, the Farmstead 58% walk-imbalanced
+  between teams, and **35 of 64 spawn pairs can see each other**.
+- **Red Gum is not playable as it stands.** 1020 x 1020 m of paddock whose navigation volume covers
+  **17%** of it, **12 hard and 0 soft cover objects in the entire map**, 50% of ground with no cover within
+  30 m, 310 m median sightline, and 0-1 cover positions within 20 m of any objective.
+- **Saltbush is the best map in the project** (7 rules pass): p90 open crossing 16.0 m, 0 of 64 spawn
+  pairs exposed, 95% nav coverage. Its two failures are the 35% and 22% walk imbalance on Stock Yards and
+  Dry Dam, and a 1:9.97 hard:soft cover ratio where the design wants 1:3.
+- **Selat Canal has the best geometry and the worst fairness.** 2.0 m p50 open crossing and 51.7 m
+  median sightline make it the tightest map in the project, but all three objectives fail walk parity at
+  **63%, 42% and 75%**, on the project's only Special Forces map.
+
+### FILES CHANGED
+
+Created: `Tools/Unreal/audit_map_playability.py`, `Docs/MAPS_PLAYABILITY_AUDIT.md`.
+
+Modified: `Docs/CHANGELOG.md` (this entry). **Left uncommitted on purpose** — this file also carries
+another session's uncommitted edits, and staging it would stage theirs with it.
+
+### TESTING
+
+- `UnrealEditor-Cmd.exe SouthernSpear.uproject -nullrhi -unattended -ExecutePythonScript=Tools/Unreal/audit_map_playability.py`
+  — **PASS**, `ok: true`, 0 errors, all four maps, `Build/map_playability.json`. Three maps in one run
+  (~9 min); Selat Canal separately with `SS_MAPS=L_SelatCanal_01 SS_OUT=mp_canal.json` after a loop bug
+  was fixed, then merged.
+- The script is **not** a game run. No map was played, no screenshot captured, and `run_map_capture.sh`
+  is still unproven.
+
+### ASSETS
+
+None. No asset was created, imported, modified or licensed. The audit is measurement only.
+
+### RISKS
+
+- **R-34 — the map set is documented as finished and is not.** `MAPS_DRYRIVER.md`, `MAPS_SALTBUSH.md`
+  and `MAPS_SELATCANAL.md` read as design intent. Measured, Dry River misses its own cover and sightline
+  rules, Red Gum has no cover and a navmesh on a sixth of the map, and Selat Canal's objectives are
+  badly lopsided. The three "documented, not signed off" notes are correct and must not be relaxed until
+  the maps measure clean.
+- **R-35 — `Tools/Unreal/layout_spawns.py` under-reports spawn exposure.** It traces each candidate
+  start to the enemy **centroid**, one point, rather than to the enemy starts. It reported 3/64 for Dry
+  River; tracing all 64 pairs gives 35/64. Every `exposed_pairs` figure in `Build/spawn_layout.json` is
+  optimistic. Not fixed here because the file belongs to the concurrent session's work.
+
+### DEFECTS FOUND
+
+Four defects in the audit tool itself, all found by running it, and all the kind that would have
+produced confident nonsense:
+
+1. **`get_actor_bounds` returns (origin, extent), not (min, max).** Treating the origin as a corner
+   classified every prop as a kerb and reported **0 cover objects on a map with 290 dressing props**.
+2. **Projecting to navigation from the middle of the map's bounding box** silently misses on any map
+   with a tall z range. It reported Dry River at 31% nav coverage; measured from the traced ground height
+   the figure is 100%. The first version of this audit published that 31%.
+3. **`find_path_to_location_synchronously` floods the navmesh** when the goal is on an island the start
+   cannot reach. On one Dry River objective that took **nine minutes** and nothing can interrupt it.
+   Replaced with a projected polyline, which reports unreachable by failing rather than by stalling.
+4. **A `while len(pairs) < 3000` loop cannot terminate on a small map.** Selat Canal has 31 walkable
+   points, so 465 distinct pairs exist and the loop spun forever. Now bounded by the pair count.
+
+Also corrected in the tool's own method: the "close quarters" rule was unmeasurable as written, because
+a 10 m sample grid means two sampled points are never within 5 m of each other. It now probes 3, 5, 8 and
+15 m in eight directions from every sample point.
+
+### NEXT ACTION
+
+**Fix the Selat Canal objective placement** — three objectives, all three between 42% and 75% walk
+imbalanced, on the only Special Forces map — and make the placement refuse to save a lopsided result
+rather than silently relocating it.
+
+---
+
 ## Session 034 — 2026-09-28 — Damage Model, Blood, Bullet Penetration (ADR-026)
 
 ### COMPLETED
@@ -2519,7 +2610,7 @@ Lyra `B_Hero_Default` (reparented), experience and IMC updates; blood uses the a
 
 ### RISKS
 
-- **R-28 (new):** two Lyra departures (D-08, D-09) must be re-applied on any Lyra update.
+- **R-36 (new; first numbered R-28, which was already taken):** two Lyra departures (D-08, D-09) must be re-applied on any Lyra update.
 - Penetration thickness is geometric only (no per-material table); thin rock edges can be shot through.
 
 ### DEFECTS FOUND
@@ -2530,6 +2621,69 @@ Lyra `B_Hero_Default` (reparented), experience and IMC updates; blood uses the a
 ### NEXT ACTION
 
 **Measure through-cover damage**: a scripted test that fires through a 5 cm board at a target and checks the health lost.
+
+---
+
+## Session 035 — 2026-09-28 — Full Test Suite Green; Penetration Hook Measured; Parallel Session's Work Committed
+
+### COMPLETED
+
+- **All 35 SouthernSpear tests pass (exit 0)**, the first fully green run in several sessions. The parallel session's
+  `TwoPlayerAuthoritySmoke` had two causes, found from its callstacks:
+  - **ours**: `USSSettingsSyncSubsystem` pushed volumes into Lyra's settings in editor test worlds, where Lyra cannot
+    load its audio control-bus mix (it needs `GEngine->GetCurrentPlayWorld()`): three `bSoundControlBusMixLoaded`
+    ensures. Volumes are now pushed only with an audio device and a play world;
+  - **Lyra's loading screen** adding a widget to a headless test viewport (`ViewportOverlayWidget.IsValid()`).
+    Test runs now pass `-NoLoadingScreen` (Lyra's own switch): CLAUDE.md, README, CI.
+- **CI ran almost no tests**: it filtered on `SouthernSpear.Unit/Integration/Network/Leak`, of which only `Network`
+  exists. Now `RunTests SouthernSpear`, with `-nosound -NoLoadingScreen`.
+- **Through-cover measurement** (Session 034 NEXT ACTION): `SouthernSpear.Bridge.Ballistics.PenetrationHook` calls the
+  hook Lyra's weapon actually uses (so it also proves the bridge registered it) against engine-cube boards: a 5 cm board
+  is penetrated with 37.5% damage lost (an A88 torso hit 38 → 23.75) and the trace resumes just beyond it; a 40 cm
+  block stops the bullet. `LyraBulletPenetration::GetHook` exported for the test.
+- Changelog repaired: the parallel session's uncommitted copy had dropped Sessions 029–031; restored, and its
+  Session 033 kept. Risk renumbered: Session 034's "R-28" was taken, now **R-36** (added to PROJECT_AUDIT).
+- Committed the parallel session's finished, uncommitted work: Session 033 entry, ASSET_REGISTER,
+  SOURCED_ASSET_REVIEW, DECISION_LOG execution note, TEST_PLAN, the smoke test and its `EngineSettings` dependency,
+  README. Untracked art folders (`Art/Weapons/{A88/New,AKM,C4A1,PKM,_Optics}`, `Content/AUG`, `Content/SouthernSpear`,
+  `Docs/images/conceptart*.png`) left uncommitted: their sources are not recorded in the registers yet.
+
+### FILES CHANGED
+
+`SSSettingsSyncSubsystem.cpp`, `Tests/SSPenetrationHookTests.cpp` (new), Lyra `LyraGameplayAbility_RangedWeapon.h`
+(export), `.github/workflows/build.yml`, `CLAUDE.md`, `README.md`, `Docs/TEST_PLAN.md`, `Docs/PROJECT_AUDIT.md`, this file.
+
+### TESTING
+
+| Test | Command | Exit | Result | Evidence |
+|---|---|---|---|---|
+| Guard | `python Tools/validate_architecture.py` | 0 | PASS | console |
+| Build | `Build.bat SouthernSpearEditor Win64 Development` | 0 | Succeeded (first try failed to link: `GetHook` not exported; fixed) | console |
+| Network smoke alone, before the flag | `RunTests SouthernSpear.Network` | 255 | Fail: only the loading-screen ensure left after the audio fix | `Build/smoke.log` (not retained) |
+| All tests | `UnrealEditor-Cmd ... -nosound -NoLoadingScreen ... "Automation RunTests SouthernSpear;Quit"` | 0 | 35/35 Success | `Docs/evidence/S035_tests.txt` |
+
+NOT RUN: the CI workflow itself (self-hosted runner); damage through a board in a live match (the execution's
+`1 - PenetrationDepth` factor is verified by reading, not by a measured health change); rendered blood check.
+
+### ASSETS
+
+None.
+
+### RISKS
+
+- R-36 (from Session 034) recorded in PROJECT_AUDIT.
+- The untracked art folders listed above need register entries before they can be committed or used.
+
+### DEFECTS FOUND
+
+- Settings sync triggered Lyra audio ensures in test worlds (callstack in the smoke-test log).
+- CI test filter matched only one of four test groups (reading the workflow).
+- Risk ID collision R-28 (grep of PROJECT_AUDIT).
+
+### NEXT ACTION
+
+**Register or remove the untracked art folders** (`Art/Weapons/*`, `Content/AUG`, `Content/SouthernSpear`, concept art):
+record each source in ASSET_REGISTER / LICENCE_REGISTER, then commit or ignore it.
 
 ---
 

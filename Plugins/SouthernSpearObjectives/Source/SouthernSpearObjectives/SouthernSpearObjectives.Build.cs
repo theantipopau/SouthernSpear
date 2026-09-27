@@ -35,6 +35,7 @@ public class SouthernSpearObjectives : ModuleRules
 			new string[]
 			{
 				"NetCore",
+				"EngineSettings",
 			}
 		);
 	}

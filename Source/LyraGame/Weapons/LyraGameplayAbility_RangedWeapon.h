@@ -50,7 +50,7 @@ namespace LyraBulletPenetration
 {
 	using FHook = TFunction<bool(const FHitResult& Blocker, const FVector& Direction, FVector& OutResumeAt, float& OutDamageLost)>;
 	LYRAGAME_API void SetHook(FHook InHook);
-	FHook& GetHook();
+	LYRAGAME_API FHook& GetHook();
 }
 
 UCLASS()

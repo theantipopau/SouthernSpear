@@ -2,7 +2,7 @@
 
 **Document ID:** `Docs/ASSET_REGISTER.md`
 **Status:** Baseline — Phase 0
-**Last updated:** 2026-09-26
+**Last updated:** 2026-09-27
 
 > **Fictional entertainment project.** Not endorsed, developed or approved by the Australian Defence Force, the Department of Defence or the Australian Army. All units, insignia, operations and places referenced are fictional.
 
@@ -17,7 +17,7 @@ Every asset the game requires, its intended source, its current status, and its 
 | Status | Meaning |
 |---|---|
 | `PLACEHOLDER` | A stand-in exists or is planned. **Not final. Does not ship.** |
-| `VENDORED` | Third-party asset in use, licence verified and registered |
+| `VENDORED` | Third-party asset or source copy present in the project; exact licence verified and registered (use/import readiness stated separately) |
 | `IN_PRODUCTION` | Original asset being created in Blender |
 | `DONE` | Final, reviewed, licence-clean |
 | `DEFERRED` | Not started; sequenced later |
@@ -82,8 +82,8 @@ Lyra content is a **technical foundation, not Southern Spear art.** It is a plac
 
 | ID | Asset | Status | Licence dep. | Notes |
 |---|---|---|---|---|
-| W-001 | A88 Standard Service Rifle (fictional; original bullpup design) | `PLACEHOLDER` | — | Use the **Quinn/Manny** placeholder rifle initially. Original bullpup model required. **Original design, not a trace of manufacturer CAD** |
-| W-002 | A89 Light Support Weapon (fictional; original belt-fed design) | `PLACEHOLDER` | — | Bipod, belt box, third-person carry poses |
+| W-001 | A88 Standard Service Rifle (fictional; original bullpup design) | `IN_PRODUCTION` | L-0017 (Class E pending verification) | The original script-built A88 remains as project source; the current in-game cosmetic mesh is a producer-supplied textured A88 imported under `/SSExp_ObjectiveAssault/Weapons/A88/`. Its source URL/terms are missing and its real-rifle resemblance needs original A-series reshaping (R-21). The imported `.uasset` derivative is tracked; do not treat it as cleared or release-ready. |
+| W-002 | A89 Light Support Weapon (fictional; original belt-fed design) | `IN_PRODUCTION` | Class F — original | First-pass original script-built A89 is in the game; 1.19 m, 2,012 tris. Bipod and third-person carry poses remain to be validated. |
 | W-003 | A9 Service Pistol (fictional) | `PLACEHOLDER` | — | |
 | W-004 | Smoke grenade | `PLACEHOLDER` | — | |
 | W-005 | Fragmentation grenade | `PLACEHOLDER` | — | Simulation only; no real-world handling detail |
@@ -226,13 +226,59 @@ All maps `PLACEHOLDER` unless marked. **Greybox only in Phase 1.** No final maps
 | M-RG-01 | Red Gum Station map | `/Game/Maps/L_RedGum_01`; source `Tools/Unreal/build_redgum_level.py`, `build_redgum_nav.py` | `IN_PRODUCTION` | Class A base (L-0016, ADR-022) plus original wiring |
 | C-SOL-01 | Soldier body part (3 ACR / MAF) | `/SSExp_ObjectiveAssault/Characters/B_SS_Soldier`, `B_SS_CharacterParts`; source `Tools/Unreal/setup_soldiers.py` | `IN_PRODUCTION` | Class A meshes (L-0016) in an original part actor |
 | W-A89-01 | A89 light support weapon, first pass | `/SSExp_ObjectiveAssault/Weapons/A89/*`; source `Tools/Blender/a89_support.py` | `IN_PRODUCTION` | Class F — original (ADR-020); 2,012 tris, 119 cm |
-| W-A88-01 | A88 rifle, first pass (mesh, 3 material instances, visual BP, WID/ID) | `/SSExp_ObjectiveAssault/Weapons/A88/*`; source `Tools/Blender/a88_rifle.py` → `Art/Weapons/A88/` | `IN_PRODUCTION` | Class F — original, script-built (ADR-020); 2,632 tris, 89 cm. WID/ID are copies of Lyra rifle definitions (reuse Lyra abilities/animations by reference) |
+| W-A88-01 | Original A88 first-pass source mesh | `Art/Weapons/A88/SM_A88.fbx`; source `Tools/Blender/a88_rifle.py` and `Art/Weapons/A88/A88.blend` | `IN_PRODUCTION` — original source retained | Class F — 2,632 tris, 89 cm. This original first pass is retained as source; the current imported game mesh is the separate provisional W-A88-02. |
+| W-A88-02 | Textured producer-supplied A88 derivative and game import | Source `Art/Weapons/A88/New/` → `/SSExp_ObjectiveAssault/Weapons/A88/SM_A88` and `T_A88_*` | `IN_PRODUCTION` — provisional / blocked | L-0017, Class E pending source/licence verification (R-21). Pipeline report records 78.8 cm and 72,493 tris; manually assigned texture atlases; not reshaped into a distinct original A-series silhouette. The derived Unreal assets are tracked even though raw source files are local/untracked. |
 | M-001g | Objective Assault experience | `/SSExp_ObjectiveAssault/Experiences/B_SS_ObjectiveAssault` | `IN_PRODUCTION` | Class F — original data; uses ShooterCore pawn data and action sets (Lyra, EULA) by reference |
 | M-001e | Layout verifier | `Tools/Blender/verify_dryriver.py` | `DONE` | Class F — original |
 
 **Generated 2026-09-26.** 162 objects, 8,944 faces. 4 gameplay markers. Verified against the design spec by `verify_dryriver.py`, which runs in CI.
 
 All class F — created specifically for this project, no third-party obligation. Registered in `LICENCE_REGISTER.md` §4.
+
+### 4.9b Licensed environment source meshes — staged for review/import
+
+| ID | Asset | Path | Status | Licence dep. | Notes |
+|---|---|---|---|---|---|
+| ENV-001 | Split Point, Victoria photogrammetry source | `Content/SouthernSpear/Vendor/SAVollgger/SplitPointVictoria/` (OBJ, MTL, JPEG) | `VENDORED` — source staged; UE import not yet verified | L-0013 (CC BY 4.0) | 174,076 vertices / 346,200 triangles; dense scan, not optimized. Original source filenames retained; attribution in folder README. |
+| ENV-002 | Bingie Bingie, NSW photogrammetry source | `Content/SouthernSpear/Vendor/SAVollgger/BingieBingieNSW/` (OBJ, MTL, JPEG) | `VENDORED` — source staged; UE import not yet verified | L-0014 (CC BY 4.0) | 273,042 vertices / 540,708 triangles; dense scan, not optimized. Original source filenames retained; attribution in folder README. |
+
+These are raw vendor files, not approved shipping meshes. They may be useful for environment/blockout reference and landscape dressing after import review; keep map layouts original. Any derivative that is retopologized, retextured, split, or otherwise adapted must get an explicitly tracked asset entry and preserve the required attribution.
+
+### 4.9c Licensed third-party attribution
+
+Ship the following attribution when the corresponding scans are included in a build:
+
+- **Split Point, Victoria (Australia)** — Stefan A Vollgger, CC BY 4.0, https://sketchfab.com/3d-models/split-point-victoria-australia-d95f3ad4d0044c20a56ebb7bd507d515
+- **Bingie Bingie, NSW (Australia)** — Stefan A Vollgger, CC BY 4.0, https://sketchfab.com/3d-models/bingie-bingie-nsw-australia-b3cdf8650ee44dd786f205c6c849ad59
+
+Changes: source files staged unchanged; no modifications to mesh or texture data. License: https://creativecommons.org/licenses/by/4.0/.
+
+### 4.9d Weapon source review — provenance pending
+
+| Source folder | Current file | Finding | Allowed next step |
+|---|---|---|---|
+| `Art/Weapons/A88/New/` | OBJ, MTL, 3DS, three PNGs, derived FBX | **BLOCKED / R-21.** Existing notes report the MTL references filenames absent from the folder; 72k-triangle mesh is a real-rifle-like design. Producer says royalty-free, but no source URL or terms are recorded. The FBX is a derivative and does not establish rights. | Keep local/uncommitted. Obtain original source URL and licence terms; inspect/re-shape into an original A-series design before release. |
+| `Art/Weapons/AKM/Weathered AKM rifle.blend` | Blender source | **REFERENCE ONLY / BLOCKED (R-23).** Filename identifies a real AKM design; source URL, author and licence evidence are absent. | Do not import, adapt or ship; confirm whether this is for visual reference only or provide rights/provenance. Create original A-series geometry independently. |
+| `Art/Weapons/PKM/PKM.blend` | Blender source | **REFERENCE ONLY / BLOCKED (R-23).** Filename identifies a real PKM design; source URL, author and licence evidence are absent. | Same: keep out of game content; clarify provenance and use scope. |
+| `Art/Weapons/C4A1/kkanamalla_m4_carbine.blend` | Blender source; adjacent `textures(1)/` is empty in this checkout | **BLOCKED / R-22.** Session 021 notes that the file contains a "Cycles-Ready M4 Carbine … Licensed CC-BY" label and the author identifier `kkanamalla`, but no exact source page/version/text or attribution record is present. A filename or embedded note is not the licence grant. It also depicts a real M4. | Keep unimported/uncommitted. Obtain the exact source URL and applicable CC BY version, preserve attribution, and reshape into an original A-series design before any game use. |
+
+**Intake rule:** files under `Art/Weapons/` are local source/review material, not automatically approved game assets. For future intake, verify provenance, licence and intended use in `LICENCE_REGISTER.md` before importing or creating derivatives; any third-party weapon still needs an original fictional redesign per ADR-021. The A88 import predates this review and is already referenced by the experience: it remains blocked for release, and must not be treated as licence-cleared or expanded into other builds until R-21 is resolved.
+
+### 4.9e ADFRC extraction — quarantined, not a game asset
+
+`Content/Sourced/ADF_Extracted/` is a separate ADF Re-Cut (ADFRC) Arma-content extraction, tracked for metadata/provenance review only under L-0021 / R-24. It is **not** a source asset for Southern Spear and has no game-asset ID. The `Models/ADF_Weapons/adfrc_ef88/` and `adfrc_m4a5/` `.p3d` files are real EF88 and M4A5-family content; they are not the independent sources in `Art/Weapons/A88/New/` (L-0017 / R-21) or `Art/Weapons/C4A1/` (L-0020 / R-22). Other ADFRC weapon/gear categories, Arma configs, textures and `.rtm` animations are likewise excluded. Do not promote any of these into W-001/A88, the C4A1 intake, or the A-series weapon pipeline; no copying, importing, conversion, derivative, or visual-reference use is approved. The ADFRC contributor agreement does not itself grant Southern Spear downstream rights. See `Docs/SOURCED_ASSET_REVIEW.md` for the source/rights basis.
+
+### 4.9f Original character uniforms — applied to the licensed bodies
+
+| ID | Asset | Path | Status | Licence dep. | Notes |
+|---|---|---|---|---|---|
+| CH-TEX-001 | CMECU camouflage set (3 ACR) | `Art/Characters/Textures/T_SS_CMECU_Camo_{BC,N,ORM}.png` (2048²) | `DONE` | Class F — original, script-built | Generated by `Tools/Textures/make_character_textures.py` from multi-octave value noise. Sun-bleached dry-country palette: khaki, pale dust, eucalypt grey-green, ironbark red-brown. **Original pattern** — not AMCU, not commercial MultiCam, not derived from ADFRC/Auscam material (ADR-016, L-0021). |
+| CH-TEX-002 | MAF camouflage set (opposing force) | `Art/Characters/Textures/T_SS_MAF_Camo_{BC,N,ORM}.png` (2048²) | `DONE` | Class F — original | Red-earth disruptive per ADR-016/C-015: ochre, rust, dark brown, muted burgundy, charcoal. |
+| CH-TEX-003 | Gear fabric sets (tan, dark) | `Art/Characters/Textures/T_SS_Gear{,_Dark}_{BC,N,ORM}.png` (1024²) | `DONE` | Class F — original | Near-solid dyed nylon with fine grain and a twill micro-normal. |
+| CH-MAT-001 | Original fabric materials | `/SSExp_ObjectiveAssault/Characters/Materials/M_SS_{CMECU,MAF,GearTan,GearDark}` | `IN_PRODUCTION` | Class F — original | Authored by `Tools/Unreal/setup_character_textures.py`: TextureCoordinate → tiled UV0 into BC / normal / ORM, wired to BaseColor, Normal, and AO/Roughness/Metallic. |
+| CH-SOL-001 | Original-uniformed soldier bodies (3 ACR + MAF) | `/SSExp_ObjectiveAssault/Characters/B_SS_Soldier` with `FSSPartMaterialOverride` | `IN_PRODUCTION` | Base meshes **L-0016 (Class A)**; appearance Class F | The Fab meshes are **not duplicated or edited**. `ASSCharacterPartActor` gained `FriendlyMaterialOverrides` / `OpposingMaterialOverrides`, applied per material slot on the character-part components. Friendly: cap, holster, carrier, patches and boonie → GearTan; shirt and jeans → CMECU. MAF: sweater and pants → MAF; shoes, armour and beret → GearDark. Skin, eyes, teeth, head and sidearm keep the vendor materials. |
+
+> **R-20 partial:** the `M_Patches` slot is now overridden with plain gear fabric, so any insignia carried by the vendor patch texture is no longer displayed. A rendered confirmation is still outstanding (see Session 026).
 
 ### 4.10 Data Assets (no licence dependency — original data)
 
@@ -255,7 +301,7 @@ All class F — created specifically for this project, no third-party obligation
 
 | Category | Placeholder | Vendored | In production | Done |
 |---|---|---|---|---|
-| Weapons (15) | 15 | 0 | 0 | 0 |
+| Weapons (15) | 13 | 0 | 2 (W-001 A88, W-002 A89; A88 source provisional under R-21) | 0 |
 | Characters (18) | 16 | 2 (Lyra bodies, placeholder-quality) | 0 | 0 |
 | Animation (13) | 9 | 4 (Lyra locomotion) | 0 | 0 |
 | Audio (13) | 13 | 0 | 0 | 0 |
@@ -265,7 +311,7 @@ All class F — created specifically for this project, no third-party obligation
 | Data (10) | 10 | 0 | 0 | 0 |
 | Tooling (2) | 0 | 0 | 0 | 2 (blockout generator + verifier) |
 
-**Everything is a placeholder. Nothing here is final.** That is the correct state for the end of Phase 0.
+**The weapon intake in §4.9d is not cleared game content.** Its raw source files remain local review material; W-001's imported A88 appearance is provisional under R-21, while W-002 is original work in production. The licensed photogrammetry sources in §4.9b are unchanged review copies and are not imported Unreal assets. Neither source group is approved as game-ready content.
 
 ---
 
