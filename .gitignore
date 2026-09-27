@@ -204,3 +204,19 @@ Content/M1911/
 Content/RuralAustralia/
 Content/Collections/
 Content/Developers/
+
+# Relocated ADFRC third-party source (L-0021, personal authorisation).
+# Kept out of version control: the grant is personal and non-commercial, and
+# these are third-party source files, not Southern Spear originals.
+# Tracked exception: Art/ADFRC/LICENSE.md and Art/ADFRC/MANIFEST.md only.
+Art/ADFRC/*
+!Art/ADFRC/LICENSE.md
+!Art/ADFRC/MANIFEST.md
+Content/FP_AKS74U_Animation/
+Content/Military_Radio/
+Content/Nanite_Plants_Sample_Collection/
+Content/Realistic_Starter_VFX_Pack_Vol2/
+Content/Singapore_Canal/
+Content/World_Flags/
+Content/SampleAnimationPack/
+Content/Vis/

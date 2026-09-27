@@ -16,6 +16,7 @@
 # Idempotent. Writes Build/a88_setup.json.
 
 import json
+import re
 import os
 import traceback
 
@@ -191,20 +192,40 @@ def finishes(mesh):
 
 
 def visual_blueprint(mesh):
-    path = DEST + "/B_SS_" + W
+    """B_SS_<W>_Weapon: a child of Lyra's B_Rifle, so everything Lyra's weapon
+    abilities expect from the weapon actor (the reload in particular only works
+    with a B_Rifle-derived actor, Session 024) is inherited unchanged. Lyra's
+    rifle mesh is hidden and our static mesh is added in its place."""
+    name = "B_SS_" + W + "_Weapon"
+    path = DEST + "/" + name
     if eal.does_asset_exist(path):
-        bp = unreal.load_asset(path)
-    else:
-        factory = unreal.BlueprintFactory()
-        factory.set_editor_property("parent_class", unreal.SSHeldItemVisualActor)
-        bp = tools.create_asset("B_SS_" + W, DEST, unreal.Blueprint, factory)
-    cdo = unreal.get_default_object(bp.generated_class())
-    cdo.set_editor_property("visual_mesh", mesh)
+        eal.delete_asset(path)
+    factory = unreal.BlueprintFactory()
+    factory.set_editor_property("parent_class", unreal.load_class(None, LYRA_VISUAL))
+    bp = tools.create_asset(name, DEST, unreal.Blueprint, factory)
+    sub = unreal.get_engine_subsystem(unreal.SubobjectDataSubsystem)
+    lib_sd = unreal.SubobjectDataBlueprintFunctionLibrary
+    handles = sub.k2_gather_subobject_data_for_blueprint(bp)
+    skeletal = None
+    for h in handles:
+        data = lib_sd.get_data(h)
+        obj = lib_sd.get_object_for_blueprint(data, bp)
+        if isinstance(obj, unreal.SkeletalMeshComponent):
+            skeletal = h
+            obj.set_editor_property("hidden_in_game", True)
+            obj.set_editor_property("cast_shadow", False)
+    added, reason = sub.add_new_subobject(unreal.AddNewSubobjectParams(
+        parent_handle=skeletal or handles[0], new_class=unreal.StaticMeshComponent, blueprint_context=bp))
+    sub.rename_subobject(added, unreal.Text("SSVisual"))
+    visual = lib_sd.get_object_for_blueprint(lib_sd.get_data(added), bp)
+    visual.set_editor_property("static_mesh", mesh)
     # Lyra attaches with -90 yaw (its meshes face +Y); ours faces +X, so cancel it.
-    cdo.set_editor_property("mesh_offset", unreal.Transform(rotation=unreal.Rotator(roll=0, pitch=0, yaw=90)))
+    visual.set_editor_property("relative_rotation", unreal.Rotator(roll=0, pitch=0, yaw=90))
+    visual.set_collision_enabled(unreal.CollisionEnabled.NO_COLLISION)
     unreal.BlueprintEditorLibrary.compile_blueprint(bp)
     eal.save_loaded_asset(bp)
-    return step("visual_blueprint", bp is not None, path) and bp
+    return step("visual_blueprint", skeletal is not None and visual is not None, "{} (hid Lyra mesh: {}) {}".format(
+        path, skeletal is not None, reason)) and bp
 
 
 def copy_definition(src, name):
@@ -219,8 +240,8 @@ def equipment_definition(visual_bp):
     cdo = unreal.get_default_object(wid.generated_class())
     text = lib.get_property_as_text(cdo, "ActorsToSpawn")
     ours = visual_bp.generated_class().get_path_name()
-    new = text.replace(LYRA_VISUAL, ours)
-    ok = new != text or ours in text
+    new = re.sub(r'ActorToSpawn="[^"]*"', 'ActorToSpawn="{}"'.format(ours), text, count=1)
+    ok = ours in new
     ok = ok and lib.set_property_from_text(cdo, "ActorsToSpawn", new)
     report.setdefault("actors_to_spawn", {})[W] = lib.get_property_as_text(cdo, "ActorsToSpawn")
     eal.save_loaded_asset(wid)

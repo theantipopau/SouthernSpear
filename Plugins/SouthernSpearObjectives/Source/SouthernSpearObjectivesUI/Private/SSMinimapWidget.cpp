@@ -23,7 +23,7 @@
 
 namespace
 {
-	constexpr int32 MaxMarkers = 6;
+	constexpr int32 MinimapMaxMarkers = 6;
 	constexpr float MarkerSize = 22.f;
 
 	UTextBlock* MapText(UWidgetTree* Tree, int32 Size, const FLinearColor& Colour)
@@ -92,7 +92,7 @@ void USSMinimapWidget::Setup(ASSObjectiveAssaultDirector* InDirector, bool bInFu
 	UCanvasPanelSlot* MarkerSlot = Inner->AddChildToCanvas(Markers);
 	MarkerSlot->SetSize(FVector2D(MapSize, MapSize));
 
-	for (int32 Index = 0; Index < MaxMarkers; ++Index)
+	for (int32 Index = 0; Index < MinimapMaxMarkers; ++Index)
 	{
 		UBorder* Marker = T->ConstructWidget<UBorder>();
 		Marker->SetBrushColor(SSUIStyle::Field800(0.9f));

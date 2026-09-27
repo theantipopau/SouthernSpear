@@ -25,7 +25,7 @@ namespace
 	constexpr float StripHeight = 26.f;
 	constexpr float VisibleDegrees = 120.f;  // field shown across the strip
 	constexpr int32 LabelStep = 15;
-	constexpr int32 MaxMarkers = 6;
+	constexpr int32 CompassMaxMarkers = 6;
 
 	UTextBlock* CompassText(UWidgetTree* Tree, int32 Size, const FLinearColor& Colour)
 	{
@@ -61,7 +61,7 @@ void USSCompassWidget::Setup(ASSObjectiveAssaultDirector* InDirector)
 	UCanvasPanelSlot* ColumnSlot = Root->AddChildToCanvas(Column);
 	ColumnSlot->SetAnchors(FAnchors(0.5f, 0.f));
 	ColumnSlot->SetAlignment(FVector2D(0.5f, 0.f));
-	ColumnSlot->SetPosition(FVector2D(0.f, 150.f));
+	ColumnSlot->SetPosition(FVector2D(0.f, 214.f));
 	ColumnSlot->SetAutoSize(true);
 
 	UBorder* Plate = T->ConstructWidget<UBorder>();
@@ -96,7 +96,7 @@ void USSCompassWidget::Setup(ASSObjectiveAssaultDirector* InDirector)
 	NotchSlot->SetSize(FVector2D(2.f, 8.f));
 	NotchSlot->SetPosition(FVector2D(StripWidth * 0.5f - 1.f, 0.f));
 
-	for (int32 Index = 0; Index < MaxMarkers; ++Index)
+	for (int32 Index = 0; Index < CompassMaxMarkers; ++Index)
 	{
 		UVerticalBox* Box = T->ConstructWidget<UVerticalBox>();
 		UBorder* Marker = T->ConstructWidget<UBorder>();

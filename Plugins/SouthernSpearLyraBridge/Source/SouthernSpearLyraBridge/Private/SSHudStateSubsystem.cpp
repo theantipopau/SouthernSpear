@@ -9,6 +9,12 @@
 #include "GameplayTagContainer.h"
 #include "SSLocalHudState.h"
 #include "UObject/UnrealType.h"
+#include "Animation/AnimInstance.h"
+#include "Components/SkeletalMeshComponent.h"
+#include "EngineUtils.h"
+#include "GameFramework/Character.h"
+#include "Misc/CommandLine.h"
+#include "Misc/Parse.h"
 
 namespace
 {
@@ -94,4 +100,33 @@ void USSHudStateSubsystem::Tick(float DeltaTime)
 	State->Reserve = StatCount(Item, SpareTag);
 	State->MagazineSize = StatCount(Item, SizeTag);
 	State->WeaponName = ItemName(Item);
+
+	// Dev diagnostic (-SSAnimDebug): every 3 s, each pawn's speed, running anim
+	// classes (main + linked layers), montage, and ammunition.
+	static const bool bAnimDebug = FParse::Param(FCommandLine::Get(), TEXT("SSAnimDebug"));
+	DebugAccumulator += DeltaTime;
+	if (bAnimDebug && DebugAccumulator >= 3.f)
+	{
+		DebugAccumulator = 0.f;
+		int32 Count = 0;
+		for (TActorIterator<ACharacter> It(World); It && Count < 16; ++It, ++Count)
+		{
+			USkeletalMeshComponent* Mesh = It->GetMesh();
+			UAnimInstance* Anim = Mesh ? Mesh->GetAnimInstance() : nullptr;
+			FString Linked;
+			if (Mesh)
+			{
+				Mesh->ForEachAnimInstance([&Linked](UAnimInstance* Layer)
+				{
+					Linked += GetNameSafe(Layer ? Layer->GetClass() : nullptr) + TEXT(" ");
+				});
+			}
+			UObject* PawnItem = ActiveSlotItem(It->GetController());
+			UE_LOG(LogTemp, Log, TEXT("SSAnimDebug %s speed=%.0f mesh=%s anim=%s linked=[%s] montage=%s tick=%d mag=%d spare=%d size=%d"),
+				*It->GetName(), It->GetVelocity().Size2D(), *GetNameSafe(Mesh ? Mesh->GetSkeletalMeshAsset() : nullptr),
+				*GetNameSafe(Anim ? Anim->GetClass() : nullptr), *Linked,
+				*GetNameSafe(Anim ? Anim->GetCurrentActiveMontage() : nullptr), Mesh ? (int32)Mesh->VisibilityBasedAnimTickOption : -1,
+				StatCount(PawnItem, MagazineTag), StatCount(PawnItem, SpareTag), StatCount(PawnItem, SizeTag));
+		}
+	}
 }

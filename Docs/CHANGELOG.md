@@ -1493,6 +1493,77 @@ Project".
 
 ---
 
+## Session 024 — 2026-09-27 — Reload Fixed at the Root; First-Person Arms from the Fab FPS Pack
+
+### COMPLETED
+
+- **Reload root cause found and fixed.** New `-SSAnimDebug` diagnostic (bridge) logs each pawn's speed,
+  running anim classes, montage and ammunition.
+  - It showed bots emptying magazines and never reloading on Red Gum (mag 0, spare 60), while on Lyra's
+    `L_Convolution_Blockout` they reloaded normally.
+  - Swapping our loadout to Lyra's stock `ID_Rifle` on Red Gum also reloaded, isolating the weapon actor:
+    Lyra's reload only works with a `B_Rifle`-derived actor.
+  - `setup_weapons.py` now builds `B_SS_<W>_Weapon` as a child of `B_Rifle`, hides its mesh and adds our
+    static mesh.
+  - Verified: bots refill (e.g. spare 60 to 37, magazine back to 30) on the textured A88.
+- **Animation layers checked.** Body meshes run `ABP_Mannequin_Base` with `ABP_RifleAnimLayers` linked;
+  fire and hit-react montages play.
+- **First-person arms** from the Fab FPS animation pack (`FP_AKS74U_Animation`, UE5 arms skeleton):
+  - arms placed so their head bone sits at the eye (bone data read from the pack's idle and aim poses);
+  - idle, walk, run, aim and aimed-walk loops by movement;
+  - fire when the magazine drops; reload (or empty reload, hip or aimed) when the body's Lyra reload
+    montage starts; equip on spawn;
+  - the A88 rides on `ik_hand_gun` with a 90° yaw;
+  - placement is live-tunable with `ss.FP.ArmsOffset`, `ss.FP.WeaponOffset` (default 3 10 -5) and
+    `ss.FP.WeaponRotation`.
+- Compass moved below the objective panel (overlapped at 720p UI scale; seen in the rendered check).
+- New raw Fab packs git-ignored: FP_AKS74U_Animation, Military_Radio, Nanite_Plants_Sample_Collection,
+  Realistic_Starter_VFX_Pack_Vol2, Singapore_Canal, World_Flags, SampleAnimationPack, Vis.
+- Fab cache review:
+  - Namaqualand has no content yet (still downloading);
+  - Vis (community AI) is downloaded but not added to the project;
+  - ADFRC `.p3d` files are binarised ODOL and cannot be imported yet (see `Art/ADFRC/MANIFEST.md`,
+    handled by the parallel session).
+
+### FILES CHANGED
+
+Modified: `SSFirstPersonSubsystem.{h,cpp}`, `SSHudStateSubsystem.{h,cpp}`, `SSCompassWidget.cpp`,
+`setup_weapons.py`, `.gitignore`, A88/A89 weapon assets (`B_SS_*_Weapon`, `WID_SS_*`).
+
+### TESTING
+
+| Test | Command | Exit | Result | Evidence |
+|---|---|---|---|---|
+| Guard | `python Tools/validate_architecture.py` | 0 | PASS | — |
+| Build | `Build.bat SouthernSpearEditor ...` | 0 | Succeeded | — |
+| Reload A/B | `-SSAnimDebug` on Red Gum (ours), Convolution (Lyra), Red Gum with `ID_Rifle` | 124 | Ours before: no reload; Lyra and ID_Rifle: reload; ours after the fix: reload | logs |
+| Weapons | `setup_weapons.py` | 0 | ok=true; both actors `B_Rifle` children | `Build/weapons_setup.json` |
+| Rendered first person | windowed `-SSShotAt` x4 | 0 | Arms animate; A88 held and pointing forward; offset tuned between two runs | `Docs/evidence/G058_fp_arms_low.png` |
+| Automation | `Automation RunTests SouthernSpear` | 255 | 30 Success; 1 Fail: parallel session's uncommitted `TwoPlayerAuthoritySmoke` (loading-screen ensure) | `Build/tests.log` |
+| Third-person jogging and reload look in play | — | — | **Producer check pending** | — |
+
+### ASSETS
+
+Fab Standard (L-0016 family): FP_AKS74U_Animation (arms and animations in use), plus the new packs
+listed above (not yet used).
+
+### RISKS
+
+None new. R-18 partly mitigated further (arms plus weapon; final placement needs a look in play).
+
+### DEFECTS FOUND
+
+1. Reload never completed with our weapon actors (found by the diagnostic A/B, not by the earlier guess
+   about cosmetic tags; those tags stay, as they match Lyra's parts).
+2. Compass overlapped the objective panel at 720p (rendered check).
+
+### NEXT ACTION
+
+**Producer plays Red Gum**: confirm reload, arms, weapon placement (tune `ss.FP.WeaponOffset` if needed)
+and bot jogging.
+
+---
+
 ## Open Threads
 
 | Item | Blocked on | Owner |
