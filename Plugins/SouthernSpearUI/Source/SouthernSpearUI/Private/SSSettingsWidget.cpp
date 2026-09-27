@@ -297,8 +297,8 @@ bool USSSettingsWidget::Initialize()
 	AddRow(GraphicsPage, NSLOCTEXT("SSSettings", "AAMethod", "Anti-aliasing"),
 		{ FText::FromString(TEXT("TSR")), FText::FromString(TEXT("TAA")), FText::FromString(TEXT("FXAA")), NSLOCTEXT("SSSettings", "Off", "Off") },
 		FSSUserPrefs::GetInt(FSSUserPrefs::AntiAliasing(), 0), IntPref(FSSUserPrefs::AntiAliasing()));
-	AddRow(GraphicsPage, NSLOCTEXT("SSSettings", "RayTracing", "Hardware ray tracing"), OffOn,
-		FSSUserPrefs::GetInt(FSSUserPrefs::RayTracing(), 1), IntPref(FSSUserPrefs::RayTracing()));
+	AddRow(GraphicsPage, NSLOCTEXT("SSSettings", "RayTracing", "Hardware ray tracing (experimental)"), OffOn,
+		FSSUserPrefs::GetInt(FSSUserPrefs::RayTracing(), 0), IntPref(FSSUserPrefs::RayTracing()));
 	AddRow(GraphicsPage, NSLOCTEXT("SSSettings", "RTShadows", "Ray-traced shadows"), OffOn,
 		FSSUserPrefs::GetInt(FSSUserPrefs::RayTracedShadows(), 0), IntPref(FSSUserPrefs::RayTracedShadows()));
 	AddRow(GraphicsPage, NSLOCTEXT("SSSettings", "MotionBlur", "Motion blur"), OffOn,

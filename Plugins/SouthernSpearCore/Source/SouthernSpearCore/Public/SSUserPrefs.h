@@ -23,7 +23,7 @@ namespace FSSUserPrefs
 	constexpr float MaxFieldOfView = 110.f;
 
 	// Keys (integers unless noted).
-	inline const TCHAR* RayTracing()      { return TEXT("HardwareRayTracing"); } // Lumen GI and reflections, 0/1
+	inline const TCHAR* RayTracing()      { return TEXT("HardwareRayTracing"); } // Lumen GI and reflections, 0/1 (default 0)
 	inline const TCHAR* RayTracedShadows(){ return TEXT("RayTracedShadows"); }   // 0/1
 	inline const TCHAR* MotionBlur()      { return TEXT("MotionBlur"); }         // 0/1
 	inline const TCHAR* AntiAliasing()    { return TEXT("AntiAliasing"); }       // 0 TSR, 1 TAA, 2 FXAA, 3 off

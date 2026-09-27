@@ -2362,6 +2362,68 @@ roles.
 
 ---
 
+## Session 030 — 2026-09-27 — Native Resolution, Ray Tracing Default Off, Scoreboard with Ping, Dry River Real Cover; Locomotion Audit
+
+### COMPLETED
+
+- **"Textures are horrible" — two causes, both fixed:**
+  - the game rendered at **60.6% (1552x873)** of the producer's 2560x1440 display and upscaled:
+    `sg.ResolutionQuality=0` means "project default", which UE 5.8 scales down on large displays. An
+    unset value now becomes native 100% (`USSUserPrefsSubsystem`); Settings > Render resolution still
+    lowers it. Verified: `stat unit` shows 100.0% (2560x1440).
+  - hardware ray tracing rendered Nanite-converted rocks and the weapons **black** (Saltbush capture,
+    A/B with the setting off). It now defaults off (Settings: "Hardware ray tracing (experimental)").
+- Settings console variables now apply at game-override priority: ray tracing, ray-traced shadows and
+  anti-aliasing were silently ignored below the project's own defaults (log: "SetByGameSetting ... ignored").
+- A startup crash introduced and fixed in session (the settings object was created before Lyra's
+  settings class loaded; now only once a world exists).
+- **Scoreboard (hold Tab)**: viewer-relative (own side "3 ACR · Friendly" first, "MAF · Opposing"),
+  eliminations / deaths / assists / ping per player, team kill totals, local row highlighted.
+  `USSScoreboardState` (Core) filled by `USSScoreboardSubsystem` (bridge, reflection); Lyra's base
+  per-player scorer `B_ShooterGameScoring_Base` granted by the experience (not the team-deathmatch
+  scorer, whose kill limit would end rounds). Verified live: kills and deaths count.
+- **Dry River real cover**: `dryriver_blockout.py` exports the designed cover (40 rocks, 20 trees,
+  30 scrub, fence) as `SS_MAP_DryRiver_01_Cover.csv` instead of baking low-poly cones and boulders into the
+  terrain; `dress_dryriver_cover.py` reimports the terrain and places Rural Australia rocks, trees and grass
+  trees at the same positions and sizes, and post-and-wire fences (119 posts) for the greybox and dressing
+  fences. Nav rebuilt (`build_dryriver_nav.py` ok, path verified); spawns re-laid (exposure 3/64).
+- Dev tools: `ss.Debug.FollowBot` (third-person look at the nearest bot), `-SSShowScoreboard`,
+  `-SSScoreDebug`.
+- **Locomotion audit** (`Docs/LOCOMOTION_AUDIT.md`) written before any movement change (producer brief).
+
+### TESTING
+
+| Test | Command | Exit | Result | Evidence |
+|---|---|---|---|---|
+| Guard | `python Tools/validate_architecture.py` | 0 | PASS | — |
+| Build | `Build.bat SouthernSpearEditor ...` | 0 | Succeeded | — |
+| Automation | `Automation RunTests SouthernSpear` | 255 | 30 Success; 1 Fail (parallel session's `TwoPlayerAuthoritySmoke`) | `Build/tests.log` |
+| Render resolution | default launch, `stat unit` | 124 | 60.6% before, 100.0% after | screenshots |
+| Ray tracing A/B | Saltbush spawn, HWRT on/off | 124 | Black cliff and weapon with HWRT on; correct with it off | screenshots |
+| Scoreboard | Dry River 10 bots, `-SSShowScoreboard`, `-SSScoreDebug` | 124 | Rows, teams, K/D, local row | screenshot, log |
+| Dry River cover | `dress_dryriver_cover.py`, `build_dryriver_nav.py`, `layout_spawns.py` | 0 | 90 props + 119 posts; nav ok; exposure 3/64 | reports |
+
+### RISKS
+
+- R-26 (new): third-person weapons are rotated ~90° in the soldiers' hands (bot-follow capture);
+  covered by the locomotion audit.
+- R-24, R-25 open.
+
+### DEFECTS FOUND
+
+1. Render resolution 60% (producer: textures; stat capture).
+2. Hardware ray tracing black meshes (A/B capture).
+3. Settings console variables ignored (log).
+4. Startup crash (introduced and fixed here).
+5. Third-person weapon rotation (bot-follow capture).
+
+### NEXT ACTION
+
+**Producer approves the locomotion roadmap** (`Docs/LOCOMOTION_AUDIT.md` §7), including adding Epic's
+Game Animation Sample.
+
+---
+
 ## Open Threads
 
 | Item | Blocked on | Owner |

@@ -9,6 +9,7 @@
 #include "SSClassSelectWidget.h"
 #include "SSMenuWidget.h"
 #include "SSPlayerHudWidget.h"
+#include "SSScoreboardWidget.h"
 
 IMPLEMENT_MODULE(FDefaultModuleImpl, SouthernSpearUI)
 
@@ -88,6 +89,22 @@ void USSPlayerHudSubsystem::Tick(float DeltaTime)
 		}
 	}
 	bHadPawn = bHasPawn;
+
+	// Scoreboard while Tab is held (-SSShowScoreboard keeps it up for captures).
+	if (!Scoreboard)
+	{
+		Scoreboard = CreateWidget<USSScoreboardWidget>(Player, USSScoreboardWidget::StaticClass());
+		if (Scoreboard)
+		{
+			Scoreboard->AddToViewport(30);
+		}
+	}
+	if (Scoreboard)
+	{
+		static const bool bForce = FParse::Param(FCommandLine::Get(), TEXT("SSShowScoreboard"));
+		const bool bShow = bForce || Player->IsInputKeyDown(EKeys::Tab);
+		Scoreboard->SetVisibility(bShow ? ESlateVisibility::HitTestInvisible : ESlateVisibility::Collapsed);
+	}
 
 	if (Player->WasInputKeyJustPressed(EKeys::Escape))
 	{

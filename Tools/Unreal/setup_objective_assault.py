@@ -91,7 +91,7 @@ def ensure_game_feature_data():
 
     # FGameFeatureComponentEntry is not exposed to Python, so the entries are
     # written by SouthernSpearObjectivesEditor. These are the components Lyra's
-    # own Elimination experience adds, minus its kill scoring and music.
+    # own Elimination experience adds, minus its team kill scoring.
     grants = []
     for actor, comp in (
         ("/Script/LyraGame.LyraGameState", "/ShooterCore/Game/B_TeamSetup_TwoTeams.B_TeamSetup_TwoTeams_C"),
@@ -100,6 +100,9 @@ def ensure_game_feature_data():
         ("/Script/LyraGame.LyraGameState", "/ShooterCore/Bot/B_ShooterBotSpawner.B_ShooterBotSpawner_C"),
         # Lyra's game state expects a music manager (on-screen warning every frame otherwise).
         ("/Script/LyraGame.LyraGameState", "/ShooterCore/Elimination/B_MusicManagerComponent_Elimination.B_MusicManagerComponent_Elimination_C"),
+        # Per-player eliminations / deaths / assists stat tags (the scoreboard); the base
+        # scorer only, not B_TeamDeathMatchScoring, whose kill limit would end the round.
+        ("/Script/LyraGame.LyraGameState", "/ShooterCore/Game/B_ShooterGameScoring_Base.B_ShooterGameScoring_Base_C"),
         # 3 ACR / MAF soldier bodies (setup_soldiers.py) instead of the random Manny/Quinn.
         ("/Script/Engine.Controller", "/SSExp_ObjectiveAssault/Characters/B_SS_CharacterParts.B_SS_CharacterParts_C"),
     ):

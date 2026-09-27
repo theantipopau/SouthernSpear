@@ -31,6 +31,7 @@ public class SouthernSpearLyraBridge : ModuleRules
 			{
 				"LyraGame",
 				"GameplayTags",
+				"AIModule", // IGenericTeamAgentInterface (scoreboard teams)
 			}
 		);
 	}

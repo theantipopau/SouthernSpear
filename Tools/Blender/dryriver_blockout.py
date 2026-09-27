@@ -26,6 +26,7 @@ import random
 import sys
 
 import bpy
+import mathutils
 from mathutils import Vector
 
 # The layout spec and the terrain function live in a pure-Python module with no
@@ -308,6 +309,14 @@ def export_all():
 
     fbx = os.path.join(out, "SS_MAP_DryRiver_01.fbx")
     bpy.ops.object.select_all(action="DESELECT")
+    # SS_DR_COVER=mesh keeps the greybox cover in the terrain FBX (the original
+    # blockout); the default exports it as props (COVER_ROWS, above) that
+    # Tools/Unreal/dress_dryriver_cover.py places as Rural Australia assets.
+    if os.environ.get("SS_DR_COVER", "props") != "mesh":
+        for coll in ("SS_Cover_Rocks", "SS_Cover_Trees", "SS_Cover_Scrub", "SS_Fence"):
+            c = bpy.data.collections.get(coll)
+            for o in list(c.objects) if c else []:
+                bpy.data.objects.remove(o, do_unlink=True)
     bpy.ops.export_scene.fbx(
         filepath=fbx,
         use_selection=False,
@@ -322,6 +331,13 @@ def export_all():
         path_mode="COPY",
     )
 
+    cover_csv = os.path.join(out, "SS_MAP_DryRiver_01_Cover.csv")
+    with open(cover_csv, "w", encoding="utf-8", newline="\n") as fh:
+        fh.write("name,kind,x,y,ground_z,size_x,size_y,size_z,yaw\n")
+        for row in COVER_ROWS:
+            fh.write("{},{},{:.3f},{:.3f},{:.3f},{:.3f},{:.3f},{:.3f},{:.3f}\n".format(*row))
+    print(f"EXPORTED_COVER_CSV={cover_csv} ROWS={len(COVER_ROWS)}")
+
     csv = os.path.join(out, "SS_MAP_DryRiver_01_Layout.csv")
     with open(csv, "w", encoding="utf-8", newline="\n") as fh:
         fh.write("name,x,y,z,kind\n")
@@ -334,6 +350,33 @@ def export_all():
     print(f"MARKERS={len(LAYOUT_ROWS)}")
 
 
+COVER_ROWS = []
+
+
+def record_cover():
+    """Cover as props: kind, position, ground height, size (m) and yaw, from
+    the built greybox objects (transforms applied, so dimensions are final)."""
+    kinds = (("SS_Cover_Rocks", "rock"), ("SS_Cover_Trees", "tree"), ("SS_Cover_Scrub", "scrub"), ("SS_Fence", "fence"))
+    for coll, kind in kinds:
+        c = bpy.data.collections.get(coll)
+        for o in c.objects if c else []:
+            if "TreeCanopy" in o.name:
+                continue  # the trunk row stands for the whole tree
+            k = kind
+            if kind == "fence":
+                k = "fence_rail" if "Rail" in o.name else "fence_post"
+            bb = [o.matrix_world @ mathutils.Vector(v) for v in o.bound_box]
+            cx = sum(v.x for v in bb) / 8
+            cy = sum(v.y for v in bb) / 8
+            d = o.dimensions
+            height = d.z
+            if k == "tree":  # trunk plus canopy
+                canopy = bpy.data.objects.get(o.name.replace("TreeTrunk", "TreeCanopy"))
+                if canopy:
+                    height = max(v.z for v in (canopy.matrix_world @ mathutils.Vector(p) for p in canopy.bound_box)) - terrain_height(cx, cy)
+            COVER_ROWS.append((o.name, k, cx, cy, terrain_height(cx, cy), d.x, d.y, height, math.degrees(o.rotation_euler.z)))
+
+
 def main():
     reset_scene()
     make_collection("SS_Terrain")
@@ -343,6 +386,7 @@ def main():
     build_markers()
     build_cover()
     build_fence()
+    record_cover()
 
     objs = [o for o in bpy.data.objects if o.type == "MESH"]
     tris = sum(len(o.data.polygons) for o in objs)

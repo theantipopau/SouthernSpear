@@ -41,6 +41,7 @@ private:
 	void Play(UAnimSequence* Sequence, bool bLoop);
 
 	TWeakObjectPtr<APawn> HandledPawn;
+	TWeakObjectPtr<class ACameraActor> FollowCamera; // ss.Debug.FollowBot
 
 	UPROPERTY(Transient) TObjectPtr<USkeletalMeshComponent> Arms;
 	UPROPERTY(Transient) TObjectPtr<UStaticMeshComponent> ViewModel;
