@@ -1,0 +1,133 @@
+{
+ "source": "Art/ADFRC_BLEND/adfrc_m4a5/adfrc_m4A5_NOFS_MLOD.blend",
+ "fbx": "E:\\SouthernSpear\\Art\\Weapons\\A4\\ADFRC\\SM_A4.fbx",
+ "dimensions_m": [
+  0.7804136276245117,
+  0.07278785109519958,
+  0.24771323800086975
+ ],
+ "triangles": 111470,
+ "parts": 12,
+ "dropped": [
+  "Resolution 0 (no texture)",
+  "Resolution 10 (no texture)",
+  "Resolution 100 (no texture)",
+  "Resolution 25 (no texture)",
+  "Resolution 250 (no texture)",
+  "Resolution 50 (no texture)",
+  "adfrc_ruid_adfrc_m4A5_NOFS_MLOD_R0",
+  "adfrc_tag_adfrc_m4A5_NOFS_MLOD_R0"
+ ],
+ "textures": {
+  "mss_a2_blk_co": {
+   "colour": null,
+   "normal": null
+  },
+  "mss_ctr_blk_co": {
+   "colour": null,
+   "normal": null
+  },
+  "mcc_barrel_145_co": {
+   "colour": "E:\\SouthernSpear\\Art\\ADFRC\\Textures\\adfrc_m4a5\\Textures\\New\\MCC_Barrel_145_CO.png",
+   "normal": "E:\\SouthernSpear\\Art\\ADFRC\\Textures\\adfrc_m4a5\\Textures\\New\\MCC_Barrel_145_NOHQ.png"
+  },
+  "mcc_charging_co": {
+   "colour": "E:\\SouthernSpear\\Art\\ADFRC\\Textures\\adfrc_m4a5\\Textures\\New\\MCC_Charging_CO.png",
+   "normal": "E:\\SouthernSpear\\Art\\ADFRC\\Textures\\adfrc_m4a5\\Textures\\New\\MCC_Charging_NOHQ.png"
+  },
+  "mcc_colt_buffer_co": {
+   "colour": "E:\\SouthernSpear\\Art\\ADFRC\\Textures\\adfrc_m4a5\\Textures\\New\\MCC_Colt_Buffer_CO.png",
+   "normal": "E:\\SouthernSpear\\Art\\ADFRC\\Textures\\adfrc_m4a5\\Textures\\New\\MCC_Colt_Buffer_NOHQ.png"
+  },
+  "mcc_fh_co": {
+   "colour": "E:\\SouthernSpear\\Art\\ADFRC\\Textures\\adfrc_m4a5\\Textures\\New\\MCC_FH_CO.png",
+   "normal": "E:\\SouthernSpear\\Art\\ADFRC\\Textures\\adfrc_m4a5\\Textures\\New\\MCC_FH_NOHQ.png"
+  },
+  "mcc_gasblock_co": {
+   "colour": "E:\\SouthernSpear\\Art\\ADFRC\\Textures\\adfrc_m4a5\\Textures\\New\\MCC_Gasblock_CO.png",
+   "normal": "E:\\SouthernSpear\\Art\\ADFRC\\Textures\\adfrc_m4a5\\Textures\\New\\MCC_Gasblock_NOHQ.png"
+  },
+  "mcc_irons_co": {
+   "colour": "E:\\SouthernSpear\\Art\\ADFRC\\Textures\\adfrc_m4a5\\Textures\\New\\MCC_Irons_CO.png",
+   "normal": "E:\\SouthernSpear\\Art\\ADFRC\\Textures\\adfrc_m4a5\\Textures\\New\\MCC_Irons_NOHQ.png"
+  },
+  "mcc_kacris_co": {
+   "colour": "E:\\SouthernSpear\\Art\\ADFRC\\Textures\\adfrc_m4a5\\Textures\\New\\MCC_KACRIS_CO.png",
+   "normal": "E:\\SouthernSpear\\Art\\ADFRC\\Textures\\adfrc_m4a5\\Textures\\New\\MCC_KACRIS_NOHQ.png"
+  },
+  "mcc_m4_lower_co": {
+   "colour": "E:\\SouthernSpear\\Art\\ADFRC\\Textures\\adfrc_m4a5\\Textures\\New\\MCC_M4_Lower_CO.png",
+   "normal": "E:\\SouthernSpear\\Art\\ADFRC\\Textures\\adfrc_m4a5\\Textures\\New\\MCC_M4_Lower_NOHQ.png"
+  },
+  "mcc_m4_upper_co": {
+   "colour": "E:\\SouthernSpear\\Art\\ADFRC\\Textures\\adfrc_m4a5\\Textures\\New\\MCC_M4_Upper_CO.png",
+   "normal": "E:\\SouthernSpear\\Art\\ADFRC\\Textures\\adfrc_m4a5\\Textures\\New\\MCC_M4_Upper_NOHQ.png"
+  },
+  "mcc_stock_co": {
+   "colour": "E:\\SouthernSpear\\Art\\ADFRC\\Textures\\adfrc_m4a5\\Textures\\New\\MCC_Stock_CO.png",
+   "normal": "E:\\SouthernSpear\\Art\\ADFRC\\Textures\\adfrc_m4a5\\Textures\\New\\MCC_Stock_NOHQ.png"
+  },
+  "adfrc_ta31_acog_blk_co": {
+   "colour": "E:\\SouthernSpear\\Art\\ADFRC\\Textures\\adfrc_optics\\TA31\\Textures\\ADFRC_TA31_ACOG_BLK_CO.png",
+   "normal": null
+  },
+  "adfrc_ta31_mount_co": {
+   "colour": "E:\\SouthernSpear\\Art\\ADFRC\\Textures\\adfrc_optics\\TA31\\Textures\\ADFRC_TA31_Mount_CO.png",
+   "normal": "E:\\SouthernSpear\\Art\\ADFRC\\Textures\\adfrc_optics\\TA31\\Textures\\ADFRC_TA31_Mount_NOHQ.png"
+  },
+  "adfrc_ta31_acog_ca": {
+   "colour": "E:\\SouthernSpear\\Art\\ADFRC\\Textures\\adfrc_optics\\TA31\\Textures\\ADFRC_TA31_ACOG_CA.png",
+   "normal": "E:\\SouthernSpear\\Art\\ADFRC\\Textures\\adfrc_optics\\TA31\\Textures\\ADFRC_TA31_ACOG_NOHQ.png"
+  },
+  "adrc_acog_ret_ca": {
+   "colour": "E:\\SouthernSpear\\Art\\ADFRC\\Textures\\adfrc_optics\\TA31\\Textures\\ADRC_ACOG_Ret_CA.png",
+   "normal": null
+  },
+  "adfrc_ta31_glass_ca": {
+   "colour": "E:\\SouthernSpear\\Art\\ADFRC\\Textures\\adfrc_optics\\TA31\\Textures\\ADFRC_TA31_Glass_CA.png",
+   "normal": "E:\\SouthernSpear\\Art\\ADFRC\\Textures\\adfrc_optics\\TA31\\Textures\\ADFRC_TA31_Glass_NOHQ.png"
+  },
+  "optic": {
+   "colour": null,
+   "normal": null
+  }
+ },
+ "muzzle_m": [
+  0.5063916444778442,
+  -0.0017914555501192808,
+  0.03936754912137985
+ ],
+ "memory_points": [
+  "bipod",
+  "bolt_axis",
+  "bolt_release_axis",
+  "dust_cover_axis",
+  "eye",
+  "front_sight_axis",
+  "mag_latch_axis",
+  "magazine_axis",
+  "magazine_axis_h",
+  "muzzle_end",
+  "muzzle_pos",
+  "nabojniceend",
+  "nabojnicestart",
+  "rear_sight_axis",
+  "safety_axis",
+  "stock_axis",
+  "trigger_axis"
+ ],
+ "origin": "trigger_axis",
+ "optic": {
+  "source": "E:\\SouthernSpear\\Art\\ADFRC_BLEND\\adfrc_optics_ss\\ADFRC_TA31_BLK_MLOD.blend",
+  "centre_m": [
+   -0.10894254595041275,
+   0.0,
+   0.10183264315128326
+  ],
+  "size_m": [
+   0.1514441967010498,
+   0.057302966713905334,
+   0.07672258466482162
+  ]
+ }
+}

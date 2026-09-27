@@ -6,6 +6,7 @@
 #include "GameFramework/PlayerController.h"
 #include "InputCoreTypes.h"
 #include "SSLocalHudState.h"
+#include "SSClassSelectWidget.h"
 #include "SSMenuWidget.h"
 #include "SSPlayerHudWidget.h"
 
@@ -55,8 +56,31 @@ void USSPlayerHudSubsystem::Tick(float DeltaTime)
 			Hud->AddToViewport(5);
 			UE_LOG(LogTemp, Log, TEXT("Southern Spear player HUD shown for %s."), *Player->GetName());
 		}
+		ClassSelect = CreateWidget<USSClassSelectWidget>(Player, USSClassSelectWidget::StaticClass());
+		if (ClassSelect)
+		{
+			ClassSelect->AddToViewport(40);
+			ClassSelect->Open(/*bAfterDeath=*/ false);
+		}
+		bHadPawn = true;
 		return;
 	}
+
+	// Class selection: after death (applies on respawn) and on L.
+	const USSLocalHudState* State = World->GetSubsystem<USSLocalHudState>();
+	const bool bHasPawn = State && State->bHasPawn;
+	if (ClassSelect)
+	{
+		if (bHadPawn && !bHasPawn && !ClassSelect->IsVisible())
+		{
+			ClassSelect->Open(/*bAfterDeath=*/ true);
+		}
+		else if (Player->WasInputKeyJustPressed(EKeys::L))
+		{
+			ClassSelect->IsVisible() ? ClassSelect->Close() : ClassSelect->Open(!bHasPawn);
+		}
+	}
+	bHadPawn = bHasPawn;
 
 	if (Player->WasInputKeyJustPressed(EKeys::Escape))
 	{

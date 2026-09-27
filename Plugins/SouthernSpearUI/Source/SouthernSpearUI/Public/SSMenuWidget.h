@@ -49,6 +49,8 @@ public:
 private:
 	UFUNCTION() void OnRedGum();
 	UFUNCTION() void OnDryRiver();
+	UFUNCTION() void OnSaltbush();
+	UFUNCTION() void OnSelatCanal();
 	UFUNCTION() void OnBots4();
 	UFUNCTION() void OnBots8();
 	UFUNCTION() void OnBots12();

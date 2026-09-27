@@ -1564,6 +1564,98 @@ and bot jogging.
 
 ---
 
+## Session 025 — 2026-09-27 — ADFRC Weapons with Optics, Class Selection, Team Deployments, Two New Maps, Dry River Dressed
+
+### COMPLETED
+
+- **ADFRC weapons in game** (L-0021, A-series names per ADR-016).
+  - `Tools/Blender/adfrc_weapon.py` converts the MLOD `.blend`s:
+    - LOD0 per part; ADF tag/ID decals dropped;
+    - Arma memory points: origin at `trigger_axis`, muzzle socket at `muzzle_pos`;
+    - optic merged on the sight line;
+    - texture manifest (extracted `_co` / `_nohq` PNGs).
+  - `Tools/Blender/p3d_to_blend.py` converts optic MLODs with the Arma 3 Object Builder addon.
+  - Weapons: A88 (EF88 + Specter), A88G (EF88 SL40 + Specter), A4 (M4A5 + TA31), A416 (HK416 + TA31),
+    A25 (SR25 + TA648, sniper), A89 (Minimi), A9 (G19). `setup_weapons.py` reads the manifests; A9
+    copies Lyra's pistol.
+- **Class selection** (`USSClassSelectWidget`, `USSKitSelection` in Core, per-role kits in
+  `USSLoadoutSettings`):
+  - Rifleman, Medic, Machine Gunner, Sniper, Grenadier;
+  - shown on first deployment and after death, and on L;
+  - picking while alive respawns at deployment with the kit;
+  - fresh kit (and ammunition) every spawn; bots take weighted random roles.
+  - The screen states honestly that healing and launcher fire are not in yet.
+- **Special Forces maps**: `SpecialForcesMaps` in config (Selat Canal) switch to SF kits (A416 / A4).
+- **Team-side deployments**: `USSDeploymentSpawningComponent` (bridge) replaces Lyra's
+  `B_TeamSpawningRules`, which mixed the teams. `tag_deployments.py` tags start clusters (the side
+  nearer objective A is Team One).
+- **New maps** (`build_objective_map.py`, generic level + nav passes; the layout comes from walkable
+  space, the largest nav island):
+  - `L_Saltbush_01` (Fab Namaqualand; Windmill, Stock Yards, Dry Dam);
+  - `L_SelatCanal_01` (Fab Asian Canal; Footbridge, Market Row, Pump House; SF map);
+  - both on the front end.
+- **Dry River dressed** with Rural Australia assets (`texture_dryriver.py`): dirt ground, timber fences,
+  46 scrub swapped for native vegetation, 65 trees and rocks.
+- **Fixes from the producer's recording:**
+  - grey soldiers: 4 materials lacked the skeletal-mesh usage flag (`fix_skeletal_materials.py`);
+  - MusicManager on-screen spam: component granted;
+  - first-person weapon offset now uses the animation's hand position (`-1.5 -7.5 -7`).
+- Front end uses the new main-menu art (`T_SS_MainMenu` from `Docs/images/mainmenu.png`).
+
+### FILES CHANGED
+
+Created:
+- `SSKitSelection.{h,cpp}`, `SSDeploymentSpawningComponent.{h,cpp}`, `SSClassSelectWidget.{h,cpp}`;
+- `Tools/Blender/adfrc_weapon.py`, `p3d_to_blend.py`;
+- `Tools/Unreal/build_objective_map.py`, `tag_deployments.py`, `texture_dryriver.py`,
+  `fix_skeletal_materials.py`, `export_optics.py`;
+- maps `L_Saltbush_01`, `L_SelatCanal_01`; weapon assets A4 / A416 / A25 / A88G / A9;
+  `Art/Weapons/*/ADFRC`.
+
+Modified:
+- `SSLoadoutSubsystem.{h,cpp}`, `SSFirstPersonSubsystem.cpp`, `SSPlayerHudSubsystem.{h,cpp}`,
+  `SSMenuWidget.{h,cpp}`, `SSUIAssets.h`;
+- `setup_weapons.py`, `setup_objective_assault.py`, `setup_ui.py`, `Config/DefaultGame.ini`;
+- maps `L_RedGum_01`, `L_DryRiver_01`, `L_SS_FrontEnd`; Game Feature data; A88 / A89 assets.
+
+### TESTING
+
+| Test | Command | Exit | Result | Evidence |
+|---|---|---|---|---|
+| Guard | `python Tools/validate_architecture.py` | 0 | PASS | — |
+| Build | `Build.bat SouthernSpearEditor ...` | 0 | Succeeded | — |
+| Weapons | `setup_weapons.py` | 0 | ok=true, 7 weapons | `Build/weapons_setup.json` |
+| New maps nav | `build_objective_map.py` (level + nav) | 0 | all legs connect; deployments 162 m (Saltbush) and 70 m (canal) apart | `Build/objective_map_*.json` |
+| Deployment tags | `tag_deployments.py` | 0 | 4 maps, both teams tagged | `Build/deployment_tags.json` |
+| Dry River nav after dressing | `build_dryriver_nav.py` | 0 | ok=true | `Build/dryriver_nav_report.json` |
+| Kits live | Red Gum and Selat Canal, `-game -nullrhi`, 8 bots | 124 | Varied roles; SF kits and A416 view model on the canal | log |
+| Reload, music warning, usage flags | Red Gum, `-SSAnimDebug` | 124 | Reloads; no MusicManager or usage-flag lines | log |
+| Automation | `Automation RunTests SouthernSpear` | 255 | 30 Success; 1 Fail (parallel session's uncommitted `TwoPlayerAuthoritySmoke`) | `Build/tests.log` |
+| New maps: captures | 120 s rounds, 8 bots | 124 | **No captures** (bots contest objective A the whole round on small maps) | logs |
+| Class screen, optics, hand fit in play | — | — | **Producer check pending** | — |
+
+### ASSETS
+
+L-0021 ADFRC (weapons, optics); Fab L-0016 (Namaqualand, Asian Canal; raw packs git-ignored).
+
+### RISKS
+
+New R-22: class requests are local; remote clients need a replicated request (standalone and listen-host
+only today).
+
+### DEFECTS FOUND
+
+1. Deployments mixed teams (Lyra's spawn rules; producer report).
+2. Selat Canal deployments 13 m apart (walled street end); fixed with the walkable-space layout.
+3. Grey soldiers from missing usage flags; MusicManager spam (producer recording).
+
+### NEXT ACTION
+
+**Producer plays** the class screen, the SF canal and the optics; then tune capture pacing on the small
+maps.
+
+---
+
 ## Open Threads
 
 | Item | Blocked on | Owner |

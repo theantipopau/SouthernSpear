@@ -1,0 +1,64 @@
+{
+ "source": "Art/ADFRC_BLEND/adfrc_minimi/ADFRC_F89_Minimi_MLOD.blend",
+ "fbx": "E:\\SouthernSpear\\Art\\Weapons\\A89\\ADFRC\\SM_A89.fbx",
+ "dimensions_m": [
+  1.093156099319458,
+  0.315744549036026,
+  0.3979361057281494
+ ],
+ "triangles": 27196,
+ "parts": 8,
+ "dropped": [
+  "Resolution 0 (no texture)",
+  "Resolution 10 (no texture)",
+  "Resolution 100 (no texture)",
+  "Resolution 25 (no texture)",
+  "Resolution 250 (no texture)",
+  "Resolution 50 (no texture)",
+  "adfrc_ruid_ADFRC_F89_Minimi_MLOD_R0",
+  "adfrc_tag_ADFRC_F89_Minimi_MLOD_R0"
+ ],
+ "textures": {
+  "adfrc_mag58_co": {
+   "colour": "E:\\SouthernSpear\\Art\\ADFRC\\Textures\\adfrc_mag58\\Textures\\adfrc_Mag58_CO.png",
+   "normal": "E:\\SouthernSpear\\Art\\ADFRC\\Textures\\adfrc_mag58\\Textures\\adfrc_Mag58_NOHQ.png"
+  },
+  "adfrc_maximi_co": {
+   "colour": "E:\\SouthernSpear\\Art\\ADFRC\\Textures\\adfrc_maximi\\Textures\\ADFRC_Maximi_CO.png",
+   "normal": "E:\\SouthernSpear\\Art\\ADFRC\\Textures\\adfrc_maximi\\Textures\\ADFRC_Maximi_NOHQ.png"
+  },
+  "adfrc_minimi_1_co": {
+   "colour": "E:\\SouthernSpear\\Art\\ADFRC\\Textures\\adfrc_minimi\\Textures\\adfrc_minimi_1_CO.png",
+   "normal": "E:\\SouthernSpear\\Art\\ADFRC\\Textures\\adfrc_minimi\\Textures\\adfrc_minimi_1_NOHQ.png"
+  },
+  "adfrc_minimi_2_co": {
+   "colour": "E:\\SouthernSpear\\Art\\ADFRC\\Textures\\adfrc_minimi\\Textures\\adfrc_minimi_2_co.png",
+   "normal": "E:\\SouthernSpear\\Art\\ADFRC\\Textures\\adfrc_minimi\\Textures\\adfrc_minimi_2_nohq.png"
+  }
+ },
+ "muzzle_m": [
+  0.634111762046814,
+  -2.264685690533952e-06,
+  0.08556143194437027
+ ],
+ "memory_points": [
+  "bipod",
+  "bipod_fold_axis",
+  "bipod_leg_l_axis",
+  "bipod_leg_r_axis",
+  "bolt_axis",
+  "deploypoint",
+  "eye",
+  "feed_cover_axis",
+  "flash_rot_axis",
+  "muzzle_end",
+  "muzzle_pos",
+  "nabojniceend",
+  "nabojnicestart",
+  "trigger_axis",
+  "trigger_begin",
+  "trigger_end"
+ ],
+ "origin": "trigger_axis",
+ "optic": null
+}

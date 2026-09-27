@@ -1,0 +1,100 @@
+{
+ "source": "Art/ADFRC_BLEND/adfrc_ef88/ADFRC_EF88_MLOD.blend",
+ "fbx": "E:\\SouthernSpear\\Art\\Weapons\\A88\\ADFRC\\SM_A88.fbx",
+ "dimensions_m": [
+  0.8022162318229675,
+  0.09767086803913116,
+  0.2540575861930847
+ ],
+ "triangles": 82978,
+ "parts": 6,
+ "dropped": [
+  "Resolution 1 (no texture)",
+  "Resolution 2 (no texture)",
+  "Resolution 3 (no texture)",
+  "Resolution 4 (no texture)",
+  "Resolution 5 (no texture)",
+  "Resolution 6 (no texture)",
+  "adfrc_ruid_ADFRC_EF88_MLOD_R0",
+  "adfrc_tag_ADFRC_EF88_MLOD_R0"
+ ],
+ "textures": {
+  "adfrc_ef88_co": {
+   "colour": "E:\\SouthernSpear\\Art\\ADFRC\\Textures\\adfrc_ef88\\Textures\\ADFRC_EF88_CO.png",
+   "normal": "E:\\SouthernSpear\\Art\\ADFRC\\Textures\\adfrc_ef88\\Textures\\ADFRC_EF88_NOHQ.png"
+  },
+  "mbus_front_co": {
+   "colour": null,
+   "normal": null
+  },
+  "mbus_rear_co": {
+   "colour": null,
+   "normal": null
+  },
+  "adfrc_spectr_co": {
+   "colour": "E:\\SouthernSpear\\Art\\ADFRC\\Textures\\adfrc_optics\\Spectr\\Textures\\ADFRC_spectr_CO.png",
+   "normal": "E:\\SouthernSpear\\Art\\ADFRC\\Textures\\adfrc_optics\\Spectr\\Textures\\ADFRC_spectr_NOHQ.png"
+  },
+  "adfrc_spectr_ca": {
+   "colour": "E:\\SouthernSpear\\Art\\ADFRC\\Textures\\adfrc_optics\\Spectr\\Textures\\ADFRC_spectr_CA.png",
+   "normal": "E:\\SouthernSpear\\Art\\ADFRC\\Textures\\adfrc_optics\\Spectr\\Textures\\ADFRC_spectr_NOHQ.png"
+  },
+  "optic": {
+   "colour": null,
+   "normal": null
+  }
+ },
+ "muzzle_m": [
+  0.4210771918296814,
+  -0.0017926865257322788,
+  0.04897291213274002
+ ],
+ "memory_points": [
+  "bipod",
+  "bolt_axis",
+  "bolt_release_axis",
+  "charging_handle_axis",
+  "eye",
+  "gl",
+  "gl_axis",
+  "gl_cartridge_axis",
+  "gl_lock_axis",
+  "mag_latch_axis",
+  "magazine_axis",
+  "muzzle_end",
+  "muzzle_pos",
+  "muzzle_ugl_end",
+  "muzzle_ugl_pos",
+  "nabojniceend",
+  "nabojnicestart",
+  "op_axis",
+  "op_eye_100",
+  "op_eye_150",
+  "op_eye_200",
+  "op_eye_250",
+  "op_eye_300",
+  "op_eye_350",
+  "op_eye_400",
+  "op_eye_50",
+  "op_eye_75",
+  "op_look",
+  "op_move",
+  "safety_axis",
+  "selector_axis",
+  "trigger_axis"
+ ],
+ "origin": "trigger_axis",
+ "optic": {
+  "source": "E:\\SouthernSpear\\Art\\ADFRC_BLEND\\adfrc_optics_ss\\ADFRC_Spectr_RAR_MLOD.blend",
+  "centre_m": [
+   -0.12093688547611237,
+   0.0,
+   0.12018274515867233
+  ],
+  "size_m": [
+   0.15694963932037354,
+   0.06312497705221176,
+   0.0790637657046318
+  ]
+ }
+}

@@ -43,7 +43,7 @@ namespace
 	UWidget* KeyArt(UWidgetTree* T)
 	{
 		UImage* Art = T->ConstructWidget<UImage>();
-		if (UTexture2D* Texture = SSUIAssets::KeyArt())
+		if (UTexture2D* Texture = SSUIAssets::MainMenuArt())
 		{
 			Art->SetBrushFromTexture(Texture, /*bMatchSize=*/ true);
 		}
@@ -66,12 +66,12 @@ namespace
 		AddH(Row, Edge, false, VAlign_Fill);
 		USizeBox* Width = T->ConstructWidget<USizeBox>();
 		Width->SetWidthOverride(460.f);
-		AddH(Row, Width)->SetPadding(FMargin(18.f, 12.f, 18.f, 14.f));
+		AddH(Row, Width)->SetPadding(FMargin(16.f, 8.f, 16.f, 10.f));
 		UVerticalBox* Body = T->ConstructWidget<UVerticalBox>();
 		Width->AddChild(Body);
 		UHorizontalBox* Head = T->ConstructWidget<UHorizontalBox>();
 		AddV(Body, Head);
-		UTextBlock* TitleText = Text(T, 20, true, SSPalette::Sand100(), 100);
+		UTextBlock* TitleText = Text(T, 17, true, SSPalette::Sand100(), 100);
 		TitleText->SetText(Title);
 		AddH(Head, TitleText, true);
 		UTextBlock* Go = Text(T, 16, true, SSPalette::Brass300());
@@ -156,12 +156,12 @@ void USSMenuWidget::Setup(ESSMenuMode InMode)
 		UTextBlock* Kicker = Text(T, 12, true, SSPalette::Brass300(), 300);
 		Kicker->SetText(NSLOCTEXT("SSMenu", "Kicker", "TACTICAL FIRST-PERSON SHOOTER"));
 		AddV(Col, Stagger(Kicker));
-		TitleText = Text(T, 60, true, SSPalette::Sand100(), 100);
+		TitleText = Text(T, 52, true, SSPalette::Sand100(), 100);
 		TitleText->SetText(NSLOCTEXT("SSMenu", "Title", "SOUTHERN SPEAR"));
 		AddV(Col, Stagger(TitleText), 2.f);
 		AddV(Col, Stagger(Rule(T, SSPalette::Brass500(), 2.f, 120.f)), 10.f, HAlign_Left);
 
-		AddV(Col, Stagger(Caption(T, NSLOCTEXT("SSMenu", "Deploy", "DEPLOY  ·  OBJECTIVE ASSAULT"))), 30.f);
+		AddV(Col, Stagger(Caption(T, NSLOCTEXT("SSMenu", "Deploy", "DEPLOY  ·  OBJECTIVE ASSAULT"))), 22.f);
 		AddV(Col, Stagger(AddHandler(MapCard(T, NSLOCTEXT("SSMenu", "RedGum", "RED GUM STATION"),
 			NSLOCTEXT("SSMenu", "RedGumDesc", "An outback cattle station. Take the bore pump, the homestead and the shearing shed in order."),
 			NSLOCTEXT("SSMenu", "RedGumMeta", "3 OBJECTIVES  ·  OPEN PADDOCKS  ·  LONG SIGHTLINES")),
@@ -169,7 +169,15 @@ void USSMenuWidget::Setup(ESSMenuMode InMode)
 		AddV(Col, Stagger(AddHandler(MapCard(T, NSLOCTEXT("SSMenu", "DryRiver", "DRY RIVER"),
 			NSLOCTEXT("SSMenu", "DryRiverDesc", "A dry creek line between a water point and a farmstead."),
 			NSLOCTEXT("SSMenu", "DryRiverMeta", "2 OBJECTIVES  ·  CREEK BED  ·  FARMSTEAD")),
-			GET_FUNCTION_NAME_CHECKED(USSMenuWidget, OnDryRiver))), 8.f, HAlign_Left);
+			GET_FUNCTION_NAME_CHECKED(USSMenuWidget, OnDryRiver))), 6.f, HAlign_Left);
+		AddV(Col, Stagger(AddHandler(MapCard(T, NSLOCTEXT("SSMenu", "Saltbush", "SALTBUSH FLATS"),
+			NSLOCTEXT("SSMenu", "SaltbushDesc", "Arid scrub and stone country. A windmill, the stock yards and a dry dam."),
+			NSLOCTEXT("SSMenu", "SaltbushMeta", "3 OBJECTIVES  ·  COMPACT  ·  ROCKY COVER")),
+			GET_FUNCTION_NAME_CHECKED(USSMenuWidget, OnSaltbush))), 6.f, HAlign_Left);
+		AddV(Col, Stagger(AddHandler(MapCard(T, NSLOCTEXT("SSMenu", "SelatCanal", "SELAT CANAL"),
+			NSLOCTEXT("SSMenu", "SelatCanalDesc", "A Murasian canal district. Fight over the footbridge, market row and pump house."),
+			NSLOCTEXT("SSMenu", "SelatCanalMeta", "3 OBJECTIVES  ·  URBAN  ·  CLOSE QUARTERS")),
+			GET_FUNCTION_NAME_CHECKED(USSMenuWidget, OnSelatCanal))), 6.f, HAlign_Left);
 
 		// Bots: 4 / 8 / 12.
 		AddV(Col, Stagger(Caption(T, NSLOCTEXT("SSMenu", "Bots", "BOTS PER MATCH"))), 24.f);
@@ -332,6 +340,8 @@ void USSMenuWidget::PlayMap(const UObject* Context, const TCHAR* Map)
 
 void USSMenuWidget::OnRedGum()   { PlayMap(this, TEXT("/Game/Maps/L_RedGum_01")); }
 void USSMenuWidget::OnDryRiver() { PlayMap(this, TEXT("/Game/Maps/L_DryRiver_01")); }
+void USSMenuWidget::OnSaltbush()  { PlayMap(this, TEXT("/Game/Maps/L_Saltbush_01")); }
+void USSMenuWidget::OnSelatCanal() { PlayMap(this, TEXT("/Game/Maps/L_SelatCanal_01")); }
 void USSMenuWidget::OnBots4()    { SetBots(4); }
 void USSMenuWidget::OnBots8()    { SetBots(8); }
 void USSMenuWidget::OnBots12()   { SetBots(12); }

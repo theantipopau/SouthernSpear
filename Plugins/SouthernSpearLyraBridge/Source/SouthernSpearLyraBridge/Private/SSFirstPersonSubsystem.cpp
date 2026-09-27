@@ -34,7 +34,7 @@ namespace
 	// Live-tunable placement (console): arms relative to the eye, weapon on weapon_r.
 	TAutoConsoleVariable<FString> CVarArmsOffset(TEXT("ss.FP.ArmsOffset"), TEXT("0 0 0"),
 		TEXT("First-person arms offset from the eye, cm (forward right up)."));
-	TAutoConsoleVariable<FString> CVarWeaponOffset(TEXT("ss.FP.WeaponOffset"), TEXT("3 10 -5"),
+	TAutoConsoleVariable<FString> CVarWeaponOffset(TEXT("ss.FP.WeaponOffset"), TEXT("-1.5 -7.5 -7"),
 		TEXT("Held weapon offset on the arms' ik_hand_gun bone, cm."));
 	TAutoConsoleVariable<FString> CVarWeaponRotation(TEXT("ss.FP.WeaponRotation"), TEXT("0 90 0"),
 		TEXT("Held weapon rotation on ik_hand_gun, degrees (pitch yaw roll); 90 yaw turns our +X meshes to the pack's +Y."));

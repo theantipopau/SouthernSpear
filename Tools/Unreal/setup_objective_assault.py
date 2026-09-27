@@ -95,8 +95,11 @@ def ensure_game_feature_data():
     grants = []
     for actor, comp in (
         ("/Script/LyraGame.LyraGameState", "/ShooterCore/Game/B_TeamSetup_TwoTeams.B_TeamSetup_TwoTeams_C"),
-        ("/Script/LyraGame.LyraGameState", "/ShooterCore/Game/B_TeamSpawningRules.B_TeamSpawningRules_C"),
+        # Team-side deployments (bridge) instead of Lyra's B_TeamSpawningRules, which mixes teams.
+        ("/Script/LyraGame.LyraGameState", "/Script/SouthernSpearLyraBridge.SSDeploymentSpawningComponent"),
         ("/Script/LyraGame.LyraGameState", "/ShooterCore/Bot/B_ShooterBotSpawner.B_ShooterBotSpawner_C"),
+        # Lyra's game state expects a music manager (on-screen warning every frame otherwise).
+        ("/Script/LyraGame.LyraGameState", "/ShooterCore/Elimination/B_MusicManagerComponent_Elimination.B_MusicManagerComponent_Elimination_C"),
         # 3 ACR / MAF soldier bodies (setup_soldiers.py) instead of the random Manny/Quinn.
         ("/Script/Engine.Controller", "/SSExp_ObjectiveAssault/Characters/B_SS_CharacterParts.B_SS_CharacterParts_C"),
     ):
@@ -264,4 +267,7 @@ def main():
     unreal.log("[ObjectiveAssault] result ok={} -> {}".format(report["ok"], REPORT))
 
 
-main()
+# SS_OA_IMPORT_ONLY lets other scripts reuse ensure_game_feature_data() without
+# re-wiring (and re-saving) the Dry River map.
+if not os.environ.get("SS_OA_IMPORT_ONLY"):
+    main()

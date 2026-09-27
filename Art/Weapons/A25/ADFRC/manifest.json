@@ -1,0 +1,123 @@
+{
+ "source": "Art/ADFRC_BLEND/adfrc_SR25/adfrc_SR25_MLOD.blend",
+ "fbx": "E:\\SouthernSpear\\Art\\Weapons\\A25\\ADFRC\\SM_A25.fbx",
+ "dimensions_m": [
+  1.052266001701355,
+  0.07416395843029022,
+  0.2613028883934021
+ ],
+ "triangles": 123405,
+ "parts": 11,
+ "dropped": [
+  "Resolution 0 (no texture)",
+  "Resolution 100 (no texture)",
+  "Resolution 25 (no texture)",
+  "Resolution 250 (no texture)",
+  "Resolution 50 (no texture)",
+  "adfrc_ruid_adfrc_SR25_MLOD_R0",
+  "adfrc_tag_adfrc_SR25_MLOD_R0"
+ ],
+ "textures": {
+  "mss_a2_fde_co": {
+   "colour": null,
+   "normal": null
+  },
+  "mss_bt_co": {
+   "colour": null,
+   "normal": null
+  },
+  "mss_kac_buis_co": {
+   "colour": "E:\\SouthernSpear\\Art\\ADFRC\\Textures\\adfrc_SR25\\SR25\\Textures\\MSS_KAC_BUIS_CO.png",
+   "normal": "E:\\SouthernSpear\\Art\\ADFRC\\Textures\\adfrc_SR25\\SR25\\Textures\\MSS_KAC_BUIS_NOHQ.png"
+  },
+  "mss_kac_ch_fde_co": {
+   "colour": "E:\\SouthernSpear\\Art\\ADFRC\\Textures\\adfrc_SR25\\SR25\\Textures\\MSS_KAC_CH_FDE_CO.png",
+   "normal": null
+  },
+  "mss_m110_barrel_fde_co": {
+   "colour": "E:\\SouthernSpear\\Art\\ADFRC\\Textures\\adfrc_SR25\\SR25\\Textures\\MSS_M110_Barrel_FDE_CO.png",
+   "normal": null
+  },
+  "mss_m110_bs_fde_co": {
+   "colour": "E:\\SouthernSpear\\Art\\ADFRC\\Textures\\adfrc_SR25\\SR25\\Textures\\MSS_M110_BS_FDE_CO.png",
+   "normal": null
+  },
+  "mss_m110_flash_co": {
+   "colour": "E:\\SouthernSpear\\Art\\ADFRC\\Textures\\adfrc_SR25\\SR25\\Textures\\MSS_M110_Flash_CO.png",
+   "normal": "E:\\SouthernSpear\\Art\\ADFRC\\Textures\\adfrc_SR25\\SR25\\Textures\\MSS_M110_Flash_NOHQ.png"
+  },
+  "mss_sr25_bolt_co": {
+   "colour": "E:\\SouthernSpear\\Art\\ADFRC\\Textures\\adfrc_SR25\\SR25\\Textures\\MSS_SR25_Bolt_CO.png",
+   "normal": "E:\\SouthernSpear\\Art\\ADFRC\\Textures\\adfrc_SR25\\SR25\\Textures\\MSS_SR25_Bolt_NOHQ.png"
+  },
+  "mss_sr25_lower_fde_co": {
+   "colour": "E:\\SouthernSpear\\Art\\ADFRC\\Textures\\adfrc_SR25\\SR25\\Textures\\MSS_SR25_Lower_FDE_CO.png",
+   "normal": null
+  },
+  "mss_sr25_upper_fde_co": {
+   "colour": "E:\\SouthernSpear\\Art\\ADFRC\\Textures\\adfrc_SR25\\SR25\\Textures\\MSS_SR25_Upper_FDE_CO.png",
+   "normal": null
+  },
+  "mss_urx2_fde_co": {
+   "colour": "E:\\SouthernSpear\\Art\\ADFRC\\Textures\\adfrc_SR25\\SR25\\Textures\\MSS_URX2_FDE_CO.png",
+   "normal": null
+  },
+  "adfrc_ta31_mount_co": {
+   "colour": "E:\\SouthernSpear\\Art\\ADFRC\\Textures\\adfrc_optics\\TA31\\Textures\\ADFRC_TA31_Mount_CO.png",
+   "normal": "E:\\SouthernSpear\\Art\\ADFRC\\Textures\\adfrc_optics\\TA31\\Textures\\ADFRC_TA31_Mount_NOHQ.png"
+  },
+  "adfrc_ta648_glass_ca": {
+   "colour": "E:\\SouthernSpear\\Art\\ADFRC\\Textures\\adfrc_optics\\TA648\\Textures\\ADFRC_TA648_Glass_CA.png",
+   "normal": "E:\\SouthernSpear\\Art\\ADFRC\\Textures\\adfrc_optics\\TA648\\Textures\\ADFRC_TA648_Glass_NOHQ.png"
+  },
+  "adfrc_ta648_optic_co": {
+   "colour": "E:\\SouthernSpear\\Art\\ADFRC\\Textures\\adfrc_optics\\TA648\\Textures\\ADFRC_TA648_Optic_CO.png",
+   "normal": "E:\\SouthernSpear\\Art\\ADFRC\\Textures\\adfrc_optics\\TA648\\Textures\\ADFRC_TA648_Optic_NOHQ.png"
+  },
+  "adfrc_ta648_optic_ca": {
+   "colour": "E:\\SouthernSpear\\Art\\ADFRC\\Textures\\adfrc_optics\\TA648\\Textures\\ADFRC_TA648_Optic_CA.png",
+   "normal": "E:\\SouthernSpear\\Art\\ADFRC\\Textures\\adfrc_optics\\TA648\\Textures\\ADFRC_TA648_Optic_NOHQ.png"
+  },
+  "optic": {
+   "colour": null,
+   "normal": null
+  }
+ },
+ "muzzle_m": [
+  0.6842267513275146,
+  -0.0018039066344499588,
+  0.04250561445951462
+ ],
+ "memory_points": [
+  "bipod",
+  "bolt_axis",
+  "bolt_release_axis",
+  "dust_cover_axis",
+  "eye",
+  "front_sight_axis",
+  "mag_latch_axis",
+  "magazine_axis",
+  "magazine_axis_h",
+  "muzzle_end",
+  "muzzle_pos",
+  "nabojniceend",
+  "nabojnicestart",
+  "rear_sight_axis",
+  "safety_axis",
+  "trigger_axis"
+ ],
+ "origin": "trigger_axis",
+ "optic": {
+  "source": "E:\\SouthernSpear\\Art\\ADFRC_BLEND\\adfrc_optics_ss\\ADFRC_TA648_MLOD.blend",
+  "centre_m": [
+   -0.11115987598896027,
+   0.0,
+   0.10903841257095337
+  ],
+  "size_m": [
+   0.22999395430088043,
+   0.07416395843029022,
+   0.08896142244338989
+  ]
+ }
+}

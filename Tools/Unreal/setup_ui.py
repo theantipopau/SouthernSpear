@@ -30,22 +30,22 @@ def step(name, ok, detail=""):
     return ok
 
 
-def import_key_art():
+def import_key_art(source=None, name="T_SS_KeyArt"):
     task = unreal.AssetImportTask()
-    task.filename = KEY_ART
+    task.filename = source or KEY_ART
     task.destination_path = TEX_DIR
-    task.destination_name = "T_SS_KeyArt"
+    task.destination_name = name
     task.replace_existing = True
     task.automated = True
     task.save = True
     unreal.AssetToolsHelpers.get_asset_tools().import_asset_tasks([task])
-    tex = unreal.load_asset(TEX_DIR + "/T_SS_KeyArt")
+    tex = unreal.load_asset(TEX_DIR + "/" + name)
     if tex:
         tex.set_editor_property("lod_group", unreal.TextureGroup.TEXTUREGROUP_UI)
         tex.set_editor_property("never_stream", True)
         tex.set_editor_property("compression_settings", unreal.TextureCompressionSettings.TC_EDITOR_ICON)
         eal.save_loaded_asset(tex)
-    step("key_art", tex is not None, TEX_DIR + "/T_SS_KeyArt")
+    step("key_art_" + name, tex is not None, TEX_DIR + "/" + name)
 
 
 def front_end_map():
@@ -74,6 +74,7 @@ def drop_lyra_hud():
 
 try:
     import_key_art()
+    import_key_art(os.path.join(PROJECT_DIR, "Docs", "images", "mainmenu.png"), "T_SS_MainMenu")
     drop_lyra_hud()
     front_end_map()
     report["ok"] = all(s["ok"] for s in report["steps"])

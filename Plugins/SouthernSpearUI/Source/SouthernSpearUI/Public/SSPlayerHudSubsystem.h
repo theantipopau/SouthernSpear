@@ -6,12 +6,14 @@
 #include "Subsystems/WorldSubsystem.h"
 #include "SSPlayerHudSubsystem.generated.h"
 
+class USSClassSelectWidget;
 class USSMenuWidget;
 class USSPlayerHudWidget;
 
 /**
  * Client: adds the Southern Spear player HUD once the local player has a pawn,
- * and toggles the match menu with Escape. Not created on the front end.
+ * toggles the match menu with Escape, and shows class selection on first
+ * deployment, after death and on L. Not created on the front end.
  */
 UCLASS()
 class SSUI_API USSPlayerHudSubsystem : public UTickableWorldSubsystem
@@ -27,4 +29,6 @@ public:
 private:
 	UPROPERTY(Transient) TObjectPtr<USSPlayerHudWidget> Hud;
 	UPROPERTY(Transient) TObjectPtr<USSMenuWidget> PauseMenu;
+	UPROPERTY(Transient) TObjectPtr<USSClassSelectWidget> ClassSelect;
+	bool bHadPawn = false;
 };

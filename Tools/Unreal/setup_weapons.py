@@ -23,7 +23,7 @@ import traceback
 import unreal
 
 PROJECT_DIR = unreal.Paths.convert_relative_path_to_full(unreal.Paths.project_dir())
-WEAPONS = ["A88", "A89"]
+WEAPONS = ["A88", "A88G", "A89", "A4", "A416", "A25", "A9"]
 W = FBX = DEST = None  # set per weapon by main()
 REPORT = os.path.join(PROJECT_DIR, "Build", "weapons_setup.json")
 MAT_DIR = "/SSExp_ObjectiveAssault/Materials"
@@ -34,15 +34,32 @@ LYRA_VISUAL = "/ShooterCore/Weapons/Rifle/B_Rifle.B_Rifle_C"
 # Weapons built from a supplied textured model instead of a Blender script:
 # FBX (from Tools/Blender/<name>_sourced.py) and one colour atlas per slot.
 SOURCED = {
-    "A88": {
-        "fbx": os.path.join("Art", "Weapons", "A88", "New", "SM_A88_Sourced.fbx"),
-        "textures": {
-            "TexBody": os.path.join("Art", "Weapons", "A88", "New", "a22af57e-5818-4ad9-8a01-b0ab3d79048e.png"),
-            "TexFurniture": os.path.join("Art", "Weapons", "A88", "New", "8e6ddb10-a511-410f-9f7b-07b4b2b2eb54.png"),
-            "TexOptic": os.path.join("Art", "Weapons", "A88", "New", "8e6ddb10-a511-410f-9f7b-07b4b2b2eb54.png"),
-        },
-    },
+    # ADFRC models (L-0021) via Tools/Blender/adfrc_weapon.py: FBX + manifest of
+    # slot -> extracted colour/normal PNGs. Renamed to A-series (ADR-016).
+    "A88": {"manifest": os.path.join("Art", "Weapons", "A88", "ADFRC", "manifest.json")},
+    "A4": {"manifest": os.path.join("Art", "Weapons", "A4", "ADFRC", "manifest.json")},
+    "A9": {"manifest": os.path.join("Art", "Weapons", "A9", "ADFRC", "manifest.json")},
+    "A88G": {"manifest": os.path.join("Art", "Weapons", "A88G", "ADFRC", "manifest.json")},
+    "A89": {"manifest": os.path.join("Art", "Weapons", "A89", "ADFRC", "manifest.json")},
+    "A416": {"manifest": os.path.join("Art", "Weapons", "A416", "ADFRC", "manifest.json")},
+    "A25": {"manifest": os.path.join("Art", "Weapons", "A25", "ADFRC", "manifest.json")},
 }
+
+# Lyra definitions each weapon copies (behaviour, abilities, animation layers).
+LYRA_BASE = {
+    "A9": ("/ShooterCore/Weapons/Pistol/WID_Pistol", "/ShooterCore/Weapons/Pistol/ID_Pistol",
+           "/ShooterCore/Weapons/Pistol/B_Pistol.B_Pistol_C"),
+}
+
+
+def base_of(name):
+    return LYRA_BASE.get(name, (LYRA_WID, LYRA_ID, LYRA_VISUAL))
+
+
+def load_manifest(name):
+    with open(os.path.join(PROJECT_DIR, SOURCED[name]["manifest"]), encoding="utf-8") as fh:
+        return json.load(fh)
+
 
 # Palette-derived finishes (Site/styles.css family): olive-drab polymer, dark metal, tinted glass.
 FINISHES = {
@@ -134,7 +151,7 @@ def textured_master():
 
 def import_texture(path, name):
     task = unreal.AssetImportTask()
-    task.filename = os.path.join(PROJECT_DIR, path)
+    task.filename = path if os.path.isabs(path) else os.path.join(PROJECT_DIR, path)
     task.destination_path = DEST
     task.destination_name = name
     task.replace_existing = True
@@ -145,20 +162,29 @@ def import_texture(path, name):
 
 
 def textured_finishes(mesh):
+    """One MI per slot from the manifest's colour texture; slots without a
+    texture fall back to the flat Metal finish."""
     parent = textured_master()
+    flat_parent = master_material()
+    textures = load_manifest(W)["textures"]
     slots = mesh.get_editor_property("static_materials")
     assigned = []
     for i, slot in enumerate(slots):
         name = str(slot.material_slot_name)
-        key = next((k for k in SOURCED[W]["textures"] if name.startswith(k)), None)
-        if not key:
-            continue
-        tex = import_texture(SOURCED[W]["textures"][key], "T_{}_{}".format(W, key.replace("Tex", "")))
-        mi_path = DEST + "/MI_" + W + "_" + key
+        entry = textures.get(name) or textures.get(name.lower()) or {}
+        mi_path = DEST + "/MI_" + W + "_" + name
         mi = unreal.load_asset(mi_path) if eal.does_asset_exist(mi_path) else tools.create_asset(
-            "MI_" + W + "_" + key, DEST, unreal.MaterialInstanceConstant, unreal.MaterialInstanceConstantFactoryNew())
-        mi.set_editor_property("parent", parent)
-        mel.set_material_instance_texture_parameter_value(mi, "BaseColorMap", tex)
+            "MI_" + W + "_" + name, DEST, unreal.MaterialInstanceConstant, unreal.MaterialInstanceConstantFactoryNew())
+        if entry.get("colour"):
+            mi.set_editor_property("parent", parent)
+            tex = import_texture(entry["colour"], "T_" + W + "_" + name)
+            mel.set_material_instance_texture_parameter_value(mi, "BaseColorMap", tex)
+        else:
+            mi.set_editor_property("parent", flat_parent)
+            f = FINISHES["Metal"]
+            mel.set_material_instance_vector_parameter_value(mi, "BaseColor", unreal.LinearColor(*f["BaseColor"], 1.0))
+            mel.set_material_instance_scalar_parameter_value(mi, "Roughness", f["Roughness"])
+            mel.set_material_instance_scalar_parameter_value(mi, "Metallic", f["Metallic"])
         eal.save_loaded_asset(mi)
         mesh.set_material(i, mi)
         assigned.append(name)
@@ -201,7 +227,7 @@ def visual_blueprint(mesh):
     if eal.does_asset_exist(path):
         eal.delete_asset(path)
     factory = unreal.BlueprintFactory()
-    factory.set_editor_property("parent_class", unreal.load_class(None, LYRA_VISUAL))
+    factory.set_editor_property("parent_class", unreal.load_class(None, base_of(W)[2]))
     bp = tools.create_asset(name, DEST, unreal.Blueprint, factory)
     sub = unreal.get_engine_subsystem(unreal.SubobjectDataSubsystem)
     lib_sd = unreal.SubobjectDataBlueprintFunctionLibrary
@@ -236,7 +262,7 @@ def copy_definition(src, name):
 
 
 def equipment_definition(visual_bp):
-    wid = copy_definition(LYRA_WID, "WID_SS_" + W)
+    wid = copy_definition(base_of(W)[0], "WID_SS_" + W)
     cdo = unreal.get_default_object(wid.generated_class())
     text = lib.get_property_as_text(cdo, "ActorsToSpawn")
     ours = visual_bp.generated_class().get_path_name()
@@ -249,7 +275,7 @@ def equipment_definition(visual_bp):
 
 
 def item_definition(wid):
-    item = copy_definition(LYRA_ID, "ID_SS_" + W)
+    item = copy_definition(base_of(W)[1], "ID_SS_" + W)
     cdo = unreal.get_default_object(item.generated_class())
     lib.set_property_from_text(cdo, "DisplayName", 'NSLOCTEXT("SSWeapons", "{0}", "{0}")'.format(W))
     ours = wid.generated_class()
@@ -278,7 +304,7 @@ def main():
     results = []
     for name in WEAPONS:
         W = name
-        FBX = os.path.join(PROJECT_DIR, SOURCED[name]["fbx"]) if name in SOURCED else             os.path.join(PROJECT_DIR, "Art", "Weapons", name, "SM_" + name + ".fbx")
+        FBX = load_manifest(name)["fbx"] if name in SOURCED else             os.path.join(PROJECT_DIR, "Art", "Weapons", name, "SM_" + name + ".fbx")
         DEST = "/SSExp_ObjectiveAssault/Weapons/" + name
         results.append(bool(build_one()))
     return all(results)
