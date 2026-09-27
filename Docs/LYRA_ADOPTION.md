@@ -141,6 +141,22 @@
 - **Why:** Explicit brief requirement, and a fairness property that must be enforced rather than reviewed.
 - **Logged:** Phase 0
 
+### D-08 — Lyra's hero Blueprint reparented to the Southern Spear character (ADR-026)
+
+- **Category:** Structural (Lyra content modified)
+- **What:** `/Game/Characters/Heroes/B_Hero_Default` parent class `ALyraCharacter` → `ASSCharacter` (tactical movement, lean, hit zones, blood, soldier parts).
+- **Why:** Lyra Blueprints identify the hero by class; copies of the hero stopped bots firing.
+- **Re-apply:** `Tools/Unreal/setup_tactical_movement.py` (idempotent).
+- **Logged:** Session 032
+
+### D-09 — Bullet penetration hook in the ranged-weapon ability (ADR-026)
+
+- **Category:** Gameplay (Lyra source modified, narrowly)
+- **What:** `ULyraGameplayAbility_RangedWeapon` hit traces continue through thin surfaces with reduced damage.
+- **Why:** The class is not exported, so the bridge cannot subclass it.
+- **Re-apply:** the patch is marked `// SS ADR-026` in the Lyra source.
+- **Logged:** Session 032 (in progress)
+
 ---
 
 ## 5. Vendor Patch Tracking
@@ -169,4 +185,5 @@ If upstream Lyra is ever updated, every local modification must be re-applied an
 | Date | Entry | Detail |
 |---|---|---|
 | 2026-09-26 | Log created | D-01 … D-07 recorded as baseline departures |
+| 2026-09-28 | D-08, D-09 | ADR-026: hero reparent; penetration hook |
 | 2026-09-26 | G0.8 pending | Lyra download in progress; compile result not yet recorded |

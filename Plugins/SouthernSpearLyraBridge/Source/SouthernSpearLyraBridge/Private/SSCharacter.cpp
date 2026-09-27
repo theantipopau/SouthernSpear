@@ -7,9 +7,15 @@
 #include "EnhancedInputSubsystems.h"
 #include "Engine/LocalPlayer.h"
 #include "GameFramework/PlayerController.h"
+#include "GameplayCueInterface.h"
+#include "GameplayEffectTypes.h"
 #include "InputAction.h"
+#include "Kismet/GameplayStatics.h"
+#include "Particles/ParticleSystem.h"
 #include "InputMappingContext.h"
 #include "Net/UnrealNetwork.h"
+#include "PhysicalMaterials/PhysicalMaterial.h"
+#include "PhysicsEngine/BodyInstance.h"
 #include "SSCharacterMovementComponent.h"
 #include "TimerManager.h"
 
@@ -37,12 +43,43 @@ void ASSCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLife
 void ASSCharacter::BeginPlay()
 {
 	Super::BeginPlay();
+	// Hit zones: head and neck, torso (pelvis, spine, clavicles), limbs (everything else).
+	UPhysicalMaterial* Zones[3] = { Cast<UPhysicalMaterial>(HeadZone.TryLoad()), Cast<UPhysicalMaterial>(TorsoZone.TryLoad()),
+		Cast<UPhysicalMaterial>(LimbZone.TryLoad()) };
+	if (Zones[0] && Zones[1] && Zones[2])
+	{
+		ZoneMaterials = { Zones[0], Zones[1], Zones[2] };
+		for (FBodyInstance* Body : GetMesh()->Bodies)
+		{
+			const FString Bone = GetMesh()->GetBoneName(Body ? Body->InstanceBoneIndex : INDEX_NONE).ToString().ToLower();
+			if (!Body || Bone.IsEmpty() || Bone == TEXT("none"))
+			{
+				continue;
+			}
+			const int32 Zone = (Bone.StartsWith(TEXT("head")) || Bone.StartsWith(TEXT("neck"))) ? 0
+				: (Bone.StartsWith(TEXT("pelvis")) || Bone.StartsWith(TEXT("spine")) || Bone.StartsWith(TEXT("clavicle"))) ? 1 : 2;
+			Body->SetPhysMaterialOverride(Zones[Zone]);
+			++ZoneCounts[Zone];
+		}
+		UE_LOG(LogTemp, Log, TEXT("SSHitZones %s head=%d torso=%d limb=%d"), *GetName(), ZoneCounts[0], ZoneCounts[1], ZoneCounts[2]);
+	}
 	if (UClass* PartsClass = SoldierPartsClass.TryLoadClass<AActor>())
 	{
 		Soldier = NewObject<UChildActorComponent>(this, TEXT("SS_Soldier"));
 		Soldier->SetupAttachment(GetMesh());
 		Soldier->SetChildActorClass(PartsClass);
 		Soldier->RegisterComponent();
+		// Presentation only, like Lyra's cosmetic parts (CollisionMode=NoCollision): with collision the
+		// uniform wrapped the body and blocked the soldier's own sight and weapon traces (bots never fired).
+		if (AActor* Parts = Soldier->GetChildActor())
+		{
+			Parts->SetActorEnableCollision(false);
+			TInlineComponentArray<UPrimitiveComponent*> Prims(Parts);
+			for (UPrimitiveComponent* Prim : Prims)
+			{
+				Prim->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+			}
+		}
 	}
 	// Lyra's hero component clears and rebuilds the input mappings while the
 	// pawn initialises, so keep ours present (cheap check, twice a second).
@@ -150,4 +187,30 @@ void ASSCharacter::UpdateLean()
 void ASSCharacter::ServerSetLean_Implementation(int8 NewLean)
 {
 	Lean = FMath::Clamp<int8>(NewLean, -1, 1);
+}
+
+void ASSCharacter::HandleGameplayCue(UObject* Self, FGameplayTag GameplayCueTag, EGameplayCueEvent::Type EventType, const FGameplayCueParameters& Parameters)
+{
+	Super::HandleGameplayCue(Self, GameplayCueTag, EventType, Parameters);
+	static const FGameplayTag DamageTaken = FGameplayTag::RequestGameplayTag(TEXT("GameplayCue.Character.DamageTaken"), false);
+	if (EventType != EGameplayCueEvent::Executed || !DamageTaken.IsValid() || !GameplayCueTag.MatchesTag(DamageTaken)
+		|| GetNetMode() == NM_DedicatedServer)
+	{
+		return;
+	}
+	if (!BloodSystem)
+	{
+		BloodSystem = Cast<UParticleSystem>(BloodEffect.TryLoad());
+	}
+	const FHitResult* Hit = Parameters.EffectContext.GetHitResult();
+	const FVector Where = Hit && !Hit->ImpactPoint.IsZero() ? FVector(Hit->ImpactPoint)
+		: (!Parameters.Location.IsZero() ? FVector(Parameters.Location) : GetActorLocation() + FVector(0.f, 0.f, 40.f));
+	// Spray away from the shooter, out of the exit side.
+	const FVector Shot = Hit && !Hit->TraceStart.Equals(Hit->TraceEnd) ? (FVector(Hit->TraceEnd) - FVector(Hit->TraceStart)).GetSafeNormal()
+		: -GetActorForwardVector();
+	if (BloodSystem)
+	{
+		UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), BloodSystem, Where, Shot.Rotation(), FVector(0.6f), /*bAutoDestroy=*/ true);
+		UE_LOG(LogTemp, Verbose, TEXT("SSBlood %s at %s (hit result: %d)"), *GetName(), *Where.ToString(), Hit != nullptr);
+	}
 }

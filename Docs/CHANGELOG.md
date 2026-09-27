@@ -2474,6 +2474,65 @@ Game Animation Sample.
 
 ---
 
+## Session 034 — 2026-09-28 — Damage Model, Blood, Bullet Penetration (ADR-026)
+
+### COMPLETED
+
+- **Damage model** (`Tools/Unreal/setup_damage_model.py`): hit zones PM_SS_Head/Torso/Limb (tags SS.Zone.*),
+  set per physics body by bone name in `ASSCharacter::BeginPlay` (head 3, torso 7, limb 12 bodies);
+  per-weapon `B_SS_WeaponInstance_<W>` with zone multipliers and damage flat to 300 m. Rifles: head one hit,
+  torso 3, limbs 5; A25 torso 2. Crash on first death (GC freed the zone materials) fixed: `ZoneMaterials` UPROPERTY.
+- **Blood**: `ASSCharacter::HandleGameplayCue` on `GameplayCue.Character.DamageTaken` spawns the VFX-pack blood
+  burst at the hit point along the shot (clients only).
+- **Hero class (ADR-026, D-08)**: Lyra's `B_Hero_Default` reparented to `ASSCharacter`; `B_SS_Hero*` and
+  `HeroData_SS` deleted (copies broke Lyra's class-identity casts: bots never fired).
+- **Bullet penetration (ADR-026, D-09)**: a marked hook in `ULyraGameplayAbility_RangedWeapon::TraceBulletsInCartridge`
+  (one penetration; hits beyond carry the damage lost in `PenetrationDepth`, which replicates with target data) and
+  in `LyraDamageExecution` (applies it). `USSBallisticsSubsystem` (bridge) measures thickness with a reverse trace
+  on the blocking component; `FSSPenetrationRules` (Core): up to 20 cm, 25-75% damage lost; never terrain or pawns.
+- `Docs/LYRA_ADOPTION.md` D-08, D-09; `Docs/DECISION_LOG.md` ADR-026.
+- Numbered 034: the parallel session's uncommitted changelog already uses 032, 032b, 032c and 033.
+
+### FILES CHANGED
+
+Core `SSBallistics.*`, `Tests/SSBallisticsTests.cpp`, `SSNativeGameplayTags.*`; bridge `SSCharacter.*`,
+`SSCharacterMovementComponent.*`, `SSBallisticsSubsystem.*`, `Build.cs`; Lyra `LyraGameplayAbility_RangedWeapon.*`,
+`LyraDamageExecution.cpp`; `Tools/Unreal/setup_damage_model.py`, `setup_tactical_movement.py`; content listed in ASSETS.
+
+### TESTING
+
+| Test | Command | Exit | Result | Evidence |
+|---|---|---|---|---|
+| Guard | `python Tools/validate_architecture.py` | 0 | PASS | console |
+| Build | `Build.bat SouthernSpearEditor Win64 Development` | 0 | Succeeded | console |
+| Automation | `Automation RunTests SouthernSpear` | 255 | 33 Success, 1 Fail (`TwoPlayerAuthoritySmoke`, the parallel session's test, failing before this session) | `Docs/evidence/S034_tests.txt` |
+| Live | Dry River, 8 bots, 150 s round, `LogTemp=Verbose` (timeout kill) | 124 | 3 penetrations (1.0 and 9.3 cm surfaces), 175 blood spawns, no crash | `Docs/evidence/S034_penetration_live.txt` |
+| Earlier live | Dry River, 8 bots | 124 | 16 kills in about 2 min after the GC fix; 42 blood spawns in 90 s | session log |
+
+NOT RUN: direct measurement of reduced damage through a wall (Lyra's execution has no per-hit damage log);
+visual confirmation of blood (two rendered captures did not show a splat clearly); multiplayer client-to-server penetration check.
+
+### ASSETS
+
+PM_SS_Head/Torso/Limb, B_SS_WeaponInstance_* (copies of Lyra's weapon instances), WID_SS_* InstanceType,
+Lyra `B_Hero_Default` (reparented), experience and IMC updates; blood uses the already-registered VFX pack.
+
+### RISKS
+
+- **R-28 (new):** two Lyra departures (D-08, D-09) must be re-applied on any Lyra update.
+- Penetration thickness is geometric only (no per-material table); thin rock edges can be shot through.
+
+### DEFECTS FOUND
+
+- Ragdoll crash at first death: zone physical materials garbage-collected (live bot run, fatal assert).
+- Bots never fired with a copied hero class (live bot run: zero kills).
+
+### NEXT ACTION
+
+**Measure through-cover damage**: a scripted test that fires through a 5 cm board at a target and checks the health lost.
+
+---
+
 ## Open Threads
 
 | Item | Blocked on | Owner |

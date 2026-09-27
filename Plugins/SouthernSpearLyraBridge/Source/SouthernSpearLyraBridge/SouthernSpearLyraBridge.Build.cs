@@ -34,7 +34,9 @@ public class SouthernSpearLyraBridge : ModuleRules
 				"AIModule", // IGenericTeamAgentInterface (scoreboard teams)
 				"EnhancedInput", // ASSCharacter tactical inputs (ADR-024)
 				"GameplayAbilities", // ALyraCharacter implements IGameplayCueInterface
+				"Landscape", // bullet penetration never passes through terrain (ADR-026)
 				"ModularGameplayActors", // ALyraCharacter base
+				"PhysicsCore", // UPhysicalMaterial (hit zones)
 			}
 		);
 	}

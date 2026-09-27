@@ -32,6 +32,13 @@ public:
 	virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
+	/** Blood (presentation, every client): Lyra's damage effects fire GameplayCue.Character.DamageTaken
+	 * on the victim; a burst from the VFX pack is spawned at the hit point along the shot. */
+	virtual void HandleGameplayCue(UObject* Self, FGameplayTag GameplayCueTag, EGameplayCueEvent::Type EventType, const FGameplayCueParameters& Parameters) override;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Tactical")
+	FSoftObjectPath BloodEffect = FSoftObjectPath(TEXT("/Game/Realistic_Starter_VFX_Pack_Vol2/Particles/Blood/P_Blood_Splat_Cone.P_Blood_Splat_Cone"));
+
 	/**
 	 * The visible soldier (3 ACR / MAF parts, viewer-relative): a child actor on the body mesh,
 	 * spawned on every machine (presentation only). Lyra's replicated cosmetic-part chain did not
@@ -39,6 +46,21 @@ public:
 	 */
 	UPROPERTY(EditDefaultsOnly, Category = "Tactical")
 	FSoftClassPath SoldierPartsClass = FSoftClassPath(TEXT("/SSExp_ObjectiveAssault/Characters/B_SS_Soldier.B_SS_Soldier_C"));
+
+	/**
+	 * Hit zones (damage model, Session 032): physical materials tagged SS.Zone.Head / Torso / Limb
+	 * (Tools/Unreal/setup_damage_model.py), set on every physics body of the soldier by bone name at
+	 * BeginPlay, on server and clients, so the server's hit traces report the zone.
+	 */
+	UPROPERTY(EditDefaultsOnly, Category = "Tactical")
+	FSoftObjectPath HeadZone = FSoftObjectPath(TEXT("/SSExp_ObjectiveAssault/Characters/Physics/PM_SS_Head.PM_SS_Head"));
+	UPROPERTY(EditDefaultsOnly, Category = "Tactical")
+	FSoftObjectPath TorsoZone = FSoftObjectPath(TEXT("/SSExp_ObjectiveAssault/Characters/Physics/PM_SS_Torso.PM_SS_Torso"));
+	UPROPERTY(EditDefaultsOnly, Category = "Tactical")
+	FSoftObjectPath LimbZone = FSoftObjectPath(TEXT("/SSExp_ObjectiveAssault/Characters/Physics/PM_SS_Limb.PM_SS_Limb"));
+
+	/** Number of physics bodies given each zone (tests and diagnostics). */
+	int32 ZoneCounts[3] = { 0, 0, 0 };
 
 	/** -1 left, 0 none, +1 right. */
 	UFUNCTION(BlueprintPure, Category = "Tactical")
@@ -61,6 +83,14 @@ private:
 
 	UPROPERTY(Transient)
 	TObjectPtr<class UChildActorComponent> Soldier;
+
+	/** The zone materials set on the physics bodies: held here, or the garbage collector frees
+	 * them and the bodies keep dangling pointers (crash on ragdoll at the first death). */
+	UPROPERTY(Transient)
+	TArray<TObjectPtr<class UPhysicalMaterial>> ZoneMaterials;
+
+	UPROPERTY(Transient)
+	TObjectPtr<class UParticleSystem> BloodSystem;
 
 	bool bLeanLeftHeld = false;
 	bool bLeanRightHeld = false;

@@ -40,3 +40,8 @@ UE_DEFINE_GAMEPLAY_TAG(TAG_SS_Role_Marksman, "SS.Role.Marksman");
 UE_DEFINE_GAMEPLAY_TAG(TAG_SS_Role_Medic, "SS.Role.Medic");
 UE_DEFINE_GAMEPLAY_TAG(TAG_SS_Role_FireteamLeader, "SS.Role.FireteamLeader");
 UE_DEFINE_GAMEPLAY_TAG(TAG_SS_Role_SectionCommander, "SS.Role.SectionCommander");
+
+// Hit zones
+UE_DEFINE_GAMEPLAY_TAG(TAG_SS_Zone_Head, "SS.Zone.Head");
+UE_DEFINE_GAMEPLAY_TAG(TAG_SS_Zone_Torso, "SS.Zone.Torso");
+UE_DEFINE_GAMEPLAY_TAG(TAG_SS_Zone_Limb, "SS.Zone.Limb");

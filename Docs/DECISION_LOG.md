@@ -595,3 +595,24 @@ Unchanged:
 **Risk (recorded, accepted by the producer).** AMCU and ADF equipment designs belong to the Commonwealth
 of Australia. A commercial release needs Defence permission, or a switch back to the fictional CMECU
 pattern, which the pipeline keeps as a material swap. Tracked as R-27.
+
+## ADR-026 — Two small, documented departures from Lyra: the hero class and bullet penetration
+
+**Status:** Accepted (producer, 2026-09-28: "do it" to the proposed order, penetration via "a small documented Lyra hook").
+**Date:** 2026-09-28
+
+**Decision.** Lyra stays vendored and otherwise unmodified. Two departures are allowed, each logged in
+`Docs/LYRA_ADOPTION.md` and re-applied by script if Lyra is ever updated:
+1. **D-08: hero class.** `/Game/Characters/Heroes/B_Hero_Default` (Lyra content) is reparented from
+   `ALyraCharacter` to `ASSCharacter` (bridge), by `Tools/Unreal/setup_tactical_movement.py`. Copies of the
+   hero (`B_SS_Hero*`) broke Lyra Blueprints that identify the hero by class (for example
+   `B_WeaponInstance_Base` casts to `B_Hero_ShooterMannequin`): bots never fired. The copies are deleted and the
+   experience uses Lyra's `HeroData_ShooterGame` again.
+2. **D-09: bullet penetration.** A narrow hook in `ULyraGameplayAbility_RangedWeapon` (not exported, so it
+   cannot be subclassed from the bridge): hit traces continue through thin surfaces with reduced damage.
+   Lyra's own code stays free of Southern Spear types.
+
+**Why.** Both features need behaviour that Lyra only exposes by class identity or unexported code; the
+alternatives (copying Lyra's hero and weapon chain) were tried for the hero and failed.
+
+**Consequences.** Lyra updates need the two departures re-applied (script for D-08; code patch for D-09).

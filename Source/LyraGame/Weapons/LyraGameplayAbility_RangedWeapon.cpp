@@ -100,6 +100,21 @@ bool ULyraGameplayAbility_RangedWeapon::CanActivateAbility(const FGameplayAbilit
 	return bResult;
 }
 
+// SS ADR-026 (D-09)
+namespace LyraBulletPenetration
+{
+	FHook& GetHook()
+	{
+		static FHook Hook;
+		return Hook;
+	}
+
+	void SetHook(FHook InHook)
+	{
+		GetHook() = MoveTemp(InHook);
+	}
+}
+
 int32 ULyraGameplayAbility_RangedWeapon::FindFirstPawnHitResult(const TArray<FHitResult>& HitResults)
 {
 	for (int32 Idx = 0; Idx < HitResults.Num(); ++Idx)
@@ -402,6 +417,28 @@ void ULyraGameplayAbility_RangedWeapon::TraceBulletsInCartridge(const FRangedWea
 		TArray<FHitResult> AllImpacts;
 
 		FHitResult Impact = DoSingleBulletTrace(InputData.StartTrace, EndTrace, WeaponData->GetBulletTraceSweepRadius(), /*bIsSimulated=*/ false, /*out*/ AllImpacts);
+
+		// SS ADR-026 (D-09): one penetration through a thin surface. Hits beyond it carry the damage lost
+		// in PenetrationDepth (unused by traces that do not start penetrating); LyraDamageExecution applies it.
+		FVector ResumeAt;
+		float DamageLost = 0.0f;
+		if (LyraBulletPenetration::GetHook() && Impact.bBlockingHit && Impact.GetActor() && FindFirstPawnHitResult(AllImpacts) == INDEX_NONE
+			&& LyraBulletPenetration::GetHook()(Impact, BulletDir, ResumeAt, DamageLost))
+		{
+			TArray<FHitResult> Beyond;
+			const FHitResult Next = DoSingleBulletTrace(ResumeAt, EndTrace, WeaponData->GetBulletTraceSweepRadius(), /*bIsSimulated=*/ false, /*out*/ Beyond);
+			if (Next.GetActor())
+			{
+				for (FHitResult& Hit : Beyond)
+				{
+					Hit.bStartPenetrating = false;
+					Hit.PenetrationDepth = FMath::Clamp(DamageLost, 0.01f, 1.0f);
+					Hit.TraceStart = InputData.StartTrace;
+				}
+				AllImpacts.Append(Beyond);
+				Impact = Next;
+			}
+		}
 
 		const AActor* HitActor = Impact.GetActor();
 

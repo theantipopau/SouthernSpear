@@ -127,8 +127,12 @@ void ULyraDamageExecution::Execute_Implementation(const FGameplayEffectCustomExe
 	}
 	DistanceAttenuation = FMath::Max(DistanceAttenuation, 0.0f);
 
+	// SS ADR-026 (D-09): damage lost to bullet penetration (set by the ranged weapon's trace).
+	const float PenetrationAttenuation = (HitActorResult && !HitActorResult->bStartPenetrating)
+		? 1.0f - FMath::Clamp(HitActorResult->PenetrationDepth, 0.0f, 1.0f) : 1.0f;
+
 	// Clamping is done when damage is converted to -health
-	const float DamageDone = FMath::Max(BaseDamage * DistanceAttenuation * PhysicalMaterialAttenuation * DamageInteractionAllowedMultiplier, 0.0f);
+	const float DamageDone = FMath::Max(BaseDamage * DistanceAttenuation * PhysicalMaterialAttenuation * DamageInteractionAllowedMultiplier * PenetrationAttenuation, 0.0f);
 
 	if (DamageDone > 0.0f)
 	{

@@ -85,6 +85,19 @@ namespace
 USSCharacterMovementComponent::USSCharacterMovementComponent(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
+	ApplyTuning();
+}
+
+void USSCharacterMovementComponent::InitializeComponent()
+{
+	Super::InitializeComponent();
+	// Lyra's hero Blueprints override movement values (acceleration 1200, braking 1400, friction 8);
+	// the tactical tuning wins at runtime.
+	ApplyTuning();
+}
+
+void USSCharacterMovementComponent::ApplyTuning()
+{
 	MaxWalkSpeed = Tuning.JogSpeed;
 	MaxWalkSpeedCrouched = Tuning.CrouchSpeed;
 	MaxAcceleration = Tuning.Acceleration;

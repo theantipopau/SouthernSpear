@@ -1,0 +1,8 @@
+[2026.09.27-14.10.28:182][  2]LogTemp: SSHitZones B_Hero_ShooterMannequin_C_0 head=3 torso=7 limb=12
+[2026.09.27-14.10.28:848][175]LogTemp: SSHitZones B_Hero_ShooterMannequin_C_1 head=3 torso=7 limb=12
+[2026.09.27-14.10.29:393][175]LogTemp: SSHitZones B_Hero_ShooterMannequin_C_2 head=3 torso=7 limb=12
+[2026.09.27-14.10.29:942][598]LogTemp: SSHitZones B_Hero_ShooterMannequin_C_3 head=3 torso=7 limb=12
+[2026.09.27-14.10.30:488][ 46]LogTemp: SSHitZones B_Hero_ShooterMannequin_C_4 head=3 torso=7 limb=12
+[2026.09.27-14.10.31:033][467]LogTemp: SSHitZones B_Hero_ShooterMannequin_C_5 head=3 torso=7 limb=12
+[2026.09.27-14.10.31:581][884]LogTemp: SSHitZones B_Hero_ShooterMannequin_C_6 head=3 torso=7 limb=12
+[2026.09.27-14.10.32:133][300]LogTemp: SSHitZones B_Hero_ShooterMannequin_C_7 head=3 torso=7 limb=12

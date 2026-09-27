@@ -4,10 +4,10 @@
 #      IMC_SS_Tactical (/SSExp_ObjectiveAssault/Input): Left Shift sprint (takes the key from Lyra's
 #      dash), Left Alt walk, right mouse aim intent (shared with Lyra's ADS: not consumed),
 #      Q / E lean (taking them from Lyra's grenade / melee), and Lyra's grenade on G, melee on V.
-#   2. B_SS_Hero_Default (copy of Lyra's B_Hero_Default, reparented to ASSCharacter) and B_SS_Hero (copy
-#      of B_Hero_ShooterMannequin, reparented to B_SS_Hero_Default): Lyra's chain with our character at
-#      the root; Lyra's assets are untouched. HeroData_SS: a copy of HeroData_ShooterGame using B_SS_Hero.
-#   3. The Objective Assault experience's pawn data -> HeroData_SS (players and bots).
+#   2. ADR-026 (Lyra departure): Lyra's B_Hero_Default reparented to ASSCharacter, so every Lyra hero
+#      (players and bots) gets the tactical character and movement, and Lyra's own Blueprints that
+#      identify the hero by class keep working.
+#   3. The Objective Assault experience uses Lyra's HeroData_ShooterGame.
 # Report: Build/tactical_movement_setup.json.
 
 import json
@@ -68,37 +68,23 @@ def main():
     eal.save_loaded_asset(imc, False)
     step("input", True, "IMC_SS_Tactical: {} mappings".format(len(ours) + 2))
 
-    # Lyra's chain is B_Hero_ShooterMannequin -> B_Hero_Default -> LyraCharacter, and B_Hero_Default
-    # holds components (character parts among them). Mirror it: B_SS_Hero_Default (copy of
-    # B_Hero_Default) -> SSCharacter, and B_SS_Hero (copy of the shooter hero) -> B_SS_Hero_Default.
-    base_path = CHARS + "/B_SS_Hero_Default"
-    if not eal.does_asset_exist(base_path):
-        eal.duplicate_asset("/Game/Characters/Heroes/B_Hero_Default", base_path)
-    base = unreal.load_asset(base_path)
+    # ADR-026: ASSCharacter goes UNDER Lyra's heroes: B_Hero_Default (parent of B_Hero_ShooterMannequin)
+    # is reparented from LyraCharacter to SSCharacter. Copies of the hero broke Lyra Blueprints that
+    # identify it by class (B_WeaponInstance_Base casts to B_Hero_ShooterMannequin: bots never fired).
+    base = unreal.load_asset("/Game/Characters/Heroes/B_Hero_Default")
     unreal.BlueprintEditorLibrary.reparent_blueprint(base, unreal.load_class(None, "/Script/SouthernSpearLyraBridge.SSCharacter"))
     unreal.BlueprintEditorLibrary.compile_blueprint(base)
-    step("hero_default", eal.save_loaded_asset(base, False), base.generated_class().get_name())
-    hero_path = CHARS + "/B_SS_Hero"
-    if not eal.does_asset_exist(hero_path):
-        eal.duplicate_asset("/ShooterCore/Game/B_Hero_ShooterMannequin", hero_path)
-    hero = unreal.load_asset(hero_path)
-    unreal.BlueprintEditorLibrary.reparent_blueprint(hero, base.generated_class())
-    unreal.BlueprintEditorLibrary.compile_blueprint(hero)
-    step("hero", eal.save_loaded_asset(hero, False), hero.generated_class().get_name())
-
-    data_path = CHARS + "/HeroData_SS"
-    if not eal.does_asset_exist(data_path):
-        eal.duplicate_asset("/ShooterCore/Game/HeroData_ShooterGame", data_path)
-    data = unreal.load_asset(data_path)
-    data.set_editor_property("pawn_class", hero.generated_class())
-    step("pawn_data", eal.save_loaded_asset(data, False), data.get_editor_property("pawn_class").get_path_name())
+    step("hero_default_reparented", eal.save_loaded_asset(base, False), "B_Hero_Default -> SSCharacter")
+    for old in ("B_SS_Hero", "B_SS_Hero_Default", "HeroData_SS"):
+        if eal.does_asset_exist(CHARS + "/" + old):
+            eal.delete_asset(CHARS + "/" + old)
 
     exp = unreal.load_asset(EXPERIENCE)
     cdo = unreal.get_default_object(exp.generated_class())
-    ok = lib.set_property_from_text(cdo, "DefaultPawnData", '"{}"'.format(data.get_path_name()))
+    ok = lib.set_property_from_text(cdo, "DefaultPawnData", '"/ShooterCore/Game/HeroData_ShooterGame.HeroData_ShooterGame"')
     unreal.BlueprintEditorLibrary.compile_blueprint(exp)
     now = lib.get_property_as_text(cdo, "DefaultPawnData")
-    step("experience_pawn_data", ok and "HeroData_SS" in now and eal.save_loaded_asset(exp, False), now)
+    step("experience_pawn_data", ok and "HeroData_ShooterGame" in now and eal.save_loaded_asset(exp, False), now)
 
 
 try:

@@ -22,6 +22,7 @@ class SSBRIDGE_API USSCharacterMovementComponent : public ULyraCharacterMovement
 public:
 	USSCharacterMovementComponent(const FObjectInitializer& ObjectInitializer);
 
+	virtual void InitializeComponent() override;
 	virtual float GetMaxSpeed() const override;
 	virtual void UpdateFromCompressedFlags(uint8 Flags) override;
 	virtual FNetworkPredictionData_Client* GetPredictionData_Client() const override;
@@ -41,6 +42,8 @@ public:
 	FSSMovementTuning Tuning;
 
 private:
+	void ApplyTuning();
+
 	bool bWantsSprint = false;
 	bool bWantsWalk = false;
 	bool bWantsAim = false;
