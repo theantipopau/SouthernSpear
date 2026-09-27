@@ -158,6 +158,19 @@ void USSMinimapWidget::EnsureCapture()
 	Comp->ShowFlags.SetAtmosphere(false);
 	Comp->ShowFlags.SetCloud(false);
 	Comp->ShowFlags.SetMotionBlur(false);
+	// Cheap top-down pass: no GI, reflections, shadows or post effects.
+	Comp->ShowFlags.SetLumenGlobalIllumination(false);
+	Comp->ShowFlags.SetLumenReflections(false);
+	Comp->ShowFlags.SetGlobalIllumination(false);
+	Comp->ShowFlags.SetDynamicShadows(false);
+	Comp->ShowFlags.SetAmbientOcclusion(false);
+	Comp->ShowFlags.SetScreenSpaceReflections(false);
+	Comp->ShowFlags.SetBloom(false);
+	Comp->ShowFlags.SetEyeAdaptation(false);
+	Comp->ShowFlags.SetParticles(false);
+	Comp->ShowFlags.SetSkeletalMeshes(false);
+	Comp->ShowFlags.SetTranslucency(false);
+	Comp->LODDistanceFactor = 4.f;
 	MapImage->SetBrushResourceObject(Target);
 	MapImage->SetDesiredSizeOverride(FVector2D(MapSize, MapSize));
 }
@@ -194,6 +207,7 @@ void USSMinimapWidget::Refresh()
 		Comp->OrthoWidth = WorldWidth;
 		Capture->SetActorLocation(Centre + FVector(0.f, 0.f, 30000.f));
 		Comp->CaptureScene();
+		ImageCentre = Centre;
 	}
 }
 
@@ -201,7 +215,7 @@ FVector2D USSMinimapWidget::WorldToMap(const FVector& World) const
 {
 	// Looking straight down with yaw 0: image up is world +X, image right is +Y.
 	const float Scale = MapSize / WorldWidth;
-	return FVector2D(MapSize * 0.5f + (World.Y - Centre.Y) * Scale, MapSize * 0.5f - (World.X - Centre.X) * Scale);
+	return FVector2D(MapSize * 0.5f + (World.Y - ImageCentre.Y) * Scale, MapSize * 0.5f - (World.X - ImageCentre.X) * Scale);
 }
 
 void USSMinimapWidget::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
@@ -220,10 +234,9 @@ void USSMinimapWidget::NativeTick(const FGeometry& MyGeometry, float InDeltaTime
 		{
 			Centre = Pawn->GetActorLocation();
 		}
-		CaptureAccumulator += InDeltaTime;
-		if (CaptureAccumulator >= 0.25f || !Capture)
+		// Re-render only after moving 15% of the view; markers move every frame.
+		if (!Capture || FVector::Dist2D(Centre, ImageCentre) > WorldWidth * 0.15f)
 		{
-			CaptureAccumulator = 0.f;
 			Refresh();
 		}
 	}

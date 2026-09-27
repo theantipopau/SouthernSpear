@@ -57,7 +57,7 @@ public:
 /**
  * Server: on each new pawn, clears the controller's quick bar and grants the
  * kit for its chosen role (USSKitSelection; bots get a random role once).
- * When a player picks a different class, respawns them so it applies now.
+ * When a player picks a different class while alive, swaps the kit in place.
  */
 UCLASS()
 class SSBRIDGE_API USSLoadoutSubsystem : public UTickableWorldSubsystem
@@ -72,7 +72,6 @@ public:
 
 private:
 	void Grant(AController* Controller);
-	void Respawn(AController* Controller);
 
 	TSet<TWeakObjectPtr<APawn>> HandledPawns;
 	float Accumulator = 0.f;

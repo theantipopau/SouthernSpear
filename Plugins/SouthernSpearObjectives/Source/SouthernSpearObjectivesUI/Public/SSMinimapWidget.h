@@ -47,7 +47,7 @@ private:
 	float MapSize = 220.f;
 	float WorldWidth = 12000.f; // cm across the map image
 	FVector Centre = FVector::ZeroVector;
-	float CaptureAccumulator = 0.f;
+	FVector ImageCentre = FVector::ZeroVector;
 
 	UPROPERTY(Transient) TObjectPtr<UTextureRenderTarget2D> Target;
 	UPROPERTY(Transient) TObjectPtr<ASceneCapture2D> Capture;

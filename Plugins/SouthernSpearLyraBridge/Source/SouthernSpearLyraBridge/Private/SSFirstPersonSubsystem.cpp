@@ -36,8 +36,12 @@ namespace
 		TEXT("First-person arms offset from the eye, cm (forward right up)."));
 	TAutoConsoleVariable<FString> CVarWeaponOffset(TEXT("ss.FP.WeaponOffset"), TEXT("-1.5 -7.5 -7"),
 		TEXT("Held weapon offset on the arms' ik_hand_gun bone, cm."));
-	TAutoConsoleVariable<FString> CVarWeaponRotation(TEXT("ss.FP.WeaponRotation"), TEXT("0 90 0"),
+	TAutoConsoleVariable<FString> CVarWeaponRotation(TEXT("ss.FP.WeaponRotation"), TEXT("0 -90 0"),
 		TEXT("Held weapon rotation on ik_hand_gun, degrees (pitch yaw roll); 90 yaw turns our +X meshes to the pack's +Y."));
+	TAutoConsoleVariable<int32> CVarForceAim(TEXT("ss.FP.ForceAim"), 0,
+		TEXT("Debug: 1 holds the first-person view in aim (for sight alignment captures)."));
+	TAutoConsoleVariable<float> CVarEyeRelief(TEXT("ss.FP.EyeRelief"), 20.f,
+		TEXT("Minimum distance, cm, from the eye to the weapon's Sight socket when aiming."));
 
 	FVector ParseVector(const TAutoConsoleVariable<FString>& CVar)
 	{
@@ -93,7 +97,7 @@ void USSFirstPersonSubsystem::Tick(float DeltaTime)
 	Camera->DetermineCameraModeDelegate.BindLambda([LyraChoice, AimFlag]() -> TSubclassOf<ULyraCameraMode>
 	{
 		const TSubclassOf<ULyraCameraMode> Chosen = LyraChoice.IsBound() ? LyraChoice.Execute() : nullptr;
-		*AimFlag = Chosen && Chosen->GetName().Contains(TEXT("ADS"));
+		*AimFlag = (Chosen && Chosen->GetName().Contains(TEXT("ADS"))) || CVarForceAim.GetValueOnGameThread() != 0;
 		return *AimFlag ? USSFirstPersonADSCameraMode::StaticClass() : USSFirstPersonCameraMode::StaticClass();
 	});
 
@@ -130,7 +134,9 @@ void USSFirstPersonSubsystem::Tick(float DeltaTime)
 
 	if (const ACharacter* Character = Cast<ACharacter>(Pawn))
 	{
-		Character->GetMesh()->HideBoneByName(TEXT("head"), EPhysBodyOp::PBO_None);
+		// First person shows only the arms: the body (and the soldier parts
+		// that follow it, below) is hidden from its owner but keeps its shadow.
+		Character->GetMesh()->SetOwnerNoSee(true);
 	}
 	HandledPawn = Pawn;
 	LastMagazine = -1;
@@ -212,6 +218,11 @@ void USSFirstPersonSubsystem::UpdateViewModel(APawn* Pawn, float DeltaTime)
 	Pawn->GetAttachedActors(Attached, true, true);
 	for (AActor* Actor : Attached)
 	{
+		TInlineComponentArray<USkeletalMeshComponent*> Bodies(Actor);
+		for (USkeletalMeshComponent* Body : Bodies)
+		{
+			Body->SetOwnerNoSee(true);
+		}
 		TInlineComponentArray<UStaticMeshComponent*> Meshes(Actor);
 		for (UStaticMeshComponent* Mesh : Meshes)
 		{
@@ -255,6 +266,26 @@ void USSFirstPersonSubsystem::UpdateViewModel(APawn* Pawn, float DeltaTime)
 		Arms->SetRelativeLocationAndRotation(-Eye + ParseVector(CVarArmsOffset) + SwayOffset, Facing);
 		const FVector Rot = ParseVector(CVarWeaponRotation);
 		ViewModel->SetRelativeLocationAndRotation(ParseVector(CVarWeaponOffset), FRotator(Rot.X, Rot.Y, Rot.Z));
+		// The pack animates a short AKS74U; its hand bone swings our longer
+		// weapons across the view. Keep the grip in the hand but point the
+		// weapon along the view (a slight inward cant at the hip).
+		if (const USceneComponent* ViewParent = Arms->GetAttachParent())
+		{
+			const FRotator Cant(0.f, FMath::Lerp(-2.5f, 0.f, AimAlpha), FMath::Lerp(-4.f, 0.f, AimAlpha));
+			ViewModel->SetWorldRotation(ViewParent->GetComponentQuat() * Cant.Quaternion());
+		}
+
+		// Aiming: the pack frames its own iron sights; our optics sit higher and
+		// differ per weapon, so shift the arms until the weapon's Sight socket is
+		// on the line of sight (camera X axis) with some eye relief.
+		static const FName SightSocket(TEXT("Sight"));
+		const USceneComponent* View = Arms->GetAttachParent();
+		if (View && AimAlpha > 0.f && ViewModel->DoesSocketExist(SightSocket))
+		{
+			const FVector Sight = View->GetComponentTransform().InverseTransformPosition(ViewModel->GetSocketLocation(SightSocket));
+			const FVector Correction(FMath::Max(0.f, CVarEyeRelief.GetValueOnGameThread() - Sight.X), -Sight.Y, -Sight.Z);
+			Arms->AddRelativeLocation(Correction * AimAlpha);
+		}
 		return;
 	}
 

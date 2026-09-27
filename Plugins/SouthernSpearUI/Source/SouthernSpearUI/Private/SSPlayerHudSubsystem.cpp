@@ -60,7 +60,14 @@ void USSPlayerHudSubsystem::Tick(float DeltaTime)
 		if (ClassSelect)
 		{
 			ClassSelect->AddToViewport(40);
-			ClassSelect->Open(/*bAfterDeath=*/ false);
+			if (!FParse::Param(FCommandLine::Get(), TEXT("SSNoClassSelect"))) // dev captures
+			{
+				ClassSelect->Open(/*bAfterDeath=*/ false);
+			}
+			else
+			{
+				ClassSelect->Close();
+			}
 		}
 		bHadPawn = true;
 		return;

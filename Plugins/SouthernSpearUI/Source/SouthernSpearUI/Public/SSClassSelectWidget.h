@@ -15,7 +15,7 @@ class UWidget;
  * Class selection (on first deployment and after death): Rifleman, Medic,
  * Machine Gunner, Sniper, Grenadier, with the kit each carries (standard or
  * Special Forces, from USSKitSelection). Picking one writes the request to
- * USSKitSelection; the Lyra bridge grants it (respawning at deployment when
+ * USSKitSelection; the Lyra bridge grants it (swapping the kit in place when
  * alive). Built in C++ in the Southern Spear style.
  */
 UCLASS()

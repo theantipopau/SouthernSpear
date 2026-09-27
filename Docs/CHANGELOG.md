@@ -1656,6 +1656,78 @@ maps.
 
 ---
 
+## Session 026 — 2026-09-27 — Class Swap Fix, First-Person Weapon Fit, Optic Glass, Performance Pass
+
+### COMPLETED
+
+- **Class selection fixed** (producer report "it respawned"). The log showed
+  `RequestPlayerRestartNextFrame missing or changed signature` (bool padding), so a pick killed the
+  pawn and Lyra respawned it with the old kit. Picking a class while alive now swaps the kit in place
+  (`USSLoadoutSubsystem`); no respawn.
+- **First-person weapon fit** (producer recordings):
+  - the weapon was attached backwards on `ik_hand_gun` (default rotation now `0 -90 0`);
+  - the grip stays in the hand but the weapon points along the view, because the pack's AKS74U hand
+    bone swung longer weapons across the screen;
+  - own body and soldier parts are hidden from the owner (the headless torso when looking down);
+  - aiming shifts the arms so the weapon's new `Sight` socket (`add_sight_sockets.py`, from the optic
+    bounds in the ADFRC manifests) is on the line of sight, with `ss.FP.EyeRelief` (20 cm);
+  - optic lenses use a translucent `M_SS_OpticGlass` (they rendered solid black);
+  - debug: `ss.FP.ForceAim`, `-SSNoClassSelect`.
+- **Performance:**
+  - the minimap re-rendered the full scene with Lumen 4 times a second; it now uses a stripped capture
+    and re-renders only after moving 15% of its view;
+  - Nanite for 209 opaque props used by the four maps (`optimize_nanite.py`);
+  - texture streaming pool 2500 MB (the on-screen "pool over budget" message).
+- **Regression found and fixed in session:** Nanite recoloured the Rural Australia trees (producer
+  recording); vegetation with authored LODs and the weapons went back to classic meshes
+  (`fix_visual_regressions.py`).
+
+### FILES CHANGED
+
+- `SSLoadoutSubsystem.{h,cpp}`, `SSFirstPersonSubsystem.cpp`, `SSMinimapWidget.{h,cpp}`,
+  `SSPlayerHudSubsystem.cpp`, `SSClassSelectWidget.h`;
+- `Tools/Unreal/add_sight_sockets.py`, `optimize_nanite.py`, `fix_visual_regressions.py` (new);
+  `setup_weapons.py`;
+- `Config/DefaultEngine.ini`;
+- weapon meshes, `M_SS_OpticGlass`; Nanite flags on Fab pack meshes (git-ignored packs; reproduced by
+  the scripts).
+
+### TESTING
+
+| Test | Command | Exit | Result | Evidence |
+|---|---|---|---|---|
+| Guard | `python Tools/validate_architecture.py` | 0 | PASS | — |
+| Build | `Build.bat SouthernSpearEditor ...` | 0 | Succeeded | — |
+| Automation | `Automation RunTests SouthernSpear` | 255 | 30 Success; 1 Fail (parallel session's `TwoPlayerAuthoritySmoke`) | `Build/tests.log` |
+| Nanite pass | `optimize_nanite.py` | 0 | 209 meshes, 17 materials, 2 translucent skipped | `Build/nanite_report.json` |
+| Regression fix | `fix_visual_regressions.py` | 0 | 18 vegetation and 7 weapons reverted; 5 lens slots glass | log |
+| Rendered hip and aim | Red Gum `-game -windowed -SSShotAt=20`, 8 bots, `stat unit` | 124 | Weapon forward in the hand, trees green, 8.8 ms frame at 1280x720; lens see-through | screenshots (scratch) |
+| Class pick swaps kit in play | — | — | **NOT RUN** (needs a click; producer check) | — |
+
+### ASSETS
+
+No new imports. The producer reports more ADFRC assets (sounds, textures) in the dump: not yet reviewed.
+
+### RISKS
+
+- R-23 (new): the `[VSM] Non-Nanite Marking Job Queue overflow` warning remains with classic vegetation.
+- The pack's AKS74U arm pose does not put the left hand on our handguards.
+
+### DEFECTS FOUND
+
+1. Class pick respawned with the old kit (producer; log showed the reflection signature error).
+2. Weapon attached backwards and swinging with the pack's hand bone (producer recordings, captures).
+3. Opaque optic lenses (capture).
+4. Minimap full-scene capture 4 times a second (code review).
+5. Nanite recoloured the trees (producer recording; introduced and fixed this session).
+
+### NEXT ACTION
+
+**Producer plays** Red Gum (class pick, hip and aim feel). Then fit the left hand to the handguard
+(hand IK on the arms).
+
+---
+
 ## Open Threads
 
 | Item | Blocked on | Owner |

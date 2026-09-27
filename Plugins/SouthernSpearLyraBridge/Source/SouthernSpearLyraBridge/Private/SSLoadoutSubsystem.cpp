@@ -38,7 +38,6 @@ namespace
 	struct FAddToSlotParams { int32 SlotIndex; ULyraInventoryItemInstance* Item; };
 	struct FRemoveFromSlotParams { int32 SlotIndex; ULyraInventoryItemInstance* ReturnValue = nullptr; };
 	struct FSetActiveParams { int32 NewIndex; };
-	struct FRestartParams { AController* Controller; bool bForceReset; };
 
 	// Bots spread over the roles (weights: mostly riflemen).
 	ESSKitRole RandomBotRole()
@@ -112,7 +111,7 @@ void USSLoadoutSubsystem::Tick(float DeltaTime)
 		APawn* Pawn = Controller->GetPawn();
 		if (Selection && Pawn && HandledPawns.Contains(Pawn) && Selection->ConsumeChange(Controller))
 		{
-			Respawn(Controller); // class changed while alive: apply now at deployment
+			Grant(Controller); // class changed while alive: swap the kit in place
 			continue;
 		}
 		if (Pawn && !HandledPawns.Contains(Pawn) && Pawn->GetGameTimeSinceCreation() > 0.5f)
@@ -132,22 +131,6 @@ void USSLoadoutSubsystem::Tick(float DeltaTime)
 			SetIt.RemoveCurrent();
 		}
 	}
-}
-
-void USSLoadoutSubsystem::Respawn(AController* Controller)
-{
-	UWorld* World = GetWorld();
-	AGameModeBase* GameMode = World ? World->GetAuthGameMode() : nullptr;
-	APawn* Pawn = Controller->GetPawn();
-	if (!GameMode || !Pawn)
-	{
-		return;
-	}
-	Controller->UnPossess();
-	Pawn->Destroy();
-	FRestartParams Params { Controller, false };
-	CallReflected(GameMode, TEXT("RequestPlayerRestartNextFrame"), Params);
-	UE_LOG(LogSSLoadout, Log, TEXT("%s changed class: respawning at deployment."), *Controller->GetName());
 }
 
 void USSLoadoutSubsystem::Grant(AController* Controller)
