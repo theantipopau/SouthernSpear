@@ -90,6 +90,7 @@ python Tools/verify_dressing.py
 - In Git Bash prefix map-path args with `MSYS_NO_PATHCONV=1` (e.g. `/Game/Maps/L_DryRiver_01`).
 - Rendered check without touching the desktop: add `-SSShotAt=45` to a windowed `-game` run → `Saved/Screenshots/WindowsEditor/SSShot.png`.
   Never screen-capture the desktop (it can grab the user's other windows).
+- Scripted console commands after the pawn exists: `-SSExecAt=14 "-SSExec=EnableCheats|DamageSelf 20"` (`-ExecCmds` runs at startup, too early).
 - Live check: `UnrealEditor-Cmd ... "/Game/Maps/L_DryRiver_01?NumBots=8?RoundSeconds=60" -game -nullrhi ... -FORCELOGFLUSH`
   (without `-FORCELOGFLUSH` a timeout kill loses the log tail; URL also takes `PreRoundSeconds`/`PostRoundSeconds`).
 - Source files are CRLF: Python `str.replace` edits must preserve `

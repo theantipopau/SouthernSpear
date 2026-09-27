@@ -3,7 +3,12 @@
 #include "SSPlayerHudWidget.h"
 
 #include "Engine/World.h"
+#include "Camera/PlayerCameraManager.h"
+#include "Components/CanvasPanelSlot.h"
 #include "GameFramework/Pawn.h"
+#include "GameFramework/PlayerController.h"
+#include "Components/Image.h"
+#include "SSGlyphTextures.h"
 #include "SSLocalHudState.h"
 #include "SSUserPrefs.h"
 #include "SSWidgetKit.h"
@@ -28,6 +33,17 @@ bool USSPlayerHudWidget::Initialize()
 	DamageFlash = Plate(T, SSPalette::Opfor500(0.f), FMargin(0.f));
 	DamageFlash->SetVisibility(ESlateVisibility::HitTestInvisible);
 	Fill(Root, DamageFlash);
+
+	// Hit direction: a clay arrow on a ring around the crosshair, pointing at the shooter.
+	HitArrow = T->ConstructWidget<UImage>();
+	HitArrow->SetBrushFromTexture(SSGlyphTextures::Triangle(), /*bMatchSize=*/ false);
+	HitArrow->SetColorAndOpacity(SSPalette::Opfor500());
+	HitArrow->SetVisibility(ESlateVisibility::Collapsed);
+	HitArrow->SetRenderTransformPivot(FVector2D(0.5f, 0.5f));
+	UCanvasPanelSlot* ArrowSlot = Root->AddChildToCanvas(HitArrow);
+	ArrowSlot->SetAnchors(FAnchors(0.5f, 0.5f));
+	ArrowSlot->SetAlignment(FVector2D(0.5f, 0.5f));
+	ArrowSlot->SetSize(FVector2D(30.f, 22.f));
 
 	// Health, bottom left: label, number, two-segment bar.
 	UVerticalBox* Health = T->ConstructWidget<UVerticalBox>();
@@ -160,6 +176,24 @@ void USSPlayerHudWidget::NativeTick(const FGeometry& MyGeometry, float InDeltaTi
 	LastHealth = State->bHasPawn ? State->Health : -1.f;
 	FlashAlpha = FMath::FInterpConstantTo(FlashAlpha, 0.f, InDeltaTime, 0.9f);
 	DamageFlash->SetBrushColor(SSPalette::Opfor500(FlashAlpha));
+
+	// Hit direction arrow: 1.5 s after a hit, placed by the shooter's bearing relative to the camera.
+	const double Age = GetWorld() && State->LastHitTime >= 0.0 ? GetWorld()->GetTimeSeconds() - State->LastHitTime : 999.0;
+	const APlayerController* PC = GetOwningPlayer();
+	if (HitArrow && State->bHasPawn && Age < 1.5 && PC && PC->PlayerCameraManager)
+	{
+		const float Bearing = USSLocalHudState::HitBearing(PC->PlayerCameraManager->GetCameraLocation(),
+			PC->PlayerCameraManager->GetCameraRotation().Yaw, State->LastHitFrom);
+		const float Rad = FMath::DegreesToRadians(Bearing);
+		Cast<UCanvasPanelSlot>(HitArrow->Slot)->SetPosition(FVector2D(FMath::Sin(Rad), -FMath::Cos(Rad)) * 150.f);
+		HitArrow->SetRenderTransformAngle(Bearing);
+		HitArrow->SetRenderOpacity(FMath::Clamp(1.f - static_cast<float>(Age) / 1.5f, 0.f, 1.f));
+		HitArrow->SetVisibility(ESlateVisibility::HitTestInvisible);
+	}
+	else if (HitArrow)
+	{
+		HitArrow->SetVisibility(ESlateVisibility::Collapsed);
+	}
 
 	MagazineText->SetText(FText::AsNumber(FMath::Max(State->Magazine, 0)));
 	const bool bLowAmmo = State->MagazineSize > 0 && State->Magazine * 4 <= State->MagazineSize;

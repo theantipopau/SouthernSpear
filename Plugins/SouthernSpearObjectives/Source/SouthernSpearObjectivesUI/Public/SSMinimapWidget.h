@@ -48,15 +48,19 @@ private:
 	float WorldWidth = 12000.f; // cm across the map image
 	FVector Centre = FVector::ZeroVector;
 	FVector ImageCentre = FVector::ZeroVector;
-	/** Objectives and player starts plus a margin: the corner map never looks past the playable ground. */
-	FBox PlayArea = FBox(ForceInit);
-	FVector ClampToPlayArea(const FVector& Location);
+	/** Pawn location at the last re-render (the view centre itself may be pulled in from it). */
+	FVector LastRefreshPawn = FVector::ZeroVector;
+	/** Moves the view centre inward until every view edge has ground under it, so the corner map
+	 * never shows the void past the level's ground (downward traces, only when re-rendering). */
+	FVector PullInsideGround(const FVector& Location) const;
 
 	UPROPERTY(Transient) TObjectPtr<UTextureRenderTarget2D> Target;
 	UPROPERTY(Transient) TObjectPtr<ASceneCapture2D> Capture;
 	UPROPERTY(Transient) TObjectPtr<UCanvasPanel> Markers;
 	UPROPERTY(Transient) TObjectPtr<UImage> MapImage;
-	UPROPERTY(Transient) TObjectPtr<UTextBlock> PlayerArrow;
+	UPROPERTY(Transient) TObjectPtr<UImage> PlayerArrow;
+	/** Dark outline under the arrow: pale brass alone disappears on the sand-coloured map. */
+	UPROPERTY(Transient) TObjectPtr<UImage> PlayerArrowOutline;
 	UPROPERTY(Transient) TArray<TObjectPtr<UBorder>> ObjectiveMarkers;
 	UPROPERTY(Transient) TArray<TObjectPtr<UTextBlock>> ObjectiveLetters;
 };

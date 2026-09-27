@@ -19,6 +19,7 @@
 #include "PhysicalMaterials/PhysicalMaterial.h"
 #include "PhysicsEngine/BodyInstance.h"
 #include "SSCharacterMovementComponent.h"
+#include "SSLocalHudState.h"
 #include "TimerManager.h"
 
 namespace
@@ -217,7 +218,20 @@ void ASSCharacter::HandleGameplayCue(UObject* Self, FGameplayTag GameplayCueTag,
 	// Spray away from the shooter, out of the exit side.
 	const FVector Shot = Hit && !Hit->TraceStart.Equals(Hit->TraceEnd) ? (FVector(Hit->TraceEnd) - FVector(Hit->TraceStart)).GetSafeNormal()
 		: -GetActorForwardVector();
-	if (BloodSystem)
+	// Hit direction for the local player's HUD.
+	if (IsLocallyControlled() && IsPlayerControlled())
+	{
+		if (USSLocalHudState* Hud = GetWorld() ? GetWorld()->GetSubsystem<USSLocalHudState>() : nullptr)
+		{
+			const AActor* Causer = Parameters.EffectCauser.Get();
+			Hud->LastHitTime = GetWorld()->GetTimeSeconds();
+			Hud->LastHitFrom = Hit && !Hit->TraceStart.IsZero() ? FVector(Hit->TraceStart) : (Causer ? Causer->GetActorLocation() : Where);
+			UE_LOG(LogTemp, Verbose, TEXT("SSHitDir from %s (hit result: %d)"), *Hud->LastHitFrom.ToString(), Hit != nullptr);
+		}
+	}
+	// Not on the local player's own body: the burst would spawn in front of the first-person camera
+	// (seen as pale sprites filling the view); the HUD's clay flash and hit arrow cover it.
+	if (BloodSystem && !(IsLocallyControlled() && IsPlayerControlled()))
 	{
 		UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), BloodSystem, Where, Shot.Rotation(), FVector(0.6f), /*bAutoDestroy=*/ true);
 		UE_LOG(LogTemp, Verbose, TEXT("SSBlood %s at %s (hit result: %d)"), *GetName(), *Where.ToString(), Hit != nullptr);

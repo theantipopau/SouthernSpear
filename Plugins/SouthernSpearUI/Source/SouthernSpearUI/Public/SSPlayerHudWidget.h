@@ -36,6 +36,7 @@ private:
 	UPROPERTY(Transient) TObjectPtr<UWidget> Crosshair;
 	UPROPERTY(Transient) TArray<TObjectPtr<UWidget>> CrosshairTicks;
 	UPROPERTY(Transient) TObjectPtr<UBorder> DamageFlash;
+	UPROPERTY(Transient) TObjectPtr<class UImage> HitArrow;
 	UPROPERTY(Transient) TObjectPtr<UTextBlock> ReloadHint;
 	UPROPERTY(Transient) TObjectPtr<UTextBlock> FpsText;
 	float FpsAverage = 1.f / 60.f;

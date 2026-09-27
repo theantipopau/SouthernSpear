@@ -12,9 +12,7 @@
 #include "Engine/SceneCapture2D.h"
 #include "Engine/TextureRenderTarget2D.h"
 #include "Engine/World.h"
-#include "EngineUtils.h"
 #include "GameFramework/Pawn.h"
-#include "GameFramework/PlayerStart.h"
 #include "GameFramework/PlayerController.h"
 #include "GenericTeamAgentInterface.h"
 #include "SSObjectiveActor.h"
@@ -23,6 +21,7 @@
 #include "SSUIStyle.h"
 #include "Styling/CoreStyle.h"
 #include "SSFonts.h"
+#include "SSGlyphTextures.h"
 
 namespace
 {
@@ -109,10 +108,18 @@ void USSMinimapWidget::Setup(ASSObjectiveAssaultDirector* InDirector, bool bInFu
 		ObjectiveLetters.Add(Letter);
 	}
 
-	PlayerArrow = MapText(T, bFullMap ? 18 : 16, SSUIStyle::Brass300());
-	PlayerArrow->SetText(FText::FromString(TEXT("▲")));
-	PlayerArrow->SetJustification(ETextJustify::Center);
-	Place(Markers, PlayerArrow, FVector2D(24.f, 24.f));
+	// A drawn triangle: the UI fonts have no "▲" glyph (the text arrow rendered as nothing).
+	const float ArrowSize = bFullMap ? 18.f : 14.f;
+	PlayerArrowOutline = T->ConstructWidget<UImage>();
+	PlayerArrowOutline->SetBrushFromTexture(SSGlyphTextures::Triangle(), /*bMatchSize=*/ false);
+	PlayerArrowOutline->SetColorAndOpacity(SSUIStyle::Ink900());
+	PlayerArrowOutline->SetRenderTransformPivot(FVector2D(0.5f, 0.55f));
+	Place(Markers, PlayerArrowOutline, FVector2D(ArrowSize + 7.f, ArrowSize + 7.f));
+	PlayerArrow = T->ConstructWidget<UImage>();
+	PlayerArrow->SetBrushFromTexture(SSGlyphTextures::Triangle(), /*bMatchSize=*/ false);
+	PlayerArrow->SetColorAndOpacity(SSUIStyle::Brass300());
+	PlayerArrow->SetRenderTransformPivot(FVector2D(0.5f, 0.5f));
+	Place(Markers, PlayerArrow, FVector2D(ArrowSize, ArrowSize));
 
 	UTextBlock* Label = MapText(T, 10, SSUIStyle::Sage400());
 	Label->SetText(bFullMap ? NSLOCTEXT("SSMap", "FullHint", "MAP  ·  M TO CLOSE") : NSLOCTEXT("SSMap", "North", "N"));
@@ -214,40 +221,29 @@ void USSMinimapWidget::Refresh()
 	}
 }
 
-FVector USSMinimapWidget::ClampToPlayArea(const FVector& Location)
+FVector USSMinimapWidget::PullInsideGround(const FVector& Location) const
 {
-	if (!PlayArea.IsValid)
+	const UWorld* World = GetWorld();
+	if (!World)
 	{
-		if (const ASSObjectiveAssaultDirector* Dir = Director.Get())
-		{
-			for (const ASSObjectiveActor* Objective : Dir->GetObjectives())
-			{
-				if (Objective)
-				{
-					PlayArea += Objective->GetActorLocation();
-				}
-			}
-		}
-		if (UWorld* World = GetWorld())
-		{
-			for (TActorIterator<APlayerStart> It(World); It; ++It)
-			{
-				PlayArea += It->GetActorLocation();
-			}
-		}
-		if (!PlayArea.IsValid)
-		{
-			return Location;
-		}
-		// No margin: the ground can end a few metres past the outermost start (Dry River: measured strip at +15 m).
+		return Location;
 	}
-	// Keep the whole view inside the area; if the area is narrower than the view, centre on it.
-	const float Half = WorldWidth * 0.5f;
-	auto Axis = [Half](double Value, double Min, double Max)
+	auto Ground = [World](const FVector& At)
 	{
-		return (Max - Min) <= 2.0 * Half ? 0.5 * (Min + Max) : FMath::Clamp(Value, Min + Half, Max - Half);
+		FCollisionQueryParams Params(SCENE_QUERY_STAT(SSMinimapGround));
+		return World->LineTraceTestByChannel(At + FVector(0.f, 0.f, 100000.f), At - FVector(0.f, 0.f, 100000.f), ECC_WorldStatic, Params);
 	};
-	return FVector(Axis(Location.X, PlayArea.Min.X, PlayArea.Max.X), Axis(Location.Y, PlayArea.Min.Y, PlayArea.Max.Y), Location.Z);
+	const float Half = WorldWidth * 0.5f;
+	FVector View = Location;
+	for (const FVector& Dir : { FVector::ForwardVector, -FVector::ForwardVector, FVector::RightVector, -FVector::RightVector })
+	{
+		// Up to half a view (in 5 m steps): the player stays on the map even at the ground's edge.
+		for (int32 Step = 0; Step < 12 && !Ground(View + Dir * Half); ++Step)
+		{
+			View -= Dir * FMath::Min(500.f, Half / 12.f + 1.f);
+		}
+	}
+	return View;
 }
 
 FVector2D USSMinimapWidget::WorldToMap(const FVector& World) const
@@ -269,12 +265,14 @@ void USSMinimapWidget::NativeTick(const FGeometry& MyGeometry, float InDeltaTime
 
 	if (!bFullMap)
 	{
-		if (Pawn)
-		{
-			Centre = ClampToPlayArea(Pawn->GetActorLocation());
-		}
 		// Re-render only after moving 15% of the view; markers move every frame.
-		if (!Capture || FVector::Dist2D(Centre, ImageCentre) > WorldWidth * 0.15f)
+		if (Pawn && (!Capture || FVector::Dist2D(Pawn->GetActorLocation(), LastRefreshPawn) > WorldWidth * 0.15f))
+		{
+			LastRefreshPawn = Pawn->GetActorLocation();
+			Centre = PullInsideGround(LastRefreshPawn);
+			Refresh();
+		}
+		else if (!Pawn && !Capture)
 		{
 			Refresh();
 		}
@@ -319,12 +317,18 @@ void USSMinimapWidget::NativeTick(const FGeometry& MyGeometry, float InDeltaTime
 
 	if (PlayerArrow)
 	{
-		PlayerArrow->SetVisibility(Pawn ? ESlateVisibility::HitTestInvisible : ESlateVisibility::Collapsed);
+		const ESlateVisibility Shown = Pawn ? ESlateVisibility::HitTestInvisible : ESlateVisibility::Collapsed;
+		PlayerArrow->SetVisibility(Shown);
+		PlayerArrowOutline->SetVisibility(Shown);
 		if (Pawn)
 		{
-			Cast<UCanvasPanelSlot>(PlayerArrow->Slot)->SetPosition(WorldToMap(Pawn->GetActorLocation()).ClampAxes(8.f, MapSize - 8.f));
+			const FVector2D At = WorldToMap(Pawn->GetActorLocation()).ClampAxes(8.f, MapSize - 8.f);
 			const float Yaw = GetOwningPlayer() ? GetOwningPlayer()->GetControlRotation().Yaw : Pawn->GetActorRotation().Yaw;
-			PlayerArrow->SetRenderTransformAngle(Yaw);
+			for (UImage* Image : { PlayerArrowOutline.Get(), PlayerArrow.Get() })
+			{
+				Cast<UCanvasPanelSlot>(Image->Slot)->SetPosition(At);
+				Image->SetRenderTransformAngle(Yaw);
+			}
 		}
 	}
 }

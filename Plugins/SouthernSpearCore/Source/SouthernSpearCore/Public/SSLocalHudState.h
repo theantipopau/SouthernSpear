@@ -44,6 +44,19 @@ public:
 
 	UPROPERTY(Transient, BlueprintReadOnly, Category = "HUD")
 	bool bAiming = false;
+	/** When the local player was last hit (world seconds; -1 never) and from where (the shooter's
+	 * trace start). Filled by the bridge from Lyra's damage cue; drives the HUD hit direction arrow. */
+	UPROPERTY(Transient, BlueprintReadOnly, Category = "HUD")
+	double LastHitTime = -1.0;
+	UPROPERTY(Transient, BlueprintReadOnly, Category = "HUD")
+	FVector LastHitFrom = FVector::ZeroVector;
+
+	/** Bearing of a hit source from the camera, in degrees: 0 ahead, +90 right, -90 left, 180 behind. */
+	static float HitBearing(const FVector& CameraLocation, float CameraYaw, const FVector& From)
+	{
+		const FVector Rel = FRotator(0.f, CameraYaw, 0.f).UnrotateVector(From - CameraLocation);
+		return FMath::RadiansToDegrees(FMath::Atan2(Rel.Y, Rel.X));
+	}
 
 	float GetHealthFraction() const { return MaxHealth > 0.f ? FMath::Clamp(Health / MaxHealth, 0.f, 1.f) : 0.f; }
 };
