@@ -39,7 +39,9 @@ Southern Spear is an original, fictional, Australian-inspired tactical multiplay
 - **Weapons are A-series:** A88 (+C/G/M/T), A89, A4, A416, A417, A9. Real names (EF88, F89, M4, AK,
   Minimi…) only in internal research notes — never in code identifiers, data, UI or public docs.
 - No ADF/Army branding, insignia, Rising Sun, mottos, colour patches; no Multicam or Auscam/Musorian copies
-  (Multicam is a Crye Precision trademark). No America's Army content. No manufacturer logos/CAD/ripped assets.
+  (Multicam is a Crye Precision trademark). **Exception (ADR-025, producer, 2026-09-27):** the friendly
+  soldiers wear ADFRC uniforms, gear and AMCU textures (L-0021). Strip patches and flags. Release needs
+  Defence permission or the CMECU swap (R-27). No America's Army content. No manufacturer logos/CAD/ripped assets.
 - A88 and its MAF counterpart share **one** gameplay definition; only cosmetics differ.
 - **ADFRC assets are cleared for use (R-24 lifted, L-0021).** The ADF Re-Cut / ADFRC pack is **authorised for free use in Southern Spear** — models, textures, animations, audio, configs and scripts, in any form including converted and derived work. The producer holds a blanket 100% permission from the mod team, which lifts the earlier item-by-item hold and the multi-author gap (the original grant came from one author who was not among those credited in the pack). Use them as game art and as direct visual/design references. Two limits remain, neither of which the mod team can lift:
   - **Third-party and service marks.** Crye Precision (G3), Ops-Core, PASGT, "Team Wendy", and ADF camouflage/insignia belong to those companies and to the ADF, not to the mod team. Strip or replace them before release (ADR-016, R-27) — this is a build requirement, not a pending approval.

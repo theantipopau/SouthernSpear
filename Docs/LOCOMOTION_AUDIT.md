@@ -62,7 +62,7 @@ disconnected" feel comes from the layers Southern Spear put on top, and from the
 | # | Finding | Evidence | Severity |
 |---|---|---|---|
 | F1 | **First-person weapon floats.** It is attached to the camera, not to hands, and its motion is coded rather than driven by the body. By construction it cannot look physically connected. | `SSFirstPersonSubsystem.cpp`; producer: "animations are still terrible" | Critical |
-| F2 | **Third-person weapons are rotated about 90°.** The grip is in the right hand, but the rifle points up and the left hand holds nothing. Every enemy you see looks broken. | Bot-follow capture (`ss.Debug.FollowBot`), Dry River | Critical |
+| F2 | ~~Third-person weapons are rotated about 90°.~~ **Withdrawn after measurement.** Lyra's own rifle, drawn over ours (`ss.Debug.ShowLyraWeapon`), overlaps our mesh exactly; the socket data agrees (Lyra's rifle points along +Y from its grip, and ours maps onto that axis). The "rifle pointing up" was **Lyra's jog pose**, which carries the rifle high across the chest: see F5. The left hand does not reach the handguards of our longer or bullpup weapons, because Lyra's hand IK is tuned to its own rifle. | Bot-follow captures with both meshes drawn; socket log (`-SSAnimDebug`) | High (as F5 plus hand IK) |
 | F3 | **Visible bodies are not the animated skeleton.** Fab meshes copy Lyra's invisible mannequin bone for bone. Their proportions differ (hand, shoulder and head positions), so Lyra's hand IK and aim offsets are tuned for a different body. | `ASSCharacterPartActor` (leader pose), ADR-022 | High |
 | F4 | **Movement tuning is arcade:** 6 m/s jog, 0.5 s to full speed, near-instant stops, high air control. | §1.1 | High |
 | F5 | **Lyra's animation set is stylised hero animation** (bouncy, exaggerated), not a tactical one. | Lyra content; producer target games | High |
@@ -114,7 +114,7 @@ Enhanced Input ─► ASSCharacter (C++, child of ALyraCharacter)
 
 | Stage | Work | Needs new assets | Proves |
 |---|---|---|---|
-| **S0** | Fix F2 (third-person weapon rotation) in `setup_weapons.py`; left-hand grip socket on every weapon | No | Bot-follow capture: rifle in both hands |
+| **S0** | Left-hand grip socket on every weapon, as the hand IK target for S2 and S4 (F2 withdrawn: the attachment is correct) | No | Socket report; bot-follow capture |
 | **S1** | ADR-024; `ASSCharacter` + `USSCharacterMovementComponent` (C++): tactical speeds (walk 1.6, tactical 2.4, jog 3.6, sprint 5.2 m/s), lower acceleration and braking for momentum, low air control; replicated gait and stance with saved moves; Enhanced Input actions (walk toggle, sprint, lean, prone) in our own mapping context | No | Automation tests on the speed and stance rules; two-player replication test |
 | **S2** | True first person on the body: camera on the head socket, a high-ready first-person pose and aim offset, left-hand IK, procedural layer (sway, inertia, breathing, recoil, stance transitions); remove the camera-held view model and the arms-pack code (F7) | No (Lyra poses for now) | Captures at hip, ADS, sprint, crouch; weapon always in both hands |
 | **S3** | Motion matching: `ABP_SS_Soldier` from GASP's reference graph; Pose Search databases per gait and stance; orientation / stride warping and foot placement from GASP | **GASP** | Captures and a recorded run cycle; stop and start distance check |
@@ -122,7 +122,7 @@ Enhanced Input ─► ASSCharacter (C++, child of ALyraCharacter)
 | **S5** | Crouch and prone, traversal (vault and mantle with Motion Warping), landing, ladder | GASP traversal; prone and ladder sets (§5) | Traversal test course map |
 | **S6** | Cleanup: remove dead first-person code and unused content references, reduce tick (event-driven attached-actor scan), document the graphs with state diagrams | No | Guard, tests, profile capture |
 
-S0–S2 need nothing new and fix the two critical findings. S3 onward need GASP.
+S0–S2 need nothing new and fix the critical finding F1. S3 onward need GASP.
 
 ---
 

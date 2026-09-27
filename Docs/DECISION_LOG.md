@@ -549,3 +549,49 @@ ui/ux"). **Date:** 2026-09-27
 
 **Consequences.** The Esc menu and M map read raw keys, not Enhanced Input actions; rebinding needs a
 later pass. The UI is C++-built, so there are no Blueprint widget assets to maintain.
+
+## ADR-024 — Locomotion rebuild: Southern Spear character, movement component and animation stack
+
+**Status:** Accepted (producer, 2026-09-27: "let's do it", on `Docs/LOCOMOTION_AUDIT.md`).
+**Date:** 2026-09-27
+
+**Decision.** Follow the staged roadmap in `LOCOMOTION_AUDIT.md` §4:
+- A C++ character `ASSCharacter` (child of `ALyraCharacter`) and `USSCharacterMovementComponent` in the
+  Lyra bridge own tactical movement: gaits, stances, lean, momentum; replicated with saved moves.
+  Lyra stays unmodified.
+- First person moves onto the real body, with hands on the weapon (IK) and a procedural layer on top.
+  The camera-held view model and the arms-pack code are removed.
+- Full-body motion matching from Epic's Game Animation Sample (GASP), with weapon overlays adapted from
+  Lyra's item layers.
+- The Pose Search, Chooser and Motion Warping engine plugins are enabled when that stage lands.
+
+**Consequences.** Movement values change (gameplay), so each stage ships automation tests. GASP is Epic
+content: git-ignored, like the other Epic packs (R-14).
+
+## ADR-025 — Real Australian Army look from the ADFRC set (producer override of ADR-016's pattern rule)
+
+**Status:** Accepted (producer choice, 2026-09-27: "Real ADF look (ADFRC)").
+**Date:** 2026-09-27
+
+**Decision.** The friendly side (3 ACR, as each viewer sees their own team) wears ADF-style kit built from
+the ADFRC set (L-0021: authorisation email from the mod team's author, `Docs/evidence/L0021_*`):
+- Crye-style combat uniform;
+- TBAS plate carriers and pouches;
+- Ops-Core and Team Wendy helmets, bush hat, backpacks;
+- **AMCU camouflage textures**.
+
+The gear is re-rigged to the UE5 mannequin skeleton in Blender (`Tools/Blender/`), so the visible body is
+the animated skeleton (audit F3).
+
+**Overrides.**
+- ADR-016's "no Auscam copies" rule, for the ADFRC AMCU textures only.
+- The quarantine on converting ADFRC files, for the weapons (already in use) and the uniform and gear.
+
+Unchanged:
+- no unit insignia, badges, Rising Sun, mottos or colour patches: patch and flag decals are stripped;
+- fictional unit names (3 ACR, MAF);
+- MAF stays a conventional force with its own look.
+
+**Risk (recorded, accepted by the producer).** AMCU and ADF equipment designs belong to the Commonwealth
+of Australia. A commercial release needs Defence permission, or a switch back to the fictional CMECU
+pattern, which the pipeline keeps as a material swap. Tracked as R-27.
