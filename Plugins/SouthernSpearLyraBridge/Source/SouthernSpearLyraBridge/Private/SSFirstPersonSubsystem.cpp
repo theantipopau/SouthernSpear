@@ -44,7 +44,7 @@ namespace
 		TEXT("Held weapon rotation on ik_hand_gun, degrees (pitch yaw roll); 90 yaw turns our +X meshes to the pack's +Y."));
 	TAutoConsoleVariable<int32> CVarArms(TEXT("ss.FP.Arms"), 0,
 		TEXT("1: Fab arms pack holding the weapon (its AKS74U poses do not fit our weapons). 0: camera-held weapon view model."));
-	TAutoConsoleVariable<FString> CVarHip(TEXT("ss.FP.Hip"), TEXT("38 13 -16"),
+	TAutoConsoleVariable<FString> CVarHip(TEXT("ss.FP.Hip"), TEXT("48 16 -20"),
 		TEXT("Camera-held weapon: grip position at the hip, cm (forward right up)."));
 	TAutoConsoleVariable<int32> CVarBodyView(TEXT("ss.FP.BodyView"), 0,
 		TEXT("1: true first person (the body's own hands and weapon, Lyra animations; the eye moves to the optic when aiming). 0: the Fab arms pack view model."));

@@ -48,6 +48,9 @@ private:
 	float WorldWidth = 12000.f; // cm across the map image
 	FVector Centre = FVector::ZeroVector;
 	FVector ImageCentre = FVector::ZeroVector;
+	/** Objectives and player starts plus a margin: the corner map never looks past the playable ground. */
+	FBox PlayArea = FBox(ForceInit);
+	FVector ClampToPlayArea(const FVector& Location);
 
 	UPROPERTY(Transient) TObjectPtr<UTextureRenderTarget2D> Target;
 	UPROPERTY(Transient) TObjectPtr<ASceneCapture2D> Capture;

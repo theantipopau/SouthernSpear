@@ -12,7 +12,9 @@
 #include "Engine/SceneCapture2D.h"
 #include "Engine/TextureRenderTarget2D.h"
 #include "Engine/World.h"
+#include "EngineUtils.h"
 #include "GameFramework/Pawn.h"
+#include "GameFramework/PlayerStart.h"
 #include "GameFramework/PlayerController.h"
 #include "GenericTeamAgentInterface.h"
 #include "SSObjectiveActor.h"
@@ -212,6 +214,42 @@ void USSMinimapWidget::Refresh()
 	}
 }
 
+FVector USSMinimapWidget::ClampToPlayArea(const FVector& Location)
+{
+	if (!PlayArea.IsValid)
+	{
+		if (const ASSObjectiveAssaultDirector* Dir = Director.Get())
+		{
+			for (const ASSObjectiveActor* Objective : Dir->GetObjectives())
+			{
+				if (Objective)
+				{
+					PlayArea += Objective->GetActorLocation();
+				}
+			}
+		}
+		if (UWorld* World = GetWorld())
+		{
+			for (TActorIterator<APlayerStart> It(World); It; ++It)
+			{
+				PlayArea += It->GetActorLocation();
+			}
+		}
+		if (!PlayArea.IsValid)
+		{
+			return Location;
+		}
+		// No margin: the ground can end a few metres past the outermost start (Dry River: measured strip at +15 m).
+	}
+	// Keep the whole view inside the area; if the area is narrower than the view, centre on it.
+	const float Half = WorldWidth * 0.5f;
+	auto Axis = [Half](double Value, double Min, double Max)
+	{
+		return (Max - Min) <= 2.0 * Half ? 0.5 * (Min + Max) : FMath::Clamp(Value, Min + Half, Max - Half);
+	};
+	return FVector(Axis(Location.X, PlayArea.Min.X, PlayArea.Max.X), Axis(Location.Y, PlayArea.Min.Y, PlayArea.Max.Y), Location.Z);
+}
+
 FVector2D USSMinimapWidget::WorldToMap(const FVector& World) const
 {
 	// Looking straight down with yaw 0: image up is world +X, image right is +Y.
@@ -233,7 +271,7 @@ void USSMinimapWidget::NativeTick(const FGeometry& MyGeometry, float InDeltaTime
 	{
 		if (Pawn)
 		{
-			Centre = Pawn->GetActorLocation();
+			Centre = ClampToPlayArea(Pawn->GetActorLocation());
 		}
 		// Re-render only after moving 15% of the view; markers move every frame.
 		if (!Capture || FVector::Dist2D(Centre, ImageCentre) > WorldWidth * 0.15f)
@@ -284,7 +322,7 @@ void USSMinimapWidget::NativeTick(const FGeometry& MyGeometry, float InDeltaTime
 		PlayerArrow->SetVisibility(Pawn ? ESlateVisibility::HitTestInvisible : ESlateVisibility::Collapsed);
 		if (Pawn)
 		{
-			Cast<UCanvasPanelSlot>(PlayerArrow->Slot)->SetPosition(WorldToMap(Pawn->GetActorLocation()));
+			Cast<UCanvasPanelSlot>(PlayerArrow->Slot)->SetPosition(WorldToMap(Pawn->GetActorLocation()).ClampAxes(8.f, MapSize - 8.f));
 			const float Yaw = GetOwningPlayer() ? GetOwningPlayer()->GetControlRotation().Yaw : Pawn->GetActorRotation().Yaw;
 			PlayerArrow->SetRenderTransformAngle(Yaw);
 		}
