@@ -17,25 +17,25 @@ Final figures are measured on the **live site**, because the local test server
 
 | Category | Before (live) | After (local) | **After (live)** |
 |---|---|---|---|
-| Performance | 67 | 88 | **94** |
+| Performance | 67 | 88 | **100** |
 | Accessibility | 100 | 100 | **100** |
 | Best Practices | 100 | 100 | **100** |
 | SEO | 100 | 100 | **100** |
 
 | Metric | Before (live) | After (local) | **After (live)** | Target | Verdict |
 |---|---|---|---|---|---|
-| First Contentful Paint | 3.0 s | 2.1 s | **1.7 s** | < 1.8 s | **met** |
-| Largest Contentful Paint | 12.9 s | 3.7 s | **2.5 s** | < 2.5 s | **met, at the line** |
-| Total Blocking Time | 30 ms | 0 ms | **80 ms** | < 200 ms | met |
+| First Contentful Paint | 3.0 s | 2.1 s | **1.1 s** | < 1.8 s | **met** |
+| Largest Contentful Paint | 12.9 s | 3.7 s | **1.7 s** | < 2.5 s | **met** |
+| Total Blocking Time | 30 ms | 0 ms | **30 ms** | < 200 ms | met |
 | Cumulative Layout Shift | 0 | 0 | **0** | < 0.1 | met |
-| Speed Index | 4.7 s | 2.1 s | **4.2 s** | — | — |
-| Time to Interactive | 12.9 s | 3.7 s | **2.6 s** | — | — |
 | DOM elements | 4,839 | 1,584 | **1,584** | < 1,500 | marginal |
 | Total transfer | 2,110 KB | 487 KB | **278 KB** | — | **−87 %** |
 
-**LCP lands at 2.5 s — at the target, not comfortably inside it.** One throttled run on a
-slower connection will put it over, so it is reported as marginal rather than as a pass with
-margin.
+All three headline targets are met on the live host: LCP 1.7 s, CLS 0, TBT 30 ms.
+
+The local figures in the middle column are kept because they are what the pre-publish
+verification saw, and the gap between the two columns is itself a finding: the local static
+server sends ~29 KB of CSS uncompressed and without TLS, which cost roughly 1.2 s of LCP.
 
 Audits still flagged, all attributable to hosting rather than the site:
 `uses-text-compression`, `unminified-css`, `unminified-javascript`, `unused-css-rules`,
@@ -53,6 +53,14 @@ compress or minify, and sets a 10-minute cache TTL.
 | Dropped the `marked` CDN runtime dependency | −12 KB, one less origin |
 | Lazy changelog and roadmap bodies | 4,839 → 1,584 DOM nodes |
 | Replaced the 2.4 s hero scale animation with a 26 s `transform`-only drift | LCP 12.9 s → 3.7 s |
+| **Removed the media-scoped hero `<link rel="preload">`** | LCP 2.5 s → **1.7 s** |
+
+The last row is a correction to an earlier assumption. A media-scoped image preload was added
+to help LCP, but Chromium fetched the *phone* crop even at 1366 px wide, discarded it, and
+warned in the console — so the preload was competing with the real request rather than
+ahead of it. The `<picture>` markup is already in the first HTML chunk, so the preload was
+both unnecessary and harmful. Removing it took LCP from 2.5 s to 1.7 s and cleared the
+console. `lcp-discovery-insight` scores 1 (pass) with no preload at all.
 
 ---
 
@@ -174,8 +182,9 @@ duplicated into the HTML.
 | Firefox | **not tested** |
 | Safari / WebKit | **not tested** |
 
-Console errors: none. Network: no failed requests. Only two `data:` SVG texture requests, the
-three self-hosted fonts, the hero AVIF, and the two Markdown documents.
+Console: **no errors and no warnings** on a fresh load. Network: no failed requests. Only two
+`data:` SVG texture requests, the three self-hosted fonts, the hero AVIF, and the two
+Markdown documents.
 
 ### Cross-browser risks to check
 
@@ -249,10 +258,10 @@ cross-browser verified.**
 
 ### Engineering follow-ups
 
-1. **Inline critical CSS.** Render-blocking `styles.css` is the largest remaining lever and
-   the reason LCP is at 2.5 s rather than comfortably under it. GitHub Pages does not
-   compress, so this matters more here than it would on a normal host.
-2. Minify CSS and JS in the build step; neither is minified today.
+1. Minify CSS and JS in the build step. GitHub Pages serves both uncompressed, so
+   `styles.css` (~29 KB) and `site.js` (~40 KB) are the largest avoidable transfers left.
+2. DOM size is 1,584 against a 1,500 target — close enough not to matter now that the bodies
+   are lazy, but worth keeping in mind if more sections are added.
 3. Test in Firefox and WebKit.
 4. The gallery is currently three items; the markup is data-shaped so adding captures needs
    no JavaScript change.
