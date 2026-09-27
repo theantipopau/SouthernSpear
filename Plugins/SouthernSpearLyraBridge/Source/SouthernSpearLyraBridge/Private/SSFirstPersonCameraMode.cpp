@@ -6,6 +6,7 @@
 #include "Components/StaticMeshComponent.h"
 #include "HAL/IConsoleManager.h"
 #include "GameFramework/Character.h"
+#include "SSCharacter.h"
 #include "SSUserPrefs.h"
 
 USSFirstPersonCameraMode::USSFirstPersonCameraMode()
@@ -41,6 +42,16 @@ void USSFirstPersonCameraMode::UpdateView(float DeltaTime)
 			+ FVector::UpVector * EyeOffset.Z;
 	}
 	View.Rotation = View.ControlRotation;
+
+	// Lean (ADR-024): the replicated lean slides the eye ~30 cm sideways, a little lower,
+	// and rolls the view, eased so it reads as a body movement rather than a snap.
+	if (const ASSCharacter* Soldier = Cast<ASSCharacter>(GetTargetActor()))
+	{
+		LeanAlpha = FMath::FInterpTo(LeanAlpha, static_cast<float>(Soldier->GetLean()), DeltaTime, 7.f);
+		const FRotationMatrix Frame(View.Rotation);
+		View.Location += Frame.GetUnitAxis(EAxis::Y) * (LeanAlpha * 30.f) + FVector::UpVector * (-6.f * FMath::Abs(LeanAlpha));
+		View.Rotation.Roll += LeanAlpha * 10.f;
+	}
 
 	// Aiming with an optic: the eye sits behind the held weapon's Sight socket
 	// (Tools/Unreal/add_sight_sockets.py) on the line of sight.

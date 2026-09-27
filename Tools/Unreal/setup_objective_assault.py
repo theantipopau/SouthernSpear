@@ -103,8 +103,8 @@ def ensure_game_feature_data():
         # Per-player eliminations / deaths / assists stat tags (the scoreboard); the base
         # scorer only, not B_TeamDeathMatchScoring, whose kill limit would end the round.
         ("/Script/LyraGame.LyraGameState", "/ShooterCore/Game/B_ShooterGameScoring_Base.B_ShooterGameScoring_Base_C"),
-        # 3 ACR / MAF soldier bodies (setup_soldiers.py) instead of the random Manny/Quinn.
-        ("/Script/Engine.Controller", "/SSExp_ObjectiveAssault/Characters/B_SS_CharacterParts.B_SS_CharacterParts_C"),
+        # Soldier bodies: ASSCharacter attaches B_SS_Soldier itself (Session 031); the Lyra
+        # controller cosmetic-parts grant is no longer used.
     ):
         load_class(actor)
         load_class(comp)

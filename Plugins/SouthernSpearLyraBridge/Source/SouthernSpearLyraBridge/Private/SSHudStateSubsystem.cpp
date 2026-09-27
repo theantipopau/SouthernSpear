@@ -2,6 +2,8 @@
 
 #include "SSHudStateSubsystem.h"
 
+#include "GameFramework/CharacterMovementComponent.h"
+
 #include "Character/LyraHealthComponent.h"
 #include "Engine/World.h"
 #include "GameFramework/Pawn.h"
@@ -122,8 +124,23 @@ void USSHudStateSubsystem::Tick(float DeltaTime)
 				});
 			}
 			UObject* PawnItem = ActiveSlotItem(It->GetController());
-			UE_LOG(LogTemp, Log, TEXT("SSAnimDebug %s speed=%.0f mesh=%s anim=%s linked=[%s] montage=%s tick=%d mag=%d spare=%d size=%d"),
-				*It->GetName(), It->GetVelocity().Size2D(), *GetNameSafe(Mesh ? Mesh->GetSkeletalMeshAsset() : nullptr),
+			TArray<AActor*> Parts;
+			It->GetAttachedActors(Parts, true, true);
+			FString PartInfo;
+			for (const AActor* Part : Parts)
+			{
+				TInlineComponentArray<USkeletalMeshComponent*> Skels(Part);
+				for (const USkeletalMeshComponent* Skel : Skels)
+				{
+					PartInfo += FString::Printf(TEXT("%s:%s:v%d:h%d "), *GetNameSafe(Part->GetClass()), *GetNameSafe(Skel->GetSkeletalMeshAsset()),
+						Skel->IsVisible(), Skel->bHiddenInGame);
+				}
+			}
+			UE_LOG(LogTemp, Log, TEXT("SSPartDebug %s parts=[%s]"), *It->GetName(), *PartInfo);
+			const UCharacterMovementComponent* Move = It->GetCharacterMovement();
+			UE_LOG(LogTemp, Log, TEXT("SSAnimDebug %s class=%s move=%s max=%.0f speed=%.0f mesh=%s anim=%s linked=[%s] montage=%s tick=%d mag=%d spare=%d size=%d"),
+				*It->GetName(), *It->GetClass()->GetSuperClass()->GetName(), *GetNameSafe(Move ? Move->GetClass() : nullptr),
+				Move ? Move->GetMaxSpeed() : -1.f, It->GetVelocity().Size2D(), *GetNameSafe(Mesh ? Mesh->GetSkeletalMeshAsset() : nullptr),
 				*GetNameSafe(Anim ? Anim->GetClass() : nullptr), *Linked,
 				*GetNameSafe(Anim ? Anim->GetCurrentActiveMontage() : nullptr), Mesh ? (int32)Mesh->VisibilityBasedAnimTickOption : -1,
 				StatCount(PawnItem, MagazineTag), StatCount(PawnItem, SpareTag), StatCount(PawnItem, SizeTag));

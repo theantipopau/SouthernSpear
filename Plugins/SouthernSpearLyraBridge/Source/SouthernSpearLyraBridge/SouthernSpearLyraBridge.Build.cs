@@ -32,6 +32,9 @@ public class SouthernSpearLyraBridge : ModuleRules
 				"LyraGame",
 				"GameplayTags",
 				"AIModule", // IGenericTeamAgentInterface (scoreboard teams)
+				"EnhancedInput", // ASSCharacter tactical inputs (ADR-024)
+				"GameplayAbilities", // ALyraCharacter implements IGameplayCueInterface
+				"ModularGameplayActors", // ALyraCharacter base
 			}
 		);
 	}

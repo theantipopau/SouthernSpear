@@ -9,6 +9,7 @@
 #include "Camera/LyraCameraComponent.h"
 #include "AIController.h"
 #include "EngineUtils.h"
+#include "GenericTeamAgentInterface.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "Components/StaticMeshComponent.h"
 #include "Engine/SkeletalMesh.h"
@@ -50,7 +51,7 @@ namespace
 	TAutoConsoleVariable<int32> CVarShowLyraWeapon(TEXT("ss.Debug.ShowLyraWeapon"), 0,
 		TEXT("Debug: 1 also draws Lyra's original weapon meshes (hidden under ours) to check alignment."));
 	TAutoConsoleVariable<float> CVarFollowBot(TEXT("ss.Debug.FollowBot"), 0.f,
-		TEXT("Debug: non-zero views the nearest bot from this many cm (behind and to the side), for animation checks."));
+		TEXT("Debug: non-zero views the nearest bot from this many cm (behind and to the side); negative: the nearest enemy bot."));
 	TAutoConsoleVariable<float> CVarDebugPitch(TEXT("ss.FP.DebugPitch"), 0.f,
 		TEXT("Debug: non-zero holds the local view at this pitch, degrees (captures)."));
 	TAutoConsoleVariable<int32> CVarForceAim(TEXT("ss.FP.ForceAim"), 0,
@@ -100,6 +101,14 @@ void USSFirstPersonSubsystem::Tick(float DeltaTime)
 		float Best = TNumericLimits<float>::Max();
 		for (TActorIterator<APawn> It(GetWorld()); It; ++It)
 		{
+			// Negative distance: follow the nearest bot of the OTHER team (MAF presentation checks).
+			const IGenericTeamAgentInterface* Mine = Cast<IGenericTeamAgentInterface>(Pawn);
+			const IGenericTeamAgentInterface* Theirs = Cast<IGenericTeamAgentInterface>(*It);
+			const bool bEnemy = Mine && Theirs && Mine->GetGenericTeamId() != Theirs->GetGenericTeamId();
+			if (Follow < 0.f && !bEnemy)
+			{
+				continue;
+			}
 			if (Cast<AAIController>(It->GetController()) && FVector::DistSquared(It->GetActorLocation(), Pawn->GetActorLocation()) < Best)
 			{
 				Best = FVector::DistSquared(It->GetActorLocation(), Pawn->GetActorLocation());
@@ -130,7 +139,7 @@ void USSFirstPersonSubsystem::Tick(float DeltaTime)
 				FollowCamera = GetWorld()->SpawnActor<ACameraActor>(Params);
 			}
 			const FRotator Facing(0.f, Bot->GetActorRotation().Yaw + 150.f, 0.f);
-			const FVector Eye = Bot->GetActorLocation() + Facing.Vector() * -Follow + FVector(0.f, 0.f, 60.f);
+			const FVector Eye = Bot->GetActorLocation() + Facing.Vector() * -FMath::Abs(Follow) + FVector(0.f, 0.f, 60.f);
 			FollowCamera->SetActorLocationAndRotation(Eye, (Bot->GetActorLocation() + FVector(0, 0, 20) - Eye).Rotation());
 			APlayerController* Controller = const_cast<APlayerController*>(Player);
 			if (Controller->GetViewTarget() != FollowCamera.Get())

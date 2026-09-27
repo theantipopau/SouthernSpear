@@ -20,7 +20,13 @@ ART = os.path.join(PROJECT_DIR, "Art", "Characters", "ADF")
 TEX_ROOT = os.path.join(PROJECT_DIR, "Art", "ADFRC", "Textures")
 DEST = "/SSExp_ObjectiveAssault/Characters/ADF"
 SKELETON = "/Game/Characters/Heroes/Mannequin/Meshes/SK_Mannequin"
-MESHES = ["SK_ADF_Uniform_G3", "SK_ADF_Vest_TBAS", "SK_ADF_Helmet_OpsCore"]
+MESHES = ["SK_ADF_Uniform_G3", "SK_ADF_Vest_TBAS", "SK_ADF_Helmet_OpsCore",
+          "SK_MAF_Vest_Peacekeeper", "SK_MAF_Helmet_PASGT"]  # MAF: a conventional force, not Australian camo
+# MAF palette (ADR-016: MAF is a conventional army with its own look, never AMCU or a real nation's
+# pattern): plain green uniform textures; Australian camo on MAF gear becomes flat olive.
+MAF_SWAP = {"crye_g3_shirt_amc_co": "Crye_G3_Shirt_Green_co", "crye_g3_pants_amc_co": "Crye_G3_Pants_green_co",
+            "crye_g3_boots_coyote_brown_co": "Crye_G3_Boots_Ranger_Green_co"}
+MAF_FLAT = ("pasgt_dpc_co", "belt_amcu_co", "tacgear_amcu_co")
 REPORT = os.path.join(PROJECT_DIR, "Build", "adf_soldier_setup.json")
 eal = unreal.EditorAssetLibrary
 mel = unreal.MaterialEditingLibrary
@@ -79,13 +85,13 @@ def colour_stem(stem):
     return stem, "as authored"
 
 
-def material_for(slot_name, parent):
+def material_for(slot_name, parent, prefix="MI_ADF_", maf=False):
     # Slot names from adfrc_gear_rig.py: "<texture>__<rvmat>", e.g. crye_g3_shirt_amc_co__crye_g3_shirt.
     m = re.search(r"([A-Za-z0-9]+(?:_[A-Za-z0-9]+)*?)_(co|ca)__", slot_name)
     rv = re.search(r"__([A-Za-z0-9_]+?)(?:_\d+)?(?:\s|$)", slot_name)
     stem = (m.group(1) + "_" + m.group(2)) if m else None
     rvstem = rv.group(1) if rv else (m.group(1) if m else None)
-    name = "MI_ADF_" + re.sub(r"[^A-Za-z0-9_]", "_", (m.group(1) if m else slot_name))[:60]
+    name = prefix + re.sub(r"[^A-Za-z0-9_]", "_", (m.group(1) if m else slot_name))[:60]
     path = DEST + "/" + name
     mi = unreal.load_asset(path) if eal.does_asset_exist(path) else tools.create_asset(
         name, DEST, unreal.MaterialInstanceConstant, unreal.MaterialInstanceConstantFactoryNew())
@@ -93,13 +99,18 @@ def material_for(slot_name, parent):
     note = "no texture"
     if stem:
         cstem, note = colour_stem(stem)
+        if maf and stem.lower() in MAF_SWAP:
+            cstem, note = MAF_SWAP[stem.lower()], "MAF green"
+        elif maf and stem.lower() in MAF_FLAT:
+            cstem, note = None, "MAF flat olive"
         col = texture(cstem) if cstem else None
         if col:
             mel.set_material_instance_texture_parameter_value(mi, "BaseColorMap", col)
         else:
             # No Multicam (ADR-016): a plain coyote finish (Art/Characters/ADF/T_ADF_Coyote.png).
-            index.setdefault("t_adf_coyote", os.path.join(ART, "T_ADF_Coyote.png"))
-            mel.set_material_instance_texture_parameter_value(mi, "BaseColorMap", texture("T_ADF_Coyote"))
+            flat = "T_ADF_Olive" if maf else "T_ADF_Coyote"
+            index.setdefault(flat.lower(), os.path.join(ART, flat + ".png"))
+            mel.set_material_instance_texture_parameter_value(mi, "BaseColorMap", texture(flat))
             mel.set_material_instance_scalar_parameter_value(mi, "Roughness", 0.8)
         base = m.group(1)
         base = re.sub(r"_(mc|amcu|amc|coyote|tan|green|grey|black|coyote_brown)$", "", base)
@@ -167,7 +178,8 @@ def main():
             slot = str(sm.get_editor_property("material_slot_name"))
             imported = sm.get_editor_property("material_interface")
             full = imported.get_name() if imported else slot
-            mi, stem, note = material_for(full + " " + slot, parent)
+            maf = name.startswith("SK_MAF_")
+            mi, stem, note = material_for(full + " " + slot, parent, "MI_MAF_" if maf else "MI_ADF_", maf)
             sm.set_editor_property("material_interface", mi)
             mats[i] = sm
             slots.append({"slot": slot, "source": full, "texture": stem, "note": note})
@@ -175,6 +187,14 @@ def main():
         # A property set from Python does not dirty the package: save unconditionally, or the
         # imported default (WorldGridMaterial) stays on disk.
         report["meshes"][name] = {"slots": slots, "saved": eal.save_loaded_asset(mesh, False)}
+    # MAF wears the same uniform mesh with the green palette: material instances only (applied as
+    # the soldier's OpposingMaterialOverrides by setup_soldiers.py, in the uniform's slot order).
+    uniform = unreal.load_asset(DEST + "/SK_ADF_Uniform_G3")
+    report["maf_uniform_slots"] = []
+    for sm in uniform.get_editor_property("materials"):
+        slot = str(sm.get_editor_property("material_slot_name"))
+        mi, stem, note = material_for(slot, parent, "MI_MAF_", True)
+        report["maf_uniform_slots"].append(mi.get_path_name())
     report["ok"] = all(isinstance(v, dict) and v["saved"] for v in report["meshes"].values())
 
 
