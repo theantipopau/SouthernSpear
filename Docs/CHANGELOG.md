@@ -2646,7 +2646,12 @@ Lyra `B_Hero_Default` (reparented), experience and IMC updates; blood uses the a
 - Committed the parallel session's finished, uncommitted work: Session 033 entry, ASSET_REGISTER,
   SOURCED_ASSET_REVIEW, DECISION_LOG execution note, TEST_PLAN, the smoke test and its `EngineSettings` dependency,
   README. Untracked art folders (`Art/Weapons/{A88/New,AKM,C4A1,PKM,_Optics}`, `Content/AUG`, `Content/SouthernSpear`,
-  `Docs/images/conceptart*.png`) left uncommitted: their sources are not recorded in the registers yet.
+  `Docs/images/conceptart*.png`) handled below.
+
+- **Untracked folders resolved:** the blocked or reference-only weapon sources (`Art/Weapons/{A88/New,AKM,C4A1,PKM}`), the Fab optic
+  export `Art/Weapons/_Optics` (no republishing) and the raw CC BY scan sources `Content/SouthernSpear/Vendor` are git-ignored;
+  `Content/AUG` (ADFRC audio) committed as LFS pointers. ASSET_REGISTER 4.9g added (AUD-AUG-001, CH-ADF-001, GP-DMG-001).
+  `Docs/images/conceptart{1,2}.png` left untracked: their source is unknown.
 
 ### FILES CHANGED
 
@@ -2672,7 +2677,7 @@ None.
 ### RISKS
 
 - R-36 (from Session 034) recorded in PROJECT_AUDIT.
-- The untracked art folders listed above need register entries before they can be committed or used.
+- The concept art images have no recorded source.
 
 ### DEFECTS FOUND
 
@@ -2682,8 +2687,7 @@ None.
 
 ### NEXT ACTION
 
-**Register or remove the untracked art folders** (`Art/Weapons/*`, `Content/AUG`, `Content/SouthernSpear`, concept art):
-record each source in ASSET_REGISTER / LICENCE_REGISTER, then commit or ignore it.
+**Wire the AUG audio (`/Game/AUG/Sound`) into the A88 family's fire, tail and reload cues**, replacing Lyra's rifle sounds.
 
 ---
 

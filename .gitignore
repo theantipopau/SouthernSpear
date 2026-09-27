@@ -232,3 +232,12 @@ Art/ADFRC_Player/*
 
 # Lyra mannequin exported as a Blender reference (Epic content, R-14)
 Art/Characters/ADF/SKM_Manny_ref.fbx
+
+# Local source material, registered in Docs/ASSET_REGISTER.md 4.9d / ENV-001-002 (Session 035):
+# blocked or reference-only weapon sources, a Fab optic export (no republishing), raw CC BY scan sources.
+Art/Weapons/A88/New/
+Art/Weapons/AKM/
+Art/Weapons/C4A1/
+Art/Weapons/PKM/
+Art/Weapons/_Optics/
+Content/SouthernSpear/Vendor/

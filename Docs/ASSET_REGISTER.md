@@ -280,6 +280,17 @@ Changes: source files staged unchanged; no modifications to mesh or texture data
 
 > **R-20 partial:** the `M_Patches` slot is now overridden with plain gear fabric, so any insignia carried by the vendor patch texture is no longer displayed. A rendered confirmation is still outstanding (see Session 026).
 
+### 4.9g ADFRC-derived game assets (L-0021, ADR-025)
+
+Cleared for use in the project; the source files stay git-ignored (`Art/ADFRC/`); the repository holds LFS pointers only (R-14).
+Third-party marks and ADF camouflage must be stripped or swapped before release (R-27).
+
+| ID | Asset | Path | Status | Licence dep. | Notes |
+|---|---|---|---|---|---|
+| AUD-AUG-001 | AUG weapon audio (28 SoundWaves, 2 attenuations) | `/Game/AUG/Sound/` | `IN_PRODUCTION` | L-0021 | Imported by `Tools/Unreal/import_aug_audio.py` (Session 032b). |
+| CH-ADF-001 | ADF and MAF gear skeletal meshes on Lyra's skeleton | `/SSExp_ObjectiveAssault/Characters/ADF/SK_ADF_*`, `SK_MAF_*`, `MI_ADF_*` | `IN_PRODUCTION` | L-0021; skeleton L-0016 (Epic) | `Tools/Blender/adfrc_gear_rig.py` + `Tools/Unreal/setup_adf_soldier.py` (Sessions 031, S1). |
+| GP-DMG-001 | Hit-zone physical materials, per-weapon instances | `/SSExp_ObjectiveAssault/Characters/Physics/PM_SS_*`, `Weapons/*/B_SS_WeaponInstance_*` | `IN_PRODUCTION` | Class F (data); instances copied from Lyra (Epic) | `Tools/Unreal/setup_damage_model.py` (Session 034). |
+
 ### 4.10 Data Assets (no licence dependency — original data)
 
 | ID | Asset | Type | Status |
