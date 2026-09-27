@@ -2,6 +2,7 @@
 
 #include "SSCharacter.h"
 
+#include "Components/AudioComponent.h"
 #include "Components/ChildActorComponent.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
@@ -12,6 +13,7 @@
 #include "InputAction.h"
 #include "Kismet/GameplayStatics.h"
 #include "Particles/ParticleSystem.h"
+#include "Sound/SoundBase.h"
 #include "InputMappingContext.h"
 #include "Net/UnrealNetwork.h"
 #include "PhysicalMaterials/PhysicalMaterial.h"
@@ -192,6 +194,13 @@ void ASSCharacter::ServerSetLean_Implementation(int8 NewLean)
 void ASSCharacter::HandleGameplayCue(UObject* Self, FGameplayTag GameplayCueTag, EGameplayCueEvent::Type EventType, const FGameplayCueParameters& Parameters)
 {
 	Super::HandleGameplayCue(Self, GameplayCueTag, EventType, Parameters);
+	static const FGameplayTag RifleFire = FGameplayTag::RequestGameplayTag(TEXT("GameplayCue.Weapon.Rifle.Fire"), false);
+	if (EventType == EGameplayCueEvent::Executed && RifleFire.IsValid() && GameplayCueTag.MatchesTagExact(RifleFire)
+		&& GetNetMode() != NM_DedicatedServer)
+	{
+		PlayRifleFire();
+		return;
+	}
 	static const FGameplayTag DamageTaken = FGameplayTag::RequestGameplayTag(TEXT("GameplayCue.Character.DamageTaken"), false);
 	if (EventType != EGameplayCueEvent::Executed || !DamageTaken.IsValid() || !GameplayCueTag.MatchesTag(DamageTaken)
 		|| GetNetMode() == NM_DedicatedServer)
@@ -213,4 +222,87 @@ void ASSCharacter::HandleGameplayCue(UObject* Self, FGameplayTag GameplayCueTag,
 		UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), BloodSystem, Where, Shot.Rotation(), FVector(0.6f), /*bAutoDestroy=*/ true);
 		UE_LOG(LogTemp, Verbose, TEXT("SSBlood %s at %s (hit result: %d)"), *GetName(), *Where.ToString(), Hit != nullptr);
 	}
+}
+
+void ASSCharacter::PlayRifleFire()
+{
+	auto LoadAll = [](const TArray<FSoftObjectPath>& Paths, TArray<TObjectPtr<USoundBase>>& Out)
+	{
+		if (Out.Num() == 0)
+		{
+			for (const FSoftObjectPath& Path : Paths)
+			{
+				if (USoundBase* Sound = Cast<USoundBase>(Path.TryLoad()))
+				{
+					Out.Add(Sound);
+				}
+			}
+		}
+	};
+	LoadAll(RifleCloseShots, LoadedCloseShots);
+	LoadAll(RifleDistantShots, LoadedDistantShots);
+	if (!LoadedTail)
+	{
+		LoadedTail = Cast<USoundBase>(RifleTail.TryLoad());
+	}
+	if (LoadedCloseShots.Num() == 0)
+	{
+		return; // no recordings: Lyra's sound stays
+	}
+
+	// Mute Lyra's rifle MetaSound: Lyra's weapon Blueprint spawns it once, attached to (and owned by) the pawn,
+	// and re-triggers it per shot. Matched by sound name so footsteps and other pawn audio are untouched.
+	int32 Muted = 0;
+	TInlineComponentArray<UAudioComponent*> Audio(this);
+	for (UAudioComponent* Component : Audio)
+	{
+		if (Component->Sound && Component->Sound->GetName().StartsWith(TEXT("MSS_Weapons_Rifle")) && Component->VolumeMultiplier > 0.f)
+		{
+			Component->SetVolumeMultiplier(0.f);
+			++Muted;
+		}
+	}
+
+	const FVector Muzzle = GetMesh() && GetMesh()->DoesSocketExist(TEXT("weapon_r")) ? GetMesh()->GetSocketLocation(TEXT("weapon_r"))
+		: GetPawnViewLocation();
+	USoundBase* Close = LoadedCloseShots[FMath::RandHelper(LoadedCloseShots.Num())];
+	const float Pitch = FMath::FRandRange(0.97f, 1.03f);
+	// AI pawns are "locally controlled" on the server; only the human shooter hears the unspatialised close shot.
+	const bool bShooterIsListener = IsLocallyControlled() && IsPlayerControlled();
+	if (bShooterIsListener)
+	{
+		UGameplayStatics::PlaySound2D(this, Close, 1.f, Pitch);
+	}
+	else
+	{
+		FSoundAttenuationSettings Near;
+		Near.FalloffDistance = 6000.f; // 60 m
+		Near.AttenuationShapeExtents = FVector(400.f);
+		if (UAudioComponent* Shot = UGameplayStatics::SpawnSoundAtLocation(this, Close, Muzzle, FRotator::ZeroRotator, 1.f, Pitch))
+		{
+			Shot->AdjustAttenuation(Near);
+		}
+		if (LoadedDistantShots.Num() > 0)
+		{
+			FSoundAttenuationSettings Far;
+			Far.FalloffDistance = 60000.f; // heard across the map (600 m)
+			Far.AttenuationShapeExtents = FVector(1500.f);
+			if (UAudioComponent* Distant = UGameplayStatics::SpawnSoundAtLocation(this, LoadedDistantShots[FMath::RandHelper(LoadedDistantShots.Num())],
+				Muzzle, FRotator::ZeroRotator, 0.7f, Pitch))
+			{
+				Distant->AdjustAttenuation(Far);
+			}
+		}
+	}
+	if (LoadedTail)
+	{
+		FSoundAttenuationSettings Tail;
+		Tail.FalloffDistance = 30000.f;
+		Tail.AttenuationShapeExtents = FVector(2000.f);
+		if (UAudioComponent* Echo = UGameplayStatics::SpawnSoundAtLocation(this, LoadedTail, Muzzle, FRotator::ZeroRotator, bShooterIsListener ? 0.45f : 0.3f))
+		{
+			Echo->AdjustAttenuation(Tail);
+		}
+	}
+	UE_LOG(LogTemp, Verbose, TEXT("SSRifleAudio %s local=%d muted=%d"), *GetName(), bShooterIsListener, Muted);
 }

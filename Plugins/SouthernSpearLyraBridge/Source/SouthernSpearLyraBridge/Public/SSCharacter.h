@@ -40,6 +40,25 @@ public:
 	FSoftObjectPath BloodEffect = FSoftObjectPath(TEXT("/Game/Realistic_Starter_VFX_Pack_Vol2/Particles/Blood/P_Blood_Splat_Cone.P_Blood_Splat_Cone"));
 
 	/**
+	 * Rifle fire audio (presentation, every client): on GameplayCue.Weapon.Rifle.Fire the AUG recordings
+	 * (ADFRC, L-0021) play at the weapon (a random close shot, a distant layer heard across the map, an
+	 * outdoor tail; the shooter hears the close shot unspatialised), and Lyra's rifle MetaSound on its
+	 * hidden weapon actor is muted. Pistol and shotgun cues keep Lyra's sounds.
+	 */
+	UPROPERTY(EditDefaultsOnly, Category = "Tactical|Audio")
+	TArray<FSoftObjectPath> RifleCloseShots = {
+		FSoftObjectPath(TEXT("/Game/AUG/Sound/AUG/Wavs/AUG_closeShot_01.AUG_closeShot_01")),
+		FSoftObjectPath(TEXT("/Game/AUG/Sound/AUG/Wavs/AUG_closeShot_02.AUG_closeShot_02")),
+		FSoftObjectPath(TEXT("/Game/AUG/Sound/AUG/Wavs/AUG_closeShot_03.AUG_closeShot_03")) };
+	UPROPERTY(EditDefaultsOnly, Category = "Tactical|Audio")
+	TArray<FSoftObjectPath> RifleDistantShots = {
+		FSoftObjectPath(TEXT("/Game/AUG/Sound/AUG/Wavs/AUG_distShot_01.AUG_distShot_01")),
+		FSoftObjectPath(TEXT("/Game/AUG/Sound/AUG/Wavs/AUG_distShot_02.AUG_distShot_02")),
+		FSoftObjectPath(TEXT("/Game/AUG/Sound/AUG/Wavs/AUG_distShot_03.AUG_distShot_03")) };
+	UPROPERTY(EditDefaultsOnly, Category = "Tactical|Audio")
+	FSoftObjectPath RifleTail = FSoftObjectPath(TEXT("/Game/AUG/Sound/AUG/Wavs/AUG_tailMeadows.AUG_tailMeadows"));
+
+	/**
 	 * The visible soldier (3 ACR / MAF parts, viewer-relative): a child actor on the body mesh,
 	 * spawned on every machine (presentation only). Lyra's replicated cosmetic-part chain did not
 	 * spawn parts on this pawn (Session 031), so the character owns its soldier directly.
@@ -91,6 +110,15 @@ private:
 
 	UPROPERTY(Transient)
 	TObjectPtr<class UParticleSystem> BloodSystem;
+
+	void PlayRifleFire();
+
+	UPROPERTY(Transient)
+	TArray<TObjectPtr<class USoundBase>> LoadedCloseShots;
+	UPROPERTY(Transient)
+	TArray<TObjectPtr<class USoundBase>> LoadedDistantShots;
+	UPROPERTY(Transient)
+	TObjectPtr<class USoundBase> LoadedTail;
 
 	bool bLeanLeftHeld = false;
 	bool bLeanRightHeld = false;

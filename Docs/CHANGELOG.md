@@ -2691,6 +2691,55 @@ None.
 
 ---
 
+## Session 036 — 2026-09-28 — A-Series Rifles Fire with the AUG Recordings
+
+### COMPLETED
+
+- **Rifle fire audio from the ADFRC AUG recordings** (AUD-AUG-001, L-0021), in C++ because SoundCues cannot be
+  authored headlessly (Session 032b). `ASSCharacter` handles `GameplayCue.Weapon.Rifle.Fire` on every client:
+  - a random close shot (3 variants, ±3% pitch); unspatialised for the human shooter, 60 m falloff for everyone else;
+  - a distant shot layer (3 variants) heard to 600 m, and the `tailMeadows` outdoor tail;
+  - Lyra's `MSS_Weapons_Rifle2_Fire` muted. Found by logging: Lyra's weapon Blueprint spawns that MetaSound
+    **owned by the pawn**, not the weapon actor; it is matched by sound name so footsteps stay.
+  - Pistol and shotgun cues keep Lyra's sounds. All rifles (A88 family, A4, A416, A89, A25) share the AUG set for now.
+- Defect caught before shipping: AI pawns count as locally controlled on the server, so bot shots would have
+  played unspatialised to the player. The 2D close shot is now for `IsLocallyControlled() && IsPlayerControlled()` only.
+
+### FILES CHANGED
+
+`SSCharacter.h/.cpp`, this file, `Docs/evidence/S035_rifle_audio_live.txt`.
+
+### TESTING
+
+| Test | Command | Exit | Result | Evidence |
+|---|---|---|---|---|
+| Guard | `python Tools/validate_architecture.py` | 0 | PASS | console |
+| Build | `Build.bat SouthernSpearEditor Win64 Development` | 0 | Succeeded | console |
+| All tests | `UnrealEditor-Cmd ... -nosound -NoLoadingScreen ... "Automation RunTests SouthernSpear;Quit"` | 0 | 35/35 Success | `Build/tests_036.log` (not retained) |
+| Live, audio device on | Dry River, 8 bots, `LogTemp=Verbose`, no `-nosound` (timeout kill) | 124 | 257 rifle shots: AUG layers played, Lyra's MetaSound muted on 257/257, all spatialised (bots), no crash | `Docs/evidence/S035_rifle_audio_live.txt` |
+
+NOT RUN: **listening**. No one has heard the result; the mix levels (close 1.0, distant 0.7, tail 0.3–0.45) and
+whether Lyra's first-shot trigger leaks before the mute are unverified by ear. Reload and dry-fire sounds not wired.
+
+### ASSETS
+
+Uses AUD-AUG-001; nothing new.
+
+### RISKS
+
+- Mix levels unverified by ear (see NOT RUN).
+
+### DEFECTS FOUND
+
+- Bot shots would have played as the player's own (code reading after the first live log showed `local=1`).
+- Mute target was wrong at first: the MetaSound is on the pawn, not the weapon actor (live log, `muted=0` on 319 shots).
+
+### NEXT ACTION
+
+**Play a match with sound and judge the rifle audio by ear** (levels, first-shot leak, distance), then tune the three volumes.
+
+---
+
 ## Open Threads
 
 | Item | Blocked on | Owner |
