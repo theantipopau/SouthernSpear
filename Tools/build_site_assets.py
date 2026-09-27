@@ -241,6 +241,37 @@ def build_concepts():
     print("  concepts/environment-detail-0{1,2}-*")
 
 
+def build_weapons():
+    """Product renders of the project's own A-series weapon designs.
+
+    Sources are the Class F original first-pass models rendered by
+    Tools/Blender/render_weapons.py: the A88 (W-A88-01) and the A89 light
+    support weapon (W-A89-01, ADR-020). Nothing ADFRC-derived, the
+    provisional A88 import or any blocked reference file is read here, because
+    none of those may be republished.
+
+    Each render is transparent, so the transparent margin is cropped away
+    before the derivatives are written: a long thin rifle in a 4:3 frame wastes
+    a third of its pixels, and the site's cards are landscape anyway.
+    """
+    weapons = (("a88", "weapon-a88"), ("a89", "weapon-a89"))
+    for src_stem, stem in weapons:
+        path = os.path.join(SRC, "weapons", src_stem + ".png")
+        if not os.path.isfile(path):
+            print("  SKIP", path, "(run Tools/Blender/render_weapons.py first)")
+            continue
+        img = Image.open(path).convert("RGBA")
+        bbox = img.getchannel("A").getbbox()
+        if bbox:
+            pad = round(max(img.size) * 0.02)
+            img = img.crop((max(0, bbox[0] - pad), max(0, bbox[1] - pad),
+                            min(img.width, bbox[2] + pad), min(img.height, bbox[3] + pad)))
+        for width in (720, 1200):
+            save_alpha(at_width(img, width), "weapons/" + stem,
+                       "{}-{}".format(stem, width), width)
+        print("  weapons/{}-* (source {}x{})".format(stem, img.width, img.height))
+
+
 def build_social():
     art = Image.open(MENU).convert("RGB")
     target_ratio = 1200 / 630
@@ -268,6 +299,7 @@ def main():
     build_brand()
     build_hero()
     build_concepts()
+    build_weapons()
     build_social()
     print("done")
 

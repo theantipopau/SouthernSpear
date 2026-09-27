@@ -1,12 +1,12 @@
 # WEBSITE TEST REPORT — Southern Spear
 
-**Date:** 2026-09-28 (second pass: the full changelog moved to its own page)
+**Date:** 2026-09-28 (third pass: loadout section with original weapon renders)
 **Build tested:** `python Tools/publish_site.py` → `Build/site/` → published
 **Served from:** `http://localhost:8765/` (local static server) and the live site
 **Browser:** Google Chrome (headless, via `puppeteer-core`) and Lighthouse 12
 **Automated suites:** `Build/audit/responsive_audit.js` (9 viewports × both pages),
 `Build/audit/text_audit.js` (type and target sizes), `Build/audit/interaction_test.js`
-(21 keyboard, focus, filter, lightbox, redirect and zoom checks, across both pages)
+(22 keyboard, focus, filter, lightbox, loadout, redirect and zoom checks, across both pages)
 **Baseline for comparison:** the live site at https://theantipopau.github.io/southernspear-site/
 
 > Internal document. Not published.
@@ -202,6 +202,9 @@ duplicated into the HTML.
 | Current phase card quotes the roadmap, not the older changelog glance | pass — "Phase 1 — Greybox Vertical Slice" |
 | Exit criteria rendered from the Phase Summary table | pass |
 | No invented percentages, dates or counts | pass |
+| Loadout renders come only from Class F original models (A88 W-A88-01, A89 W-A89-01) | pass — no ADFRC, L-0017 or blocked reference model is rendered or published |
+| Loadout section: two renders load, are described, and open full-size in the lightbox | pass |
+| Header and menu type enlarged (nav 0.80 → 0.92rem, brand 1.02 → 1.2rem) | pass — desktop nav switches to the panel at 1100px; no overflow at any of the nine viewports |
 
 ### Data defects found and fixed during this pass
 
@@ -305,8 +308,10 @@ cross-browser verified.**
 
 1. **Frozen in-engine gameplay captures.** `Saved/Screenshots/WindowsEditor/SSShot.png` is
    overwritten by the editor every session and is gitignored, so it cannot be published. The
-   gallery currently contains concept art only and says so. This is the only thing standing
-   between this being a concept-art site and a site that proves the game renders.
+   gallery currently contains concept art only and says so. The loadout section shows
+   renders of the project's own original weapon models instead, which is honest but is not
+   the same proof. This remains the only thing standing between this being a concept-art
+   site and a site that proves the game renders.
 2. Map, role and environment artwork for the five map concepts.
 3. An official horizontal wordmark lockup, for a richer header lockup than emblem + HTML text.
 

@@ -133,7 +133,17 @@ Rules:
 `#training` (stacked list + 3-up) → `#operations` (diagram + 2-up) →
 `#maps` (auto-fit cards) → `#media` (showcase + gallery) →
 `#development` (auto-fit status) → `#roadmap` (timeline rail) →
-`#latest` (latest-session panel) → `#faq` (narrow accordion).
+`#loadout` (weapon render cards) → `#latest` (latest-session panel) →
+`#faq` (narrow accordion).
+
+**Loadout imagery is Class F only.** The `#loadout` section shows studio renders of the
+project's own original weapon models: the A88 first-pass source (W-A88-01) and the A89
+light support weapon (W-A89-01, ADR-020), rendered by `Tools/Blender/render_weapons.py`
+into `Docs/images/weapons/`. Nothing ADFRC-derived, the provisional A88 import (L-0017) or
+any blocked reference model is rendered or published, because the licence register does not
+clear those for republication. The renders carry alpha, so they sit directly on the section
+band with no backdrop, and every card is captioned as a render of a first-pass model rather
+than gameplay.
 
 **Two pages.** The full searchable changelog lives on `changelog.html` (2026-09-28), which
 opens with `.page-head` — a flat, banner-less header using the ink-900 surface, a radial
