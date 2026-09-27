@@ -46,6 +46,9 @@ FILES = {
     "sitemap.xml": "Site/sitemap.xml",
     "404.html": "Site/404.html",
     "manifest.webmanifest": "Site/manifest.webmanifest",
+    # Browsers request /favicon.ico at the site root regardless of any <link>,
+    # so the 32px mark is published there as well as under assets/.
+    "favicon.ico": "Site/assets/favicon.ico",
     "data/CHANGELOG.md": "Docs/CHANGELOG.md",
     "data/DEVELOPMENT_ROADMAP.md": "Docs/DEVELOPMENT_ROADMAP.md",
 }

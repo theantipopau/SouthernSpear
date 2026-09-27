@@ -12,32 +12,35 @@
 
 ## 1. Lighthouse, mobile profile (simulated slow 4G)
 
-| Category | Before | After | Change |
+Final figures are measured on the **live site**, because the local test server
+(uncompressed, no TLS) understated them by roughly 1.2 s on LCP.
+
+| Category | Before (live) | After (local) | **After (live)** |
 |---|---|---|---|
-| Performance | 67 | **88** | +21 |
-| Accessibility | 100 | **100** | held |
-| Best Practices | 100 | **100** | held |
-| SEO | 100 | **100** | held |
+| Performance | 67 | 88 | **94** |
+| Accessibility | 100 | 100 | **100** |
+| Best Practices | 100 | 100 | **100** |
+| SEO | 100 | 100 | **100** |
 
-| Metric | Before | After | Target | Verdict |
-|---|---|---|---|---|
-| First Contentful Paint | 3.0 s | **2.1 s** | < 1.8 s | close |
-| Largest Contentful Paint | **12.9 s** | **3.7 s** | < 2.5 s | **not met** |
-| Total Blocking Time | 30 ms | **0 ms** | < 200 ms | met |
-| Cumulative Layout Shift | 0 | **0** | < 0.1 | met |
-| Speed Index | 4.7 s | **2.1 s** | — | — |
-| DOM elements | 4,839 | **1,584** | < 1,500 | marginal |
-| Total transfer | 2,110 KB | **487 KB** | — | −77 % |
+| Metric | Before (live) | After (local) | **After (live)** | Target | Verdict |
+|---|---|---|---|---|---|
+| First Contentful Paint | 3.0 s | 2.1 s | **1.7 s** | < 1.8 s | **met** |
+| Largest Contentful Paint | 12.9 s | 3.7 s | **2.5 s** | < 2.5 s | **met, at the line** |
+| Total Blocking Time | 30 ms | 0 ms | **80 ms** | < 200 ms | met |
+| Cumulative Layout Shift | 0 | 0 | **0** | < 0.1 | met |
+| Speed Index | 4.7 s | 2.1 s | **4.2 s** | — | — |
+| Time to Interactive | 12.9 s | 3.7 s | **2.6 s** | — | — |
+| DOM elements | 4,839 | 1,584 | **1,584** | < 1,500 | marginal |
+| Total transfer | 2,110 KB | 487 KB | **278 KB** | — | **−87 %** |
 
-**LCP is not yet at target, and this is stated rather than claimed as met.**
-LCP element is the hero image. Breakdown: render-blocking `styles.css` accounts for
-**1,052 ms** of wasted time in the throttled profile. The remaining cost is the local test
-server serving ~29 KB of CSS **uncompressed and without TLS**, which GitHub Pages will not do.
-The figure must be re-measured on the live host before any claim is made about it.
+**LCP lands at 2.5 s — at the target, not comfortably inside it.** One throttled run on a
+slower connection will put it over, so it is reported as marginal rather than as a pass with
+margin.
 
-Audits still flagged, all attributable to the local server rather than the site:
+Audits still flagged, all attributable to hosting rather than the site:
 `uses-text-compression`, `unminified-css`, `unminified-javascript`, `unused-css-rules`,
-`uses-long-cache-ttl`, `cache-insight`.
+`uses-long-cache-ttl`, `cache-insight`, `render-blocking-resources`. GitHub Pages does not
+compress or minify, and sets a 10-minute cache TTL.
 
 ### What moved the needle
 
@@ -154,6 +157,12 @@ duplicated into the HTML.
 5. **Numbered headings** (`## 13. Current Status`) did not match a plain heading lookup.
 6. **Lightbox paths pointed at files that do not exist** (`main-menu-concept-01-1280.jpg`).
    The lightbox now uses the thumbnail's already-resolved `currentSrc`, so it can never 404.
+7. **A race condition that only appeared on the live host.** The development-status panel
+   needs both `data/CHANGELOG.md` and `data/DEVELOPMENT_ROADMAP.md`, but it was only
+   triggered from the changelog's callback. Locally the roadmap happened to resolve first and
+   the panel rendered; on GitHub Pages the order flipped and the panel sat on
+   "Loading development status…" indefinitely. Both callbacks now trigger the render, guarded
+   by a one-shot flag. **This is the clearest argument for testing against the real host.**
 
 ---
 
@@ -214,8 +223,11 @@ cross-browser verified.**
 | Retired assets removed from the public repo | pass |
 | No engine, Lyra or game content published | pass |
 | All new paths are relative, so the `/southernspear-site/` sub-path works | pass |
-| `assets/logo.png`, `assets/header.png`, `assets/keyart.jpg` no longer published | pass |
-| Live publish **not yet run** — requires a deliberate publish | pending |
+| `assets/logo.png`, `assets/header.png`, `assets/keyart.jpg` no longer published | pass (all confirmed 404 live) |
+| `/favicon.ico` published at the site root | pass — browsers request it there regardless of any `<link>` |
+| **Live publish run and verified** | pass |
+| All assets return 200 with correct content types from the live host | pass |
+| `.gitattributes` keeps `Site/assets/**` out of Git LFS, as the publisher requires | pass |
 
 ---
 
@@ -237,12 +249,12 @@ cross-browser verified.**
 
 ### Engineering follow-ups
 
-1. **Inline critical CSS** to remove the 1,052 ms render-blocking cost. This is the main
-   remaining LCP lever.
-2. Re-run Lighthouse against the live GitHub Pages URL and record the real figures.
+1. **Inline critical CSS.** Render-blocking `styles.css` is the largest remaining lever and
+   the reason LCP is at 2.5 s rather than comfortably under it. GitHub Pages does not
+   compress, so this matters more here than it would on a normal host.
+2. Minify CSS and JS in the build step; neither is minified today.
 3. Test in Firefox and WebKit.
-4. Consider minifying CSS and JS in the build step.
-5. The gallery is currently three items; the markup is data-shaped so adding captures needs
+4. The gallery is currently three items; the markup is data-shaped so adding captures needs
    no JavaScript change.
 
 ### Known visual trade-offs accepted
