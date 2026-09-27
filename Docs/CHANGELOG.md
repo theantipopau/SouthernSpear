@@ -2297,6 +2297,71 @@ result, and until it does, every claim in this log about how the game looks rema
 
 ---
 
+## Session 029 — 2026-09-27 — Fair Map Layouts: Spawn Tool, Cross-Map Objectives, Map Documents
+
+### COMPLETED
+
+- **Reviewed the other agent's `MAPS_SALTBUSH.md` and `MAPS_SELATCANAL.md`** (sound, evidence-based) and
+  acted on their findings; both are rewritten with the new measurements; `MAPS_REDGUM.md` is new.
+- **`layout_spawns.py`** (new, final authority on starts, all four maps): 8 starts per team on clear
+  walkable ground (70 cm wall clearance, 2 m headroom, reachable from the deployment **and** to the centre
+  objective), farthest-point spread, hidden from the enemy deployment first, facing the centre objective;
+  deployments more than 200 m on foot from the centre objective slide in. Reports spacing, spawn exposure
+  and each team's walk to every objective.
+  - Selat Canal 7/8 → **8/8**; spawn exposure 0/64 on Red Gum, Dry River, Saltbush (Canal 11/64).
+- **`layout_objectives.py`** (new): objectives placed across the map at even-walk points (Red Gum
+  flanks; Saltbush spread). The opening objective is now even on Saltbush (105 vs 104 m; was 46 vs 134 m)
+  and within 11% on Red Gum (213 vs 240 m; was ~170 vs ~390 m). Red Gum's flank objectives are renamed
+  North Paddock / South Paddock (they no longer stand on the bore pump and shearing shed).
+- **`build_objective_map.py`**: deployments chosen by `min(walk, 1.6 x straight line)` and objectives
+  along the walking route (straight line gave a 70 m walled street; walk alone gave two banks 20 m apart).
+- Front-end Red Gum card text follows the renamed objectives.
+
+### FILES CHANGED
+
+`Tools/Unreal/layout_spawns.py`, `layout_objectives.py` (new), `build_objective_map.py`;
+`Docs/MAPS_SALTBUSH.md`, `MAPS_SELATCANAL.md` (rewritten), `MAPS_REDGUM.md` (new); `SSMenuWidget.cpp`;
+maps `L_RedGum_01`, `L_DryRiver_01`, `L_Saltbush_01`, `L_SelatCanal_01`.
+
+### TESTING
+
+| Test | Command | Exit | Result | Evidence |
+|---|---|---|---|---|
+| Guard | `python Tools/validate_architecture.py` | 0 | PASS | — |
+| Build | `Build.bat SouthernSpearEditor ...` | 0 | Succeeded | — |
+| Automation | `Automation RunTests SouthernSpear` | 255 | 30 Success; 1 Fail (parallel session's `TwoPlayerAuthoritySmoke`) | `Build/tests.log` |
+| Spawn layout | `layout_spawns.py` | 0 | ok=true, 8/8 on all maps; figures above | `Build/spawn_layout.json` |
+| Objective layout | `layout_objectives.py` | 0 | Red Gum flanks 3–4% at placement; Saltbush spread; Canal rejected (objectives within 28 m) | `Build/objective_layout.json` |
+| Saltbush match | 8 bots, 180 s, `-nullrhi` | 124 | Windmill captured by Team One (first capture on this map) | log |
+| Red Gum match | 8 bots, 180 s, before and after pull-in | 124 | **No capture** (contested stalemate) | log |
+| Canal / Dry River matches | 8 bots, 150 s | 124 | **No capture** | log |
+| Nav step-height experiment | canal reach probe | 0 | 36 → 41 of 164 reachable at 45 cm; reverted | log |
+
+### ASSETS
+
+None new.
+
+### RISKS
+
+- R-25 (new): **capture stalemate.** ADR-018 freezes a contested objective; respawning bots keep both
+  teams present, so small or long maps can go a whole round without a capture. Needs a rules or bot
+  decision (producer).
+- Selat Canal cannot host a fair three-objective sequence on its connected footprint (22% of samples).
+- R-24 (GitHub LFS push) still open.
+
+### DEFECTS FOUND
+
+1. Selat Canal 7/8 starts (other agent's review).
+2. Opening objective much nearer Team One on the builder maps (fairness measurement).
+3. Canal Team One starts on a disconnected nav island (layout debug; fixed: starts must reach the objectives).
+
+### NEXT ACTION
+
+**Producer decides the capture stalemate** (R-25): majority capture, respawn waves, or attack/defend bot
+roles.
+
+---
+
 ## Open Threads
 
 | Item | Blocked on | Owner |

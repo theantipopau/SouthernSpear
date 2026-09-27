@@ -190,11 +190,39 @@ def nav_pass():
     report["grid"] = {"points": len(grid), "reachable": len(reach)}
     moves = {}
     if len(reach) >= 3:
-        p1 = max(reach, key=lambda q: (q - centre).length())
-        p2 = max(reach, key=lambda q: (q - p1).length())
+        # Deployments: from a spread sample of the island, the pair that is far
+        # apart both on foot (nav path length) and in a straight line (sight):
+        # score = min(walk, 1.6 x straight). Straight line alone picked two
+        # ends of a walled canal 70 m apart; walk alone picked two banks 20 m
+        # apart across the water.
+        sample = [max(reach, key=lambda q: (q - centre).length())]
+        while len(sample) < min(36, len(reach)):
+            sample.append(max(reach, key=lambda q: min((q - c).length() for c in sample)))
+        best_score, best_len, p1, p2, route_pts = -1.0, 0.0, None, None, []
+        for i, a in enumerate(sample):
+            for b in sample[i + 1:]:
+                path = unreal.NavigationSystemV1.find_path_to_location_synchronously(world, a, b)
+                if not (path and path.is_valid() and not path.is_partial()):
+                    continue
+                score = min(path.get_path_length(), 1.6 * (a - b).length())
+                if score > best_score:
+                    best_score, best_len, p1, p2 = score, path.get_path_length(), a, b
+                    route_pts = list(path.get_editor_property("path_points"))
         report["deploy_separation_m"] = round((p1 - p2).length() / 100)
+        report["deploy_walk_m"] = round(best_len / 100)
+
+        def along(t):  # point at fraction t of the route polyline
+            goal, run = best_len * t, 0.0
+            for a, b in zip(route_pts, route_pts[1:]):
+                seg = (b - a).length()
+                if run + seg >= goal and seg > 0:
+                    return a + (b - a) * ((goal - run) / seg)
+                run += seg
+            return route_pts[-1]
+
+        # Objectives along the walking route, so each leg is a real advance.
         for a, t in zip(objs, (0.28, 0.5, 0.72)):
-            want = p1 + (p2 - p1) * t
+            want = along(t)
             q = min(reach, key=lambda r: (r - want).length())  # stay on the connected island
             a.set_actor_location(q, False, False)
             moves[a.get_actor_label()] = round((q - want).length() / 100, 1)

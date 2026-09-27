@@ -1,136 +1,125 @@
 # MAP DESIGN — Saltbush
 
-**Status:** Documented, **not** signed off. This map is playable in the sense that
-it loads, spawns both teams and completes a round. It has **not** been held to the
-Dry River standard, and §7 records why.
+**Status:** Documented, **not** signed off. The deployment and objective layout
+was rebuilt for fairness in Session 029 (§4–§6), and the map has produced a
+capture in a bot match. Navigation coverage, sightlines and cover are still
+unmeasured against the Dry River standard (§8).
 
-Companion document: `MAPS_DRYRIVER.md` (the standard), `MAPS_SELATCANAL.md`.
-`L_RedGum_01` is the third environment-derived map and is still undocumented.
+Companion documents: `MAPS_DRYRIVER.md` (the standard), `MAPS_REDGUM.md`,
+`MAPS_SELATCANAL.md`.
 
 ---
 
 ## 1. Purpose
 
-Saltbush is the second of the three environment-derived Objective Assault maps. It
-exists to test **long-range open engagement**: Dry River is a creek-and-farm map
-built for rotations, Red Gum is a 1 km station map, and Saltbush is the map that
-asks whether the project's engagement ranges work past 200 m.
+Saltbush is one of three Objective Assault maps built from Fab environment packs.
+It exists to test **long-range open engagement**:
+- Dry River is a creek-and-farm map built for rotations;
+- Red Gum is a 1 km station map;
+- Saltbush asks whether the project's engagement ranges work past 200 m.
 
-It is the primary candidate for the "long sightline" case that Dry River
-deliberately refuses (§5 of that document caps practical sightlines).
+It is the main candidate for the long-sightline case that Dry River deliberately
+avoids (§5 of that document caps practical sightlines).
 
 ## 2. Provenance
 
 | Property | Value |
 |---|---|
 | Built from | `/Game/Namaqualand/Levels/Showcase` (Fab "Namaqualand" pack, L-0016) |
-| Saved as | `/Game/Maps/L_Saltbush_01` (28,035,985 bytes) |
-| Builder | `Tools/Unreal/build_objective_map.py` (`SS_MAP=saltbush`, `SS_PASS=level` then `nav`) |
-| Deployment tagging | `Tools/Unreal/tag_deployments.py` |
-| ADR | ADR-022 pattern — the pack's own map is **never** saved; a copy is taken and the source left untouched |
+| Saved as | `/Game/Maps/L_Saltbush_01` |
+| Pipeline | `build_objective_map.py` (`SS_MAP=saltbush`, `SS_PASS=level`, then `nav`) → `tag_deployments.py` → `layout_objectives.py` → `layout_spawns.py` |
+| ADR | ADR-022 pattern: the pack's own map is **never** saved; a copy is taken and the source is left untouched |
 
-**Naming.** The pack is the real Namaqualand in South Africa. Under ADR-016 the
-project uses fictional place names, so the map ships as *Saltbush* and the
-objectives are renamed away from the real ones (Windmill / Stock Yards / Dry Dam).
-Any in-game text, briefing or store description must use the fictional names only.
+**Naming.** The pack depicts the real Namaqualand in South Africa. ADR-016
+requires fictional place names, so the map ships as *Saltbush*, with fictional
+objective names (Windmill, Stock Yards, Dry Dam).
+
+**The names are labels, not features.** Nobody has checked that a windmill,
+stock yards or a dam stand at these points. The objectives are placed for
+fairness (§5), not on named landmarks. Before release, either rename the
+objectives after what is really there, or move them onto matching features.
 
 ## 3. Objectives and capture
 
-| ID | Name | Role | Capture radius |
-|---|---|---|---|
-| **A** | Windmill | First contact, opening contest | 900 cm (9 m) |
-| **B** | Stock Yards | Mid-map pivot | 900 cm (9 m) |
-| **C** | Dry Dam | Far objective, round decider | 900 cm (9 m) |
+| ID | Name | Capture radius |
+|---|---|---|
+| A | Windmill | 900 cm (9 m) |
+| B | Stock Yards | 900 cm |
+| C | Dry Dam | 900 cm |
 
-The 9 m radius is the map's own configured value, carried from the builder's
-`radius: 900.0`. It is roughly double a player's shoulder width, so an objective is
-held by standing on it rather than by proximity — which is the intent for a
-three-objection domination-style round.
-
-Actor labels follow `SS_MAP_Saltbush_Obj{A,B,C}_<Name>` and
-`SS_MAP_Saltbush_Deploy{A,B}`, set by the builder so the nav pass and any later
-tooling can find them by convention.
+Each round opens on A and takes A, B and C in order (ADR-018).
 
 ## 4. Deployment
 
 | Property | Value | Source |
 |---|---|---|
-| Player starts placed | 16 | `objective_map_saltbush_level.json` → `starts: 16` |
-| Team One starts | 8 | `deployment_tags.json` |
-| Team Two starts | 8 | `deployment_tags.json` |
-| Deployment separation | **162 m** (tagging pass) / **167 m** (nav pass) | both reports |
+| Starts per team | **8 / 8** | `spawn_layout.json` |
+| Minimum spacing between starts | 4.5 m / 7.2 m | `spawn_layout.json` |
+| Spawn exposure (start pairs with a clear eye-level line of sight to an enemy start) | **0 / 64** | `spawn_layout.json` |
+| Deployment separation | 121 m straight, 208 m on foot | `spawn_layout.json` |
 
-The two separation figures are measured at different moments — 162 m at tagging
-time, 167 m after the nav pass moved things to walkable positions. Both are in the
-same range and the 5 m difference is not significant, but the two numbers are not
-comparable and should not be quoted as one.
+`layout_spawns.py` owns the starts. For each team it samples walkable ground
+around the deployment and rejects:
+- points within 70 cm of a wall;
+- points with under 2 m of headroom;
+- points that cannot reach the centre objective.
 
-Team split is **even at 8/8**, which satisfies the Dry River fairness rule that
-both teams must have the same number of starts.
+It then keeps 8 starts spread by farthest-point sampling, preferring points
+hidden from the enemy deployment. Every start faces the centre objective.
 
-## 5. Navigation
+## 5. Fairness: the objective layout
 
-| Property | Saltbush | Dry River (reference) |
-|---|---|---|
-| Grid points sampled | 793 | full NavMesh rebuild |
-| Reachable | **292 (37%)** | path verified end to end |
-| Round legs walkable | 4 / 4 | 4 / 4 |
+**Before Session 029.** The builder spaced A, B and C along the line between the
+deployments, which put A a third of the way from Team One. On foot, Team One had
+46 m to walk to the opening objective and Team Two 134 m. The nav pass had also
+moved objectives up to 22.5 m from where they were placed.
 
-All four legs of the round (Deploy A → A → B → C → Deploy B) are confirmed
-walkable, and the map has a nav-bounds volume, so a round completes. But **63% of
-the sampled grid is not reachable**, which is the subject of §7.
+**Now.** `layout_objectives.py` places each objective at walkable points with the
+most even walk from both deployments. Saltbush's walkable band is too narrow for
+true left and right flanks, so the tool spreads the three objectives as far apart
+as it can among the evenly reachable points.
 
-## 6. Objective placement was corrected, not designed
+Walk from each team's primary start, in metres (`spawn_layout.json`):
 
-The builder's nav pass does not fail when an objective sits somewhere the
-navigation cannot reach. It **moves it** to the nearest reachable point and reports
-how far it had to travel:
+| Objective | Team One | Team Two |
+|---|---:|---:|
+| A Windmill (opening) | 105 | 104 |
+| B Stock Yards | 95 | 132 |
+| C Dry Dam | 132 | 139 |
 
-| Objective | Distance moved from its placed position |
+The opening objective is even. B favours Team One by about 34%. That was the
+price of keeping the three objectives at least 28 m apart (legs of 28 m and
+52 m), and it is the first thing to revisit in a hand pass.
+
+## 6. Navigation
+
+| Property | Value |
 |---|---|
-| A Windmill | **15.6 m** |
-| B Stock Yards | **22.5 m** |
-| C Dry Dam | 2.0 m |
+| Grid points sampled (5 m) | 792 |
+| Reachable from the largest walkable island | 293 (37%) |
+| Round legs walkable | 4 / 4 |
 
-An objective relocated 22.5 m may no longer be the feature it was named for — "Stock
-Yards" is a specific piece of level, and 22.5 m is far enough to put the capture
-volume off the thing it is meant to describe. This map's objective positions are
-therefore **not a design decision anyone has made**; they are wherever the
-navigation happened to end up.
+## 7. Play evidence
 
-## 7. Why this map is not signed off
+A headless match on 2026-09-27 (8 bots, 180 s round) ran the whole round. Team
+One captured the Windmill; no other capture happened in the time.
 
-1. **Navigation coverage is 37%, not 100%.** Dry River is navigable *by
-   construction* — it is a generated greybox whose whole purpose is to be walked.
-   Saltbush is a showcase level from an environment pack, and most of it is not
-   connected by walkable space. A player can be shot from somewhere they cannot
-   return fire from, and AI will not path to most of the level.
-2. **The objectives were auto-placed.** See §6. Fixing this properly means
-   choosing the objective positions against the real navigation, which is design
-   work, not a script pass.
-3. **Sightlines are unmeasured.** The map's whole reason for existing is long-range
-   engagement (see §1), and nobody has measured what it actually does. Until the
-   longest practical sightline is known, the map cannot be said to fill the gap
-   Dry River leaves.
+## 8. What still blocks sign-off
 
-## 8. What would sign it off
+- [ ] Navigation coverage is 37%. Carve or open the approach routes, or cut the
+      level down to its walkable footprint.
+- [ ] Rename the objectives, or move them onto real features (§2).
+- [ ] Reduce B's 34% walking imbalance.
+- [ ] Measure the longest practical sightline (the map's reason to exist).
+- [ ] Check cover density against the Dry River rule: no crossing of more than
+      20 m of open ground without cover.
+- [ ] A human-played round, recorded.
 
-- [ ] Raise reachable grid coverage, or carve the objectives' approach routes
-- [ ] Choose objective positions deliberately and re-run the nav pass to confirm
-      zero relocation
-- [ ] Measure longest practical sightline and record it here
-- [ ] Verify cover density against the Dry River rule: no player crosses 20 m of
-      open ground without passing cover
-- [ ] Play a full round on it and record the result
+## 9. Provenance of the numbers
 
-## 9. Provenance of the numbers in this document
+These `Build/` reports are git-ignored, so the values are recorded here:
+- `objective_map_saltbush_nav.json`: grid reachability and walkable legs;
+- `objective_layout.json`: objective placement and each objective's imbalance;
+- `spawn_layout.json`: starts, spacing, exposure, and the walks in §5.
 
-Every figure above is read from a checked-in tool report, not estimated:
-
-- `Build/objective_map_saltbush_level.json` — source map, 16 starts, objective names
-- `Build/objective_map_saltbush_nav.json` — grid reachability, deployment separation, per-objective relocation distance, leg verification
-- `Build/deployment_tags.json` — per-team start counts, tagged separation
-
-Re-run `build_objective_map.py` and `tag_deployments.py` to regenerate all three.
-`Build/` is gitignored, so a fresh clone has none of them; the values are recorded
-here so this document stands alone.
+To regenerate them, run the pipeline in §2 in order.

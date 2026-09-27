@@ -1,162 +1,122 @@
 # MAP DESIGN — Selat Canal
 
-**Status:** Documented, **not** signed off — and it carries the most serious
-fairness problem in the map set (§4). It is playable and completes rounds, but it
-does not yet meet the Dry River standard.
+**Status:** Documented, **not** signed off. The 7/8 spawn split is fixed and the
+starts are now laid out properly (§4). But the canal's connected walkable area is
+too small for a fair three-objective sequence, and Team One reaches the opening
+objective first (§5). **The map needs a redesign pass before it can be fair.**
 
-Companion document: `MAPS_DRYRIVER.md` (the standard), `MAPS_SALTBUSH.md`.
-`L_RedGum_01` is the third environment-derived map and is still undocumented.
+Companion documents: `MAPS_DRYRIVER.md` (the standard), `MAPS_REDGUM.md`,
+`MAPS_SALTBUSH.md`.
 
 ---
 
 ## 1. Purpose
 
-Selat Canal is the **urban** Objective Assault map, and the only map in the set
-built on a built environment rather than terrain. It is where the project tests
-close-quarters and interior fighting — the case Dry River explicitly rules out by
-keeping a 5 m minimum engagement range on open ground and a 20 m maximum open
-crossing.
-
-It is also the only map registered as a **Special Forces** map (see §6), which makes
-it the test bed for the SF weapon kits.
+Selat Canal is the **urban** Objective Assault map, and the only one set in a
+built environment rather than open terrain. It tests close-quarters and interior
+fighting. Dry River rules that case out: it keeps a 5 m minimum engagement range
+on open ground and a 20 m maximum open crossing. Selat Canal is also the only
+**Special Forces** map (§6).
 
 ## 2. Provenance
 
 | Property | Value |
 |---|---|
 | Built from | `/Game/Singapore_Canal/Map/Singapore_Canal` (Fab "Asian Canals" pack, L-0016) |
-| Saved as | `/Game/Maps/L_SelatCanal_01` (20,418,944 bytes) |
-| Builder | `Tools/Unreal/build_objective_map.py` (`SS_MAP=canal`, `SS_PASS=level` then `nav`) |
-| Deployment tagging | `Tools/Unreal/tag_deployments.py` |
-| ADR | ADR-022 pattern — the pack's own map is **never** saved |
+| Saved as | `/Game/Maps/L_SelatCanal_01` |
+| Pipeline | `build_objective_map.py` (`SS_MAP=canal`, `SS_PASS=level`, then `nav`) → `tag_deployments.py` → `layout_spawns.py` |
+| ADR | ADR-022 pattern: the pack's own map is never saved |
 
-**Naming.** The source is the real Singapore Canal. Under ADR-016 the project uses
-fictional place names, so it ships as *Selat Canal* with objectives renamed
-(Footbridge / Market Row / Pump House). The six `.umap` files of the source pack
-(`Day01`, `Day02`, `Night01`, `AssetsShowcase`, …) remain in
-`Content/Downloaded/VaultCache/` and are not part of the game.
+**Naming.** The pack depicts the real Singapore Canal; the map ships as *Selat
+Canal*, with fictional objective names: Footbridge, Market Row and Pump House
+(ADR-016).
 
 ## 3. Objectives and capture
 
-| ID | Name | Role | Capture radius |
-|---|---|---|---|
-| **A** | Footbridge | First contact, chokepoint | 700 cm (7 m) |
-| **B** | Market Row | Mid-map pivot, urban | 700 cm (7 m) |
-| **C** | Pump House | Far objective, round decider | 700 cm (7 m) |
+| ID | Name | Capture radius |
+|---|---|---|
+| A | Footbridge | 700 cm (7 m) |
+| B | Market Row | 700 cm |
+| C | Pump House | 700 cm |
 
-The 7 m radius is the builder's configured value (`radius: 700.0`), tighter than
-Saltbush's 9 m. In dense urban geometry a 9 m volume would swallow a building, so
-the tighter radius is the right instinct — but it has not been checked against how
-the buildings actually enclose the objectives, only set.
+The objectives sit along the longest route across the walkable island. The nav
+pass moved them 2.3 m, 4.5 m and 5.0 m from where they were placed, so they are
+still on or close to their intended spots.
 
-## 4. Deployment — the fairness defect
+## 4. Deployment: the 7/8 defect is fixed
 
-| Property | Value |
-|---|---|
-| Player starts placed | **15** |
-| Team One starts | **7** |
-| Team Two starts | **8** |
-| Deployment separation | **70 m** (tagging pass) / **75 m** (nav pass) |
+| Property | Before | Now |
+|---|---:|---:|
+| Starts per team | **7 / 8** | **8 / 8** |
+| Minimum spacing between starts | 3 m, in a line | 5.1 m / 8.7 m |
+| Spawn exposure (start pairs with eye-level line of sight) | not measured | 11 / 64 |
+| Deployment separation, straight / on foot | 70 m / not measured | 51 m / 99 m |
 
-**This is an even-odds problem in an odd-player game.** Team Two has one more
-spawn than Team One. In a mode where a team that dies rotates back to a start, the
-team with the extra start has a measurable advantage, and it compounds over a round.
+**What changed in the tools:**
+- The old builder placed each team's starts in a single line 3 m apart, and
+  dropped any start with no ground under it. That is how Team One ended up with 7.
+- `layout_spawns.py` now places 8 starts per team on clear, walkable ground.
+  Every start must also be able to reach the objectives.
+- The deployment pair is chosen by `min(walk, 1.6 × straight line)`:
+  - straight-line distance alone gave 70 m between two ends of a walled street;
+  - walking distance alone put the teams on opposite banks, 20 m apart across
+    the water.
 
-Every other map in the set is 8/8:
+**A bug this exposed (now fixed).** One run placed Team One's starts on a small
+patch of navigation that did not connect to the rest of the map. The team's
+centre point had drifted there, and starts were only checked against that point.
+Starts must now also reach the centre objective.
 
-| Map | Team One | Team Two | Separation |
-|---|---:|---:|---:|
-| Dry River | 8 | 8 | 170 m |
-| Red Gum | 8 | 8 | 560 m |
-| Saltbush | 8 | 8 | 162 m |
-| **Selat Canal** | **7** | **8** | **70 m** |
+**Exposure.** 11 of 64 start pairs still have a line of sight across the canal.
+The ground near the deployments offers too little cover to hide all 16 starts.
 
-Selat Canal is also the **shortest deployment separation in the set by a factor of
-two**. Both teams start almost on top of each other. That may be deliberate — a
-canal crossing is a natural chokepoint fight — but it is not documented as a
-decision anywhere, and 70 m is inside the range at which a spawn is trivially
-contested. Dry River's opening is 86 m to a centre objective and is explicitly
-designed to be equal; this one starts the fight at the spawn.
+## 5. Fairness: not yet achievable on this footprint
 
-**Two open questions, both needing a producer answer:**
-1. Is 7/8 an accepted consequence of a 15-start source level, or should a start be
-   added to Team One?
-2. Is a 70 m separation the intended design, or an artefact of where the walkable
-   ground ended up?
+Walk from each team's primary start, in metres (`spawn_layout.json`):
 
-## 5. Navigation — the worst in the set
+| Objective | Team One | Team Two |
+|---|---:|---:|
+| A Footbridge (opening) | **25** | **74** |
+| B Market Row | 51 | 69 |
+| C Pump House | 65 | 35 |
 
-| Property | Selat Canal | Saltbush | Dry River |
-|---|---:|---:|---|
-| Grid points sampled | 154 | 793 | full rebuild |
-| Reachable | **35 (23%)** | 292 (37%) | verified end to end |
-| Round legs walkable | 4 / 4 | 4 / 4 | 4 / 4 |
+Team One reaches the opening objective about three times faster.
 
-**Only 35 of 154 sampled points are reachable — 23%.** This is the worst navigation
-figure of any map in the project, and for an urban map it is a serious problem: the
-level is full of walls, kerbs, stairs and canal edges, and most of it is not
-connected for pathing purposes.
+`layout_objectives.py` (§5 of `MAPS_SALTBUSH.md`) was tried here. The evenly
+reachable points all sit within about 28 m of each other, so the three 7 m
+objectives almost merged into one zone. That layout was rejected and the
+route-based one kept.
 
-All four legs are walkable and the round completes, but only because the nav pass
-moves whatever it cannot reach. The result is a map where the playable space is a
-thin connected thread through a much larger decorative environment — which is
-precisely the failure mode the ADR-022 whole-map reuse was supposed to avoid, and
-the reason those maps are documented rather than signed off.
+**Root cause: the map is barely connected.** Only 34 of the 158 sampled grid
+points (22%) are reachable. An experiment raised the navigation step height from
+35 cm to the character's 45 cm, to match what a player can step up. It connected
+only 5 more points (36 → 41 of 164), so kerbs and steps are not the main break.
+The unreachable samples are most likely rooftops, the canal bed and closed
+courtyards. The experiment was reverted, since it would have required rebuilding
+every map's navigation for a 3% gain.
 
 ## 6. Special Forces registration
 
-`Config/DefaultGame.ini` contains:
+`Config/DefaultGame.ini` includes `+SpecialForcesMaps=L_SelatCanal_01`. On this
+map every class uses Special Forces kits (A416 / A4) in place of the standard A88.
 
-```
-; Special Forces maps: SF kits (A416 / A4).
-+SpecialForcesMaps=L_SelatCanal_01
-```
+## 7. What would make it fair
 
-Selat Canal is therefore the only map that hands players the Special Forces
-loadouts — the A416 in the Rifleman and Grenadier roles, with the A4 as the
-secondary. This is a real design intent recorded in configuration, and it is the
-map where those weapons should be play-tested first.
+- [ ] Open more of the district to movement: connect the two banks with more
+      crossings, or unblock courtyards and alleys, then re-run the nav pass and
+      `layout_objectives.py`.
+- [ ] Or cut the playable space down to a symmetric slice around one or two
+      bridges.
+- [ ] Or give the map two objectives (the Dry River shape) instead of three.
+- [ ] Reduce the 11/64 spawn exposure with cover near the deployments.
+- [ ] Measure urban sightlines, and decide which Dry River cover rules apply
+      between buildings.
+- [ ] A human-played round with the SF kits, recorded.
 
-## 7. Objective placement was corrected, not designed
+## 8. Provenance of the numbers
 
-As on Saltbush, the nav pass relocates any objective it cannot reach and reports
-the distance moved:
-
-| Objective | Distance moved |
-|---|---|
-| A Footbridge | 2.0 m |
-| B Market Row | 5.5 m |
-| C Pump House | 6.4 m |
-
-These are much smaller than Saltbush's (up to 22.5 m), so the objectives still sit
-on the features they are named for. That is the one respect in which this map is
-in better shape than Saltbush.
-
-## 8. Why this map is not signed off
-
-1. **7/8 deployment split** — an even-odds defect in an odd-player game (§4)
-2. **23% navigation coverage** — the worst in the set, on the map whose whole
-   purpose is dense built geometry (§5)
-3. **70 m separation, undocumented and unexplained** (§4)
-4. **Urban cover rules unmeasured.** Dry River's rules (≤20 m open crossing, 5 m
-   minimum engagement, 1:3 hard-to-soft) were written for open terrain. Whether
-   they mean anything between buildings has not been considered, let alone checked.
-
-## 9. What would sign it off
-
-- [ ] Resolve the 7/8 split to 8/8, or record the acceptance explicitly
-- [ ] Decide and document whether 70 m separation is intended
-- [ ] Raise reachable grid coverage, or cut the level down to what is actually
-      traversable so the map matches its own footprint
-- [ ] Measure the map's real sightlines and engagement ranges in built geometry
-- [ ] Play-test the SF kits on it, since it is their designated map
-- [ ] Play a full round and record the result
-
-## 10. Provenance of the numbers in this document
-
-- `Build/objective_map_canal_level.json` — source map, 15 starts, objective names
-- `Build/objective_map_canal_nav.json` — grid reachability, separation, relocation distances, leg verification
-- `Build/deployment_tags.json` — per-team start counts, tagged separation
-- `Config/DefaultGame.ini` — the Special Forces registration
-
-`Build/` is gitignored; the values are recorded here so this document stands alone.
+These `Build/` reports are git-ignored; the values are recorded here:
+- `objective_map_canal_nav.json`: grid reachability, separation, relocations,
+  legs;
+- `spawn_layout.json`: starts, spacing, exposure, and the walks in §5;
+- `Config/DefaultGame.ini`: the Special Forces registration.

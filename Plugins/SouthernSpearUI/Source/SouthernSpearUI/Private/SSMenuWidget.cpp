@@ -230,7 +230,7 @@ void USSMenuWidget::Setup(ESSMenuMode InMode)
 		struct FOp { FText Title, Description, Meta; FName Handler; };
 		const FOp Ops[] = {
 			{ NSLOCTEXT("SSMenu", "RedGum", "Red Gum Station"),
-			  NSLOCTEXT("SSMenu", "RedGumDesc", "An outback cattle station: the bore pump, the homestead, the shearing shed."),
+			  NSLOCTEXT("SSMenu", "RedGumDesc", "An outback cattle station: the north paddock, the homestead, the south paddock."),
 			  NSLOCTEXT("SSMenu", "RedGumMeta", "3 OBJECTIVES  ·  OPEN PADDOCKS"), GET_FUNCTION_NAME_CHECKED(USSMenuWidget, OnRedGum) },
 			{ NSLOCTEXT("SSMenu", "DryRiver", "Dry River"),
 			  NSLOCTEXT("SSMenu", "DryRiverDesc", "A dry creek line between a water point and a farmstead."),
