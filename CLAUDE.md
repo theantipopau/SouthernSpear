@@ -41,6 +41,10 @@ Southern Spear is an original, fictional, Australian-inspired tactical multiplay
 - No ADF/Army branding, insignia, Rising Sun, mottos, colour patches; no Multicam or Auscam/Musorian copies
   (Multicam is a Crye Precision trademark). No America's Army content. No manufacturer logos/CAD/ripped assets.
 - A88 and its MAF counterpart share **one** gameplay definition; only cosmetics differ.
+- **ADFRC assets are cleared for use (R-24 lifted, L-0021).** The ADF Re-Cut / ADFRC pack is **authorised for free use in Southern Spear** — models, textures, animations, audio, configs and scripts, in any form including converted and derived work. The producer holds a blanket 100% permission from the mod team, which lifts the earlier item-by-item hold and the multi-author gap (the original grant came from one author who was not among those credited in the pack). Use them as game art and as direct visual/design references. Two limits remain, neither of which the mod team can lift:
+  - **Third-party and service marks.** Crye Precision (G3), Ops-Core, PASGT, "Team Wendy", and ADF camouflage/insignia belong to those companies and to the ADF, not to the mod team. Strip or replace them before release (ADR-016, R-27) — this is a build requirement, not a pending approval.
+  - **Redistribution.** Use in the project is cleared; redistribution via the repository is not. `Art/ADFRC/*` and `Art/ADFRC_Player/*` stay git-ignored — only their `.md` files are tracked. Keep it that way.
+  Evidence and the full terms are in `Docs/LICENCE_REGISTER.md` (L-0021) and `Docs/evidence/`.
 - Before importing any asset: check `Docs/ASSET_REGISTER.md` **and** `Docs/LICENCE_REGISTER.md`, add entries.
 - Never invent release dates, versions, downloads, player counts or testimonials (site or docs).
 - Paid dependencies, legal-risk content and architecture changes need producer approval.
@@ -108,7 +112,7 @@ Blender source: `Tools/Blender/dryriver_blockout.py`, `dryriver_dressing.py`; sh
 `UnrealEditor-Cmd ... -ExecutePythonScript=E:/SouthernSpear/Tools/Unreal/setup_weapons.py` → mesh, `MI_A88_*`, `B_SS_A88`
 (`ASSHeldItemVisualActor`, +90° yaw offset cancels Lyra's -90° attach), `WID_SS_A88`/`ID_SS_A88` (copies of Lyra's
 rifle definitions, pointed at ours). The starting loadout is data: `Config/DefaultGame.ini` `[/Script/SouthernSpearLyraBridge.SSLoadoutSettings]`.
-`Content/Sourced/` is an **unlicensed drop — reference only, git-ignored** (`Docs/SOURCED_ASSET_REVIEW.md`, R-17).
+`Content/Sourced/` is git-ignored and not automatically usable (`Docs/SOURCED_ASSET_REVIEW.md`, R-17). The ADFRC extraction at `Content/Sourced/ADF_Extracted/` is the one exception: it is now **cleared for free use** under L-0021 (see the ADFRC rule above), including conversion, derived work and visual reference. It stays git-ignored, and third-party branding must be replaced before release.
 
 ## Unreal Python gotchas (all learned the hard way)
 

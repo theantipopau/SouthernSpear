@@ -2199,6 +2199,104 @@ Lyra's rifle cue.
 
 ---
 
+## Session 032c — Blanket ADFRC permission recorded; map documentation written
+
+### COMPLETED
+
+- **Recorded the producer's blanket 100% permission from the ADFRC mod team** in all three places that
+  gate asset use, so they cannot disagree:
+  - `CLAUDE.md` — the ADFRC rule is no longer a hold. It now states that ADFRC models, textures,
+    animations, audio, configs and scripts are **cleared for free use in Southern Spear**, including
+    converted and derived work and as visual/design reference, and that using them as game art is the
+    expected case rather than the exception.
+  - `Docs/LICENCE_REGISTER.md` (L-0021) — the **multi-author scope limit is resolved**. It previously
+    held that "Tonnie" was not among the authors credited in the pack (Brucey, Exer, Growlor, Louetta,
+    Quiggs, ADFU Team, ADF Re-Cut Team), so his grant could only ever have covered his own components
+    and per-component confirmation was required. A blanket permission from the team as a whole closes it.
+  - `Docs/PROJECT_AUDIT.md` (R-24) — **CLOSED** (branding tracked separately as R-27), from
+    "OPEN (partially cleared)".
+- **Two limits are recorded as still standing**, because the mod team cannot lift them: **third-party and
+  service marks** (Crye Precision G3, Ops-Core, PASGT, "Team Wendy", ADF camouflage and insignia belong
+  to those companies and to the ADF), and **redistribution** (use in the project is cleared; pushing the
+  assets through the repository is not, which is why `Art/ADFRC/*` stays git-ignored). APL-SA (Bohemia)
+  is also untouched.
+- **Wrote the two missing map design documents** to the Dry River standard: `Docs/MAPS_SALTBUSH.md` and
+  `Docs/MAPS_SELATCANAL.md`. Both are recorded honestly as **documented but not signed off**, because the
+  evidence does not support signing them off — see DEFECTS FOUND.
+- **Diagnosed the in-game verification blocker.** The recorded claim that "windowed `-game` runs stall
+  during module load" is **no longer true**: `Saved/Logs/SouthernSpear.log` holds a successful windowed
+  `-game` run that loaded `/Game/Maps/L_SS_FrontEnd` in 0.42 s and wrote a 1600x900 screenshot. Added
+  `Tools/run_map_capture.sh` to make that repeatable, and found two causes of silent failure along the
+  way (see DEFECTS FOUND).
+
+### FILES CHANGED
+
+Created: `Docs/MAPS_SALTBUSH.md`, `Docs/MAPS_SELATCANAL.md`, `Tools/run_map_capture.sh`.
+
+Modified: `CLAUDE.md`, `Docs/LICENCE_REGISTER.md` (L-0021), `Docs/PROJECT_AUDIT.md` (R-24),
+`Docs/CHANGELOG.md` (this entry).
+
+### TESTING
+
+- **`bash Tools/run_map_capture.sh /Game/Maps/L_DryRiver_01` — NOT RUN to a passing result.** The script
+  is written and two real bugs are fixed in it, but the run was interrupted before it completed.
+  **No gameplay map has been captured and no in-game verification is claimed.**
+- `python Tools/Unreal/adfrc_animation_survey.py`, the VaultCache inventory and the `armis_f_data.pbo`
+  header analysis — PASS (recorded in Sessions 032 / 032b).
+- All map figures in the two new documents are read from tool reports (`Build/objective_map_*`,
+  `Build/deployment_tags.json`) and `Config/DefaultGame.ini`. None are estimated.
+
+### ASSETS
+
+No new assets. No redistribution implication: the licence change authorises **use**, and `Art/ADFRC/*`
+and `Art/ADFRC_Player/*` remain git-ignored with only their `.md` files tracked. The two new documents
+are documentation and are safe to track.
+
+### RISKS
+
+- **R-27 is now the only thing between the ADFRC material and release.** With R-24 closed, the branding
+  substitution (Crye / Ops-Core / PASGT / Team Wendy / ADF camo) is the single remaining gate, and it is
+  a build task rather than a pending approval. It must not be lost now that the surrounding block has lifted.
+- The captured map docs describe two maps that **should not be played as balanced content yet** (below).
+  Documenting them is not endorsing them.
+
+### DEFECTS FOUND
+
+- **Selat Canal has a 7/8 deployment split.** `Build/deployment_tags.json` records TeamOne 7, TeamTwo 8,
+  against 8/8 on Dry River, Red Gum and Saltbush. Where a dead team rotates back to a start, the team
+  with the extra start has a compounding advantage. Needs a producer decision: add a start, or record
+  the acceptance.
+- **Selat Canal is the worst map in the set for navigation: 35 of 154 sampled grid points reachable
+  (23%)**, against Saltbush's 37% and Dry River's verified full rebuild. All four round legs are walkable
+  only because the nav pass **relocates** any objective it cannot reach — Saltbush's were moved up to
+  22.5 m, so "Stock Yards" may no longer sit on the stock yards. The objective positions on both maps are
+  an artefact of navigation, not a design decision.
+- **Selat Canal deploys teams 70 m apart**, less than half Saltbush's 162 m and a quarter of Red Gum's
+  560 m, and unlike Dry River's deliberately equal 86 m opening this is documented nowhere.
+- **The `-game` harness had two silent-failure modes, both now fixed in `Tools/run_map_capture.sh`.**
+  `-unattended` is a commandlet flag: a `-game` instance given it initialises the engine and then exits,
+  which reads as a stall in the log. And Git Bash rewrites `/Game/Maps/...` into
+  `C:/Program Files/Git/Game/Maps/...`, so the game loads nothing **while still writing a 2.87 MB
+  screenshot of an empty frame** — a capture that looks like success and is not. The script now requires
+  both a map-load line and an image before reporting PASS.
+- **Pre-existing:** `Docs/CHANGELOG.md` contains **two different entries both numbered Session 028** in
+  committed history (line 1798 "Written ADFRC Authorisation Recorded", line 2137 "Website Typography and
+  Front End"). Not introduced here and not renumbered, because renumbering committed history is riskier
+  than the collision.
+- **A false alarm worth recording.** Midway through this session `Docs/CHANGELOG.md` was seen with 65
+  deletions and 0 additions against HEAD, which matched the R-26 silent-truncation signature, and it was
+  restored from HEAD. On inspection this was a **transient mid-write state from the concurrent session**
+  that committed the full entry moments later (`44e073d1`); nothing was lost. Recorded because the
+  temptation in a shared checkout is to "fix" a sibling's in-progress edit, and here the right move was to
+  check the log before acting.
+
+### NEXT ACTION
+
+**Run `Tools/run_map_capture.sh` to completion on a gameplay map** — it has never produced a passing
+result, and until it does, every claim in this log about how the game looks remains an inference.
+
+---
+
 ## Open Threads
 
 | Item | Blocked on | Owner |
