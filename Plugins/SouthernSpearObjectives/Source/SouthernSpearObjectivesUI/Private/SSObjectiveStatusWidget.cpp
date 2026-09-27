@@ -19,6 +19,7 @@
 #include "SSObjectiveHudModel.h"
 #include "SSUIStyle.h"
 #include "Styling/CoreStyle.h"
+#include "SSFonts.h"
 
 namespace
 {
@@ -28,7 +29,7 @@ namespace
 	UTextBlock* MakeText(UWidgetTree* Tree, int32 Size, bool bBold, const FLinearColor& Colour, int32 LetterSpacing = 0)
 	{
 		UTextBlock* Text = Tree->ConstructWidget<UTextBlock>();
-		FSlateFontInfo Font = FCoreStyle::GetDefaultFontStyle(bBold ? "Bold" : "Regular", Size);
+		FSlateFontInfo Font = bBold ? SSFonts::Display(Size) : SSFonts::Body(Size);
 		Font.LetterSpacing = LetterSpacing;
 		Text->SetFont(Font);
 		Text->SetColorAndOpacity(Colour);

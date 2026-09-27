@@ -2134,6 +2134,71 @@ Generated (untracked, `Build/`): `aug_audio_import.json`, `weapon_audio_probe.js
 
 ---
 
+## Session 028 — 2026-09-27 — Website Typography and Front End, Tabbed Settings with Ray Tracing, Developer Messages Off
+
+### COMPLETED
+
+- **Website typefaces in game**: Barlow Condensed (display) and Inter (body) from `Site/fonts` (SIL OFL 1.1),
+  converted to TTF with fontTools (`Art/Fonts`), imported as font faces (`setup_fonts.py`), assembled at
+  runtime by `SSFonts.h` (Core, header-only) and used by every HUD, menu, compass, minimap and banner widget.
+- **Front end matches the website**: header bar with the badge (`T_SS_Logo`) and stacked wordmark, nav
+  (Settings, Quit) and a brass Discord button (opens discord.gg/GHNCFQrDND); status chip; sentence-case
+  headline and lede; operations as a 2x2 grid of framed cards; smooth left gradient; primary brass
+  buttons for Apply and Resume.
+- **Settings** rebuilt with five tabs and a scrolling page each:
+  - Display: window, resolution, VSync, frame limit (30–240, unlimited), field of view, brightness;
+  - Graphics: preset plus ten scalability categories, render resolution 50–100%, anti-aliasing
+    (TSR/TAA/FXAA/off), hardware ray tracing, ray-traced shadows, motion blur;
+  - Audio: master, effects, music; Controls: mouse sensitivity, invert look (applied to Lyra's own
+    settings by the new bridge `USSSettingsSyncSubsystem`, reflection);
+  - Interface: frame rate counter (new HUD readout), developer messages.
+- **On-screen errors**: the messages were the editor AI toolsets' Python tracebacks, Lyra weapon-audio
+  Blueprint warnings and the VSM marking-queue diagnostic (a fixed shader queue size; classic
+  vegetation). Engine developer messages are now off for players (`USSUserPrefsSubsystem`, Core;
+  Settings > Interface turns them back on); editor and PIE sessions are untouched.
+- **Ray tracing**: already enabled at project level (DX12 SM6, Lumen hardware ray tracing); the log
+  confirms it is active on the producer's GPU (D3D12 ray tracing tier 1.1). Now switchable in Settings.
+
+### FILES CHANGED
+
+- Core: `SSUserPrefs.h` (keys, `USSUserPrefsSubsystem`), `SSUserPrefs.cpp` (new), `SSFonts.h` (new);
+- UI: `SSSettingsWidget.{h,cpp}`, `SSMenuWidget.{h,cpp}`, `SSPlayerHudWidget.{h,cpp}`, `SSWidgetKit.h`,
+  `SSUIAssets.h`; ObjectivesUI widgets (fonts);
+- Bridge: `SSSettingsSyncSubsystem.{h,cpp}` (new);
+- `Tools/Unreal/setup_fonts.py` (new), `setup_ui.py` (logo); `Art/Fonts/*.ttf`; UI font and logo assets.
+
+### TESTING
+
+| Test | Command | Exit | Result | Evidence |
+|---|---|---|---|---|
+| Guard | `python Tools/validate_architecture.py` | 0 | PASS | — |
+| Build | `Build.bat SouthernSpearEditor ...` | 0 | Succeeded | — |
+| Automation | `Automation RunTests SouthernSpear` | 255 | 30 Success; 1 Fail (parallel session's `TwoPlayerAuthoritySmoke`) | `Build/tests.log` |
+| Front end, Settings, HUD | `-game -windowed -SSShotAt`, `-SSOpenSettings=1` | 124 | Website fonts and layout; tabs; FPS counter; no developer messages on screen | screenshots (scratch) |
+| Ray tracing active | game log | — | "Ray tracing is enabled"; D3D12 RT tier 1.1 | log |
+| Sensitivity / volume reach Lyra | — | — | **NOT RUN** (needs play) | — |
+
+### ASSETS
+
+Barlow Condensed, Inter, IBM Plex Mono (SIL OFL 1.1, already used by the website). The producer reports
+ADFRC weapon sounds (EF88/AUG shots with tails, reloads, dry fire): catalogued, not imported yet.
+
+### RISKS
+
+- R-24 (GitHub LFS push) still open: commits are local only.
+- The captured frame rate (30) is Lyra's background cap; real frame rate needs a focused run.
+
+### DEFECTS FOUND
+
+1. On-screen developer messages shown to players (producer).
+
+### NEXT ACTION
+
+**Weapon audio**: play the ADFRC EF88 shot/tail/reload sounds for the A-series weapons in place of
+Lyra's rifle cue.
+
+---
+
 ## Open Threads
 
 | Item | Blocked on | Owner |

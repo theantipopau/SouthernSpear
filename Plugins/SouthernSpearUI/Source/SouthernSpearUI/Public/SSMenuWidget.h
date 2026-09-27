@@ -57,6 +57,8 @@ private:
 	UFUNCTION() void OnSettings();
 	UFUNCTION() void OnResume();
 	UFUNCTION() void OnMainMenu();
+	UFUNCTION() void OnDiscord();
+	bool bDevSettingsOpened = false;
 	UFUNCTION() void OnQuit();
 
 	void SetBots(int32 Count);

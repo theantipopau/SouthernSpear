@@ -5,6 +5,7 @@
 #include "Engine/World.h"
 #include "GameFramework/Pawn.h"
 #include "SSLocalHudState.h"
+#include "SSUserPrefs.h"
 #include "SSWidgetKit.h"
 
 using namespace SSWidgetKit;
@@ -82,6 +83,14 @@ bool USSPlayerHudWidget::Initialize()
 	HintSlot->SetAutoSize(true);
 	ReloadHint->SetVisibility(ESlateVisibility::Collapsed);
 
+	// Frame rate counter (Settings > Interface), top left, mono-style digits.
+	FpsText = Text(T, 12, true, SSPalette::Sage200(), 120);
+	UCanvasPanelSlot* FpsSlot = Root->AddChildToCanvas(FpsText);
+	FpsSlot->SetAnchors(FAnchors(0.f, 0.f));
+	FpsSlot->SetPosition(FVector2D(16.f, 12.f));
+	FpsSlot->SetAutoSize(true);
+	FpsText->SetVisibility(ESlateVisibility::Collapsed);
+
 	// Crosshair: four ticks and a centre dot on a fixed 80 px canvas.
 	UCanvasPanel* Cross = T->ConstructWidget<UCanvasPanel>();
 	Crosshair = Cross;
@@ -109,6 +118,20 @@ bool USSPlayerHudWidget::Initialize()
 void USSPlayerHudWidget::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
 {
 	Super::NativeTick(MyGeometry, InDeltaTime);
+	if (FpsText)
+	{
+		// Smoothed over ~0.5 s; the preference is re-read twice a second.
+		FpsAverage = FMath::Lerp(FpsAverage, InDeltaTime, FMath::Min(1.f, InDeltaTime * 4.f));
+		FpsRefresh -= InDeltaTime;
+		if (FpsRefresh <= 0.f)
+		{
+			FpsRefresh = 0.5f;
+			const bool bShow = FSSUserPrefs::GetInt(FSSUserPrefs::ShowFps(), 0) != 0;
+			FpsText->SetVisibility(bShow ? ESlateVisibility::HitTestInvisible : ESlateVisibility::Collapsed);
+			FpsText->SetText(FText::FromString(FString::Printf(TEXT("%d FPS  ·  %.1f MS"),
+				FMath::RoundToInt(1.f / FMath::Max(FpsAverage, 0.0001f)), FpsAverage * 1000.f)));
+		}
+	}
 	const USSLocalHudState* State = GetWorld() ? GetWorld()->GetSubsystem<USSLocalHudState>() : nullptr;
 	if (!State || !HealthText)
 	{

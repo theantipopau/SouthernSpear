@@ -18,6 +18,7 @@
 #include "SSObjectiveHudModel.h"
 #include "SSUIStyle.h"
 #include "Styling/CoreStyle.h"
+#include "SSFonts.h"
 
 namespace
 {
@@ -30,7 +31,7 @@ namespace
 	UTextBlock* CompassText(UWidgetTree* Tree, int32 Size, const FLinearColor& Colour)
 	{
 		UTextBlock* Text = Tree->ConstructWidget<UTextBlock>();
-		Text->SetFont(FCoreStyle::GetDefaultFontStyle("Bold", Size));
+		Text->SetFont(SSFonts::Display(Size));
 		Text->SetColorAndOpacity(Colour);
 		Text->SetJustification(ETextJustify::Center);
 		Text->SetShadowOffset(FVector2D(1.f, 1.f));

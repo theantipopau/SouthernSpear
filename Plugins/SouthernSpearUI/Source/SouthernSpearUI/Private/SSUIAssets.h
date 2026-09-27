@@ -19,4 +19,10 @@ namespace SSUIAssets
 	{
 		return LoadObject<UTexture2D>(nullptr, TEXT("/SouthernSpearUI/Textures/T_SS_KeyArt.T_SS_KeyArt"));
 	}
+
+	/** The Southern Spear badge (Docs/images/logo.png), for the front-end top bar. */
+	inline UTexture2D* Logo()
+	{
+		return LoadObject<UTexture2D>(nullptr, TEXT("/SouthernSpearUI/Textures/T_SS_Logo.T_SS_Logo"));
+	}
 }

@@ -37,6 +37,9 @@ private:
 	UPROPERTY(Transient) TArray<TObjectPtr<UWidget>> CrosshairTicks;
 	UPROPERTY(Transient) TObjectPtr<UBorder> DamageFlash;
 	UPROPERTY(Transient) TObjectPtr<UTextBlock> ReloadHint;
+	UPROPERTY(Transient) TObjectPtr<UTextBlock> FpsText;
+	float FpsAverage = 1.f / 60.f;
+	float FpsRefresh = 0.f;
 	float Elapsed = 0.f;
 
 	UHorizontalBoxSlot* HealthFillSlot = nullptr;

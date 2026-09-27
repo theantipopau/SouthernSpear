@@ -4,6 +4,8 @@
 
 #include "Components/BackgroundBlur.h"
 #include "Components/ScaleBox.h"
+#include "Components/UniformGridPanel.h"
+#include "HAL/PlatformProcess.h"
 #include "Engine/Texture2D.h"
 #include "GameFramework/PlayerController.h"
 #include "Kismet/GameplayStatics.h"
@@ -53,37 +55,67 @@ namespace
 		return Scale;
 	}
 
-	/** Map card: brass edge, title with a chevron, one-line description, meta line. */
+	/** Operation card, as the website cards: hairline frame, brass kicker, title, copy, deploy cue. */
 	UButton* MapCard(UWidgetTree* T, const FText& Title, const FText& Description, const FText& Meta)
 	{
 		UButton* Button = T->ConstructWidget<UButton>();
-		StyleButton(Button, SSPalette::Field800(0.9f), SSPalette::Field700(0.98f), FMargin(0.f));
-		UHorizontalBox* Row = T->ConstructWidget<UHorizontalBox>();
-		Button->AddChild(Row);
-		USizeBox* Edge = T->ConstructWidget<USizeBox>();
-		Edge->SetWidthOverride(4.f);
-		Edge->AddChild(Plate(T, SSPalette::Brass500(), FMargin(0.f)));
-		AddH(Row, Edge, false, VAlign_Fill);
-		USizeBox* Width = T->ConstructWidget<USizeBox>();
-		Width->SetWidthOverride(460.f);
-		AddH(Row, Width)->SetPadding(FMargin(16.f, 8.f, 16.f, 10.f));
+		StyleButton(Button, SSPalette::Brass500(0.28f), SSPalette::Brass500(0.9f), FMargin(1.f));
+		UBorder* Inner = Plate(T, SSPalette::Ink900(0.9f), FMargin(18.f, 14.f, 18.f, 14.f));
+		Button->AddChild(Inner);
+		USizeBox* Size = T->ConstructWidget<USizeBox>();
+		Size->SetWidthOverride(300.f);
+		Size->SetHeightOverride(144.f);
+		Inner->SetContent(Size);
 		UVerticalBox* Body = T->ConstructWidget<UVerticalBox>();
-		Width->AddChild(Body);
-		UHorizontalBox* Head = T->ConstructWidget<UHorizontalBox>();
-		AddV(Body, Head);
-		UTextBlock* TitleText = Text(T, 17, true, SSPalette::Sand100(), 100);
+		Size->AddChild(Body);
+		UTextBlock* MetaText = Text(T, 10, true, SSPalette::Brass500(), 220);
+		MetaText->SetText(Meta);
+		AddV(Body, MetaText);
+		UTextBlock* TitleText = Text(T, 21, true, SSPalette::Sand100(), 20);
 		TitleText->SetText(Title);
-		AddH(Head, TitleText, true);
-		UTextBlock* Go = Text(T, 16, true, SSPalette::Brass300());
-		Go->SetText(FText::FromString(TEXT("›")));
-		AddH(Head, Go);
+		AddV(Body, TitleText, 4.f);
 		UTextBlock* DescText = Text(T, 12, false, SSPalette::Sage200());
 		DescText->SetText(Description);
 		DescText->SetAutoWrapText(true);
 		AddV(Body, DescText, 4.f);
-		UTextBlock* MetaText = Text(T, 10, true, SSPalette::Brass300(), 220);
-		MetaText->SetText(Meta);
-		AddV(Body, MetaText, 8.f);
+		AddV(Body, T->ConstructWidget<USpacer>())->SetSize(FSlateChildSize(ESlateSizeRule::Fill));
+		UTextBlock* Go = Text(T, 11, true, SSPalette::Brass300(), 240);
+		Go->SetText(NSLOCTEXT("SSMenu", "DeployCue", "DEPLOY  ›"));
+		AddV(Body, Go);
+		return Button;
+	}
+
+	/** Website primary button: brass fill, ink label. */
+	UButton* PrimaryButton(UWidgetTree* T, const FText& Label, float Width)
+	{
+		UButton* Button = T->ConstructWidget<UButton>();
+		StyleButton(Button, SSPalette::Brass500(), SSPalette::Brass300(), FMargin(18.f, 9.f));
+		UTextBlock* LabelText = Text(T, 13, true, SSPalette::Ink950(), 200);
+		LabelText->SetText(Label);
+		LabelText->SetShadowColorAndOpacity(FLinearColor::Transparent);
+		LabelText->SetJustification(ETextJustify::Center);
+		if (Width > 0.f)
+		{
+			USizeBox* Size = T->ConstructWidget<USizeBox>();
+			Size->SetWidthOverride(Width);
+			Size->AddChild(LabelText);
+			Button->AddChild(Size);
+		}
+		else
+		{
+			Button->AddChild(LabelText);
+		}
+		return Button;
+	}
+
+	/** Website secondary / nav button: transparent with a faint hover. */
+	UButton* GhostButton(UWidgetTree* T, const FText& Label, bool bFramed)
+	{
+		UButton* Button = T->ConstructWidget<UButton>();
+		StyleButton(Button, bFramed ? SSPalette::Ink950(0.5f) : FLinearColor::Transparent, SSPalette::Field700(0.9f), FMargin(14.f, 9.f));
+		UTextBlock* LabelText = Text(T, 13, true, SSPalette::Sand100(), 200);
+		LabelText->SetText(Label);
+		Button->AddChild(LabelText);
 		return Button;
 	}
 
@@ -122,65 +154,102 @@ void USSMenuWidget::Setup(ESSMenuMode InMode)
 
 	if (Mode == ESSMenuMode::FrontEnd)
 	{
+		// Website hero: full-bleed key art, darkened towards the left and the bottom.
 		Fill(Root, KeyArt(T));
-		// Left shade in three steps, so the art fades into the menu side.
-		const float Widths[] = { 780.f, 660.f, 580.f };
-		const float Alphas[] = { 0.25f, 0.35f, 0.55f };
-		for (int32 Index = 0; Index < 3; ++Index)
+		// Sixteen thin steps read as a smooth left-to-right gradient.
+		for (int32 Index = 0; Index < 16; ++Index)
 		{
-			UCanvasPanelSlot* ShadeSlot = Root->AddChildToCanvas(Plate(T, SSPalette::Ink950(Alphas[Index]), FMargin(0.f)));
+			UCanvasPanelSlot* ShadeSlot = Root->AddChildToCanvas(Plate(T, SSPalette::Ink950(0.055f), FMargin(0.f)));
 			ShadeSlot->SetAnchors(FAnchors(0.f, 0.f, 0.f, 1.f));
-			ShadeSlot->SetOffsets(FMargin(0.f, 0.f, Widths[Index], 0.f));
+			ShadeSlot->SetOffsets(FMargin(0.f, 0.f, 1150.f - 40.f * Index, 0.f));
 		}
+		UCanvasPanelSlot* FloorSlot = Root->AddChildToCanvas(Plate(T, SSPalette::Ink950(0.55f), FMargin(0.f)));
+		FloorSlot->SetAnchors(FAnchors(0.f, 1.f, 1.f, 1.f));
+		FloorSlot->SetAlignment(FVector2D(0.f, 1.f));
+		FloorSlot->SetOffsets(FMargin(0.f, 0.f, 0.f, 64.f));
 
-		// Top bar: wordmark left, status right.
-		UBorder* TopBar = Plate(T, SSPalette::Ink950(0.7f), FMargin(72.f, 14.f));
+		// Top bar, as the website header: badge and stacked wordmark left, nav right.
+		UBorder* TopBar = Plate(T, SSPalette::Ink950(0.78f), FMargin(64.f, 12.f));
 		UCanvasPanelSlot* TopSlot = Root->AddChildToCanvas(TopBar);
 		TopSlot->SetAnchors(FAnchors(0.f, 0.f, 1.f, 0.f));
-		TopSlot->SetOffsets(FMargin(0.f, 0.f, 0.f, 48.f));
+		TopSlot->SetOffsets(FMargin(0.f, 0.f, 0.f, 68.f));
 		UHorizontalBox* TopRow = T->ConstructWidget<UHorizontalBox>();
 		TopBar->SetContent(TopRow);
-		UTextBlock* Mark = Text(T, 13, true, SSPalette::Sand100(), 400);
+		if (UTexture2D* Logo = SSUIAssets::Logo())
+		{
+			UImage* Badge = T->ConstructWidget<UImage>();
+			Badge->SetBrushFromTexture(Logo);
+			Badge->SetDesiredSizeOverride(FVector2D(40.f, 40.f));
+			AddH(TopRow, Badge)->SetPadding(FMargin(0.f, 0.f, 12.f, 0.f));
+		}
+		UVerticalBox* Wordmark = T->ConstructWidget<UVerticalBox>();
+		UTextBlock* Mark = Text(T, 15, true, SSPalette::Sand100(), 220);
 		Mark->SetText(NSLOCTEXT("SSMenu", "Mark", "SOUTHERN SPEAR"));
-		AddH(TopRow, Mark);
+		AddV(Wordmark, Mark);
+		UTextBlock* Phase = Text(T, 10, true, SSPalette::Brass500(), 260);
+		Phase->SetText(NSLOCTEXT("SSMenu", "Phase", "PRE-ALPHA"));
+		AddV(Wordmark, Phase);
+		AddH(TopRow, Wordmark);
 		AddH(TopRow, T->ConstructWidget<USpacer>(), true);
-		UTextBlock* Status = Text(T, 11, true, SSPalette::Brass300(), 300);
-		Status->SetText(NSLOCTEXT("SSMenu", "Status", "PRE-ALPHA  ·  OFFLINE WITH BOTS"));
-		AddH(TopRow, Status);
-		UCanvasPanelSlot* TopRuleSlot = Root->AddChildToCanvas(Rule(T, SSPalette::Brass500(0.8f), 1.f));
+		const TPair<FText, FName> Nav[] = {
+			{ NSLOCTEXT("SSMenu", "NavSettings", "SETTINGS"), GET_FUNCTION_NAME_CHECKED(USSMenuWidget, OnSettings) },
+			{ NSLOCTEXT("SSMenu", "NavQuit", "QUIT"), GET_FUNCTION_NAME_CHECKED(USSMenuWidget, OnQuit) } };
+		for (const TPair<FText, FName>& Item : Nav)
+		{
+			AddH(TopRow, AddHandler(GhostButton(T, Item.Key, false), Item.Value))->SetPadding(FMargin(0.f, 0.f, 8.f, 0.f));
+		}
+		AddH(TopRow, AddHandler(PrimaryButton(T, NSLOCTEXT("SSMenu", "Discord", "DISCORD"), 0.f),
+			GET_FUNCTION_NAME_CHECKED(USSMenuWidget, OnDiscord)))->SetPadding(FMargin(8.f, 0.f, 0.f, 0.f));
+		UCanvasPanelSlot* TopRuleSlot = Root->AddChildToCanvas(Rule(T, SSPalette::Brass500(0.28f), 1.f));
 		TopRuleSlot->SetAnchors(FAnchors(0.f, 0.f, 1.f, 0.f));
-		TopRuleSlot->SetOffsets(FMargin(0.f, 48.f, 0.f, 1.f));
+		TopRuleSlot->SetOffsets(FMargin(0.f, 68.f, 0.f, 1.f));
 
-		Pin(Root, Col, FVector2D(0.f, 0.5f), FVector2D(72.f, 12.f));
+		// Hero copy, left, then the operations grid.
+		Pin(Root, Col, FVector2D(0.f, 0.5f), FVector2D(64.f, 30.f));
+		UBorder* Chip = Plate(T, SSPalette::Ink950(0.6f), FMargin(10.f, 5.f));
+		UHorizontalBox* ChipRow = T->ConstructWidget<UHorizontalBox>();
+		Chip->SetContent(ChipRow);
+		UTextBlock* Dot = Text(T, 10, true, SSPalette::Brass500());
+		Dot->SetText(FText::FromString(TEXT("●")));
+		AddH(ChipRow, Dot)->SetPadding(FMargin(0.f, 0.f, 8.f, 0.f));
+		UTextBlock* ChipText = Text(T, 10, true, SSPalette::Sand100(), 240);
+		ChipText->SetText(NSLOCTEXT("SSMenu", "Chip", "PRE-ALPHA  ·  OFFLINE WITH BOTS"));
+		AddH(ChipRow, ChipText);
+		AddV(Col, Stagger(Chip), 0.f, HAlign_Left);
+		TitleText = Text(T, 44, true, SSPalette::Sand100(), 20);
+		TitleText->SetText(NSLOCTEXT("SSMenu", "Headline", "An Australian-inspired tactical\nmultiplayer experience."));
+		AddV(Col, Stagger(TitleText), 14.f);
+		UTextBlock* Lede = Text(T, 15, false, SSPalette::Sage200());
+		Lede->SetText(NSLOCTEXT("SSMenu", "Lede", "Teamwork, communication and objective-focused infantry combat.\nChoose an operation and deploy with 3rd Battalion."));
+		AddV(Col, Stagger(Lede), 10.f);
 
-		UTextBlock* Kicker = Text(T, 12, true, SSPalette::Brass300(), 300);
-		Kicker->SetText(NSLOCTEXT("SSMenu", "Kicker", "TACTICAL FIRST-PERSON SHOOTER"));
-		AddV(Col, Stagger(Kicker));
-		TitleText = Text(T, 52, true, SSPalette::Sand100(), 100);
-		TitleText->SetText(NSLOCTEXT("SSMenu", "Title", "SOUTHERN SPEAR"));
-		AddV(Col, Stagger(TitleText), 2.f);
-		AddV(Col, Stagger(Rule(T, SSPalette::Brass500(), 2.f, 120.f)), 10.f, HAlign_Left);
-
-		AddV(Col, Stagger(Caption(T, NSLOCTEXT("SSMenu", "Deploy", "DEPLOY  ·  OBJECTIVE ASSAULT"))), 22.f);
-		AddV(Col, Stagger(AddHandler(MapCard(T, NSLOCTEXT("SSMenu", "RedGum", "RED GUM STATION"),
-			NSLOCTEXT("SSMenu", "RedGumDesc", "An outback cattle station. Take the bore pump, the homestead and the shearing shed in order."),
-			NSLOCTEXT("SSMenu", "RedGumMeta", "3 OBJECTIVES  ·  OPEN PADDOCKS  ·  LONG SIGHTLINES")),
-			GET_FUNCTION_NAME_CHECKED(USSMenuWidget, OnRedGum))), 12.f, HAlign_Left);
-		AddV(Col, Stagger(AddHandler(MapCard(T, NSLOCTEXT("SSMenu", "DryRiver", "DRY RIVER"),
-			NSLOCTEXT("SSMenu", "DryRiverDesc", "A dry creek line between a water point and a farmstead."),
-			NSLOCTEXT("SSMenu", "DryRiverMeta", "2 OBJECTIVES  ·  CREEK BED  ·  FARMSTEAD")),
-			GET_FUNCTION_NAME_CHECKED(USSMenuWidget, OnDryRiver))), 6.f, HAlign_Left);
-		AddV(Col, Stagger(AddHandler(MapCard(T, NSLOCTEXT("SSMenu", "Saltbush", "SALTBUSH FLATS"),
-			NSLOCTEXT("SSMenu", "SaltbushDesc", "Arid scrub and stone country. A windmill, the stock yards and a dry dam."),
-			NSLOCTEXT("SSMenu", "SaltbushMeta", "3 OBJECTIVES  ·  COMPACT  ·  ROCKY COVER")),
-			GET_FUNCTION_NAME_CHECKED(USSMenuWidget, OnSaltbush))), 6.f, HAlign_Left);
-		AddV(Col, Stagger(AddHandler(MapCard(T, NSLOCTEXT("SSMenu", "SelatCanal", "SELAT CANAL"),
-			NSLOCTEXT("SSMenu", "SelatCanalDesc", "A Murasian canal district. Fight over the footbridge, market row and pump house."),
-			NSLOCTEXT("SSMenu", "SelatCanalMeta", "3 OBJECTIVES  ·  URBAN  ·  CLOSE QUARTERS")),
-			GET_FUNCTION_NAME_CHECKED(USSMenuWidget, OnSelatCanal))), 6.f, HAlign_Left);
+		AddV(Col, Stagger(Caption(T, NSLOCTEXT("SSMenu", "Operations", "OPERATIONS  ·  OBJECTIVE ASSAULT"))), 26.f);
+		UUniformGridPanel* Grid = T->ConstructWidget<UUniformGridPanel>();
+		Grid->SetSlotPadding(FMargin(4.f));
+		AddV(Col, Stagger(Grid), 8.f, HAlign_Left);
+		struct FOp { FText Title, Description, Meta; FName Handler; };
+		const FOp Ops[] = {
+			{ NSLOCTEXT("SSMenu", "RedGum", "Red Gum Station"),
+			  NSLOCTEXT("SSMenu", "RedGumDesc", "An outback cattle station: the bore pump, the homestead, the shearing shed."),
+			  NSLOCTEXT("SSMenu", "RedGumMeta", "3 OBJECTIVES  ·  OPEN PADDOCKS"), GET_FUNCTION_NAME_CHECKED(USSMenuWidget, OnRedGum) },
+			{ NSLOCTEXT("SSMenu", "DryRiver", "Dry River"),
+			  NSLOCTEXT("SSMenu", "DryRiverDesc", "A dry creek line between a water point and a farmstead."),
+			  NSLOCTEXT("SSMenu", "DryRiverMeta", "2 OBJECTIVES  ·  CREEK BED"), GET_FUNCTION_NAME_CHECKED(USSMenuWidget, OnDryRiver) },
+			{ NSLOCTEXT("SSMenu", "Saltbush", "Saltbush Flats"),
+			  NSLOCTEXT("SSMenu", "SaltbushDesc", "Arid scrub and stone country: a windmill, the stock yards, a dry dam."),
+			  NSLOCTEXT("SSMenu", "SaltbushMeta", "3 OBJECTIVES  ·  ROCKY COVER"), GET_FUNCTION_NAME_CHECKED(USSMenuWidget, OnSaltbush) },
+			{ NSLOCTEXT("SSMenu", "SelatCanal", "Selat Canal"),
+			  NSLOCTEXT("SSMenu", "SelatCanalDesc", "A Murasian canal district: the footbridge, market row, the pump house."),
+			  NSLOCTEXT("SSMenu", "SelatCanalMeta", "SPECIAL FORCES  ·  CLOSE QUARTERS"), GET_FUNCTION_NAME_CHECKED(USSMenuWidget, OnSelatCanal) },
+		};
+		for (int32 Index = 0; Index < UE_ARRAY_COUNT(Ops); ++Index)
+		{
+			Grid->AddChildToUniformGrid(AddHandler(MapCard(T, Ops[Index].Title, Ops[Index].Description, Ops[Index].Meta), Ops[Index].Handler),
+				Index / 2, Index % 2);
+		}
 
 		// Bots: 4 / 8 / 12.
-		AddV(Col, Stagger(Caption(T, NSLOCTEXT("SSMenu", "Bots", "BOTS PER MATCH"))), 24.f);
+		AddV(Col, Stagger(Caption(T, NSLOCTEXT("SSMenu", "Bots", "BOTS PER MATCH"))), 22.f);
 		UHorizontalBox* BotRow = T->ConstructWidget<UHorizontalBox>();
 		AddV(Col, Stagger(BotRow), 10.f, HAlign_Left);
 		const TPair<int32, FName> Choices[] = {
@@ -191,8 +260,8 @@ void USSMenuWidget::Setup(ESSMenuMode InMode)
 		{
 			UButton* Button = T->ConstructWidget<UButton>();
 			USizeBox* Size = T->ConstructWidget<USizeBox>();
-			Size->SetWidthOverride(52.f);
-			UTextBlock* Label = Text(T, 14, true, SSPalette::Sand100());
+			Size->SetWidthOverride(56.f);
+			UTextBlock* Label = Text(T, 15, true, SSPalette::Sand100());
 			Label->SetText(FText::AsNumber(Choice.Key));
 			Label->SetJustification(ETextJustify::Center);
 			Size->AddChild(Label);
@@ -202,19 +271,12 @@ void USSMenuWidget::Setup(ESSMenuMode InMode)
 		}
 		SetBots(SelectedBots);
 
-		UHorizontalBox* Bottom = T->ConstructWidget<UHorizontalBox>();
-		AddV(Col, Stagger(Bottom), 32.f, HAlign_Left);
-		AddH(Bottom, AddHandler(MenuButton(T, NSLOCTEXT("SSMenu", "Settings", "SETTINGS"), 170.f),
-			GET_FUNCTION_NAME_CHECKED(USSMenuWidget, OnSettings)))->SetPadding(FMargin(0.f, 0.f, 10.f, 0.f));
-		AddH(Bottom, AddHandler(MenuButton(T, NSLOCTEXT("SSMenu", "Quit", "QUIT"), 170.f),
-			GET_FUNCTION_NAME_CHECKED(USSMenuWidget, OnQuit)));
-
-		UTextBlock* Footer = Text(T, 11, false, SSPalette::Sage400(), 60);
+		UTextBlock* Footer = Text(T, 11, false, SSPalette::Sage400(), 40);
 		Footer->SetText(NSLOCTEXT("SSMenu", "Footer", "A fictional setting. Not affiliated with any real defence force."));
-		Pin(Root, Stagger(Footer), FVector2D(0.f, 1.f), FVector2D(72.f, -28.f));
+		Pin(Root, Stagger(Footer), FVector2D(0.f, 1.f), FVector2D(64.f, -24.f));
 		UTextBlock* Keys = Text(T, 11, true, SSPalette::Sage400(), 200);
-		Keys->SetText(NSLOCTEXT("SSMenu", "Keys", "WASD MOVE  ·  RMB AIM  ·  R RELOAD  ·  M MAP  ·  ESC MENU"));
-		Pin(Root, Stagger(Keys), FVector2D(1.f, 1.f), FVector2D(-72.f, -28.f));
+		Keys->SetText(NSLOCTEXT("SSMenu", "Keys", "WASD MOVE  ·  RMB AIM  ·  R RELOAD  ·  L CLASS  ·  M MAP  ·  ESC MENU"));
+		Pin(Root, Stagger(Keys), FVector2D(1.f, 1.f), FVector2D(-64.f, -24.f));
 
 		// Intro: the whole screen rises out of black.
 		Curtain = Plate(T, SSPalette::Ink950(), FMargin(0.f));
@@ -244,7 +306,7 @@ void USSMenuWidget::Setup(ESSMenuMode InMode)
 		Title->SetText(NSLOCTEXT("SSMenu", "MatchMenu", "MATCH MENU"));
 		AddV(Col, Stagger(Title), 2.f);
 		AddV(Col, Stagger(Rule(T, SSPalette::Brass500(), 2.f, 96.f)), 10.f, HAlign_Left);
-		AddV(Col, Stagger(AddHandler(MenuButton(T, NSLOCTEXT("SSMenu", "Resume", "RESUME"), 360.f),
+		AddV(Col, Stagger(AddHandler(MenuButton(T, NSLOCTEXT("SSMenu", "Resume", "RESUME"), 360.f, /*bPrimary=*/ true),
 			GET_FUNCTION_NAME_CHECKED(USSMenuWidget, OnResume))), 28.f, HAlign_Left);
 		AddV(Col, Stagger(AddHandler(MenuButton(T, NSLOCTEXT("SSMenu", "Settings", "SETTINGS"), 360.f),
 			GET_FUNCTION_NAME_CHECKED(USSMenuWidget, OnSettings))), 8.f, HAlign_Left);
@@ -290,6 +352,14 @@ void USSMenuWidget::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
 {
 	Super::NativeTick(MyGeometry, InDeltaTime);
 	Elapsed += InDeltaTime;
+	// Dev capture: -SSOpenSettings[=<tab>] opens Settings once the intro has played.
+	int32 SettingsTab = 0;
+	if (!bDevSettingsOpened && Mode == ESSMenuMode::FrontEnd && Elapsed > 2.5f && (FParse::Param(FCommandLine::Get(), TEXT("SSOpenSettings")) || FParse::Value(FCommandLine::Get(), TEXT("SSOpenSettings="), SettingsTab)))
+	{
+		bDevSettingsOpened = true;
+		OnSettings();
+		if (Settings) { Settings->SelectTab(SettingsTab); }
+	}
 
 	if (Curtain)
 	{
@@ -299,9 +369,9 @@ void USSMenuWidget::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
 	}
 	if (TitleText)
 	{
-		// The title tightens from wide tracking into place.
+		// The headline tightens from wide tracking into place.
 		FSlateFontInfo Font = TitleText->GetFont();
-		Font.LetterSpacing = FMath::RoundToInt(FMath::Lerp(420.f, 100.f, Ease(Elapsed, 0.2f, 1.1f)));
+		Font.LetterSpacing = FMath::RoundToInt(FMath::Lerp(160.f, 20.f, Ease(Elapsed, 0.2f, 1.1f)));
 		TitleText->SetFont(Font);
 	}
 	if (SidePanel)
@@ -388,6 +458,11 @@ void USSMenuWidget::OnResume()
 void USSMenuWidget::OnMainMenu()
 {
 	UGameplayStatics::OpenLevel(this, FName(FrontEndMap), /*bAbsolute=*/ true);
+}
+
+void USSMenuWidget::OnDiscord()
+{
+	FPlatformProcess::LaunchURL(TEXT("https://discord.gg/GHNCFQrDND"), nullptr, nullptr);
 }
 
 void USSMenuWidget::OnQuit()

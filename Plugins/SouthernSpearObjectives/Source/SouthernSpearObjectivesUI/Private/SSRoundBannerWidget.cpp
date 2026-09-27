@@ -17,6 +17,7 @@
 #include "SSObjectiveHudModel.h"
 #include "SSUIStyle.h"
 #include "Styling/CoreStyle.h"
+#include "SSFonts.h"
 
 namespace
 {
@@ -25,7 +26,7 @@ namespace
 	UTextBlock* BannerText(UWidgetTree* Tree, int32 Size, const FLinearColor& Colour, int32 Spacing)
 	{
 		UTextBlock* Text = Tree->ConstructWidget<UTextBlock>();
-		FSlateFontInfo Font = FCoreStyle::GetDefaultFontStyle("Bold", Size);
+		FSlateFontInfo Font = SSFonts::Display(Size);
 		Font.LetterSpacing = Spacing;
 		Text->SetFont(Font);
 		Text->SetColorAndOpacity(Colour);
