@@ -221,3 +221,11 @@ Content/World_Flags/
 Content/SampleAnimationPack/
 Content/Vis/
 Content/Namaqualand/
+
+# Converted ADFRC output (L-0021): derived from the third-party source, so also
+# kept out of version control. Docs remain tracked.
+Art/ADFRC_MLOD/
+Art/ADFRC_BLEND/
+Art/ADFRC_Player/*
+!Art/ADFRC_Player/README.md
+!Art/ADFRC_Player/LICENSE.md

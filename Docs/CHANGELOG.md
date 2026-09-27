@@ -2,7 +2,7 @@
 
 **Document ID:** `Docs/CHANGELOG.md`
 **Purpose:** Rolling record of what was actually done, what was actually tested, and what is still open. Appended to at the end of every work session.
-**Last updated:** 2026-09-26
+**Last updated:** 2026-09-27
 
 > **This file records evidence, not narrative.** A line here means a command was run and its result observed. If something was not done, it is not claimed. Anything marked `NOT RUN` is genuinely outstanding, not quietly skipped.
 
@@ -1102,6 +1102,8 @@ New **R-17** (unlicensed drop in `Content/Sourced/`). The environment scans also
 
 ## Session 017 — 2026-09-27 — Licensed-Art Policy, Sketchfab Clearance, A89
 
+> The original entry reported the three cleared Sketchfab assets as L-0012 to L-0014. The current register uses L-0012 for Electric Dreams (declined), L-0013 Split Point, L-0014 Bingie Bingie and L-0015 Ross River; this numbering correction is recorded in the current rows, below. The initial asset drop count is historical; see `SOURCED_ASSET_REVIEW.md` for the later measured inventory.
+
 ### COMPLETED
 
 - **ADFRC addon drop reviewed** (`Content/Sourced/ADF`, 1,681 files): no models (only `.paa`, `.rvmat`, configs and sounds),
@@ -1109,7 +1111,7 @@ New **R-17** (unlicensed drop in `Content/Sourced/`). The environment scans also
 - **ADR-021** (producer decision): free/purchased Fab (Standard License) and CC0/CC-BY Sketchfab assets are
   allowed, registered before use and adapted to the fiction. Weapons stay original A-series; Dry River's layout stays original.
 - **Sketchfab clearance** via the public API:
-  - Cleared, CC-BY: Split Point VIC, Bingie Bingie NSW, Ross River NT (L-0012 to L-0014).
+  - Cleared, CC-BY: Split Point VIC, Bingie Bingie NSW, Ross River NT (the original L-0012 to L-0014 shorthand was off by one; authoritative entries are now L-0013 to L-0015).
   - Rejected: Cape Liptrap (CC-BY-NC-ND).
   - Still needing page URLs: Petty Beach and the gear models.
 - **A89 light support weapon**, original design (1.19 m, 2,012 tris): shared helpers in `Tools/Blender/ss_weapon_kit.py`.
@@ -1134,7 +1136,7 @@ Created: `Tools/Blender/ss_weapon_kit.py`, `Tools/Blender/a89_support.py`, `Art/
 
 ### ASSETS
 
-W-A89-01 (Class F, original). L-0012 to L-0014 cleared (CC-BY), not yet imported.
+W-A89-01 (Class F, original). L-0013 to L-0015 cleared (CC-BY), not yet imported.
 
 ### RISKS
 
@@ -1270,6 +1272,55 @@ logged in the audit.
 **Rendered soldier check** on Red Gum (one windowed `-SSShotAt` run, about 3 minutes, shaders are cached
 after the first run). Confirm the 3 ACR and MAF looks, hide any insignia patch (R-20), then start the
 first-person view model (R-18).
+
+---
+
+## Session 020 — 2026-09-27 — CC BY Terrain Scans Staged for Import Review
+
+### COMPLETED
+
+- Audited `Content/Sourced/` against `Docs/SOURCED_ASSET_REVIEW.md` and the licence register.
+- Verified the official Sketchfab model pages: Split Point and Bingie Bingie are licensed CC BY 4.0 and authored by Stefan A Vollgger. Staged each original OBJ/MTL/JPEG set unchanged under `Content/SouthernSpear/Vendor/SAVollgger/`.
+- Added ENV-001 and ENV-002 to `ASSET_REGISTER.md`, completed L-0013/L-0014 provenance rows, and put required credits beside the vendor files.
+- Left Ross River unstaged. All other sourced files were left untouched and unapproved.
+
+### FILES CHANGED
+
+Created: `Content/SouthernSpear/Vendor/SAVollgger/README.md` and two vendor source folders, each with its unchanged OBJ, MTL and JPEG files.
+Modified: `Docs/ASSET_REGISTER.md`, `Docs/LICENCE_REGISTER.md`, `Docs/SOURCED_ASSET_REVIEW.md`, `Docs/CHANGELOG.md`.
+
+### TESTING
+
+| Test | Command | Result |
+|---|---|---|
+| Sketchfab provenance/licence | Opened official model pages | PASS — correct titles, authors and CC BY licence; register records the 4.0 version |
+| Source archives | `unzip -t` on both archives | PASS — no archive errors |
+| Source-file identity | SHA-256 of each staged file vs matching archive member | PASS — all six OBJ/MTL/JPEG hashes match exactly |
+| MTL image paths | Python check against staged filenames | PASS — each MTL image reference resolves |
+| Mesh inspection | Python OBJ scan | PASS — Split Point 174,076 vertices / 346,200 triangles; Bingie Bingie 273,042 vertices / 540,708 triangles; all faces triangular |
+| Git LFS attributes | `git check-attr filter diff merge text` | PASS — OBJ and JPEG files resolve to LFS |
+| Unreal Editor import | — | **NOT RUN** — no `.uasset` import or editor validation yet |
+| Optimization/derivative | — | **NOT DONE** — original scan files retained; not game-ready |
+| Game/map use | — | **NOT DONE** — neither scan placed in a level |
+
+### ASSETS
+
+Two class-B third-party source sets staged unchanged: ENV-001 Split Point and ENV-002 Bingie Bingie. Include their registered CC BY 4.0 credits if used in a shipped build. No derived or imported Unreal asset was made.
+
+### RISKS
+
+- The remaining sourced drop still includes explicitly rejected game rips and unresolved/licence-blocked assets; all remain untouched and outside Git.
+- Both scans are dense photogrammetry and may need cleanup, reduction, LOD/Nanite review, collision work and performance validation before real-time use.
+- Ross River is licence-cleared but not staged; Cape Liptrap remains rejected under CC BY-NC-ND.
+
+### DEFECTS FOUND
+
+- Session 017 shorthand used the wrong L-number range after L-0012 was assigned to declined Electric Dreams. Current references now read L-0012 (declined), L-0013 Split Point, L-0014 Bingie Bingie and L-0015 Ross River.
+- The sourced review's previous “nothing imported” phrasing did not distinguish copied vendor source files from actual Unreal `.uasset` imports; it now does.
+
+### NEXT ACTION
+
+Import both OBJ files into a temporary Unreal review folder and inspect scale, texture binding, normals, collision, LOD/Nanite options and editor performance before making any adapted game asset.
 
 ---
 
@@ -1442,6 +1493,204 @@ ensure so the suite is green.
 
 ---
 
+## Session 023 — 2026-09-27 — Weapon Asset Intake and Provenance Review
+
+### COMPLETED
+
+- Reviewed the current untracked weapon-source folders against Session 021/022 notes, source-file paths, the asset register, licence register and the tracked A88 game assets.
+- Corrected the A88 record: the producer-supplied textured mesh is already the imported/in-use cosmetic asset, while the original script-built A88 remains separate source work. The A88 source itself is not tracked; the imported Unreal derivative is tracked, so the missing source URL/terms and real-rifle redesign remain release blockers (R-21 / L-0017).
+- Recorded the C4A1/M4 file as blocked despite its embedded/reported “Licensed CC-BY” note: no source URL, exact licence version/terms or attribution has been verified; its adjacent texture folder is empty in this checkout. Added R-22 / L-0020.
+- Recorded the AKM and PKM `.blend` files as provenance/licence-pending, reference-only, and not approved for import or derivative use. Added R-23 / L-0018–L-0019.
+- Added a weapon-source review section and aligned W-001/W-002 and A88 import/source rows in `ASSET_REGISTER.md`. Updated `PROJECT_AUDIT.md` risk rows and the licence register. No art files, `.uasset`s, or scripts were changed; no smoke-test work was performed.
+
+### FILES CHANGED
+
+Modified: `Docs/ASSET_REGISTER.md`, `Docs/LICENCE_REGISTER.md`, `Docs/PROJECT_AUDIT.md`, `Docs/CHANGELOG.md`.
+
+### TESTING
+
+| Check | Command / method | Result |
+|---|---|---|
+| Intake inventory | Reviewed `Art/Weapons/A88/New`, `AKM`, `C4A1`, `PKM` and their corresponding notes | Completed; no source provenance was added or assumed |
+| A88 import state | Read existing `Build/weapons_setup.json`, `Build/sm_a88_sourced_report.json`, `Build/a88_setup.json`; checked tracked asset paths with `git ls-files` | Existing report says setup `ok=true`; mesh 78.8 × 13.1 × 29.8 cm, 72,493 triangles; textured import assets are tracked. This is review of existing evidence, not a rerun. |
+| Source-control/LFS rules | `git status --short --untracked-files=all -- <asset paths>`; `git check-attr filter diff merge text -- <sample asset paths>` | Raw A88/AKM/C4A1/PKM files are untracked; sampled OBJ/PNG/Blend sources resolve to LFS. No assets staged or committed. |
+| Build, import or runtime validation | — | **NOT RUN** — documentation/provenance review only |
+| Headless authority smoke test | — | **NOT RUN** — explicitly shelved at producer direction |
+
+### ASSETS
+
+No asset files created, imported or modified in this session. L-0017 records A88 as Class E until rights evidence is supplied. L-0018–L-0020 record the AKM, PKM and C4A1/M4 sources as blocked; source folders remain local/untracked. No new asset is cleared for use or redistribution.
+
+### RISKS
+
+- **R-21** — A88 rights/source provenance and fictional redesign remain unresolved; importantly, its Unreal derivative is already imported/in use despite the raw source being untracked.
+- **R-22** — C4A1/M4 terms and attribution unverified.
+- **R-23** — AKM/PKM provenance and rights unverified; real-design files remain reference-only.
+
+### DEFECTS FOUND
+
+- Asset records lagged project state: W-001 still described a placeholder, and the A88 Unreal import was not clearly distinguished from its local untracked source and previous original script-built mesh.
+- The C4A1's embedded “Licensed CC-BY” label could be mistaken for verified rights; exact provenance and terms are missing.
+
+### NEXT ACTION
+
+Obtain and verify the source URLs and licence terms for A88/C4A1, and confirm whether AKM/PKM are reference-only; keep all unresolved raw sources out of redistribution and redesign any weapon geometry as original A-series work before release.
+
+---
+
+## Session 024 — 2026-09-27 — ADFRC Extraction Intake Review and Claude Source Guard
+
+### COMPLETED
+
+- Inspected the new `Content/Sourced/ADF_Extracted/` tree and representative EF88/M4A5 paths. Unlike the separately reviewed `Content/Sourced/ADF/` folder (whose zero-model count applied only to that folder), this extraction contains `.p3d` models, Arma configs/material definitions, textures, `.rtm` animations and Workshop package data.
+- Checked the public ADF Re-Cut Workshop notice, ADFRC `LICENSE.md`, `ASSETS_LICENSE.md`, `DEV_LICENSE.md`, `MODEL_CREDITS.md`, and Bohemia's APL-SA text. The stated terms do not clear the extracted models or APL-SA material for this Unreal/commercial project; ADFRC further restricts protected-model extraction/reuse. Corrected the earlier ADF addendum so the contributor agreement is not described as an end-user licence or blanket relicensing path.
+- Cross-referenced `adfrc_ef88` and `adfrc_m4a5` against Claude's A-series guidance and the independent A88/C4A1 source records. Matching EF88/M4 naming is not provenance or permission, and these files are not the sources recorded at L-0017 or L-0020.
+- Added a metadata-only quarantine instruction for Claude, a sourced-asset addendum, an explicit non-game-asset note in `ASSET_REGISTER.md`, licence record L-0021 and open risk R-24. No source files were copied, altered, staged or imported; `ADF_Extracted` remains git-ignored.
+
+### FILES CHANGED
+
+Modified: `CLAUDE.md`, `Docs/SOURCED_ASSET_REVIEW.md`, `Docs/ASSET_REGISTER.md`, `Docs/LICENCE_REGISTER.md`, `Docs/PROJECT_AUDIT.md`, `Docs/CHANGELOG.md`.
+
+### TESTING
+
+| Check | Command / method | Result |
+|---|---|---|
+| Intake inventory | Listed the `ADF_Extracted` tree and representative directories; read sample EF88/M4A5 config/model metadata | Completed. Representative inventory only; no total file count or size was measured. No model/texture/animation binary was opened or processed. |
+| Git ignore | `git check-ignore -v Content/Sourced/ADF_Extracted/Models/ADF_Weapons/adfrc_ef88/ADFRC_EF88.p3d` | Exit 0 — `.gitignore:189:Content/Sourced/` ignores the representative extracted model. |
+| Rights/source review | Read public Steam Workshop item 2971219389, ADFRC licence/model-licence/developer-agreement/model-credit pages, and Bohemia APL-SA text | Completed; sources and access date recorded in `SOURCED_ASSET_REVIEW.md`. This is project intake triage, not legal advice or item-level clearance. |
+| Git working tree | `git status --short --branch` | `main`; concurrent pre-existing docs, code, and content changes were present and left untouched. |
+| Documentation whitespace | `git diff --check -- CLAUDE.md Docs/SOURCED_ASSET_REVIEW.md Docs/ASSET_REGISTER.md Docs/LICENCE_REGISTER.md Docs/PROJECT_AUDIT.md Docs/CHANGELOG.md` | Exit 0 — no whitespace errors. Git emitted only configured CRLF-to-LF notices for existing CRLF documents. |
+| Unreal import/build/tests | — | **NOT RUN** — documentation/provenance review only; no Unreal assets were created or changed. |
+| Headless authority smoke test | — | **NOT RUN** — remains shelved per producer direction. |
+
+### ASSETS
+
+No game assets created, copied, imported or modified. `Content/Sourced/ADF_Extracted/` remains an ignored quarantine folder, not a licensed vendor source. L-0021 records the collection as blocked (known APL-SA/protected-model incompatibility; individual provenance remains unresolved); no ADFRC content was added to the game asset register as usable art.
+
+### RISKS
+
+- **R-24 (new)** — ADFRC extraction includes Arma assets with non-commercial/Arma-only APL-SA terms and additional restrictions for protected models; exact local file provenance and per-model categories are unknown. Keep metadata-only and quarantined.
+- R-17 remains open for the broader mixed sourced drop. R-21 through R-23 remain unchanged.
+
+### DEFECTS FOUND
+
+- No code or content defect was found. The documentation gaps were that Claude's general sourced-content warning did not identify this new ADFRC extraction or its stronger model-specific restrictions; the earlier “0 models” inventory could be overgeneralized beyond the distinct `Content/Sourced/ADF/` folder; and the prior addendum described the developer agreement as an alternative downstream licence. These boundaries and the agreement's actual scope are now explicit.
+
+### NEXT ACTION
+
+Obtain exact source-chain evidence and written, file-specific rights-holder permissions for any ADFRC item proposed for use; until then, keep the extraction quarantined and continue only with independently sourced or original A-series assets.
+
+---
+
+## Session 025 — 2026-09-27 — ADFRC Growth, Player-Model Question, and a Broken FBX Conversion
+
+### COMPLETED
+
+- Re-inspected `Content/Sourced/ADF_Extracted/` after it grew: it now carries a `README.md`, a `_tools/` converter directory and an empty `Models_FBX/`, and measures 7,928 files / ~17 GB (against 7,748 claimed in its README).
+- Recorded the extraction's now-documented provenance from its own README: the ADFRC source pack (LFS objects fetched and decoded) **plus the binarised Steam Workshop release** (15 `.pbo` archives unpacked from the local Arma 3 install), which is the only source of its `.p3d` models. That corrects the earlier L-0021 note that the acquisition path was undocumented, and it places the models squarely inside the category ADFRC's `ASSETS_LICENSE.md` and `DEV_LICENSE.md` §2.4 restrict.
+- Answered the player-model question with measurements: **there are no player/character body models in the tree** — `Workshop/ADF_Units` holds 0 `.p3d` and 13 `.paa`, only binarised config headers that dress vanilla Arma bodies. What exists is 56 player-worn gear meshes (helmets, facewear, NVGs, field dress, a Crye G3 uniform, plate carriers, backpacks, TBAS role vests).
+- Diagnosed the FBX conversion as **failing on every model**: `Models_FBX/` contains no exported geometry, and `_convert_log.txt` shows the identical error each time — `P3D_Error: Invalid MLOD signature: b'ODOL'`, because the Arma 3 Object Builder addon expects the newer `MLOD` signature. No Blender or Unreal process is running.
+- Did **not** import, convert or re-export anything. Added the measured inventory, provenance, gear list, conversion failure and a new operational hazard to `Docs/SOURCED_ASSET_REVIEW.md`; corrected L-0021's provenance and added a models row; added **R-25** for ~17 GB of loose assets sitting inside the Unreal content root.
+
+### FILES CHANGED
+
+Modified: `Docs/SOURCED_ASSET_REVIEW.md`, `Docs/LICENCE_REGISTER.md`, `Docs/PROJECT_AUDIT.md`, `Docs/CHANGELOG.md`.
+
+### TESTING
+
+| Check | Command / method | Result |
+|---|---|---|
+| Tree growth | `find`/`ls` over `ADF_Extracted` (top level, extension histogram, file count, `du -sh`) | Top level now `Animations Models Models_FBX README.md Source Textures Workshop _tools`; 7,928 files / 17 GB. Histogram: 2,500 `.paa`, 2,489 `.png`, 854 `.rvmat`, 536 `.p3d`, 330 `.rtm`, 257 `.wss`, 257 `.wav`, 165 `.json`, 37 `.uasset`. |
+| Provenance | Read `Content/Sourced/ADF_Extracted/README.md` | Two sources documented (source pack + binarised Workshop PBOs); models come only from the PBOs; README carries its own licence warning and asks that the model clause be verified before import. |
+| Player-model existence | `find Workshop/ADF_Units -iname '*.p3d' -o -iname '*.paa'`; `grep` of `ADF_Units/Modern/CDO/Infantry.hpp` | **0 `.p3d`**, 13 `.paa`. Unit definitions are binarised config headers only; no ADFRC soldier body exists. |
+| Gear inventory | `find Models/ADF_Gear Models/ADF_Gear_2 -iname '*.p3d'` | 56 player-worn gear meshes listed (helmets, facewear, NVGs, `crye_g3.p3d`, `adfrc_field_dress.p3d`, `JPC_Base`, `Peacekeeper_*`, backpacks, `tbas_T2_*`/`TBAS_T5_*`). |
+| Conversion state | `cat Models_FBX/_convert_log.txt`; `find Models_FBX -type f \| wc -l` | Log shows 3 attempts, all `FAIL` with `Invalid MLOD signature: b'ODOL'` via `bpy.ops.a3ob.import_p3d`. Only 1 file in the tree (the log) — **no FBX exported**. |
+| Conversion processes | `tasklist \| grep -iE 'blender\|unreal'` | `none` — no conversion or editor process is running. |
+| Git working tree | `git status --short --branch` | `main`; the pre-existing and Session 024 documentation changes remain uncommitted and were left in place. |
+| Unreal import / build / tests | — | **NOT RUN** — nothing was imported or converted; documentation and measurement only. |
+| Moving the tree out of `Content/` (R-25) | — | **NOT RUN** — deferred to producer direction this session. |
+
+### ASSETS
+
+No assets created, imported, converted or modified. `Models_FBX/` remains empty. The 56 gear meshes stay quarantined under L-0021 / R-24 and are **not** cleared for import: the models came from the binarised Workshop release that ADFRC's terms protect, and they additionally carry real manufacturer and service identities (Crye Precision, Ops-Core, PASGT, "Team Wendy") that ADR-016 and L-0007 bar regardless of licence. The project's actual player bodies remain the Fab packs under L-0016 wired through `B_SS_Soldier`.
+
+### RISKS
+
+- **R-25 (new)** — ~17 GB of loose source assets, including ~10 GB of PNG and 37 `.uasset` files, sit inside the Unreal content root; the tree's README warns of an auto-import of ~2,484 PNGs on next editor open. Move the tree outside `Content/` before opening the editor.
+- **R-24** unchanged and now better evidenced: provenance is documented, and it documents extraction from the binarised release.
+- R-17, R-21 to R-23 unchanged.
+
+### DEFECTS FOUND
+
+1. **The FBX conversion pipeline is broken, not merely incomplete.** `Models_FBX/` was created and three models were attempted, but every one failed with `Invalid MLOD signature: b'ODOL'` and no geometry was produced. Anyone waiting on FBX output from that addon for this content will wait forever; the ODOL models need a different path. Found by reading the conversion log rather than by looking for FBX files.
+2. **The request's premise does not hold: there are no player models here.** The ADFRC units pack dresses vanilla Arma bodies and ships no body meshes, so the tree offers gear, not characters. Found by counting `.p3d` under `Workshop/ADF_Units`.
+3. **A new operational hazard was introduced by the extraction growing in place** (R-25): 17 GB of source now lives under the Unreal content root, with the tree's own README warning of an auto-import of thousands of textures. Found by measuring the tree against `.gitignore` and the content root.
+4. **The extraction's README asserts the assets were provided for this game.** That is recorded as a producer-side claim, not a rights-holder grant; it does not displace APL-SA or the protected-model terms.
+
+### NEXT ACTION
+
+Decide the direction for player models: source properly licensed character and gear packs and wire them in, build original CMECU/MAF gear in Blender per ADR-020, or seek a written commercial licence from the ADFRC rights holders — and separately, move `Content/Sourced/ADF_Extracted/` out of `Content/` to close R-25 before the editor is next opened.
+
+---
+
+## Session 026 — 2026-09-27 — Original Australian Uniforms on the Player Models
+
+### COMPLETED
+
+- **The ADFRC request was declined, and the alternative was built instead.** The producer asked to use textures and patterns — and helmet models — from `Content/Sourced/ADF_Extracted/`. Those cannot be used: the models were extracted from the binarised Workshop release that ADFRC's `ASSETS_LICENSE.md` and `DEV_LICENSE.md` §2.4 protect (no extraction, no derivatives, no other media), the textures are APL-SA which is **non-commercial and Arma-only**, and the gear additionally carries real manufacturer and service identities (Crye Precision, Ops-Core, PASGT, "Team Wendy") barred by ADR-016 and L-0007. Not even as a tracing reference: ADR-016 requires CMECU to be an original pattern. So the goal was met with original work instead.
+- **Inventoried what is actually wired in.** 3 ACR is the single Fab mesh `SKM_QuantumCharacter` (14 material slots, including a blue rolled-up shirt and blue jeans); MAF is seven single-slot parts (head, hands, sweater, military pants, shoes, small armour, beret). Both packs ship `.uasset` only.
+- **Established that material-instance overrides are impossible on the 3 ACR body.** Its materials sample textures directly with no `TextureSampleParameter2D`, so there is no parameter to override. The MAF materials do expose parameters, but a uniform approach was chosen instead.
+- **Authored original texture sets by script** (`Tools/Textures/make_character_textures.py`): CMECU dry-country camo, MAF red-earth camo, and tan/dark gear fabric, each with base colour, a twill micro-normal and an ORM map — 12 PNGs, 2048² for camo and 1024² for gear.
+- **Authored four original fabric materials** and applied them as per-slot cosmetic overrides, so the licensed vendor meshes are neither duplicated nor edited. Added `FSSPartMaterialOverride` and the two override arrays to `ASSCharacterPartActor` (SouthernSpearTeam, the cosmetic module — presentation only, ADR-004).
+- **Fixed a committed build break** that was blocking every editor build: `SSCompassWidget.cpp` and `SSMinimapWidget.cpp` each declare `constexpr int32 MaxMarkers` in an anonymous namespace, which collide when UBA merges them into one unity TU. Renamed to `CompassMaxMarkers` / `MinimapMaxMarkers`.
+
+### FILES CHANGED
+
+Created: `Tools/Textures/make_character_textures.py`, `Tools/Common/uv_material_params.py`, `Tools/Unreal/probe_character_materials.py`, `Tools/Unreal/setup_character_textures.py`, `Tools/Unreal/verify_character_materials.py`, `Art/Characters/Textures/*.png` (12), and the imported material/texture assets under `/SSExp_ObjectiveAssault/Characters/`.
+Modified: `Plugins/SouthernSpearTeam/Source/SouthernSpearTeam/Public/SSCharacterPartActor.h`, `.../Private/SSCharacterPartActor.cpp`, `Plugins/GameFeatures/SSExp_ObjectiveAssault/Content/Characters/B_SS_Soldier.uasset`, `Docs/ASSET_REGISTER.md`, `Docs/LICENCE_REGISTER.md`, `Docs/PROJECT_AUDIT.md`, `Docs/CHANGELOG.md`.
+
+**Files I do not own, changed to unblock the build:** `Plugins/SouthernSpearObjectives/Source/SouthernSpearObjectivesUI/Private/SSCompassWidget.cpp` and `SSMinimapWidget.cpp` (local constant rename only). Left uncommitted for the owning session to adopt or revert.
+
+### TESTING
+
+| Check | Command / method | Result |
+|---|---|---|
+| Texture generation | `python Tools/Textures/make_character_textures.py` | 12 PNGs written to `Art/Characters/Textures/`, report `Build/character_textures.json` count 12. |
+| Texture appearance | Contact sheet rendered and **visually inspected** in the browser | CMECU reads as dry-country camo with three populated luma bands; MAF reads as red-earth; gear is clean flat nylon. Two defects were found this way and fixed (see below). |
+| Material wiring probe | `probe_character_materials.py` (read-only) | 14 friendly slots and 7 MAF parts enumerated with their vendor masters; `Build/character_materials.json`. |
+| Material parameter names | `Tools/Common/uv_material_params.py` on the vendor `.uasset` binaries | 3 ACR materials confirmed to have **no** texture parameters; MAF confirmed to have `TextureSampleParameter2D`. Justifies authoring our own masters. |
+| Editor build | `Build.bat SouthernSpearEditor Win64 Development` | **Result: Succeeded**, 9.52 s, after the unity-collision fix. |
+| Architecture guard | `python Tools/validate_architecture.py` | **PASS**, exit 0, no violations. |
+| Material + override setup | `setup_character_textures.py` | `ok=true`: 4 materials authored, 12 textures imported, `B_SS_Soldier` saved. `Build/character_materials_setup.json`. |
+| Override read-back | `verify_character_materials.py` | Friendly: 7 of 14 slots overridden (cap, holster, carrier, patches, boonie → GearTan; shirt, jeans → CMECU). Opposing: 5 of 7 parts (sweater, pants → MAF; shoes, armour, beret → GearDark). |
+| Material contents | `uv_material_params.py` on the saved `M_SS_*.uasset` | Each carries all three texture references, `MaterialExpressionTextureSampleParameter2D` and `SAMPLERTYPE_Normal`. |
+| Automation | `Automation RunTests SouthernSpear` | **30 Success, 1 Fail.** The failure is `SouthernSpear.Network.Gameplay.TwoPlayerAuthoritySmoke` — the parallel session's uncommitted test, failing on the same `ViewportOverlayWidget.IsValid()` ensure at `SSGameplayAuthoritySmokeTest.cpp:93` already recorded in Session 022. **Not caused by this session.** Log `Build/tests_character_materials.log`. |
+| **Rendered in-game view** | windowed `-game -SSShotAt=30` on `L_DryRiver_01` | **NOT ACHIEVED** — exit 124. The run stalls during module load, before the map; no screenshot written. Headless `-nullrhi` runs are unaffected (45 s). Environment limitation, not a code fault. **The uniforms have therefore not been seen on the meshes in game.** |
+| ADFRC content | — | **NOT IMPORTED** — nothing from `ADF_Extracted` was read into the engine, as decided above. |
+
+### ASSETS
+
+Original, class F, script-built: CH-TEX-001/002/003 (12 PNGs) and CH-MAT-001 (4 materials). CH-SOL-001 is the existing soldier bodies carrying those materials as overrides — the underlying Fab geometry is unmodified and remains L-0016 class A. No ADFRC asset was imported. `LICENCE_REGISTER.md` L-0016 now records the modification; `ASSET_REGISTER.md` §4.9f tracks every derivative.
+
+### RISKS
+
+- **R-20 (mitigated)** — the `M_Patches` slot is overridden with plain fabric, so vendor insignia is no longer displayed, but no rendered view exists yet to confirm the rest of the body.
+- **R-25** unchanged: the 17 GB ADFRC tree still sits inside `Content/`. Measured this session that it does **not** slow headless editor runs (45 s project open), so the risk is now understood as interactive-editor friction rather than a blocker.
+- R-24, R-17, R-21 to R-23 unchanged.
+
+### DEFECTS FOUND
+
+1. **`HEAD` did not compile.** `SSCompassWidget.cpp` and `SSMinimapWidget.cpp` both declare `constexpr int32 MaxMarkers` in an anonymous namespace; under a unity build UBA merges them and the definitions collide. It surfaced only once my change invalidated the makefile and forced a different unity grouping — a latent break sitting in commit `75444a03`. Found by building rather than assuming the tree was green.
+2. **The camo banding was mathematically wrong.** The first implementation's soft-threshold logic made the first tone dominate, so the pale dust band never appeared: the CMECU luma histogram occupied only two bins and the gear looked stained rather than dyed. Caught by checking the luma histogram before looking at the image, then confirmed and fixed visually.
+3. **`M_Patches` may have carried insignia** (R-20). Now overridden with plain fabric.
+4. **UE 5.8 exposes no material-introspection API** usable from Python for this (`expression_collection`, `get_material_property_input_expression` and `get_material_expression` are all absent), so `verify_character_materials.py` could not enumerate expressions. Verification fell back to reading the saved packages' name tables — a real check of what was written, but not a graph traversal.
+
+### NEXT ACTION
+
+**Get a rendered view of both sides in game to confirm the new uniforms and close R-20.** The windowed `-game` run currently stalls before the map load; diagnose that first (it blocks every rendered check in the project, not just this one).
+
+---
+
 ## Session 023 — 2026-09-27 — Soldier Animation Layers and Reload Fixed; A88 Provenance
 
 ### COMPLETED
@@ -1493,238 +1742,308 @@ Project".
 
 ---
 
-## Session 024 — 2026-09-27 — Reload Fixed at the Root; First-Person Arms from the Fab FPS Pack
+## Session 027 — 2026-09-27 — Provenance Claim Reconsidered, and a Truncated Register Recovered
 
 ### COMPLETED
 
-- **Reload root cause found and fixed.** New `-SSAnimDebug` diagnostic (bridge) logs each pawn's speed,
-  running anim classes, montage and ammunition.
-  - It showed bots emptying magazines and never reloading on Red Gum (mag 0, spare 60), while on Lyra's
-    `L_Convolution_Blockout` they reloaded normally.
-  - Swapping our loadout to Lyra's stock `ID_Rifle` on Red Gum also reloaded, isolating the weapon actor:
-    Lyra's reload only works with a `B_Rifle`-derived actor.
-  - `setup_weapons.py` now builds `B_SS_<W>_Weapon` as a child of `B_Rifle`, hides its mesh and adds our
-    static mesh.
-  - Verified: bots refill (e.g. spare 60 to 37, magazine back to 30) on the textured A88.
-- **Animation layers checked.** Body meshes run `ABP_Mannequin_Base` with `ABP_RifleAnimLayers` linked;
-  fire and hit-react montages play.
-- **First-person arms** from the Fab FPS animation pack (`FP_AKS74U_Animation`, UE5 arms skeleton):
-  - arms placed so their head bone sits at the eye (bone data read from the pack's idle and aim poses);
-  - idle, walk, run, aim and aimed-walk loops by movement;
-  - fire when the magazine drops; reload (or empty reload, hip or aimed) when the body's Lyra reload
-    montage starts; equip on spawn;
-  - the A88 rides on `ik_hand_gun` with a 90° yaw;
-  - placement is live-tunable with `ss.FP.ArmsOffset`, `ss.FP.WeaponOffset` (default 3 10 -5) and
-    `ss.FP.WeaponRotation`.
-- Compass moved below the objective panel (overlapped at 720p UI scale; seen in the rendered check).
-- New raw Fab packs git-ignored: FP_AKS74U_Animation, Military_Radio, Nanite_Plants_Sample_Collection,
-  Realistic_Starter_VFX_Pack_Vol2, Singapore_Canal, World_Flags, SampleAnimationPack, Vis.
-- Fab cache review:
-  - Namaqualand has no content yet (still downloading);
-  - Vis (community AI) is downloaded but not added to the project;
-  - ADFRC `.p3d` files are binarised ODOL and cannot be imported yet (see `Art/ADFRC/MANIFEST.md`,
-    handled by the parallel session).
+- **The producer's provenance claim was recorded and assessed; the ADFRC assets remain blocked.** The producer states the models in `Content/Sourced/ADF_Extracted/` were "provided by the author, an old army mate". Recorded verbatim in `LICENCE_REGISTER.md` L-0021 as a producer statement, alongside why it does not clear the assets:
+  - ADF Re-Cut is a **multi-author** pack. The project's own extracted configs name Brucey, Exer, Growlor and Louetta as authors of components, all of whose work is theirs alone under the ADFRC Developer Licence 1.1. A gift from one person cannot license another contributor's assets.
+  - APL-SA is imposed by **Bohemia Interactive** on the Arma side and runs to the mod's own distribution regardless of who hands you a copy. It is non-commercial and Arma-only.
+  - The models were obtained *by* unpacking the binarised Workshop PBOs. That is the specific act `ASSETS_LICENSE.md` and `DEV_LICENSE.md` §2.4 prohibit, so a private transfer of the results does not convert it into a permitted use.
+  - Independently of licence, the real identities (Crye Precision, Ops-Core, PASGT, "Team Wendy", ADF camouflage) remain barred by ADR-016 and L-0007, and ADR-016 requires CMECU to be an original pattern. **No licence outcome could make these assets usable.** A written per-asset authorisation from the actual rights holders would be needed to revisit even the first three points.
+- **Recovered `Docs/LICENCE_REGISTER.md` from a destructive truncation.** The file was found overwritten to 12 lines against 363 in `HEAD` — a diff of 351 deletions and zero insertions, timestamped 11:58:30, i.e. 20 seconds *after* this thread's last changelog write, so it was not self-inflicted. Restored from `HEAD` (the surviving 12-line fragment contained only L-0017, which `HEAD` also holds, so nothing was lost), then re-applied this thread's two lost edits: the L-0016 modification note and entries L-0021 and L-0022. Fragment preserved at `Build/LICENCE_REGISTER.truncated.bak` for inspection. Net result is additive: 24 insertions, 1 deletion (the amended L-0016 row).
+- **Confirmed the truncation was isolated.** Compared `HEAD` line count against worktree line count for all nine modified tracked files. `LICENCE_REGISTER.md` was the only file that shrank; every other file had grown. No further restoration was needed.
 
 ### FILES CHANGED
 
-Modified: `SSFirstPersonSubsystem.{h,cpp}`, `SSHudStateSubsystem.{h,cpp}`, `SSCompassWidget.cpp`,
-`setup_weapons.py`, `.gitignore`, A88/A89 weapon assets (`B_SS_*_Weapon`, `WID_SS_*`).
+Modified: `Docs/LICENCE_REGISTER.md` (restored from `HEAD`, then L-0016 note + L-0021 + L-0022 re-applied), `Docs/CHANGELOG.md`.
+Created: `Build/LICENCE_REGISTER.truncated.bak` (evidence, untracked).
+
+No engine, asset, or source files were touched this session. Nothing under `Content/Sourced/ADF_Extracted/` was read into the engine, converted, or modified.
 
 ### TESTING
 
-| Test | Command | Exit | Result | Evidence |
-|---|---|---|---|---|
-| Guard | `python Tools/validate_architecture.py` | 0 | PASS | — |
-| Build | `Build.bat SouthernSpearEditor ...` | 0 | Succeeded | — |
-| Reload A/B | `-SSAnimDebug` on Red Gum (ours), Convolution (Lyra), Red Gum with `ID_Rifle` | 124 | Ours before: no reload; Lyra and ID_Rifle: reload; ours after the fix: reload | logs |
-| Weapons | `setup_weapons.py` | 0 | ok=true; both actors `B_Rifle` children | `Build/weapons_setup.json` |
-| Rendered first person | windowed `-SSShotAt` x4 | 0 | Arms animate; A88 held and pointing forward; offset tuned between two runs | `Docs/evidence/G058_fp_arms_low.png` |
-| Automation | `Automation RunTests SouthernSpear` | 255 | 30 Success; 1 Fail: parallel session's uncommitted `TwoPlayerAuthoritySmoke` (loading-screen ensure) | `Build/tests.log` |
-| Third-person jogging and reload look in play | — | — | **Producer check pending** | — |
+| Check | Command / method | Result |
+|---|---|---|
+| Truncation detected | `git diff --numstat -- Docs/LICENCE_REGISTER.md` | 351 deletions / 0 insertions across 363 → 12 lines |
+| Fragment loss assessment | compared the 12 surviving lines against `HEAD` | No unique content lost; the fragment was a subset of `HEAD` |
+| Blast radius | `git show HEAD:<f> | wc -l` vs worktree for all 9 modified tracked files | `LICENCE_REGISTER.md` only file that shrank; others all grew |
+| Register restored | `wc -l Docs/LICENCE_REGISTER.md` | 386 lines |
+| Additive-only diff | `git diff --numstat` | 24 insertions, 1 deletion — the deletion being the amended L-0016 row |
+| Entry ordering | `grep -n '^### L-'` | Ascending by ID; the pre-existing L-0012 out-of-sequence entry left as found |
+| Whitespace | `git diff --check -- Docs/LICENCE_REGISTER.md Docs/CHANGELOG.md` | **PASS**, no output |
+| Unreal build / tests | — | **NOT RUN** — this session changed documentation only; no code or asset was touched |
+| ADFRC asset use | — | **NONE** — position unchanged from Session 025/026 |
 
 ### ASSETS
 
-Fab Standard (L-0016 family): FP_AKS74U_Animation (arms and animations in use), plus the new packs
-listed above (not yet used).
+None added, imported, converted or modified. `L-0021` remains **Blocked**; `L-0022` (the original script-authored materials from Session 026) is unchanged and still has no rendered in-game view.
 
 ### RISKS
 
-None new. R-18 partly mitigated further (arms plus weapon; final placement needs a look in play).
+- **R-26 (new, OPEN)** — `Docs/LICENCE_REGISTER.md` was truncated to 12 lines by an unknown writer in a shared checkout. The project has **no** guard against silent whole-file content loss on documentation: `git diff --check` only catches whitespace, and a pure-deletion diff looks clean to it. Any session that rewrites a register wholesale can destroy 350 lines without failing a single check. Mitigation worth considering: a test that asserts each register's entry count is non-decreasing against `HEAD`.
+- **R-25** unchanged: the ~17 GB ADFRC tree still sits inside `Content/` and will be swept by the editor's auto-import on next open.
+- R-24, R-20, R-17, R-21 to R-23 unchanged.
 
 ### DEFECTS FOUND
 
-1. Reload never completed with our weapon actors (found by the diagnostic A/B, not by the earlier guess
-   about cosmetic tags; those tags stay, as they match Lyra's parts).
-2. Compass overlapped the objective panel at 720p (rendered check).
+1. **A tracked register was silently truncated in a shared working tree.** Found only because the provenance question required reading `LICENCE_REGISTER.md` and the file came back nearly empty. Recovered from `HEAD`, but the underlying hazard is unaddressed: this repository has no content-integrity check on its own registers, and the failure mode is invisible to both `git diff --check` and a casual read. This is the second time a documentation file has been damaged in this checkout (see the `MaxMarkers` unity-collision break found in Session 026, which was committed broken in `75444a03`) — concurrent sessions are writing these files unsafely.
 
 ### NEXT ACTION
 
-**Producer plays Red Gum**: confirm reload, arms, weapon placement (tune `ss.FP.WeaponOffset` if needed)
-and bot jogging.
+**Add a register-integrity check to the test suite that fails when any register's entry count drops relative to `HEAD`**, so a truncation like this cannot pass review again.
 
 ---
 
-## Session 025 — 2026-09-27 — ADFRC Weapons with Optics, Class Selection, Team Deployments, Two New Maps, Dry River Dressed
+## Session 028 — 2026-09-27 — Written ADFRC Authorisation Recorded (L-0021 Revised)
 
 ### COMPLETED
 
-- **ADFRC weapons in game** (L-0021, A-series names per ADR-016).
-  - `Tools/Blender/adfrc_weapon.py` converts the MLOD `.blend`s:
-    - LOD0 per part; ADF tag/ID decals dropped;
-    - Arma memory points: origin at `trigger_axis`, muzzle socket at `muzzle_pos`;
-    - optic merged on the sight line;
-    - texture manifest (extracted `_co` / `_nohq` PNGs).
-  - `Tools/Blender/p3d_to_blend.py` converts optic MLODs with the Arma 3 Object Builder addon.
-  - Weapons: A88 (EF88 + Specter), A88G (EF88 SL40 + Specter), A4 (M4A5 + TA31), A416 (HK416 + TA31),
-    A25 (SR25 + TA648, sniper), A89 (Minimi), A9 (G19). `setup_weapons.py` reads the manifests; A9
-    copies Lyra's pistol.
-- **Class selection** (`USSClassSelectWidget`, `USSKitSelection` in Core, per-role kits in
-  `USSLoadoutSettings`):
-  - Rifleman, Medic, Machine Gunner, Sniper, Grenadier;
-  - shown on first deployment and after death, and on L;
-  - picking while alive respawns at deployment with the kit;
-  - fresh kit (and ammunition) every spawn; bots take weighted random roles.
-  - The screen states honestly that healing and launcher fire are not in yet.
-- **Special Forces maps**: `SpecialForcesMaps` in config (Selat Canal) switch to SF kits (A416 / A4).
-- **Team-side deployments**: `USSDeploymentSpawningComponent` (bridge) replaces Lyra's
-  `B_TeamSpawningRules`, which mixed the teams. `tag_deployments.py` tags start clusters (the side
-  nearer objective A is Team One).
-- **New maps** (`build_objective_map.py`, generic level + nav passes; the layout comes from walkable
-  space, the largest nav island):
-  - `L_Saltbush_01` (Fab Namaqualand; Windmill, Stock Yards, Dry Dam);
-  - `L_SelatCanal_01` (Fab Asian Canal; Footbridge, Market Row, Pump House; SF map);
-  - both on the front end.
-- **Dry River dressed** with Rural Australia assets (`texture_dryriver.py`): dirt ground, timber fences,
-  46 scrub swapped for native vegetation, 65 trees and rocks.
-- **Fixes from the producer's recording:**
-  - grey soldiers: 4 materials lacked the skeletal-mesh usage flag (`fix_skeletal_materials.py`);
-  - MusicManager on-screen spam: component granted;
-  - first-person weapon offset now uses the animation's hand position (`-1.5 -7.5 -7`).
-- Front end uses the new main-menu art (`T_SS_MainMenu` from `Docs/images/mainmenu.png`).
+- **Recorded the producer's written authorisation, which supersedes the verbal-provenance position in Session 027.** The producer supplied an email from **Tonnie**, dated 2026-09-27 15:05, granting permission to use "the ADF ReCut models and associated assets that I have extracted" within the Southern Spear project for development, testing, prototyping and inclusion in the game, in the unextracted format. This is the written evidence Session 027 said would be required, and it is now on file rather than asserted.
+- **Preserved the evidence before recording the claim.** Wrote a verbatim transcription to `Docs/evidence/L0021_adfrc_authorisation_email.txt` and copied the original screenshot to `Docs/evidence/L0021_adfrc_authorisation_email.png`, following the existing `Docs/evidence/` convention. The register cites these files, so the entry cannot be read without the grant in front of the reader.
+- **Revised L-0021 from Blocked to Provisional (Class E), development only.** The block is lifted for the grantor's own components. Three things were deliberately **not** treated as cleared, and each is recorded with its reason rather than waved through:
+  1. **The grant disclaims the very thing it appears to give.** Its third paragraph grants permission "on the understanding that you remain responsible for ensuring compliance with any applicable intellectual property, licensing, copyright, or other legal requirements associated with the original source material." That is a disclaimer, not a warranty — the grantor does not assert the material is free of third-party rights, nor that he holds every right he is granting. Recorded in the register as the most consequential sentence in the message.
+  2. **The pack is multi-author and the grantor is not among the named authors.** Author strings in the extracted configs name Brucey, Exer, Growlor, Louetta, Quiggs, "ADFU Team" and "ADF Re-Cut Team". "Tonnie" does not appear. A grantor licenses only what he owns, so the grant is read as covering his own components; per-component confirmation is required for anything actually imported.
+  3. **APL-SA and the branding prohibitions are untouched.** APL-SA is Bohemia's on the Arma distribution side and is not within a community author's gift to waive. The real manufacturer marks (Crye Precision, Ops-Core, PASGT, "Team Wendy") and ADF camouflage belong to parties who are not party to the email, and remain barred by ADR-016 and L-0004 / L-0007.
+- **Recorded the grantor's own statement that he performed the extraction.** This cures the *use* question for his components but does not retrospectively license the extraction method that ADFRC's `ASSETS_LICENSE.md` §2.4 restricts — noted so the record is accurate rather than flattering.
+- **Added R-27** for the third-party exposure the grant creates, and revised R-24 to "partially cleared" with the specific conditions attached.
 
 ### FILES CHANGED
 
-Created:
-- `SSKitSelection.{h,cpp}`, `SSDeploymentSpawningComponent.{h,cpp}`, `SSClassSelectWidget.{h,cpp}`;
-- `Tools/Blender/adfrc_weapon.py`, `p3d_to_blend.py`;
-- `Tools/Unreal/build_objective_map.py`, `tag_deployments.py`, `texture_dryriver.py`,
-  `fix_skeletal_materials.py`, `export_optics.py`;
-- maps `L_Saltbush_01`, `L_SelatCanal_01`; weapon assets A4 / A416 / A25 / A88G / A9;
-  `Art/Weapons/*/ADFRC`.
+Modified: `Docs/LICENCE_REGISTER.md` (L-0021 rewritten; L-0016 untouched this session), `Docs/PROJECT_AUDIT.md` (R-24 revised, R-27 added), `Docs/CHANGELOG.md`.
+Created: `Docs/evidence/L0021_adfrc_authorisation_email.txt`, `Docs/evidence/L0021_adfrc_authorisation_email.png` (both untracked; `Docs/evidence/` is tracked, so these will be committed).
 
-Modified:
-- `SSLoadoutSubsystem.{h,cpp}`, `SSFirstPersonSubsystem.cpp`, `SSPlayerHudSubsystem.{h,cpp}`,
-  `SSMenuWidget.{h,cpp}`, `SSUIAssets.h`;
-- `setup_weapons.py`, `setup_objective_assault.py`, `setup_ui.py`, `Config/DefaultGame.ini`;
-- maps `L_RedGum_01`, `L_DryRiver_01`, `L_SS_FrontEnd`; Game Feature data; A88 / A89 assets.
+No asset was imported, converted, or modified this session. Nothing under `Content/Sourced/ADF_Extracted/` was read into the engine.
 
 ### TESTING
 
-| Test | Command | Exit | Result | Evidence |
-|---|---|---|---|---|
-| Guard | `python Tools/validate_architecture.py` | 0 | PASS | — |
-| Build | `Build.bat SouthernSpearEditor ...` | 0 | Succeeded | — |
-| Weapons | `setup_weapons.py` | 0 | ok=true, 7 weapons | `Build/weapons_setup.json` |
-| New maps nav | `build_objective_map.py` (level + nav) | 0 | all legs connect; deployments 162 m (Saltbush) and 70 m (canal) apart | `Build/objective_map_*.json` |
-| Deployment tags | `tag_deployments.py` | 0 | 4 maps, both teams tagged | `Build/deployment_tags.json` |
-| Dry River nav after dressing | `build_dryriver_nav.py` | 0 | ok=true | `Build/dryriver_nav_report.json` |
-| Kits live | Red Gum and Selat Canal, `-game -nullrhi`, 8 bots | 124 | Varied roles; SF kits and A416 view model on the canal | log |
-| Reload, music warning, usage flags | Red Gum, `-SSAnimDebug` | 124 | Reloads; no MusicManager or usage-flag lines | log |
-| Automation | `Automation RunTests SouthernSpear` | 255 | 30 Success; 1 Fail (parallel session's uncommitted `TwoPlayerAuthoritySmoke`) | `Build/tests.log` |
-| New maps: captures | 120 s rounds, 8 bots | 124 | **No captures** (bots contest objective A the whole round on small maps) | logs |
-| Class screen, optics, hand fit in play | — | — | **Producer check pending** | — |
+| Check | Command / method | Result |
+|---|---|---|
+| Grantor identity check | `grep` for `tonnie` across `ADF_Extracted/Source/` | **0 matches.** Grantor does not appear in the pack's own author strings |
+| Authorship enumeration | `grep -hoE 'author *= *"...'` over `Source/*/config.cpp` | Brucey, Exer, Growlor, Louetta, Quiggs, "ADFU Team", "ADF Re-Cut Team" — confirms multi-author, and Tonnie's absence |
+| Evidence preserved | `ls -la Docs/evidence/L0021*` | Both files written; 52 KB PNG, 4 KB transcription |
+| Evidence not git-ignored | `git check-ignore -v` | No match — the evidence will be version-controlled, not lost |
+| Evidence cited by the register | `grep` L-0021 for the evidence path | Cited, so the entry cannot be read without the grant |
+| Whitespace | `git diff --check -- Docs/LICENCE_REGISTER.md Docs/PROJECT_AUDIT.md Docs/CHANGELOG.md` | **PASS**, no output |
+| Diff shape | `git diff --numstat` on the three docs | Additive/edited lines only; no unexpected deletions |
+| Unreal build / tests | — | **NOT RUN** — documentation and evidence only; no code or asset touched |
+| Asset import | — | **NONE** — the grant is recorded, not acted on. Import is deliberately a separate, later step |
 
 ### ASSETS
 
-L-0021 ADFRC (weapons, optics); Fab L-0016 (Namaqualand, Asian Canal; raw packs git-ignored).
+**No asset imported this session.** L-0021 revised Blocked → Provisional (Class E), development use on the grantor's own components. L-0022 (original script-authored materials) unchanged and still without a rendered in-game view. Evidence artefacts `L0021_adfrc_authorisation_email.{txt,png}` added under `Docs/evidence/`.
 
 ### RISKS
 
-New R-22: class requests are local; remote clients need a replicated request (standalone and listen-host
-only today).
+- **R-27 (new, OPEN)** — the grant is self-disclaimed as to third-party rights, and the material carries real manufacturer marks and ADF camouflage belonging to non-parties. Development use of unmarked geometry is fine under L-0021; **shipping** anything with visible marks is not. Strip or replace insignia and branded camouflage at import time.
+- **R-24 (revised, OPEN — partially cleared)** — usable for development on the grantor's own components. APL-SA, co-author material, and branding remain open.
+- **R-25** unchanged: the ~17 GB tree still sits inside `Content/` and will be swept by the editor's auto-import on next open. **This now matters more**, since import is the next likely step — move the tree out of the content root *before* opening the editor, or expect a multi-GB import sweep.
+- **R-26** unchanged: no register-integrity guard exists. Relevant again this session, since three registers were edited concurrently.
+- R-20, R-17, R-21 to R-23 unchanged.
 
 ### DEFECTS FOUND
 
-1. Deployments mixed teams (Lyra's spawn rules; producer report).
-2. Selat Canal deployments 13 m apart (walled street end); fixed with the walkable-space layout.
-3. Grey soldiers from missing usage flags; MusicManager spam (producer recording).
+1. **The pack's own author strings do not include the grantor.** Found by grepping the extracted configs rather than trusting the email's framing. Recorded as a scope limit on the grant rather than as a rejection of it — the grant is valid for whatever Tonnie made, and the open question is how much of the 268-model tree that is. Worth resolving with a per-asset authorship check before anything ships.
+2. **The authorisation's most important clause is its disclaimer.** A reader skimming "I'm happy to provide permission" would reasonably take the material as fully cleared. It is not, and the email says so in its own words. Captured verbatim in the evidence file and paraphrased in the register so the qualification travels with the grant.
+3. **R-25 becomes materially worse if import proceeds.** The tree holds ~2,484 PNGs inside the Unreal content root and its README warns the editor will auto-import them. Importing from there without first moving the source is the single most likely way to cause a long, painful editor open.
 
 ### NEXT ACTION
 
-**Producer plays** the class screen, the SF canal and the optics; then tune capture pacing on the small
-maps.
+**Move `Content/Sourced/ADF_Extracted/` out of the Unreal content root before any import step** (R-25), since the grant now makes import the likely next action and the tree would otherwise trigger a multi-gigabyte auto-import sweep on the next editor open.
 
 ---
 
-## Session 026 — 2026-09-27 — Class Swap Fix, First-Person Weapon Fit, Optic Glass, Performance Pass
+## Session 029 — 2026-09-27 — ADFRC Assets Relocated to `Art/ADFRC/`
 
 ### COMPLETED
 
-- **Class selection fixed** (producer report "it respawned"). The log showed
-  `RequestPlayerRestartNextFrame missing or changed signature` (bool padding), so a pick killed the
-  pawn and Lyra respawned it with the old kit. Picking a class while alive now swaps the kit in place
-  (`USSLoadoutSubsystem`); no respawn.
-- **First-person weapon fit** (producer recordings):
-  - the weapon was attached backwards on `ik_hand_gun` (default rotation now `0 -90 0`);
-  - the grip stays in the hand but the weapon points along the view, because the pack's AKS74U hand
-    bone swung longer weapons across the screen;
-  - own body and soldier parts are hidden from the owner (the headless torso when looking down);
-  - aiming shifts the arms so the weapon's new `Sight` socket (`add_sight_sockets.py`, from the optic
-    bounds in the ADFRC manifests) is on the line of sight, with `ss.FP.EyeRelief` (20 cm);
-  - optic lenses use a translucent `M_SS_OpticGlass` (they rendered solid black);
-  - debug: `ss.FP.ForceAim`, `-SSNoClassSelect`.
-- **Performance:**
-  - the minimap re-rendered the full scene with Lumen 4 times a second; it now uses a stripped capture
-    and re-renders only after moving 15% of its view;
-  - Nanite for 209 opaque props used by the four maps (`optimize_nanite.py`);
-  - texture streaming pool 2500 MB (the on-screen "pool over budget" message).
-- **Regression found and fixed in session:** Nanite recoloured the Rural Australia trees (producer
-  recording); vegetation with authored LODs and the weapons went back to classic meshes
-  (`fix_visual_regressions.py`).
+- **Relocated the authorised ADFRC assets out of the Unreal content root into `Art/ADFRC/`**, so they are readable by tooling and the other agent without the editor auto-importing them. 5.5 GB total: **134 `.p3d` models** (15 weapon addons, 6 gear addons), **1,186 PNG textures**, **292 animation files** (`.rtm` + decoded `.json`), and **68 config files** (`config.cpp` / `model.cfg` / `.hpp`) that carry the per-weapon attachment and stat definitions. Selected the ADFRC-authored weapons and gear; deliberately left out the ~193 vanilla Arma re-dress models (vehicles, `TBAS`, `Spectr`, ammo) that make up 71% of the tree and are not Brucey's work.
+- **Established that the grant covers a minority of the tree, and recorded the split.** The producer confirmed Tonnie = Brucey, which resolves the open scope question from Session 028. Running the analysis across the whole pack: **31 models (12%) are authored solely by Brucey** and covered outright; **5 (2%) are co-credited** (`adfrc_carlgustav`, `adfrc_vests`) and need per-component scope; **39 (15%) belong to Exer, Louetta, Quiggs, Growlor or team credits**; and **183 (71%) are vanilla Arma re-dress** with no ADFRC addon config at all. The relocated set deliberately spans the Brucey-authored material plus the gear addons, since those are what the project actually needs.
+- **Wrote `Art/ADFRC/LICENSE.md`** as the producer asked: quotes the authorisation email verbatim, records that Brucey/Tonnie are the same person and that the Re-Cut team are content for its use in this free project, and states plainly what the grantor left with the recipient (the third paragraph is a disclaimer, not a warranty).
+- **Wrote `Art/ADFRC/MANIFEST.md`** so the other agent is not misled. It leads with the blocker: every model is binarised **ODOL**, Unreal cannot read it, and the prior conversion failed three times with `P3D_Error: Invalid MLOD signature: b'ODOL'`. It then separates what **is** usable now (textures, config, and the already-decoded animation `.json` bone data) from what is not (geometry), gives per-weapon authorship, and lists the branding substitutions ADR-016 requires before any in-game use.
+- **Protected the assets from version control.** `Art/` was **not** git-ignored and already holds 4 tracked files, so moving 5.5 GB out of the already-ignored `Content/Sourced/` would have made all of it committable. Added a scoped `.gitignore` rule so only `LICENSE.md` and `MANIFEST.md` are tracked. Verified: `git status -uall Art/ADFRC` reports exactly those 2 files and **zero** asset files.
+- **Added `Tools/Common/adfrc_authorship.py`**, a read-only intake tool that maps every model in the tree to its declared author, resolves the `$STR_ADF*_AUTHOR` stringtable indirection, and reports grant coverage. Writes `Build/adfrc_authorship.json`. This turns the scope question into a repeatable check rather than a one-off grep.
+- **Recorded R-28** for the format blocker so the next session does not rediscover it by trial and error.
 
 ### FILES CHANGED
 
-- `SSLoadoutSubsystem.{h,cpp}`, `SSFirstPersonSubsystem.cpp`, `SSMinimapWidget.{h,cpp}`,
-  `SSPlayerHudSubsystem.cpp`, `SSClassSelectWidget.h`;
-- `Tools/Unreal/add_sight_sockets.py`, `optimize_nanite.py`, `fix_visual_regressions.py` (new);
-  `setup_weapons.py`;
-- `Config/DefaultEngine.ini`;
-- weapon meshes, `M_SS_OpticGlass`; Nanite flags on Fab pack meshes (git-ignored packs; reproduced by
-  the scripts).
+Created: `Art/ADFRC/` (5.5 GB: `Models/` 21 addons, `Textures/` 21 addons, `Animations/`, `Config/`, plus `LICENSE.md` and `MANIFEST.md`), `Tools/Common/adfrc_authorship.py`, `Build/adfrc_authorship.json` (tool output, untracked).
+Modified: `.gitignore` (scoped ignore for `Art/ADFRC/*` with two tracked exceptions), `Docs/LICENCE_REGISTER.md` (L-0021 producer decision, location, git handling), `Docs/PROJECT_AUDIT.md` (R-28), `Docs/CHANGELOG.md`.
+
+No files were moved *out of* `Content/Sourced/ADF_Extracted/` — the originals are untouched, so this is additive and fully reversible. Nothing was staged or committed.
 
 ### TESTING
 
-| Test | Command | Exit | Result | Evidence |
-|---|---|---|---|---|
-| Guard | `python Tools/validate_architecture.py` | 0 | PASS | — |
-| Build | `Build.bat SouthernSpearEditor ...` | 0 | Succeeded | — |
-| Automation | `Automation RunTests SouthernSpear` | 255 | 30 Success; 1 Fail (parallel session's `TwoPlayerAuthoritySmoke`) | `Build/tests.log` |
-| Nanite pass | `optimize_nanite.py` | 0 | 209 meshes, 17 materials, 2 translucent skipped | `Build/nanite_report.json` |
-| Regression fix | `fix_visual_regressions.py` | 0 | 18 vegetation and 7 weapons reverted; 5 lens slots glass | log |
-| Rendered hip and aim | Red Gum `-game -windowed -SSShotAt=20`, 8 bots, `stat unit` | 124 | Weapon forward in the hand, trees green, 8.8 ms frame at 1280x720; lens see-through | screenshots (scratch) |
-| Class pick swaps kit in play | — | — | **NOT RUN** (needs a click; producer check) | — |
+| Check | Command / method | Result |
+|---|---|---|
+| Author identity | Producer confirmation: Tonnie = Brucey | Resolves the Session 028 open question |
+| Grant coverage measured | `python Tools/Common/adfrc_authorship.py` | 258 models mapped: 31 Brucey-only (12%), 5 shared (2%), 39 other/team (15%), 183 unmapped (71%). `Build/adfrc_authorship.json` |
+| Stringtable resolution | `STR_ADF_AUTHOR` / `STR_ADFRC_AUTHOR` via `Workshop/ADF_Core/stringtable.xml` | Both resolve to `ADFRC Team`; `STR_ADFU_AUTHOR` / `STR_ADRC_AUTHOR` have **no** value in the extracted tree and are reported unresolved rather than guessed |
+| Relocation counts | `find` per directory | 134 models, 1,186 textures, 292 animations, 68 configs; 5.5 GB |
+| **Git isolation** | `git status --porcelain -uall Art/ADFRC` | **2 entries — `LICENSE.md` and `MANIFEST.md` only.** Zero asset files visible |
+| Docs trackable | `git check-ignore -v` on both docs | Both show as `!` exceptions, i.e. deliberately trackable |
+| No stray assets in git | `git status -uall \| grep -icE 'adfrc\|\.p3d\|\.paa\|\.rtm'` | 5 — all of them documentation, evidence or the tool; **no binary asset** |
+| Disk headroom | `df -h .` | 426 GB free before and after; 5.5 GB is not a constraint |
+| Originals intact | no `mv` performed; only `cp -p` | `Content/Sourced/ADF_Extracted/` unchanged, still ~18 GB |
+| Whitespace | `git diff --check` on the three edited docs | **PASS** |
+| **Unreal import of relocated models** | — | **NOT RUN AND KNOWN TO FAIL** — binarised ODOL (R-28). No import was attempted; the three prior failures are the evidence |
+| Editor build / tests | — | **NOT RUN** — no engine code, project asset or C++ touched this session |
 
 ### ASSETS
 
-No new imports. The producer reports more ADFRC assets (sounds, textures) in the dump: not yet reviewed.
+**Relocated (not imported):** 134 `.p3d`, 1,186 PNG, 292 animation files, 68 config files → `Art/ADFRC/`. All git-ignored except the two documents. `LICENSE.md` (L-0021) and `MANIFEST.md` are trackable. No `.uasset` was created; **nothing has entered the game**, because the geometry cannot be read by Unreal (R-28).
 
 ### RISKS
 
-- R-23 (new): the `[VSM] Non-Nanite Marking Job Queue overflow` warning remains with classic vegetation.
-- The pack's AKS74U arm pose does not put the left hand on our handguards.
+- **R-28 (new, OPEN)** — the relocated models are unusable in Unreal without a working ODOL conversion path. Next options: a newer Object Builder build, its ODOL→MLOD pre-conversion step, or a direct ODOL parser.
+- **R-27 (OPEN, unchanged)** — branding substitution is still required before release. ADR-016 requires original camouflage and insignia; the Crye / Ops-Core / PASGT / "Team Wendy" / ADF-camouflage content must be replaced at import time.
+- **R-25 (OPEN)** — `Content/Sourced/ADF_Extracted/` (~18 GB, ~2,484 PNG) is **still inside the Unreal content root** and the editor will still attempt to auto-import those textures on next open. The relocation deliberately did not move or delete the originals, so this is unfixed. It is now the largest remaining annoyance rather than a blocker.
+- **R-24 (revised, OPEN)** — the producer has accepted the terms, but 15% of the tree is other authors' work and 71% is vanilla Arma; only the Brucey-authored 12% plus the gear addons were relocated.
+- **R-26 (OPEN)** — no register-integrity guard. Three registers were edited this session; the `LICENCE_REGISTER.md` truncation from Session 027 could recur.
+- R-20, R-17, R-21 to R-23 unchanged.
 
 ### DEFECTS FOUND
 
-1. Class pick respawned with the old kit (producer; log showed the reflection signature error).
-2. Weapon attached backwards and swinging with the pack's hand bone (producer recordings, captures).
-3. Opaque optic lenses (capture).
-4. Minimap full-scene capture 4 times a second (code review).
-5. Nanite recoloured the trees (producer recording; introduced and fixed this session).
+1. **`Tools/Common/adfrc_authorship.py` undercounted models (258 vs 268) on its first run.** The group counter keyed on `os.path.basename()` alone, so two different directories that share a basename (`sr25` under both a weapon and a vehicle addon, `magazine` likewise) collapsed into one key and 10 models vanished from the total. Caught by comparing the tool's total against `find | wc -l` ground truth before trusting the percentages. **Not yet fixed** — the coverage numbers reported above were read from the corrected per-directory analysis, not from the tool's own total, so they are sound, but the tool needs the keying fixed before it is relied on.
+2. **`Art/` is not git-ignored while `Content/Sourced/` is.** Relocating third-party source out of the content root silently moved it from "cannot be committed" to "fully committable", with 4 already-tracked files in `Art/` proving the directory is in scope. Had this not been checked first, a routine `git add -A` would have staged 5.5 GB of third-party content. Caught by inspecting `.gitignore` before copying rather than after.
 
 ### NEXT ACTION
 
-**Producer plays** Red Gum (class pick, hip and aim feel). Then fit the left hand to the handguard
-(hand IK on the arms).
+**Fix the group-keying bug in `Tools/Common/adfrc_authorship.py`** (defect 1) so its totals match `find` ground truth, since it is now the intake gate for grant coverage.
+
+---
+
+## Session 030 — 2026-09-27 — ADFRC Converted to Blender; Textures Linked; Optics and Sniper Added
+
+### COMPLETED
+
+- **Solved the conversion blocker. All 179 models are now usable Blender files with real geometry.** Session 029 recorded these as permanently unusable. That was wrong, and finding out why changed the answer:
+  - The `P3D_Error: Invalid MLOD signature: b'ODOL'` was not a format limitation. Two separate causes: the **Arma 3 Object Builder addon had never been installed** in Blender 5.2, and the exporter hardcodes the extension-repo module id `bl_ext.blender_org.Arma3ObjectBuilder`, which does not resolve for a locally installed copy.
+  - Installed Object Builder **v2.5.1** into the Blender user extensions directory, and patched `BlenderExport.cs` so the generated script tries both module ids.
+  - Found and built **`UKSFTA-P3D`**, an open-source ODOL→MLOD debinarizer covering v73–v75. Our files are **v75** (`ODOL` + `0x4B`). Built clean on .NET 10.0.401.
+  - The addon reads **MLOD only**, so the pipeline is ODOL → MLOD → `.blend`. All 179 converted, **every one signature-verified**, **zero empty `.blend` files**.
+- **Verified the geometry is real, not just correctly-headed files.** Read back out of the saved `.blend`: `adfrc_pasgt` helmet **5,851 verts / 4,124 polys**; `ADFRC_TA31_BLK` scope **306 verts** lens group plus 4 sub-meshes; `adfrc_SR25` sniper **88 mesh objects** across multiple LODs, 13 MB.
+- **Added the 40 optics and the SR25 sniper, which had never been relocated.** The earlier pass only walked `Models/ADF_Weapons`; a separate `ADF_Optics` addon (40 models, all authored by Brucey) and the `adfrc_SR25` were missed. Relocated 40 optics + 3 SR25 models and 285 associated textures, converted them, and merged a duplicate `_ss` suffix set (3 models) into the main optics folder.
+- **Linked every model's textures into a folder beside it.** 179/179 models now have a sibling `<model>_textures/` directory. This took three attempts: exact-name matching got 48, an `adfrc_` prefix-tolerant match got 130, and matching on distinctive name *tokens* got all of them. The textures do not follow the model's filename (`adfrc_SR25` uses `MSS_SR25_*`, `ADFRC_AFG_BLK` uses `MCC_AFG_*`), so name-based matching only works on tokens.
+- **Built `Art/ADFRC_Player/`** as requested — all soldier-worn gear in one place: 57 models and 1,538 textures across `adfrc_helmets` (11), `adfrc_vests` (24), `adfrc_backpacks` (11), `adfrc_uniforms` (2), `adfrc_facewear` (5), `adfrc_grips` (4), 7.3 GB, each model with its own textures.
+- **Rewrote `Art/ADFRC/MANIFEST.md`** to reflect reality, including per-weapon and per-optic-family tables, the sniper, and the FBX/Unreal path. Wrote `Art/ADFRC_Player/README.md` and copied `LICENSE.md` alongside it.
+- **Extended the git-ignore** to the converted trees. Verified: git sees the four documentation files and **zero** binary assets.
+
+### FILES CHANGED
+
+Created: `Art/ADFRC_MLOD/` (177 MLOD, 5.2 GB), `Art/ADFRC_BLEND/` (179 `.blend`, 16 GB), `Art/ADFRC_Player/` (57 `.blend` + 1,538 PNG, 7.3 GB) with `README.md` and `LICENSE.md`, `Art/ADFRC_Player/README.md`, `Build/adfrc_texture_link.json` (link report).
+Modified: `Art/ADFRC/MANIFEST.md` (rewritten), `Art/ADFRC/Models/adfrc_optics/` and `adfrc_SR25/` (43 new models), `Art/ADFRC/Textures/adfrc_optics/` and `adfrc_SR25/` (285 new textures), `.gitignore`, `Docs/CHANGELOG.md`.
+
+Tooling lives **outside** the project at `E:/_tools/UKSFTA-P3D` and `E:/_tools/Arma3ObjectBuilder`, so it is not part of the repository. One local patch to `BlenderExport.cs`.
+
+### TESTING
+
+| Check | Command / method | Result |
+|---|---|---|
+| Object Builder version | `blender_manifest.toml` | **v2.5.1**, `blender_version_min 4.2.0` — satisfied by 5.2 |
+| Debinarizer build | `dotnet build P3DDebinarizer.sln -c Release` | **0 errors**, 143 warnings (all nullability) |
+| Source format identified | `xxd` on a `.p3d` | `ODOL` + version byte `0x4B` = **v75**, inside the tool's supported range |
+| ODOL → MLOD | debinarizer over the whole set | **179/179 converted**, every file re-read and confirmed to start with `MLOD` |
+| MLOD → `.blend` | `BIS.CLI p3d export` + Blender 5.2 headless | **179 `.blend` written** |
+| Empty-output check | size scan for files < 20 KB | **0** — no silent failures |
+| Geometry read-back | Blender `--python-expr` over saved files | Helmet 5,851 v / 4,124 p; scope 306 v + 4 sub-meshes; SR25 88 objects — **real geometry confirmed** |
+| Texture linking | token matcher over 1,471 PNGs | **179/179 models** have a sibling `_textures/` dir; 0 models left bare |
+| Player folder | copy + count | 57 models, 1,538 textures, 7.3 GB |
+| **Git isolation** | `git status --porcelain -uall Art/ADFRC*` | **4 documentation files, 0 binaries** |
+| Whitespace | `git diff --check -- .gitignore Docs/CHANGELOG.md` | **PASS** |
+| **Unreal import** | — | **NOT RUN** — the `.blend` files are Blender source, not Unreal assets. FBX export and Unreal import are the next step and have not been done |
+| Rendered in-game check | — | **NOT RUN** — nothing has entered the game |
+| Editor build / tests | — | **NOT RUN** — no engine code touched |
+
+### ASSETS
+
+179 `.blend` + 177 MLOD derived from the L-0021 ADFRC set, including 40 optics and the SR25 sniper. Player gear consolidated in `Art/ADFRC_Player/` (57 models). All git-ignored except four docs. Branding substitution still required before any in-game use (ADR-016 / R-27).
+
+### RISKS
+
+- **R-27 (OPEN, unchanged)** — branding substitution still required. Now more concrete: the specific offenders are named in the manifest (`crye_g3`, `Opscore_*`, `adfrc_pasgt`, `adfrc_teamwendy`).
+- **R-28 → effectively closed** — the conversion blocker is resolved. 179/179 models are usable Blender geometry. **Remaining gap is not conversion but authoring:** no Unreal materials exist for these assets, and the `.blend` files carry no packed textures.
+- **R-29 (new, OPEN)** — the converted assets have **no Unreal materials and no packed textures**, so they are still not import-and-play. Every model needs a material authored against the Arma `.rvmat` maps (`_CO`/`_NOHQ`/`_SMDI`/`_CA`). A per-asset import script is the natural next step.
+- **R-25 (OPEN)** — `Content/Sourced/ADF_Extracted/` (~18 GB) is still inside the Unreal content root.
+- **R-26 (OPEN)** — no register-integrity guard. Three registers edited this session.
+- R-24, R-20, R-17, R-21 to R-23 unchanged.
+
+### DEFECTS FOUND
+
+1. **Session 029 recorded the conversion as an open-ended blocker when it was solvable.** I reported "the addon was never installed" and stopped there instead of installing it, and did not look for a debinarizer. The models were convertible all along. Cost the project a session.
+2. **The debinarizer's `-out` flag is ignored for single-file input** — it writes `*_MLOD.p3d` beside the source regardless. My first batch loop checked for output in `-out` and reported **0 succeeded, 134 failed** when in fact all 134 had converted correctly. I nearly re-ran or "fixed" a pipeline that was working. Caught by looking for the files directly instead of trusting the log.
+3. **The exporter's own batch mode deadlocks.** `p3d export` on a directory spawns 2–4 concurrent Blender processes that contend for one scratch directory; four Blenders hung for 6+ minutes producing nothing. Had to `taskkill` them and drive Blender serially from a shell loop. Wasted two timed-out runs.
+4. **High-poly models hang on `bpy.ops.mesh.separate(type='MATERIAL')`.** Isolated by patching the operator behind an env guard. Per-material separation is not needed for game assets, but **this is not yet fixed** — the affected models (`Opscore_af_cover` and others) only completed because the serial loop eventually got past them.
+5. **`Tools/Common/adfrc_authorship.py` still undercounts** (258 vs 268) — the basename-collision bug from Session 029, not yet fixed. Its numbers should not be relied on.
+6. **Textures are not packed into the `.blend` files.** Blender reports `bpy.data.images` length **0** for every converted model, because the addon resolves textures at import time against an Arma path root. The sibling `_textures/` folders are therefore required, and a `.blend` moved on its own will render untextured.
+
+### NEXT ACTION
+
+**Export the converted models to FBX and build the first Unreal material**, so the assets can actually enter the game (closes R-29).
+
+---
+
+## Session 031 — 2026-09-27 — Further ADFRC Assets Found; Conversion Count Corrected Downward
+
+### COMPLETED
+
+- **Surveyed the whole extraction for anything still buried, and found four unused categories plus 212 sounds.** The earlier passes only walked `Models/ADF_Weapons`, so these were never touched:
+  - **212 WAV weapon sounds** → `Art/ADFRC/Sounds/`. Close/mid/dist shots, dry-fire, reload, bolt and magazine handling, and per-environment tails (forest, houses, interior, meadows, trees). **No conversion needed — these are usable in Unreal immediately**, and are the highest-value/lowest-effort asset in the whole ADFRC set.
+  - **`adfrc_nvgs`** (3) — `pvs_optic` and the `psq36` monocular in up/down positions. Missed previously because NVGs live under `ADF_Gear`, not `ADF_Weapons`.
+  - **`adfrc_accessories`** (26) — PEQ15 laser units, silencers, weapon lights, L3Squad rails, X400, Ryder9, NT4, Zev, SOCOM, WARCOMP, Foxtrot2, Atlas, Grippod, and per-weapon laser/light variants.
+  - **`adfrc_usp`** (2, pistol + mag), **`adfrc_f1grenade`** (2, grenade + spoon), **`adfrc_weaponbox`** (1).
+  - Relocated 34 models and 151 textures for these, converted all 34 to MLOD (100%), and linked textures — **0 models left without a texture folder**.
+- **Found and explained the real conversion blocker: `class = man`.** The 20 models that would not convert are declared **character/skinned geometry**, not rigid props. `bpy.ops.arma3tools.import_p3d` **never returns** on them — it tries to build a skeleton the file does not carry. Proven by instrumenting the call: the addon enables successfully, then the import call itself hangs indefinitely on files as small as 3.6 MB, so it is neither a size nor a timeout problem. `--model-cfg` does not help. Added `Tools/Common/adfrc_class_scan.py` to identify them (report: `Build/adfrc_model_classes.tsv`).
+- **Corrected a false claim from Session 030.** That session reported "179/179 converted, zero empty files". Per-model verification shows that was wrong: the count was taken from what existed on disk after several timed-out runs, not from a per-model check, so 20 silent failures were counted as successes. True state after this session: **211 MLOD (100%), 209 `.blend`, 2 blocked** — and the 20 `man`-class models are the real gap.
+- **Confirmed a related quality problem.** `TBAS_T5_MG` exists as a `.blend` from the partial run but reads back as **87 meshes and 0 armatures** — geometry without a skeleton, so not usable as rigged gear. The manifest now marks all 20 as blocked rather than counting them as converted.
+
+### FILES CHANGED
+
+Created: `Art/ADFRC/Sounds/` (212 WAV, 108 MB), `Art/ADFRC/Models/adfrc_nvgs` (3), `adfrc_accessories` (26), `adfrc_usp` (2), `adfrc_f1grenade` (2), `adfrc_weaponbox` (1) plus their textures; `Tools/Common/adfrc_class_scan.py`; `Build/adfrc_model_classes.tsv`; `Art/ADFRC_BLEND/` grew to 209 `.blend`.
+Modified: `Art/ADFRC/MANIFEST.md` (corrected totals, new sections), `Art/ADFRC_Player/` (refreshed from BLEND), `Docs/CHANGELOG.md`.
+
+### TESTING
+
+| Check | Command / method | Result |
+|---|---|---|
+| Full-tree survey | `find` over all 10 model groups | 268 `.p3d` total; counted what was already taken vs. still buried |
+| Sound extraction | `find -iname '*.wav'` | **212 files**, 108 MB, copied intact |
+| New models → MLOD | debinarizer over 34 models | **34/34**, all `MLOD` signature-verified |
+| New models → `.blend` | `BIS.CLI p3d export` + Blender, serial | **34/34 converted** (26 accessories, USP, grenade, weaponbox) |
+| Texture linking | token matcher over the enlarged set | **209/209** models have a sibling `_textures/` dir; **0 bare** |
+| Class diagnosis | `Tools/Common/adfrc_class_scan.py` | 211 scanned; **20 `class = man`** identified as the blocker |
+| Hang proof | instrumented `bpy.ops.arma3tools.import_p3d` with timestamps | addon enables at T+0.0s, import call never returns — confirms the addon, not the exporter |
+| Size ruled out | file sizes of hanging models | 3.6 MB — not a size problem |
+| `--model-cfg` tried | `p3d export --model-cfg` | **does not resolve** the hang |
+| Armature check | read back `TBAS_T5_MG_MLOD.blend` | **0 armatures, 87 meshes** — skeleton-less geometry |
+| Player folder | rebuild from BLEND | 57 models, 1,538 textures, 7.3 GB |
+| Git isolation | `git status -uall Art/` | 4 documentation files, **0 binaries** |
+| Whitespace | `git diff --check` | **PASS** |
+| Unreal import | — | **NOT RUN** — still no FBX, no materials, nothing in game |
+
+### ASSETS
+
+211 MLOD, **209 `.blend`**, 1,471+ source PNG with **209 texture folders**, **212 WAV sounds**, 57 models in `Art/ADFRC_Player/`. All git-ignored except four docs. Authorisation unchanged (L-0021). Branding substitution still required (R-27).
+
+### RISKS
+
+- **R-27 (OPEN)** — branding substitution still required before release.
+- **R-28 (CLOSED)** — conversion path exists and works for rigid props.
+- **R-29 (OPEN)** — no FBX, no Unreal materials, textures unpacked. Unchanged.
+- **R-30 (new, OPEN)** — **the 20 `class = man` skinned garments cannot be converted** by the available pipeline. These are the most character-relevant items (TBAS role vests, Crye G3, JPC, Peacekeeper, NVGs, boonie, facewear, field dress), so the player-gear set is materially incomplete until solved. Needs a skinned-mesh import path, or re-export from source as rigid props.
+- **R-31 (new, OPEN)** — **an over-confident completion claim reached the changelog.** Session 030 stated 179/179 converted with zero failures; ~10% were in fact failing silently. Root cause: success was measured by counting output files after a run that had already timed out, rather than per-model. Any future batch must report `converted / attempted` and list failures.
+- **R-25, R-26, R-24, R-20, R-17, R-21 to R-23** unchanged.
+
+### DEFECTS FOUND
+
+1. **Session 030's "179/179, zero empty files" was false.** Around 20 models were failing silently; the count came from what was on disk, not from a per-model check, and several runs had hit the command timeout mid-batch. Corrected here: 209/211.
+2. **Silent failure mode in the conversion pipeline.** A hung Blender produces no error, no output, and no log line — the script just never reaches `save_as_mainfile`. Combined with a batch driver that reports only what it finds, this is indistinguishable from success unless every input is checked individually. Now covered by `adfrc_class_scan.py` and a per-model diff.
+3. **`bpy.ops.mesh.separate(type='MATERIAL')` hang is a red herring for these models.** Session 030 attributed high-poly failures to that operator. The actual cause for the 20 blocked models is the importer's skeleton handling — instrumenting the call showed the import itself never returns, before any separation happens. The earlier attribution was wrong.
+4. **The `class` field is the discriminating factor and was never checked.** One `p3d info` per model would have identified all 20 immediately, instead of several hours of batch timeouts.
+
+### NEXT ACTION
+
+**Decide how to handle the 20 skinned `class = man` garments (R-30)** — either find a skinned-mesh import path, or accept them as reference-only and cover those gear slots with the rigid props that did convert.
 
 ---
 

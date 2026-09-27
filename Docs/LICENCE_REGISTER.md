@@ -338,7 +338,7 @@ Before any public release:
 | Pack | Local folder | Used for | Status |
 |---|---|---|---|
 | Rural Australia | `Content/RuralAustralia` | Base of `L_RedGum_01` (ADR-022); fence meshes changed to have no collision | In use |
-| QuantumCharacter (military character) | `Content/QuantumCharacter` | 3 ACR soldier body | In use; insignia check pending (R-20) |
+| QuantumCharacter (military character) | `Content/QuantumCharacter` | 3 ACR soldier body | In use; insignia check pending (R-20); carries original Southern Spear materials as per-slot cosmetic overrides (L-0022) |
 | Modern_Insurgent_7 | `Content/Modern_Insurgent_7` | MAF soldier body (conventional parts only) | In use; names internal only |
 | Insurgent_2 | `Content/Insurgent_2` | — (irregular/ethnic-coded gear; ADR-016) | Not used |
 | FPS_Weapon_Bundle, AK-47, M1911 | `Content/FPS_Weapon_Bundle`, `Content/AK-47`, `Content/M1911` | Reference for A-series reshaping only | Not used |
@@ -361,3 +361,32 @@ Before any public release:
 | **Licence** | Aggregator page shows "Royalty Free"; the original author's terms are not shown and not yet confirmed |
 | **Use** | Current A88 cosmetic mesh via `Tools/Blender/a88_sourced.py` and `setup_weapons.py` |
 | **Status** | **Provisional** (R-21): record the URL and terms; reshape into an original A-series design (ADR-021) |
+
+### L-0021 — ADF Re-Cut (ADFRC) pack, extracted into `Content/Sourced/ADF_Extracted/`
+
+| Field | Value |
+|---|---|
+| **Component** | 268 `.p3d` (ODOL-binarised) models, 2,484 decoded PNG textures, 165 `.rtm` animations, Arma configs (`.cpp`/`.hpp`/`.cfg`), `.rvmat` materials, sounds, 37 ready-made `.uasset`s; ~7,748 files, ~17 GB |
+| **Source** | Two origins, per the tree's own `README.md`: (1) the source/config distribution of **ADF Re-Cut / ADFRC**, `github.com/IsoBones/ADFRC`, under APL-SA; (2) the **binarised Steam Workshop release**, `!Workshop\@ADF Re-Cut [Beta]\addons` (15 `.pbo` archives, 5.8 GB). The GitHub repository ships no `.p3d` by design — all geometry exists only inside the Workshop PBOs |
+| **Local copy** | `Content/Sourced/ADF_Extracted/` (git-ignored, inside the Unreal content root — see R-25) |
+| **Authorisation** | **WRITTEN GRANT ON FILE.** Email from **Tonnie** to the producer, 2026-09-27 15:05, granting permission to use "the ADF ReCut models and associated assets that I have extracted" within the Southern Spear project, for development, testing, prototyping and inclusion in the game, in the extracted (unextracted-format) state. Verbatim transcription and the original screenshot are preserved at `Docs/evidence/L0021_adfrc_authorisation_email.txt` / `.png`. This is the evidence that moves this entry off the R-24 block for the grantor's own components |
+| **Licence** | **Partially cleared — see conditions.** APL-SA (Bohemia, Arma distribution side) remains non-commercial and Arma-only and is **not** within a community author's gift to waive. ADFRC's `ASSETS_LICENSE.md` and `DEV_LICENSE.md` §2.4 restrict the protected models against extraction, derivatives, redistribution and use in other media; the grantor states he performed the extraction himself, which is the act those terms restrict, so his permission cures the *use* question for his own components but does not retrospectively license the extraction method. Attribution still cannot cure APL-SA |
+| **Grant is narrower than it appears** | The email's third paragraph is a **disclaimer, not a warranty**: permission is granted "on the understanding that you remain responsible for ensuring compliance with any applicable intellectual property, licensing, copyright, or other legal requirements associated with the original source material." The grantor therefore expressly does **not** warrant that the material is free of third-party rights, nor that he holds every right he is granting. Recorded deliberately — this is the most consequential sentence in the message |
+| **Scope limit — multi-author pack** | ADF Re-Cut is multi-author. Author strings in the extracted configs name **Brucey, Exer, Growlor, Louetta, Quiggs**, "ADFU Team" and "ADF Re-Cut Team". **"Tonnie" is not among them.** A grantor can license only what he owns, so this grant is taken to cover the grantor's own components; per-component confirmation is required for any Brucey / Exer / Growlor / Louetta / Quiggs material actually imported. Resolve before shipping any specific asset, not before importing for development |
+| **Additional conflict — unaffected by this grant** | Real manufacturer and service identities are present regardless of the grant: Crye Precision (G3), Ops-Core, PASGT, "Team Wendy", and ADF camouflage patterns. These belong to companies and to the ADF/Department of Defence, **none of whom are party to the email**. ADR-016 and L-0004 / L-0007 continue to bar them, and ADR-016 requires CMECU to be an original pattern. No private grant can clear these; they need legal review or removal of the marks |
+| **Producer decision** | The producer has reviewed the above, **confirms the authorisation is genuine**, and accepts responsibility for the terms: Brucey/Tonnie are old mates, the Re-Cut team are content for these to be used in his free project. Recorded as a **producer risk acceptance**, not as a legal clearance — the third-party items in the row below are unchanged by it. |
+| **Use** | **Authorised by the producer for use in Southern Spear** (development, testing, prototyping, inclusion in game) in the unextracted format. Not cleared for **redistribution** — see git handling below. Branding substitutions still required before release (ADR-016 / R-27) |
+| **Location** | Relocated 2026-09-27 to `Art/ADFRC/` (source: 177 `.p3d`, 1,471 PNG, 292 animation files, 68 configs). **Converted 2026-09-27** to `Art/ADFRC_MLOD/` (177 MLOD) and `Art/ADFRC_BLEND/` (**179 `.blend` with verified geometry**), including 40 optics and the `adfrc_SR25` DMR. Player/worn gear consolidated in `Art/ADFRC_Player/` (57 models + 1,538 textures). Every model has a sibling `_textures/` folder. See `Art/ADFRC/MANIFEST.md`, `Art/ADFRC_Player/README.md`. The full extraction remains at `Content/Sourced/ADF_Extracted/` |
+| **Conversion tooling** | `UKSFTA-P3D` (ODOL v73–v75 debinarizer, built on .NET 10) plus Arma 3 Object Builder v2.5.1 in Blender 5.2. Both live **outside** the repository at `E:/_tools/`. One local patch to `BlenderExport.cs` so the generated Blender script also tries the `bl_ext.user_default.*` module id. The converted output is **derived work** from the L-0021 material and is covered by the same terms |
+| **Git handling** | `Art/ADFRC/*` is **git-ignored**; only `LICENSE.md` and `MANIFEST.md` are tracked. Rationale: the authorisation is personal and non-commercial, and these are third-party source files, so they must not be redistributed via the repository. Without this rule 5.5 GB of third-party content would have become committable the moment it moved out of the already-ignored `Content/Sourced/` |
+| **Status** | **Authorised for use (producer-accepted), Class E.** Release still gated on branding substitution (R-27) and legal review. R-28 (conversion) is **closed**; R-29 tracks the remaining gap — FBX export, Unreal materials, and unpacked textures |
+
+### L-0022 — Original Southern Spear character materials (script-authored, applied over L-0016 bodies)
+
+| Field | Value |
+|---|---|
+| **Component** | 12 PNG texture sets (CMECU dry-country camo, MAF red-earth camo, tan and dark gear fabric; base colour, twill micro-normal, ORM) and 4 materials `M_SS_CMECU`, `M_SS_MAF`, `M_SS_GearTan`, `M_SS_GearDark`, plus the per-slot override arrays on `ASSCharacterPartActor` |
+| **Source** | Original work, generated by `Tools/Textures/make_character_textures.py` (PIL/numpy). No third-party texture was sampled, traced or converted; the ADFRC material was specifically **not** used as a pattern reference |
+| **Licence** | Class **F** — original, ours to license |
+| **Use** | Cosmetic material overrides on the L-0016 bodies. The vendor meshes are neither duplicated nor edited (ADR-004: appearance only) |
+| **Status** | In use on 7 of 14 friendly slots and 5 of 7 MAF parts; no rendered in-game view yet (see changelog Session 026) |
