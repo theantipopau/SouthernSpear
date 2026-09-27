@@ -133,7 +133,14 @@ Rules:
 `#training` (stacked list + 3-up) → `#operations` (diagram + 2-up) →
 `#maps` (auto-fit cards) → `#media` (showcase + gallery) →
 `#development` (auto-fit status) → `#roadmap` (timeline rail) →
-`#changelog` (controls + grouped list) → `#faq` (narrow accordion).
+`#latest` (latest-session panel) → `#faq` (narrow accordion).
+
+**Two pages.** The full searchable changelog lives on `changelog.html` (2026-09-28), which
+opens with `.page-head` — a flat, banner-less header using the ink-900 surface, a radial
+brass wash and the standard eyebrow/title/lede stack. The home page keeps only
+`#latest`, a static `.latest-update__session` card (latest date, title, up to four
+COMPLETED points, the NEXT ACTION line, and buttons to the full log). The session card
+language is shared by both pages so the log reads as one system.
 
 Radii stay small. This is a document and an interface, not an app.
 

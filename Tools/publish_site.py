@@ -39,6 +39,7 @@ REMOTE = "https://github.com/theantipopau/southernspear-site.git"
 
 FILES = {
     "index.html": "Site/index.html",
+    "changelog.html": "Site/changelog.html",
     "styles.css": "Site/styles.css",
     "site.js": "Site/site.js",
     "README.md": "Site/README.site.md",

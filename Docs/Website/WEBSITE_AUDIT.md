@@ -404,7 +404,7 @@ community size, award, review, partnership, confirmed platform or unapproved fea
 * The full fiction disclaimer, the "not affiliated with America's Army" line, and the Unreal Engine
   trademark acknowledgement.
 * Roadmap, changelog, status and their `data/` provenance.
-* Every currently working link: `#top #about #mirror #build #how-to-play #download #roadmap
-  #changelog #community`, the Discord invite, and the public repository URL.
+* Every currently working link: the home page section anchors, `changelog.html` and its
+  `#session-NNN` deep links, the Discord invite, and the public repository URL.
 * Honest provenance labelling: `SSShot.png` is captured in-engine; `loadingscreen.png` is a
   designed title screen, not gameplay.

@@ -1,12 +1,12 @@
 # WEBSITE TEST REPORT — Southern Spear
 
-**Date:** 2026-09-27
+**Date:** 2026-09-28 (second pass: the full changelog moved to its own page)
 **Build tested:** `python Tools/publish_site.py` → `Build/site/` → published
 **Served from:** `http://localhost:8765/` (local static server) and the live site
 **Browser:** Google Chrome (headless, via `puppeteer-core`) and Lighthouse 12
-**Automated suites:** `Build/audit/responsive_audit.js` (9 viewports),
+**Automated suites:** `Build/audit/responsive_audit.js` (9 viewports × both pages),
 `Build/audit/text_audit.js` (type and target sizes), `Build/audit/interaction_test.js`
-(18 keyboard, focus, filter, lightbox and zoom checks)
+(21 keyboard, focus, filter, lightbox, redirect and zoom checks, across both pages)
 **Baseline for comparison:** the live site at https://theantipopau.github.io/southernspear-site/
 
 > Internal document. Not published.
@@ -187,12 +187,15 @@ duplicated into the HTML.
 
 | Check | Result |
 |---|---|
-| 31 changelog sessions parsed and rendered | pass |
-| Latest session identified as Session 030, badged "Latest update" | pass |
-| Search across full session text | pass — "network" → 2 of 31 |
-| Category filter | pass — Maps → 17 of 31 |
+| Changelog sessions parsed and rendered on `changelog.html` | pass — 43 at verification; the log grows one entry per session |
+| Latest session identified, badged, and linked to `changelog.html#session-NNN` | pass |
+| Home page latest-session panel: date, title, four completed points, next action | pass |
+| Search across full session text (on the changelog page) | pass — "network" → 3 of 43 |
+| Category filter | pass — Maps → 24 of 43 |
 | Day grouping hides empty groups when filtered | pass |
-| Deep link to `#session-030` opens and focuses the session | pass |
+| Deep link to `changelog.html#session-030` opens and focuses the session | pass |
+| Legacy home-page link `/#session-030` forwards to `changelog.html` and opens the session | pass — live-verified |
+| Session IDs unique despite duplicate numbers in the source log | pass — second occurrence gets a `-2` suffix |
 | Deep link to `#phase-3` opens the phase detail and scrolls | pass |
 | Roadmap renders 7 phases | pass |
 | Phase states derived from the roadmap's own Current Status table | pass — Phase 0 Complete, Phase 1 In progress, Phases 2–6 Planned |
@@ -219,6 +222,10 @@ duplicated into the HTML.
    the panel rendered; on GitHub Pages the order flipped and the panel sat on
    "Loading development status…" indefinitely. Both callbacks now trigger the render, guarded
    by a one-shot flag. **This is the clearest argument for testing against the real host.**
+8. **Duplicate session numbers in the source log** (two 023s, two 028s–031s, two 032s, from
+   parallel sessions) produced duplicate `id="session-NNN"` anchors, so deep links could land
+   on the wrong session. `parseSessions` now de-duplicates: the second occurrence of a number
+   gets a `-2` suffix, keeping every deep link unique and stable.
 
 ---
 
@@ -319,12 +326,11 @@ design, with its corner labels explained in the caption.
 2. Test in Firefox and WebKit. Everything in this report is Chromium only.
 3. The gallery is six items; the markup is data-shaped so adding captures needs no
    JavaScript change.
-4. `Docs/DEVELOPMENT_ROADMAP.md` and `Docs/CHANGELOG.md` disagree about Phase 0. The
-   roadmap header says "Phase 1 active" and its Phase 0 section says "Status: IN PROGRESS"
-   with gate G0.8 outstanding, while the newer changelog (2026-09-27) says "Phase 0 —
-   Audit & Architecture — COMPLETE (gate G0.8 passed)". The site follows the changelog
-   because it is the more recent document. The roadmap's status line is stale and should be
-   corrected at source rather than in the site.
+4. `Docs/DEVELOPMENT_ROADMAP.md` and `Docs/CHANGELOG.md` used to disagree about Phase 0.
+   **Resolved 2026-09-28:** the roadmap's Current Status table now reads Phase 0 Complete
+   (G0.8 passed) and Phase 1 Active, agreeing with the changelog; the status panel and the
+   roadmap now tell the same story. Anything further belongs to the project documents, not
+   the site.
 
 ### Known visual trade-offs accepted
 
