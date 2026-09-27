@@ -2098,6 +2098,80 @@ No new assets imported. No licence-register change: the animation clips are cove
 
 ---
 
+## Session 027 — 2026-09-27 — Camera-Held Weapon View, Full Weapon Materials, Sky and Beret Fixes, Objective Flags, Exe Icon
+
+### COMPLETED
+
+- **First-person weapon rebuilt** (producer: "can't see the weapon", "animations no good"):
+  - tried true first person (body view; Lyra hip pose holds the weapon below the camera, aiming put the
+    eye in the arm) and kept it behind `ss.FP.BodyView`;
+  - default is now a camera-held view model: the whole weapon in view at the hip (`ss.FP.Hip`), aim
+    placed from the weapon's `Sight` socket (`ss.FP.EyeRelief` 13 cm), procedural bob, recoil on
+    magazine drop and a reload dip that follows Lyra's reload montage;
+  - the Fab AKS74U arms are off (`ss.FP.Arms`); their poses do not fit our weapons.
+- **"Can't aim upwards" / "no sky box"**: the local soldier's beret (owner-no-see did not hold) drew a
+  dome over the view when looking up. Local body parts are now hidden in game with shadows kept.
+  Red Gum and Selat Canal also get a SkyAtmosphere and volumetric clouds; the demo sky spheres and Red
+  Gum's painted horizon ring are hidden in game (`fix_sky.py`). Nanite no longer touches sky, horizon or
+  unlit meshes (`revert_sky_nanite.py`, guard in `optimize_nanite.py`).
+- **Weapon materials** (producer: "textures don't look good"): `M_SS_WeaponPBR` with the ADFRC colour,
+  normal (`_nohq`) and specular/gloss (`_smdi`) maps; weapon textures resident (no streaming);
+  reticle cards see-through (`upgrade_weapon_materials.py`, `fix_visual_regressions.py`).
+- **Objective flags**: `USSObjectiveFlagSubsystem` (ObjectivesUI, client presentation) puts a pole on each
+  objective; the viewer's own side flies the Australian flag (Fab World Flags, L-0016), the other side a
+  fictional MAF flag (`Tools/Textures/maf_flag.py`, original design); the flag rises with capture and
+  lowers as the holder loses it (`setup_flags.py`).
+- **Exe icon** from `Docs/images/logo.png`: `Tools/build_game_icon.py` writes
+  `Build/Windows/Application.ico` (full badge at 64–256 px, the spear and map at 16–48 px). `Build/` is
+  git-ignored: run the script before packaging.
+- Logs checked on request: only Lyra's weapon-audio Blueprint warnings (Tap ID); no asset or render errors.
+
+### FILES CHANGED
+
+- `SSFirstPersonSubsystem.{h,cpp}`, `SSFirstPersonCameraMode.{h,cpp}`, `SSObjectiveFlagSubsystem.{h,cpp}` (new);
+- `Tools/Unreal/fix_sky.py`, `revert_sky_nanite.py`, `upgrade_weapon_materials.py`, `setup_flags.py` (new);
+  `add_sight_sockets.py`, `optimize_nanite.py`, `fix_visual_regressions.py`;
+  `Tools/build_game_icon.py`, `Tools/Textures/maf_flag.py` (new);
+- `Config/DefaultGame.ini` (cook the flag paths);
+- maps `L_RedGum_01`, `L_SelatCanal_01`; weapon materials and textures; `M_SS_WeaponPBR`; flag assets;
+  `Art/Flags/T_SS_Flag_MAF.png`.
+
+### TESTING
+
+| Test | Command | Exit | Result | Evidence |
+|---|---|---|---|---|
+| Guard | `python Tools/validate_architecture.py` | 0 | PASS | — |
+| Build | `Build.bat SouthernSpearEditor ...` | 0 | Succeeded | — |
+| Automation | `Automation RunTests SouthernSpear` | 255 | 30 Success; 1 Fail (parallel session's `TwoPlayerAuthoritySmoke`) | `Build/tests.log` |
+| View model | Red Gum `-SSShotAt`, `ss.FP.DebugPitch` -5 / 35 / aim | 124 | Whole weapon at hip; optic centred when aiming; sky clear looking up | screenshots (scratch) |
+| Flags | Dry River, `-game -nullrhi`, 8 bots, 120 s | 124 | Pole shows friendly / MAF / bare as objective A changes hands | log |
+| Icon | `python Tools/build_game_icon.py` | 0 | 7 sizes, 16–256 | `Build/Windows/Application.ico` |
+| Flag appearance in render | — | — | **NOT RUN** (MAF flag UV on the pack material unverified) | — |
+| Push | `GIT_LFS_SKIP_PUSH=1 git push` | 1 | **Rejected**: GitHub GH008, 217 unknown LFS objects | — |
+
+### ASSETS
+
+L-0016 World Flags (Australian national flag tile, cloth mesh, pole); MAF flag original. ADFRC texture maps
+(L-0021). The producer reports more ADFRC assets (sounds, textures): not yet reviewed.
+
+### RISKS
+
+- R-24 (new): GitHub now rejects pointer-only pushes (GH008); commits since `0336691b` are local only.
+  Uploading LFS objects conflicts with R-14 and has storage cost: producer decision.
+- Weapon view model has no hands until hand IK is fitted.
+
+### DEFECTS FOUND
+
+1. Own beret drew over the view when looking up (producer; component log and captures).
+2. True first person hid the weapon at the hip (capture).
+3. Weapon materials used colour only (producer).
+
+### NEXT ACTION
+
+**Producer decides** the GitHub LFS push (R-24); then plays Red Gum for the view model and flags.
+
+---
+
 ## Open Threads
 
 | Item | Blocked on | Owner |
