@@ -70,7 +70,16 @@ ALLOWED_SUFFIXES = {
 
 # Assets that used to ship straight from Docs/images/. The page no longer
 # references them, so they are not republished.
-RETIRED = ("assets/logo.png", "assets/header.png", "assets/keyart.jpg")
+RETIRED = (
+    "assets/logo.png",
+    "assets/header.png",
+    "assets/keyart.jpg",
+    # The favicon is now generated as a raster suite from the approved emblem
+    # crop (favicon.ico plus 32/48/96/180/192/512 PNGs), so the hand-written
+    # SVG is dead weight. Anything dropped from the build must be listed here
+    # or it stays published forever.
+    "assets/favicon.svg",
+)
 
 
 def git(*args, cwd=OUT):

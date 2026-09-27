@@ -380,13 +380,17 @@ byte-for-byte before any change lands.
 
 ## 12. Open decision — hero artwork
 
-The only approved landscape artwork has the emblem, the wordmark, the tagline and two menu-style
-corner labels composited into the pixels. The brief simultaneously requires (a) the approved logo
-rendered **separately from the background**, (b) no active-navigation or interface text inside the
-artwork, and (c) genuine use of the supplied artwork.
+The only approved landscape artwork **at the time of the audit** had the emblem, the wordmark,
+the tagline and two menu-style corner labels composited into the pixels. The brief
+simultaneously requires (a) the approved logo rendered **separately from the background**,
+(b) no active-navigation or interface text inside the artwork, and (c) genuine use of the
+supplied artwork.
 
-These cannot all be satisfied with the asset as it stands. Options are recorded in
-`WEBSITE_TEST_REPORT.md` once the user decides. **No hero image has been altered yet.**
+**Resolved.** `Docs/images/mainmenu.png` was supplied later and is a different composition:
+pixel analysis finds no titling rows and no composited emblem, so it satisfies all three
+requirements at once. The hero is cut from it, and the approved stacked lockup is a separate
+element above the copy. `loadingscreen.png` is still published as the loading-screen design,
+with its corner labels explained in its caption. **No image has been altered.**
 
 ---
 

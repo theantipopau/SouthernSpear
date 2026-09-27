@@ -99,7 +99,13 @@ Three families, all SIL Open Font License 1.1, self-hosted as latin-subset woff2
 
 Rules:
 
-* Display type is uppercase with `0.01em`–`0.2em` tracking depending on size. Never below 12px.
+* **Nothing is set below 12px (`--fs-floor: 0.75rem`).** The coordinate-style metadata
+  is the smallest type on the site; below 12px it stops being legible on a 360px phone held
+  at arm's length. The small end of the scale is compressed rather than flat, so the
+  hierarchy between 12px, 12.2px, 12.5px and 13.1px survives. `Build/audit/text_audit.js`
+  fails the build if anything regresses below it, including `code`, which is sized
+  `max(var(--fs-floor), 0.86em)` so a long file path in a 12.5px paragraph cannot undercut it.
+* Display type is uppercase with `0.01em`–`0.2em` tracking depending on size.
 * Body copy is 17px desktop / 16px at ≤640px, line-height 1.65, max 68ch measure.
 * `text-wrap: balance` on all headings.
 * Monospace is for metadata only, never for sentences.
@@ -119,6 +125,8 @@ Rules:
 | `--header-h` | `68px` (62px ≤640px) | Fixed header height and `scroll-margin-top` offset |
 | `--radius` | `3px` | Default |
 | `--radius-lg` | `5px` | Showcase frame only |
+| `--fs-floor` | `0.75rem` (12px) | Smallest permitted font size |
+| `--target-min` | `44px` | Smallest permitted interactive height |
 
 **Layout is compositional, not a grid of identical cards.** Section rhythm alternates:
 `#overview` (text + figure) → `#features` (full-width alternating rows) →
@@ -208,6 +216,13 @@ Rules:
 * Status is never colour alone: every pill carries a word.
 * Live regions are narrow: one `role="status"` count line, not whole panels.
 * Error and empty states are announced in a bordered block naming the missing file.
+* Every standalone control is at least 44×44px (`--target-min`); the changelog filters and
+  the per-session link/copy controls were 40px and are now 44px. Links inside running prose
+  are exempt, because padding them would break the line box.
+* Fragment deep links are re-resolved after render. The roadmap and changelog are built by
+  script, so the browser's own fragment navigation runs before those anchors exist and
+  silently gives up; `revealFragment()` in `site.js` re-runs it, expands the target, clears
+  any active filter that would hide it, and moves focus to it.
 * `forced-colors: active` re-borders components to `CanvasText`.
 
 ---
@@ -220,9 +235,12 @@ Rules:
 * Fonts self-hosted, latin subset, `font-display: swap`, preloaded as a stylesheet.
 * No third-party runtime dependency. The Markdown renderer is local, ~110 lines, covering
   exactly the constructs the project's documents use.
-* Expensive lists render their bodies lazily: the first 4 changelog sessions, all roadmap
+* Expensive lists render their bodies lazily: the first 2 changelog sessions, all roadmap
   phase details, and the full roadmap document are built on first open. Search and filters
   index the raw session text, so lazy rendering does not reduce what is findable.
+* Brand marks ship as AVIF/WebP/PNG sets at two widths, not as one large PNG. The hero
+  lockup is the first thing under the header, so its 420px indexed PNG (55 KB) became an
+  8 KB AVIF plus a `srcset` pair. `Tools/build_site_assets.py` regenerates every derivative.
 * CLS is protected by explicit image dimensions everywhere and by never animating layout.
 
 ---
@@ -234,6 +252,12 @@ Rules:
 * Never present concept art as captured gameplay. Concept images carry a
   `badge--concept` label and their caption says so.
 * Undecided answers are stated as "not yet announced", never guessed.
+* The engine is stated as **Unreal Engine 5.8** in the site's own voice. The project's
+  documents record the exact installed build as 5.8.3, and that precision is preserved
+  where the site quotes those documents (changelog, roadmap) rather than being flattened.
+* Steam is named as the **planned** storefront, always alongside the pre-alpha state and
+  the absence of a release date. It is deliberately absent from the JSON-LD, because a
+  platform entry in structured data reads as a live listing.
 * The fictional-project disclaimer appears in the footer, in the overview, in the 404 page
   and in the FAQ, because "Australian" and "3 ACR" are the two most misreadable claims.
 * Status, roadmap and changelog are generated from `data/*.md`. If a fact is in those

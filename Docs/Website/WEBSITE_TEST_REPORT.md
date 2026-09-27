@@ -1,9 +1,12 @@
 # WEBSITE TEST REPORT — Southern Spear
 
 **Date:** 2026-09-27
-**Build tested:** `python Tools/publish_site.py --build-only` → `Build/site/`
-**Served from:** `http://127.0.0.1:8080/` (local static server)
-**Browser:** Chromium (headless, via the Freebuff preview) and Lighthouse 12
+**Build tested:** `python Tools/publish_site.py` → `Build/site/` → published
+**Served from:** `http://localhost:8765/` (local static server) and the live site
+**Browser:** Google Chrome (headless, via `puppeteer-core`) and Lighthouse 12
+**Automated suites:** `Build/audit/responsive_audit.js` (9 viewports),
+`Build/audit/text_audit.js` (type and target sizes), `Build/audit/interaction_test.js`
+(18 keyboard, focus, filter, lightbox and zoom checks)
 **Baseline for comparison:** the live site at https://theantipopau.github.io/southernspear-site/
 
 > Internal document. Not published.
@@ -17,21 +20,25 @@ Final figures are measured on the **live site**, because the local test server
 
 | Category | Before (live) | After (local) | **After (live)** |
 |---|---|---|---|
-| Performance | 67 | 88 | **100** |
+| Performance | 67 | 88 | **93–100** |
 | Accessibility | 100 | 100 | **100** |
 | Best Practices | 100 | 100 | **100** |
 | SEO | 100 | 100 | **100** |
 
 | Metric | Before (live) | After (local) | **After (live)** | Target | Verdict |
 |---|---|---|---|---|---|
-| First Contentful Paint | 3.0 s | 2.1 s | **1.1 s** | < 1.8 s | **met** |
-| Largest Contentful Paint | 12.9 s | 3.7 s | **1.7 s** | < 2.5 s | **met** |
-| Total Blocking Time | 30 ms | 0 ms | **30 ms** | < 200 ms | met |
+| First Contentful Paint | 3.0 s | 2.1 s | **1.2–1.8 s** | < 1.8 s | **met** |
+| Largest Contentful Paint | 12.9 s | 3.7 s | **1.7–2.7 s** | < 2.5 s | **usually met** |
+| Total Blocking Time | 30 ms | 0 ms | **60–120 ms** | < 200 ms | met |
 | Cumulative Layout Shift | 0 | 0 | **0** | < 0.1 | met |
-| DOM elements | 4,839 | 1,584 | **1,584** | < 1,500 | marginal |
-| Total transfer | 2,110 KB | 487 KB | **278 KB** | — | **−87 %** |
+| DOM elements | 4,839 | 1,584 | **1,380** | < 1,500 | **met** |
+| Total transfer | 2,110 KB | 487 KB | **284 KB** | — | **−87 %** |
 
-All three headline targets are met on the live host: LCP 1.7 s, CLS 0, TBT 30 ms.
+**Read the live column as a range, not a point.** Lighthouse's simulated throttling on a
+shared machine varies a lot run to run. Three consecutive live runs of the final build gave
+performance **100, 93, 97** with LCP 1.7 s / 2.6 s / 2.3 s. The earlier single figure of 100
+was one favourable run, not a stable result, and the 89 seen mid-pass was one slow run. CLS
+and TBT were stable across every run.
 
 The local figures in the middle column are kept because they are what the pre-publish
 verification saw, and the gap between the two columns is itself a finding: the local static
@@ -41,6 +48,11 @@ Audits still flagged, all attributable to hosting rather than the site:
 `uses-text-compression`, `unminified-css`, `unminified-javascript`, `unused-css-rules`,
 `uses-long-cache-ttl`, `cache-insight`, `render-blocking-resources`. GitHub Pages does not
 compress or minify, and sets a 10-minute cache TTL.
+
+`image-delivery-insight` and `uses-responsive-images` also flag the two detail crops in the
+gallery, which are 768px wide and display at roughly 340px. They are below the fold and
+`loading="lazy"`, so they do not touch LCP; they are kept at 768px deliberately so the
+lightbox has something sharp to show on a large display.
 
 ### What moved the needle
 
@@ -79,6 +91,16 @@ console. `lcp-discovery-insight` scores 1 (pass) with no preload at all.
 
 Horizontal overflow checked at every width: `scrollWidth === clientWidth` throughout.
 `overflow-x: hidden` on `body` is a backstop only; the layouts do not rely on it.
+
+Re-verified on 2026-09-27 with an automated sweep (`Build/audit/responsive_audit.js`,
+real Chrome, nine viewports including 1024 × 768) that measures overflow, sub-44px tap
+targets, sub-12px text, heading order and whether the hero CTAs fall below the fold.
+**All nine viewports pass every check.** 200% zoom (a 720 × 450 CSS viewport) produces no
+horizontal scrolling and keeps the hero CTAs on screen.
+
+One element reports as extending past the viewport at every width: `.hero__image`, which is
+the `hero-drift` scale animation caught mid-transform. `.hero` has `overflow: hidden`, and
+`scrollWidth` equals `clientWidth` at all nine widths, so it is contained.
 
 ### Known responsive limitations
 
@@ -121,9 +143,10 @@ Manual checks completed:
 | `prefers-reduced-motion` collapses all motion and forces reveals visible | pass |
 | `forced-colors` re-borders components | pass |
 | Missing data shows a bordered, specific error block | pass |
-| 44 × 44 px minimum tap targets | pass |
+| 44 × 44 px minimum tap targets | pass — measured, was failing on 13 controls |
+| Changelog empty state offers a way out | pass — was missing entirely |
 
-### Two accessibility defects found and fixed during this pass
+### Accessibility defects found and fixed
 
 1. **`color-contrast`** — the decorative pillar numerals (`--line`, 1.99:1) failed AA even
    though they are `aria-hidden`. Introduced `--line-quiet` (`#5A6F61`, 3.06:1) and applied it
@@ -131,6 +154,29 @@ Manual checks completed:
 2. **`label-content-name-mismatch`** — the brand link's `aria-label` did not contain its visible
    text. Removed the `aria-label` and added a visually hidden "— back to top" suffix, so the
    accessible name now contains the visible label.
+3. **Thirteen controls under 44px** — the eight changelog filters, the four per-session
+   "Link to this session" / "Copy link" controls and the skip link were 40–43px tall. Raised
+   to `--target-min: 44px`.
+4. **44 text runs under 12px** — the smallest was the nav's "Pre-alpha" at 9.9px. The whole
+   small end of the type scale (0.62–0.74rem) was compressed upward with 0.75rem as the new
+   floor, rather than flattened, so the hierarchy survives. `code` inside Markdown is sized
+   `max(var(--fs-floor), 0.86em)` because it is relative and would otherwise undercut it.
+   Caught by `Build/audit/text_audit.js`, which now reports **zero** runs under 12px.
+5. **No empty state** — searching the changelog for something absent left a blank column
+   under a count reading "0 of 31 sessions match". Added a bordered empty state that names
+   the cause and offers a "Clear search and filters" button, which also restores the search
+   field's focus.
+6. **Mobile menu did not move focus on open** — `setOpen(true)` called `first.focus()`
+   immediately, but the panel's `visibility` was mid-transition so `offsetParent` was null and
+   `focusable()` returned nothing. Focus silently stayed on the toggle. Fixed on both sides:
+   `visibility` now flips instantly on open and only delays on close (the standard discrete
+   transition pattern), and the focus call is deferred a frame.
+7. **Roadmap and changelog deep links did nothing** — a fresh load of `…#phase-3` neither
+   scrolled nor expanded. The browser's fragment navigation runs before the script-built
+   anchors exist and gives up silently. Added `revealFragment()`, re-run after both documents
+   render and on `hashchange`: it expands the target, clears any active filter that would
+   hide it, scrolls with header clearance and moves focus without a second scroll. Verified
+   that a nav click lands the section at exactly 74px from the top (header 62 + 12).
 
 ---
 
@@ -141,11 +187,13 @@ duplicated into the HTML.
 
 | Check | Result |
 |---|---|
-| 30 changelog sessions parsed and rendered | pass |
-| Latest session identified as Session 029, badged "Latest update" | pass |
-| Search across full session text | pass — "navigation" → 4 of 30 |
-| Category filter | pass — Maps → 17 of 30 |
+| 31 changelog sessions parsed and rendered | pass |
+| Latest session identified as Session 030, badged "Latest update" | pass |
+| Search across full session text | pass — "network" → 2 of 31 |
+| Category filter | pass — Maps → 17 of 31 |
 | Day grouping hides empty groups when filtered | pass |
+| Deep link to `#session-030` opens and focuses the session | pass |
+| Deep link to `#phase-3` opens the phase detail and scrolls | pass |
 | Roadmap renders 7 phases | pass |
 | Phase states derived from the roadmap's own Current Status table | pass — Phase 0 Complete, Phase 1 In progress, Phases 2–6 Planned |
 | Current phase card quotes the roadmap, not the older changelog glance | pass — "Phase 1 — Greybox Vertical Slice" |
@@ -195,7 +243,11 @@ Markdown documents.
 * `element.closest`, `Array.prototype.flatMap`-free iteration and `matchMedia.addEventListener`
   all have fallbacks or are guarded.
 * `navigator.clipboard` is feature-detected with a graceful fallback.
-* AVIF is offered through `<picture>`, so Safari and Firefox take WebP.
+* AVIF is offered through `<picture>`, so Safari and Firefox take WebP. The brand marks are
+  the exception: the nav, footer and gallery emblems use a plain PNG `src` because the AVIF
+  version saves under 3 KB and a `<picture>` there would cost more in markup than it saves.
+* `max()` inside `font-size` for `.markdown-body code` is supported everywhere current;
+  browsers that lack it fall back to the inherited size, which is larger, not smaller.
 
 **Firefox and WebKit testing is outstanding and should happen before this is treated as
 cross-browser verified.**
@@ -244,32 +296,41 @@ cross-browser verified.**
 
 ### Assets still required
 
-1. **A clean 4K hero without composited interface text.** This is the single highest-value
-   asset. The current artwork has the emblem, the wordmark, the tagline and two menu-style
-   corner labels (`LAND / PEOPLE / PURPOSE` and `TRAIN / PLAY / BELONG`) burned into the
-   pixels. Per instruction the artwork is used unmodified, so the hero shows those corner
-   labels and the site's own `h1` had to be composed beneath the artwork's own wordmark
-   rather than replacing it.
-2. **Frozen in-engine gameplay captures.** `Saved/Screenshots/WindowsEditor/SSShot.png` is
+1. **Frozen in-engine gameplay captures.** `Saved/Screenshots/WindowsEditor/SSShot.png` is
    overwritten by the editor every session and is gitignored, so it cannot be published. The
-   gallery currently contains concept art only and says so.
-3. Map, role and environment artwork for the five map concepts.
-4. An official horizontal wordmark lockup, for a richer header lockup than emblem + HTML text.
+   gallery currently contains concept art only and says so. This is the only thing standing
+   between this being a concept-art site and a site that proves the game renders.
+2. Map, role and environment artwork for the five map concepts.
+3. An official horizontal wordmark lockup, for a richer header lockup than emblem + HTML text.
+
+**Resolved since the first pass.** The earlier report led with "a clean 4K hero without
+composited interface text" as the top outstanding asset. `Docs/images/mainmenu.png` turned
+out to be exactly that: analysis of its pixels found no titling rows and no composited
+emblem, unlike `loadingscreen.png`, which carries the emblem, the wordmark, the tagline and
+the two corner labels. The hero is now cut from `mainmenu.png` and the approved lockup is
+rendered as a separate element above the copy, so the artwork no longer competes with the
+page's own `h1`. `loadingscreen.png` is still published, labelled as the loading screen
+design, with its corner labels explained in the caption.
 
 ### Engineering follow-ups
 
 1. Minify CSS and JS in the build step. GitHub Pages serves both uncompressed, so
-   `styles.css` (~29 KB) and `site.js` (~40 KB) are the largest avoidable transfers left.
-2. DOM size is 1,584 against a 1,500 target — close enough not to matter now that the bodies
-   are lazy, but worth keeping in mind if more sections are added.
-3. Test in Firefox and WebKit.
-4. The gallery is currently three items; the markup is data-shaped so adding captures needs
-   no JavaScript change.
+   `styles.css` (~12 KB) and `site.js` (~43 KB) are the largest avoidable transfers left.
+2. Test in Firefox and WebKit. Everything in this report is Chromium only.
+3. The gallery is six items; the markup is data-shaped so adding captures needs no
+   JavaScript change.
+4. `Docs/DEVELOPMENT_ROADMAP.md` and `Docs/CHANGELOG.md` disagree about Phase 0. The
+   roadmap header says "Phase 1 active" and its Phase 0 section says "Status: IN PROGRESS"
+   with gate G0.8 outstanding, while the newer changelog (2026-09-27) says "Phase 0 —
+   Audit & Architecture — COMPLETE (gate G0.8 passed)". The site follows the changelog
+   because it is the more recent document. The roadmap's status line is stale and should be
+   corrected at source rather than in the site.
 
 ### Known visual trade-offs accepted
 
-* The hero's baked-in wordmark is the de facto title, so the page's own `h1` is the
-  positioning statement with a visually hidden brand prefix. Duplicating a large
-  "Southern Spear" heading over the artwork's own would have read as two competing logos.
-* The corner labels in the hero are part of the approved artwork and are left in place.
-  They are explained in the MAIN MENU CONCEPT caption as belonging to the concept.
+* The hero now uses `mainmenu.png`, which has no composited titling, and the approved
+  stacked lockup is a separate `<img>` above the copy. The page's `h1` is therefore the
+  positioning statement with a visually hidden "Southern Spear:" prefix, so the wordmark is
+  not announced twice.
+* The loading-screen design keeps its corner labels. They are part of that artwork and are
+  explained in its caption.
