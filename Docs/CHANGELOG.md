@@ -1442,6 +1442,57 @@ ensure so the suite is green.
 
 ---
 
+## Session 023 — 2026-09-27 — Soldier Animation Layers and Reload Fixed; A88 Provenance
+
+### COMPLETED
+
+- **Running animation and A88 reload fixed** (reported by the producer). Lyra picks the body mesh and the
+  weapon animation layers (locomotion and the reload montage) from cosmetic tags on character parts.
+  Lyra's own Manny part carries `Cosmetic.AnimationStyle.Masculine` and `Cosmetic.BodyStyle.Medium`
+  (found by probing `B_Manny`); `ASSCharacterPartActor` carried none, so no rifle animation set linked.
+  It now implements `IGameplayTagAssetInterface` with the same default tags, re-checked at BeginPlay in
+  case the tag config loads after the class default object.
+- **A88 provenance recorded (L-0017).** The producer's source page is the RigModels aggregator listing
+  "EF88 Rifle 3D Model": licence shown as "Royalty Free", author credited as Upsurge Studios
+  (upsurgestudios.com). It is a replica of a real service rifle with named real-brand attachments; the
+  original author's terms are not shown.
+- The Fab animation pack the producer mentioned is **not in the project yet**: the Fab vault cache holds
+  only the packs already imported.
+
+### FILES CHANGED
+
+Modified: `SSCharacterPartActor.{h,cpp}`, `SouthernSpearTeam.Build.cs` (GameplayTags), `LICENCE_REGISTER.md`.
+
+### TESTING
+
+| Test | Command | Exit | Result | Evidence |
+|---|---|---|---|---|
+| Guard | `python Tools/validate_architecture.py` | 0 | PASS | — |
+| Build | `Build.bat SouthernSpearEditor ...` | 0 | Succeeded | — |
+| Tags live | `L_RedGum_01?NumBots=4 -game -nullrhi` | 124 | "SSCharacterPart tags: Cosmetic.AnimationStyle.Masculine, Cosmetic.BodyStyle.Medium" | log |
+| Running animation and reload in play | game launched for the producer | — | **Producer check pending** | — |
+
+### ASSETS
+
+L-0017 updated with the source URL and author credit; still provisional (R-21).
+
+### RISKS
+
+R-21 unchanged: aggregator "Royalty Free" label only; the original author's licence is unconfirmed; it
+is a real-rifle replica that needs A-series reshaping.
+
+### DEFECTS FOUND
+
+1. Soldier parts had no cosmetic tags, so no weapon animation layers linked (no running animation, no
+   reload). Found by the producer's play report plus a probe of Lyra's `B_Manny`.
+
+### NEXT ACTION
+
+**Producer confirms running and reloading in play**, then imports the Fab animation pack with "Add to
+Project".
+
+---
+
 ## Open Threads
 
 | Item | Blocked on | Owner |

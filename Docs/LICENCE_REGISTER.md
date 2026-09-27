@@ -356,8 +356,8 @@ Before any public release:
 | Field | Value |
 |---|---|
 | **Component** | Bullpup rifle model with scope, foregrip, laser and suppressor; OBJ/3DS plus three 4K PNG atlases |
-| **Source** | Downloaded by the producer; **source URL not yet recorded** |
+| **Source** | https://rigmodels.com/model.php?view=EF88_Rifle-3d-model__d1d54b9889924370a6d4576b004fa180 (aggregator; credits Upsurge Studios, upsurgestudios.com) |
 | **Local copy** | `Art/Weapons/A88/New/` (not committed) |
-| **Licence** | Producer states "royalty free"; terms not yet recorded |
+| **Licence** | Aggregator page shows "Royalty Free"; the original author's terms are not shown and not yet confirmed |
 | **Use** | Current A88 cosmetic mesh via `Tools/Blender/a88_sourced.py` and `setup_weapons.py` |
 | **Status** | **Provisional** (R-21): record the URL and terms; reshape into an original A-series design (ADR-021) |
