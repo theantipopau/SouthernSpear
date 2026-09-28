@@ -167,9 +167,18 @@ so a clone without the plugin still opens. Its web tools (Fab, OpenStreetMap, Du
 
 ## Git, LFS, publishing
 
-- Binary assets (`.uasset .umap .fbx .blend .png .jpg`) are LFS. Push with `GIT_LFS_SKIP_PUSH=1 git push`
-  (Epic content must not be republished; remote holds pointers only, R-14). Verify staged binaries are pointers.
+- Binary assets (`.uasset .umap .fbx .blend .png .jpg`) are LFS. Epic content must not be republished, so push
+  with `GIT_LFS_SKIP_PUSH=1 git push` (R-14). That flag only works when the push introduces **no new object**:
+  GitHub answers `GH008: unknown Git LFS objects` at the remote's pre-receive hook and refuses the push. When
+  assets were rebuilt or re-imported, upload first — `git lfs push origin main` (2026-09-29: 159 objects,
+  205 MB) — then push with the flag. So the remote does not hold pointers only; a fresh clone still needs
+  `git lfs pull` to smudge the assets it did not download.
 - **Stage explicit paths, never `git add -A`**: Fab or Sourced packs can land in `Content/` at any time and must stay git-ignored until adapted (ADR-021). Check `git status` for new `Content/` folders first.
+- **One agent writes git at a time.** Agents may share this checkout, but only the designated one runs `git
+  add`/`commit`/`push`; the others leave their work in the tree and hand it over. On 2026-09-29 a concurrent
+  `git add -A` put 30 files that were not the author's into a commit. The mechanical guard, use it every time:
+  `git commit --only -- <paths>` commits those paths from the working tree whatever else is staged, so a
+  polluted index cannot reach the commit. Never widen it to "fix" a mixed index.
 - Never commit `Binaries/ Intermediate/ Saved/ DerivedDataCache/ Build/ __pycache__`, secrets or broken-guard changes.
 - Commits end with the `Co-Authored-By` line given by the harness. Don't reset/clean/discard others' work.
 - Website source is `Site/`; publish with `python Tools/publish_site.py` after the changelog is committed
