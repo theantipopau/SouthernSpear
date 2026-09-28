@@ -111,6 +111,9 @@ def import_mesh():
         size = box.max - box.min
         report.setdefault("mesh_size_cm", {})[W] = [round(size.x, 1), round(size.y, 1), round(size.z, 1)]
         report.setdefault("muzzle_socket", {})[W] = mesh.find_socket("Muzzle") is not None
+        # The FBX importer drops the SOCKET_ prefix of the Blender empties (SOCKET_Muzzle -> Muzzle).
+        report.setdefault("sockets", {})[W] = {name: mesh.find_socket(name) is not None for name in (
+            "Muzzle", "LeftHandGrip", "RightHandGrip", "Eject", "EjectEnd")}
     return step("import_mesh", mesh is not None, report["mesh_size_cm"][W]) and mesh
 
 

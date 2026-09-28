@@ -70,6 +70,11 @@ run the build on the producer's machine, check `manifest.json → grip`, then dr
 - **Test:** the tool reports hand-to-socket distances. A capture per weapon shows both hands on it.
 
 ### W3. Muzzle flash and shell ejection from the memory points
+
+**Session 059: shell ejection built (uncompiled).** `adfrc_weapon.py` writes `SOCKET_Eject` / `SOCKET_EjectEnd`
+from `nabojnicestart` / `nabojniceend` (imported as `Eject` / `EjectEnd`); `USSShellEjectSubsystem` (bridge,
+clients only) throws a pooled brass case per rifle or pistol fire cue from the viewer's weapon, flies it
+ballistically, bounces it off the world and leaves it lying. The muzzle flash is still to do.
 - Extend `Tools/Blender/adfrc_weapon.py` (it already reads memory points for the muzzle and the sight) to
   emit `SOCKET_Eject` from `nabojnicestart`, with the direction to `nabojniceend`.
 - A shell-casing Niagara (or pooled static-mesh casings) and a muzzle flash on `SOCKET_Muzzle`, in first and

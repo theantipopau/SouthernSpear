@@ -4674,6 +4674,90 @@ grip for a reload and returns after it.
 ---
 
 
+## Session 059 — 2026-09-28 — W3 Shell Ejection, And The Hand IK Was Looking For The Wrong Socket Name
+
+### COMPLETED
+
+- **Found and fixed a defect in Session 058's hand IK before it cost a build.** Unreal's FBX importer
+  strips the `SOCKET_` prefix from Blender empties: `SOCKET_Muzzle` arrives as `Muzzle`, which is the name
+  every existing lookup uses. The hand IK was looking for `SOCKET_LeftHandGrip`, which no imported mesh has,
+  so the left hand would never have moved. `USSHandIKMeshComponent::GripSockets` now tries `LeftHandGrip`,
+  then `SOCKET_LeftHandGrip`. `setup_weapons.py` now reports, per weapon, which of `Muzzle`, `LeftHandGrip`,
+  `RightHandGrip`, `Eject` and `EjectEnd` exist, so the next run proves the names.
+- **W3 shell ejection, first half:**
+  - **Sockets.** `Tools/Blender/adfrc_weapon.py` writes `SOCKET_Eject` at the ejection port
+    (`nabojnicestart`) and `SOCKET_EjectEnd` where the case is thrown (`nabojniceend`). Every committed weapon
+    manifest lists both memory points. Two sockets, not one rotated socket, so the throw direction survives
+    the FBX axis conversion. It is read at runtime as the direction between them. The manifest gets an
+    `eject` entry, or the reason there is none.
+  - **`USSShellEjectSubsystem`** (Lyra bridge, clients only; `ss.Casings 0` turns it off). On each rifle or
+    pistol fire cue, `ASSCharacter` asks it to throw one case. The pistol cue also covers the semi-auto A25,
+    which uses the pistol's fire ability.
+    - The case leaves the `Eject` socket towards `EjectEnd` at 2.5–3.8 m/s, with some lift, a little
+      rearward, and the shooter's own velocity.
+    - The local player's case comes from the first-person weapon (the only-owner-see view model); everyone
+      else's from the third-person one.
+    - It flies ballistically with light drag and spin. A line trace per moving case, per frame, bounces it
+      off the world at 35% restitution and 35% friction. It settles on its side and lies there for 30 s or
+      until its slot in the 48-case pool is reused.
+    - A case still in flight after 6 s (off the map) is dropped. The step is capped at 1/30 s so a long
+      frame can't tunnel a case through the floor.
+    - Presentation only (ADR-004): no collision, no gameplay effect.
+  - **The case** is the engine cylinder in a brass tint (`BasicShapeMaterial` with its `Color` parameter),
+    sized per calibre from the mesh name: 5.56×45 by default, 7.62×51 for the A25/A417, 9×19 for the A9,
+    and 7.62×39 for the MAF weapons. No new asset.
+  - A weapon without the sockets throws nothing; there is no guessed port.
+
+### FILES CHANGED
+
+`Tools/Blender/adfrc_weapon.py`, `Tools/Unreal/setup_weapons.py`;
+`Plugins/SouthernSpearLyraBridge/Source/SouthernSpearLyraBridge/Public/SSShellEjectSubsystem.h` (new),
+`Private/SSShellEjectSubsystem.cpp` (new), `Private/Tests/SSCasingTests.cpp` (new), `Private/SSCharacter.cpp`,
+`Public/SSHandIKMeshComponent.h`, `Private/SSHandIKMeshComponent.cpp`; `CLAUDE.md`;
+`Docs/WEAPONS_ANIMATION_PLAN.md`; `Docs/CHANGELOG.md`.
+
+### TESTING
+
+- `python Tools/validate_architecture.py`: **exit 0**, PASS.
+- `python3 -m py_compile Tools/Blender/adfrc_weapon.py Tools/Unreal/setup_weapons.py`: exit 0.
+- New automation tests:
+  - `SouthernSpear.Bridge.Casings.Motion`: gravity, a floor bounce (105 up, 65 along, spin 12), a slow
+    case resting, and a case thrown from 1.4 m resting within 3 s after at least 2 bounces, 1–4 m out.
+  - `SouthernSpear.Bridge.Casings.Calibre`: mesh name to weapon, and the calibre per weapon.
+- A Python port of `Step`/`Bounce` on the thrown scenario: rests at 1.17 s after 5 bounces, 2.77 m to the side.
+- A unity-build name check over the bridge found no clashes for the new file-level names.
+- **NOT RUN (the producer's machine):** the build (expect 60 tests: 57 + HandIK 1 + Casings 2). Also not run:
+  `build_adfrc_weapons.py` (the eject sockets), `setup_weapons.py` (its `sockets` report), and cases in
+  game in both views.
+
+### ASSETS
+
+None (engine cylinder and material).
+
+### RISKS
+
+- **R-67 (open, low):** the brass tint assumes `/Engine/BasicShapes/BasicShapeMaterial` exposes a `Color`
+  vector parameter. If it doesn't, cases render the material's default (pale grey). A brass material asset
+  fixes it.
+
+### DEFECTS FOUND
+
+- The hand IK looked for `SOCKET_LeftHandGrip` while imported meshes carry `LeftHandGrip`. Found while
+  wiring the eject sockets: every existing lookup of the muzzle socket uses `Muzzle`, which only works if
+  the importer drops the prefix.
+
+### NEXT ACTION
+
+**On the producer's machine:**
+1. Pull, then run `python Tools/build_adfrc_weapons.py` and `Tools/Unreal/setup_weapons.py`. Check the
+   report's `sockets` table: every rifle should have `LeftHandGrip`, `Eject` and `EjectEnd`.
+2. Build and run the tests (expect 60/60).
+3. In a match, fire the A88 in both views: check the left hand is on the handguard (`ss.HandIK 0/1`) and
+   cases leave the right side and land.
+
+---
+
+
 ## Open Threads
 
 | Item | Blocked on | Owner |

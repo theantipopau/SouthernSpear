@@ -3,6 +3,7 @@
 #include "SSCharacter.h"
 
 #include "SSHandIKMeshComponent.h"
+#include "SSShellEjectSubsystem.h"
 
 #include "AbilitySystem/LyraAbilitySystemComponent.h"
 #include "Character/LyraPawnExtensionComponent.h"
@@ -210,10 +211,21 @@ void ASSCharacter::HandleGameplayCue(UObject* Self, FGameplayTag GameplayCueTag,
 {
 	Super::HandleGameplayCue(Self, GameplayCueTag, EventType, Parameters);
 	static const FGameplayTag RifleFire = FGameplayTag::RequestGameplayTag(TEXT("GameplayCue.Weapon.Rifle.Fire"), false);
-	if (EventType == EGameplayCueEvent::Executed && RifleFire.IsValid() && GameplayCueTag.MatchesTagExact(RifleFire)
-		&& GetNetMode() != NM_DedicatedServer)
+	static const FGameplayTag PistolFire = FGameplayTag::RequestGameplayTag(TEXT("GameplayCue.Weapon.Pistol.Fire"), false);
+	const bool bRifleFire = RifleFire.IsValid() && GameplayCueTag.MatchesTagExact(RifleFire);
+	// The pistol cue also fires for the semi-automatic A25, which uses the pistol's fire ability.
+	const bool bPistolFire = PistolFire.IsValid() && GameplayCueTag.MatchesTagExact(PistolFire);
+	if (EventType == EGameplayCueEvent::Executed && (bRifleFire || bPistolFire) && GetNetMode() != NM_DedicatedServer)
 	{
-		PlayRifleFire();
+		// A spent case from the ejection port (W3, presentation only).
+		if (USSShellEjectSubsystem* Shells = GetWorld() ? GetWorld()->GetSubsystem<USSShellEjectSubsystem>() : nullptr)
+		{
+			Shells->EjectFrom(this);
+		}
+		if (bRifleFire)
+		{
+			PlayRifleFire();
+		}
 		return;
 	}
 	static const FGameplayTag DamageTaken = FGameplayTag::RequestGameplayTag(TEXT("GameplayCue.Character.DamageTaken"), false);

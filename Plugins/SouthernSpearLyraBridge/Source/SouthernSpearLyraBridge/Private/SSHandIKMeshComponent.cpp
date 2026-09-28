@@ -14,7 +14,7 @@ DEFINE_LOG_CATEGORY_STATIC(LogSSHandIK, Log, All);
 namespace
 {
 	TAutoConsoleVariable<int32> CVarHandIK(TEXT("ss.HandIK"), 1,
-		TEXT("Left hand on the held weapon's SOCKET_LeftHandGrip (W2): 1 on, 0 off (for comparison)."));
+		TEXT("Left hand on the held weapon's LeftHandGrip socket (W2): 1 on, 0 off (for comparison)."));
 
 	FVector Perpendicular(const FVector& V, const FVector& Axis)
 	{
@@ -235,7 +235,19 @@ void USSHandIKMeshComponent::UpdateGrip(float DeltaTime)
 			for (USceneComponent* Candidate : Candidates)
 			{
 				const UStaticMeshComponent* Weapon = Cast<UStaticMeshComponent>(Candidate);
-				if (Weapon && Weapon->IsVisible() && Weapon->DoesSocketExist(GripSocket))
+				FName GripSocket = NAME_None;
+				if (Weapon && Weapon->IsVisible())
+				{
+					for (const FName& Name : GripSockets)
+					{
+						if (Weapon->DoesSocketExist(Name))
+						{
+							GripSocket = Name;
+							break;
+						}
+					}
+				}
+				if (!GripSocket.IsNone())
 				{
 					AttachSocket = Child->GetAttachSocketName();
 					const FTransform AttachWorld = AttachSocket.IsNone() ? GetComponentTransform() : GetSocketTransform(AttachSocket, RTS_World);

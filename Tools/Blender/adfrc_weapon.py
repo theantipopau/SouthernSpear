@@ -19,6 +19,8 @@
 # - SS_GRIP_CLIP=<handAnim pose> (W2): SOCKET_LeftHandGrip / SOCKET_RightHandGrip where the ADFRC
 #   pose puts the wrists on this weapon (Tools/Common/adfrc_grip.py, calibrated on trigger_axis and
 #   muzzle_pos). No sockets, and the reason in the manifest, when the pose does not fit.
+# - W3: SOCKET_Eject at the ejection port (nabojnicestart) and SOCKET_EjectEnd where the case is thrown
+#   (nabojniceend); manifest "eject".
 #
 # Run: blender --background --factory-startup --python Tools/Blender/adfrc_weapon.py -- <src.blend> <NAME> [optic.fbx]
 
@@ -309,6 +311,25 @@ for key, socket_name in (("grip_left", "SOCKET_LeftHandGrip"), ("grip_right", "S
         hand.location = points[key]
         bpy.context.scene.collection.objects.link(hand)
         hand.parent = obj
+# W3: the ejection port (nabojnicestart) and where the case is thrown to (nabojniceend), as two sockets so
+# the throw direction survives the FBX axis conversion; the game takes the direction between them at runtime.
+eject_report = None
+if "nabojnicestart" in points and "nabojniceend" in points:
+    throw = points["nabojniceend"] - points["nabojnicestart"]
+    if throw.length > 0.005:
+        for key, socket_name in (("nabojnicestart", "SOCKET_Eject"), ("nabojniceend", "SOCKET_EjectEnd")):
+            port = bpy.data.objects.new(socket_name, None)
+            port.location = points[key]
+            bpy.context.scene.collection.objects.link(port)
+            port.parent = obj
+        eject_report = {"port_m": [round(c, 4) for c in points["nabojnicestart"]],
+                        "direction": [round(c, 3) for c in throw.normalized()]}
+    else:
+        eject_report = {"reason": "nabojnicestart and nabojniceend coincide"}
+else:
+    eject_report = {"reason": "no nabojnicestart/nabojniceend memory points"}
+print("[ADFRC eject]", NAME, json.dumps(eject_report))
+
 if grip_report is not None and "grip_left" in points:
     grip_report["left_m"] = [round(c, 4) for c in points["grip_left"]]
     grip_report["right_m"] = [round(c, 4) for c in points["grip_right"]]
@@ -321,7 +342,7 @@ report = {"source": SRC, "fbx": fbx, "dimensions_m": list(obj.dimensions),
           "triangles": sum(len(p.vertices) - 2 for p in obj.data.polygons), "parts": len(keep),
           "dropped": sorted(set(dropped)), "textures": manifest, "muzzle_m": list(muzzle),
           "memory_points": sorted(memory), "origin": "trigger_axis" if "trigger_axis" in memory else "bbox centre",
-          "optic": optic_report, "grip": grip_report}
+          "optic": optic_report, "grip": grip_report, "eject": eject_report}
 with open(os.path.join(OUT_DIR, "manifest.json"), "w") as fh:
     json.dump(report, fh, indent=1)
 print("[ADFRC weapon]", NAME, json.dumps({k: report[k] for k in ("dimensions_m", "triangles", "parts", "dropped")}))

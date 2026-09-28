@@ -29,7 +29,8 @@ struct SSBRIDGE_API FSSHandIK
 /**
  * A skeletal mesh component that puts its left hand on the held weapon (W2, WEAPONS_ANIMATION_PLAN).
  *
- * The held weapon's static mesh carries SOCKET_LeftHandGrip, where the ADFRC handAnim pose puts the left
+ * The held weapon's static mesh carries the LeftHandGrip socket (exported from Blender as
+ * SOCKET_LeftHandGrip; the FBX importer drops the prefix, as it does for Muzzle), where the ADFRC handAnim pose puts the left
  * wrist on that weapon (Tools/Common/adfrc_grip.py). After each animation evaluation, before the pose is
  * published, this component runs a two-bone IK on its left arm to that socket, in C++: no Lyra asset is
  * changed and no Animation Blueprint is needed. Everything that follows this mesh by leader pose (the
@@ -56,9 +57,9 @@ public:
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 	virtual void FinalizeBoneTransform() override;
 
-	/** Socket on the held weapon's static mesh. */
+	/** Socket names on the held weapon's static mesh, first match wins (imported name, then the Blender name). */
 	UPROPERTY(EditAnywhere, Category = "Hand IK")
-	FName GripSocket = TEXT("SOCKET_LeftHandGrip");
+	TArray<FName> GripSockets = { TEXT("LeftHandGrip"), TEXT("SOCKET_LeftHandGrip") };
 
 	/** Candidate bone names, first match wins (Manny, then the Fab first-person arms). */
 	UPROPERTY(EditAnywhere, Category = "Hand IK")
