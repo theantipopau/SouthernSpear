@@ -142,8 +142,12 @@ bool USSObjectiveStatusWidget::Initialize()
 	ObjectiveNameText = MakeText(T, 11, true, SSUIStyle::Sand100(), 40);
 	AddH(ObjectiveRow, ObjectiveNameText, false, VAlign_Center)->SetPadding(FMargin(5.f, 0.f, 0.f, 0.f));
 	// Status on its own line: the panel is narrow.
+	StatusRow = T->ConstructWidget<UHorizontalBox>();
+	AddV(Body, StatusRow, 4.f);
 	StatusText = MakeText(T, 9, true, SSUIStyle::Sage400(), 120);
-	AddV(Body, StatusText, 4.f);
+	AddH(StatusRow, StatusText, true);
+	AliveText = MakeText(T, 9, true, SSUIStyle::Sand100(), 120);
+	AddH(StatusRow, AliveText, false, VAlign_Bottom);
 
 	// Capture bar: two fill-weighted segments, so no engine bar style is needed.
 	USizeBox* BarSize = T->ConstructWidget<USizeBox>();
@@ -240,7 +244,9 @@ void USSObjectiveStatusWidget::NativeTick(const FGeometry& MyGeometry, float InD
 	ObjectiveNameText->SetText(bShowObjective ? Upper(Model.ObjectiveName) : Upper(Model.Header));
 	StatusText->SetText(Upper(Model.ObjectiveStatus));
 	StatusText->SetColorAndOpacity(SSUIStyle::ToneColour(Model.ProgressTone));
-	StatusText->SetVisibility(bShowObjective ? ESlateVisibility::HitTestInvisible : ESlateVisibility::Collapsed);
+	StatusRow->SetVisibility(bShowObjective ? ESlateVisibility::HitTestInvisible : ESlateVisibility::Collapsed);
+	AliveText->SetText(Upper(Model.Alive));
+	AliveText->SetVisibility(Model.Alive.IsEmpty() ? ESlateVisibility::Collapsed : ESlateVisibility::HitTestInvisible);
 	BarSizeBox->SetVisibility(bShowObjective ? ESlateVisibility::HitTestInvisible : ESlateVisibility::Collapsed);
 
 	const float P = FMath::Clamp(Model.Progress, 0.f, 1.f);

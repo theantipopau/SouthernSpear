@@ -28,6 +28,7 @@ const TCHAR* USSServiceEventSubsystem::LexEvent(ESSServiceEvent Event)
 	case ESSServiceEvent::MatchCompleted:		return TEXT("MatchCompleted");
 	case ESSServiceEvent::MatchWon:				return TEXT("MatchWon");
 	case ESSServiceEvent::FriendlyKill:			return TEXT("FriendlyKill");
+	case ESSServiceEvent::EnemyKill:			return TEXT("EnemyKill");
 	default:									return TEXT("Unknown");
 	}
 }

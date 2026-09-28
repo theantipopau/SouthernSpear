@@ -293,28 +293,9 @@ def check(f):
                             "enum is defined by exactly these two values.".format(enum_name, value),
                         ))
 
-    # --- Rule 9: progression never rewards kills (GDD 6.4, ADR-032) ----------
-    # The service events are what progression can pay for. A kill event is the
-    # one thing that must never exist; the friendly-kill penalty is the only
-    # member allowed to mention kills.
-    for path, text in iter_ss_headers():
-        if os.path.basename(path) != "SSServiceEvents.h":
-            continue
-        rel = os.path.relpath(path, PROJECT_ROOT).replace("\\", "/")
-        match = re.search(r"enum class ESSServiceEvent[^{]*\{(.*?)\};", text, re.S)
-        if not match:
-            findings.append(Finding(
-                "SS009", rel,
-                "ESSServiceEvent not found; the no-kill-reward check cannot run."))
-            continue
-        body = re.sub(r"/\*.*?\*/|//[^\n]*", "", match.group(1), flags=re.S)
-        for member in re.findall(r"^\s*(\w+)", body, re.M):
-            if "kill" in member.lower() and member != "FriendlyKill":
-                findings.append(Finding(
-                    "SS009", rel,
-                    "service event '{0}' names a kill. Progression must not reward "
-                    "kills (GDD 6.4); FriendlyKill (a penalty) is the only kill "
-                    "event allowed.".format(member)))
+    # Rule 9 (no kill event, ADR-032) was retired by ADR-033: kills of the other
+    # side now earn capped service XP. The caps are asserted by
+    # SouthernSpear.Progression.ShippedTablesAreValid.
 
     return findings
 
@@ -343,7 +324,6 @@ def main():
                 "SS006_locality_as_team_value": sum(1 for x in findings if x.rule == "SS006"),
                 "SS007_team_enum_missing_none": sum(1 for x in findings if x.rule == "SS007"),
                 "SS008_locality_missing_value": sum(1 for x in findings if x.rule == "SS008"),
-                "SS009_service_event_rewards_kills": sum(1 for x in findings if x.rule == "SS009"),
             },
         }
         print(json.dumps(report, indent=2, sort_keys=True))

@@ -180,11 +180,13 @@ void USSKillFeedSubsystem::HandleOutOfHealth(const UAttributeSet* Set, AActor* I
 		Gate->ReportElimination(VictimController);
 	}
 	const ESSTeamId VictimTeam = TeamOf(Victim);
-	if (Killer && Killer != Victim && FSSTeamIdentity::IsPlayableTeam(VictimTeam) && TeamOf(Killer) == VictimTeam)
+	const ESSTeamId KillerTeam = TeamOf(Killer);
+	if (Killer && Killer != Victim && FSSTeamIdentity::IsPlayableTeam(VictimTeam) && FSSTeamIdentity::IsPlayableTeam(KillerTeam))
 	{
 		if (USSServiceEventSubsystem* Bus = World->GetSubsystem<USSServiceEventSubsystem>())
 		{
-			Bus->Post(Killer->GetOwningController(), ESSServiceEvent::FriendlyKill);
+			// ADR-033: a kill of the other side earns capped XP; a teammate costs it.
+			Bus->Post(Killer->GetOwningController(), KillerTeam == VictimTeam ? ESSServiceEvent::FriendlyKill : ESSServiceEvent::EnemyKill);
 		}
 	}
 

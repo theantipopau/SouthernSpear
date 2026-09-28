@@ -49,6 +49,9 @@ private:
 	UPROPERTY(Transient) TObjectPtr<UHorizontalBox> ObjectiveRow;
 	UPROPERTY(Transient) TObjectPtr<UTextBlock> ObjectiveNameText;
 	UPROPERTY(Transient) TObjectPtr<UTextBlock> StatusText;
+	/** Section Assault: players alive, right of the status ("5 V 4"). */
+	UPROPERTY(Transient) TObjectPtr<UTextBlock> AliveText;
+	UPROPERTY(Transient) TObjectPtr<UHorizontalBox> StatusRow;
 	UPROPERTY(Transient) TObjectPtr<USizeBox> BarSizeBox;
 	UPROPERTY(Transient) TObjectPtr<UBorder> BarFill;
 	UPROPERTY(Transient) TObjectPtr<UBorder> BarRest;

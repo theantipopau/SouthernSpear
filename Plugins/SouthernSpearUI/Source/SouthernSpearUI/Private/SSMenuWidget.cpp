@@ -13,6 +13,7 @@
 #include "Kismet/KismetSystemLibrary.h"
 #include "SSLocalHudState.h"
 #include "SSLocalProfileState.h"
+#include "SSServiceRanks.h"
 #include "SSSettingsWidget.h"
 #include "SSUIAssets.h"
 #include "SSWidgetKit.h"
@@ -208,13 +209,24 @@ void USSMenuWidget::Setup(ESSMenuMode InMode)
 			Who->SetJustification(ETextJustify::Right);
 			AddV(ProfileBox, Who);
 			UTextBlock* Xp = Text(T, 10, true, SSPalette::Brass500(), 200);
-			Xp->SetText(Profile->NextRankXp < 0
-				? FText::Format(NSLOCTEXT("SSMenu", "ProfileXpTop", "{0}  ·  {1} XP"), Profile->RankName, FText::AsNumber(Profile->ServiceXp))
-				: FText::Format(NSLOCTEXT("SSMenu", "ProfileXp", "{0}  ·  {1} / {2} XP"), Profile->RankName,
-					FText::AsNumber(Profile->ServiceXp), FText::AsNumber(Profile->NextRankXp)));
+			Xp->SetText(Profile->NextLevelXp < 0
+				? FText::Format(NSLOCTEXT("SSMenu", "ProfileXpTop", "LEVEL {0}  ·  {1}  ·  {2} XP"), FText::AsNumber(Profile->ServiceLevel),
+					Profile->RankName, FText::AsNumber(Profile->ServiceXp))
+				: FText::Format(NSLOCTEXT("SSMenu", "ProfileXp", "LEVEL {0}  ·  {1}  ·  {2} / {3} XP"), FText::AsNumber(Profile->ServiceLevel),
+					Profile->RankName, FText::AsNumber(Profile->ServiceXp), FText::AsNumber(Profile->NextLevelXp)));
 			Xp->SetJustification(ETextJustify::Right);
 			AddV(ProfileBox, Xp);
-			AddH(TopRow, ProfileBox)->SetPadding(FMargin(0.f, 0.f, 24.f, 0.f));
+			AddH(TopRow, ProfileBox)->SetPadding(FMargin(0.f, 0.f, 10.f, 0.f));
+			// Rank insignia (ADR-033), brass, to the right of the name.
+			const FSSRankDefinition* Rank = FSSServiceRanks::RankForLevel(Profile->ServiceLevel);
+			if (UTexture2D* Insignia = Rank ? FSSServiceRanks::InsigniaTexture(Rank->Insignia) : nullptr)
+			{
+				UImage* Badge = T->ConstructWidget<UImage>();
+				Badge->SetBrushFromTexture(Insignia);
+				Badge->SetDesiredSizeOverride(FVector2D(40.f, 40.f));
+				Badge->SetColorAndOpacity(SSPalette::Brass300());
+				AddH(TopRow, Badge)->SetPadding(FMargin(0.f, 0.f, 24.f, 0.f));
+			}
 		}
 		const TPair<FText, FName> Nav[] = {
 			{ NSLOCTEXT("SSMenu", "NavSettings", "SETTINGS"), GET_FUNCTION_NAME_CHECKED(USSMenuWidget, OnSettings) },

@@ -9,6 +9,7 @@
 #include "GameplayTagContainer.h"
 #include "GenericTeamAgentInterface.h"
 #include "SSScoreboardState.h"
+#include "SSServiceRanks.h"
 
 DEFINE_LOG_CATEGORY_STATIC(LogSSScoreboard, Log, All);
 
@@ -83,6 +84,9 @@ void USSScoreboardSubsystem::Tick(float DeltaTime)
 		Row.bBot = PlayerState->IsABot();
 		Row.bLocal = PlayerState == LocalState;
 		Row.PingMs = Row.bBot ? -1 : FMath::RoundToInt(PlayerState->GetPingInMilliseconds());
+		// ADR-033: level and insignia, replicated on the player state by progression.
+		const USSServiceRankComponent* Rank = PlayerState->FindComponentByClass<USSServiceRankComponent>();
+		Row.ServiceLevel = Rank ? Rank->GetServiceLevel() : 0;
 	}
 	State->Rows.Sort([](const FSSScoreRow& A, const FSSScoreRow& B)
 	{

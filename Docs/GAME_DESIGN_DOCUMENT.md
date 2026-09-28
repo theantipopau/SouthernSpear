@@ -242,6 +242,8 @@ Recruit → Private → Private Proficient → Lance Corporal → Corporal → S
 
 **Officer ranks are reserved.** They are granted for seasonal, leadership or administrative achievement — never for accumulating kills. A player cannot buy a commission with a kill count.
 
+> **Superseded for progression by ADR-033 (producer, 2026-09-28).** Ranks are the Australian Army's, Private to General, earned as service levels 1–100 (like America's Army honour) and shown with their insignia on the scoreboard. Kills earn capped XP; objectives are worth ten times more.
+
 > **Legal note.** Rank insignia designs are **original placeholders** until legal and branding review clears them for public release. See `LICENCE_REGISTER.md` entry L-0003.
 
 ### 6.3 What progression rewards
@@ -252,7 +254,7 @@ Objective completion · teamwork · reviving and stabilising teammates · effect
 
 Kill/death ratio · grinding weak opponents · team stacking · repeatedly farming AI · time spent idle
 
-Points that award XP for passive presence or for per-kill bonuses are a **review blocker** in code review.
+Points that award XP for passive presence or for per-kill bonuses are a **review blocker** in code review. *(Per-kill XP is now allowed under ADR-033, capped per match; passive presence is still a blocker.)*
 
 ### 6.5 Data-driven
 

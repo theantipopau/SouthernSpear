@@ -3774,6 +3774,113 @@ round/match log lines as evidence. That closes R-43, or turns it into specific d
 
 ---
 
+## Session 049 — 2026-09-28 — Australian Army Ranks 1–100 With Insignia, Kill XP, HUD Clipping And Scoreboard Title Fixed
+
+### OUTCOME
+
+**Session 048 was verified on the producer's machine** (reported by the producer's local agent, not run
+here): `SouthernSpearEditor` built (20 actions, the new `SouthernSpearProgression` module included), and
+**52/52 automation tests passed** (37 before plus the 15 new). A live Section Assault run logged
+`Section Assault round 1: TeamOne attacked, TeamOneWon (DefendersEliminated). Score T1=1 T2=0.` with 8 bots
+and no spawn failures. R-43 (Session 048 unverified) is **closed** for what those tests cover.
+
+The playtest screenshots showed three defects, fixed here. Two producer requests are also done: realistic
+Australian Army ranks with insignia, and kill XP.
+
+### COMPLETED
+
+- **ADR-033.** Service levels 1–100, as America's Army honour worked. Seventeen Australian Army ranks,
+  PTE (1–4), LCPL (5–9) … LTGEN (96–99), GEN (100), shown with insignia on the scoreboard and front end.
+  Kills earn 10 XP, capped at 50 per match (an objective is 100). SS009 retired.
+- **Insignia drawn in code**, `SSInsigniaRaster.h` (engine-free), following the Army's devices: point-down
+  chevrons; crown (St Edward's pattern) over three chevrons for SSGT; crown for WO2 and MAJ; the Coat of Arms
+  (shield, kangaroo, emu, star) for WO1; Order of the Bath pips in a column; crown and pips for field
+  officers, with Brigadier's three in a triangle; crossed sword and baton for generals. `FSSServiceRanks::InsigniaTexture`
+  turns them into cached 64 px textures. No image files, so nothing to import or register.
+- **Staff Sergeant:** first dropped (a search said it was being phased out), then **restored**. The producer's
+  source (army.gov.au/about-us/ranks) and Defence's *Badges of Rank* list it. RSM-A (one appointment) and
+  Field Marshal (honorary) are not levels.
+- **Core:** `USSRankSettings` (ladder + curve, data), `FSSServiceRanks`, and `USSServiceRankComponent`
+  (replicated level on the player state). `FSSScoreRow::ServiceLevel`, `USSScoreboardState::ModeTitle`,
+  `ESSServiceEvent::EnemyKill`, and profile level fields.
+- **Progression:** ranks moved to Core. Record **schema v2** (`Statistics.EnemyKills`) with a v1→v2
+  migration. `USSServiceRelay::ServerReportProfile` (level + callsign → server → player state and
+  scoreboard name). `ss.Callsign <name>` console command.
+- **Bridge:** `EnemyKill` posted for kills of the other side, and the scoreboard reads the level component.
+- **UI:** scoreboard RANK column (insignia + level; "—" for bots). Front end: level, rank, XP and the
+  insignia badge.
+- **Fix — objective panel clipping under the minimap** (screenshots: "ROUND 2 · HALF 1FRIENDLY WIN",
+  "ROUND 2: FRIENDLY WIN, ("). Section Assault strings are now short: "Round 2" + "Attack"/"Defend"; the
+  alive count ("5 V 4") is on its own right-aligned slot on the status line; the post-round line is only the
+  reason ("defenders eliminated"); match result "Match won/lost/drawn". A test bounds the lengths.
+- **Fix — scoreboard said OBJECTIVE ASSAULT during Section Assault.** The kicker is now a member, filled
+  from `USSScoreboardState::ModeTitle`, which the objective HUD subsystem sets from the director's
+  replicated `RulesMode`. The other agent also flagged `SSMenuWidget.cpp:307`. That line is the front-end
+  **RULES choice button**, which offers both modes by name, so it is correct and unchanged.
+- **Tool:** `Tools/Progression/rank_preview.py` compiles `insignia_sheet.cpp` with g++ against the game's
+  own engine-free headers, prints the level/XP bands, checks the maths at all 100 thresholds and that every
+  rank draws, and writes the insignia sheet.
+
+### FILES CHANGED
+
+- Core: `SSServiceRanks.h/.cpp`, `SSInsigniaRaster.h`, `SSServiceLevelMath.h`, `Tests/SSServiceRanksTests.cpp`
+  (new). Also `SSServiceEvents.h/.cpp`, `SSScoreboardState.h`, `SSLocalProfileState.h`, and `SouthernSpearCore.Build.cs`
+  (private `NetCore`, an engine module).
+- Progression: `SSServiceRecord.h`, `SSProgressionSettings.h`, `SSProgressionRules.h/.cpp`,
+  `SSProgressionSubsystems.h/.cpp`, `Tests/SSProgressionTests.cpp`.
+- Objectives UI: `SSObjectiveHudModel.h/.cpp`, `SSObjectiveStatusWidget.h/.cpp`, `SSObjectiveHudSubsystem.cpp`,
+  `Tests/SSObjectiveHudTests.cpp`.
+- Bridge: `SSKillFeedSubsystem.cpp`, `SSScoreboardSubsystem.cpp`. UI: `SSScoreboardWidget.h/.cpp`, `SSMenuWidget.cpp`.
+- `Config/DefaultGame.ini` (rank ladder, awards). `Tools/validate_architecture.py` (SS009 retired). `Tools/Progression/` (new).
+- `CLAUDE.md`, `Docs/DECISION_LOG.md` (ADR-033), `Docs/GAME_DESIGN_DOCUMENT.md` §6.2/§6.4, `Docs/CHANGELOG.md`.
+- Evidence: `Docs/evidence/G060_rank_table.txt`. The sheet PNG is not committed (no git-lfs in the authoring container); regenerate with `python Tools/Progression/rank_preview.py`.
+
+### TESTING
+
+- `python Tools/Progression/rank_preview.py Docs/evidence/G060_rank_insignia_sheet.png`: **exit 0**. g++
+  `-std=c++20 -Wall -Wextra -Werror` against `SSInsigniaRaster.h` and `SSServiceLevelMath.h`. All 17 ranks
+  draw (Private draws nothing, as intended). The level curve inverts exactly at all 100 thresholds. Level 100
+  needs 371,414 XP. Evidence `Docs/evidence/G060_rank_table.txt`. The sheet was inspected visually and
+  revised twice: pips too small, the crown too mitre-like.
+- `python Tools/validate_architecture.py`: **exit 0**.
+- **NOT RUN (no Unreal Engine here):** the editor build, and automation for the new `SouthernSpear.Core.Ranks.*` (3),
+  the changed `Progression.*` (KillAwards replaces NoKillReward; Caps replaces RanksAndCaps; PersistenceRoundTrip
+  now covers v1→v2), `Objectives.Hud.SectionAssault`, and every suite for regressions. Also not run: the
+  scoreboard insignia column and front-end badge rendered in game, and `ss.Callsign` renaming a player.
+
+### ASSETS
+
+No asset files. The insignia are procedural textures created at runtime, after the Australian Army's devices
+(ADR-033). They are recorded under release gate R-48 rather than as a licence-register item, because no
+third-party file is used.
+
+### RISKS
+
+- **R-43 closed** by the producer's build and 52/52 run for Session 048. **R-49 (open, high until built):**
+  Session 049 C++ is again uncompiled.
+- **R-48 (open, release blocker).** The crown and the Coat of Arms (and the Army insignia set) need Defence and
+  PM&C permission before release, or the WO1/crown devices must be swapped for fictional ones.
+- R-44, R-45, R-46, R-47 as Session 048. R-46 now also covers the scoreboard level: it is self-reported
+  by each client from a local record.
+- **Lyra noise (not ours):** `W_SB_TeamStat:Construct` "Accessed None ... GetComponentByClass" ×4 comes from
+  ShooterCore's own scoreboard widget. It is logged here for the known-noise list.
+
+### DEFECTS FOUND
+
+- HUD clipping and the wrong scoreboard title: from the producer's playtest screenshots.
+- Pips drawn too small, and a crown that read as a mitre: from the rendered insignia sheet (`rank_preview.py`
+  failed the coverage check on 2LT/LT/CAPT before the fix).
+- The Medic kit equals the Rifleman kit (A88 + A9; healing not in the game): reported by the producer's
+  agent. It is a design gap, noted and not changed here.
+
+### NEXT ACTION
+
+**Build and run `Automation RunTests SouthernSpear`, then play one Section Assault match with Tab held.**
+Confirm the RANK column (insignia + level), the front-end badge, the unclipped objective panel, and that
+`ss.Callsign <name>` renames you on the scoreboard. Screenshot the scoreboard for `Docs/evidence/`.
+
+---
+
 
 ## Open Threads
 

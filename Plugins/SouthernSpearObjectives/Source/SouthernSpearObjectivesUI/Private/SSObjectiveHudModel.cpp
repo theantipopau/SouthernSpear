@@ -137,25 +137,23 @@ void FSSObjectiveHudModel::ApplySectionAssault(const FSSRoundState& Round, const
 	Score = FText::Format(LOCTEXT("SectionScore", "{0} {1} : {2} {3}"),
 		FirstSide, FText::AsNumber(FirstScore), FText::AsNumber(SecondScore), SecondSide);
 
-	// Rounds finished already include this one once it is over.
+	// Rounds finished already include this one once it is over. The half is not
+	// shown: the panel is narrow, and the side swap has its own banner.
 	const int32 RoundInMatch = Round.Phase == ESSRoundPhase::PostRound ? Match.RoundsPlayed : Match.RoundsPlayed + 1;
-	RoundLabel = FText::Format(LOCTEXT("SectionRound", "Round {0}  ·  Half {1}"), FText::AsNumber(RoundInMatch), FText::AsNumber(Match.Half));
+	RoundLabel = FText::Format(LOCTEXT("SectionRound", "Round {0}"), FText::AsNumber(RoundInMatch));
 
 	bViewerAttacking = HasViewer(ViewerTeam) && Match.AttackingTeam == ViewerTeam;
 	Role = !HasViewer(ViewerTeam) ? FText::GetEmpty() : bViewerAttacking ? LOCTEXT("Attack", "Attack") : LOCTEXT("Defend", "Defend");
-	const FText Alive = FText::Format(LOCTEXT("Alive", "{0} v {1}"), FText::AsNumber(AliveOf(First)), FText::AsNumber(AliveOf(Second)));
+	Alive = FText::GetEmpty();
 
 	switch (Round.Phase)
 	{
 	case ESSRoundPhase::PreRound:
-		PhaseLabel = Role.IsEmpty()
-			? FText::Format(LOCTEXT("AttacksNext", "{0} attacks"), TeamWord(Match.AttackingTeam, ViewerTeam))
-			: FText::Format(LOCTEXT("RoleNext", "{0} in"), Role);
+		PhaseLabel = Role.IsEmpty() ? FText::Format(LOCTEXT("AttacksNext", "{0} attack"), TeamWord(Match.AttackingTeam, ViewerTeam)) : Role;
 		break;
 	case ESSRoundPhase::InProgress:
-		PhaseLabel = Role.IsEmpty()
-			? FText::Format(LOCTEXT("Attacking", "{0} attacking  {1}"), TeamWord(Match.AttackingTeam, ViewerTeam), Alive)
-			: FText::Format(LOCTEXT("RoleAlive", "{0}  {1}"), Role, Alive);
+		PhaseLabel = Role.IsEmpty() ? FText::Format(LOCTEXT("Attacking", "{0} attack"), TeamWord(Match.AttackingTeam, ViewerTeam)) : Role;
+		Alive = FText::Format(LOCTEXT("Alive", "{0} v {1}"), FText::AsNumber(AliveOf(First)), FText::AsNumber(AliveOf(Second)));
 		break;
 	case ESSRoundPhase::PostRound:
 	{
@@ -165,19 +163,20 @@ void FSSObjectiveHudModel::ApplySectionAssault(const FSSRoundState& Round, const
 		case ESSRoundEndReason::ObjectiveTaken:			Why = LOCTEXT("WhyTaken", "objective taken"); break;
 		case ESSRoundEndReason::AttackersEliminated:	Why = LOCTEXT("WhyAttackers", "attackers eliminated"); break;
 		case ESSRoundEndReason::DefendersEliminated:	Why = LOCTEXT("WhyDefenders", "defenders eliminated"); break;
-		case ESSRoundEndReason::MutualElimination:		Why = LOCTEXT("WhyBoth", "both sides eliminated"); break;
-		case ESSRoundEndReason::TimeExpired:			Why = LOCTEXT("WhyTime", "time expired, objective held"); break;
+		case ESSRoundEndReason::MutualElimination:		Why = LOCTEXT("WhyBoth", "both sides out"); break;
+		case ESSRoundEndReason::TimeExpired:			Why = LOCTEXT("WhyTime", "time expired"); break;
 		default:										break;
 		}
+		// The result is already the phase label; the line under it says why.
 		if (!Why.IsEmpty())
 		{
-			Header = FText::Format(LOCTEXT("WhyHeader", "{0}  ({1})"), Header, Why);
+			Header = Why;
 		}
 		if (Match.bMatchOver)
 		{
-			PhaseLabel = FSSTeamIdentity::IsPlayableTeam(Match.MatchWinner)
-				? FText::Format(LOCTEXT("MatchWin", "Match: {0} win"), TeamWord(Match.MatchWinner, ViewerTeam))
-				: LOCTEXT("MatchDraw", "Match drawn");
+			PhaseLabel = !FSSTeamIdentity::IsPlayableTeam(Match.MatchWinner) ? LOCTEXT("MatchDraw", "Match drawn")
+				: !HasViewer(ViewerTeam) ? FText::Format(LOCTEXT("MatchWinNeutral", "{0} win"), TeamWord(Match.MatchWinner, ViewerTeam))
+				: Match.MatchWinner == ViewerTeam ? LOCTEXT("MatchWon", "Match won") : LOCTEXT("MatchLost", "Match lost");
 		}
 		break;
 	}

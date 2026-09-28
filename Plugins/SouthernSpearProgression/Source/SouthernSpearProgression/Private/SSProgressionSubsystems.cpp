@@ -4,11 +4,15 @@
 
 #include "Engine/GameInstance.h"
 #include "Engine/World.h"
+#include "GameFramework/GameModeBase.h"
 #include "GameFramework/PlayerController.h"
+#include "GameFramework/PlayerState.h"
+#include "HAL/IConsoleManager.h"
 #include "HAL/PlatformTime.h"
 #include "Misc/Paths.h"
 #include "SSLocalProfileState.h"
 #include "SSProgressionSettings.h"
+#include "SSServiceRanks.h"
 
 #define LOCTEXT_NAMESPACE "SSProgression"
 
@@ -29,7 +33,8 @@ namespace
 		}
 		bDone = true;
 		TArray<FString> Errors;
-		FSSProgressionRules::ValidateRanks(ProgressionSettings().Ranks, Errors);
+		const USSRankSettings& Ranks = *GetDefault<USSRankSettings>();
+		FSSServiceRanks::Validate(Ranks.Ranks, Ranks.MaxLevel, Errors);
 		FSSProgressionRules::ValidateAwards(ProgressionSettings().Awards, Errors);
 		for (const FString& Error : Errors)
 		{
@@ -43,6 +48,39 @@ namespace
 USSServiceRelay::USSServiceRelay()
 {
 	SetIsReplicatedByDefault(true);
+}
+
+void USSServiceRelay::BeginPlay()
+{
+	Super::BeginPlay();
+	// On the owning client (or a listen host's own controller): say who we are.
+	const APlayerController* Owner = Cast<APlayerController>(GetOwner());
+	UGameInstance* GameInstance = GetWorld() ? GetWorld()->GetGameInstance() : nullptr;
+	const USSPlayerProfileSubsystem* Profile = GameInstance ? GameInstance->GetSubsystem<USSPlayerProfileSubsystem>() : nullptr;
+	if (Owner && Owner->IsLocalController() && Profile)
+	{
+		Profile->ReportToServer();
+	}
+}
+
+void USSServiceRelay::ServerReportProfile_Implementation(int32 ServiceLevel, const FString& Callsign)
+{
+	APlayerController* Owner = Cast<APlayerController>(GetOwner());
+	APlayerState* PlayerState = Owner ? Owner->PlayerState.Get() : nullptr;
+	if (USSServiceRankComponent* Rank = USSServiceRankComponent::FindOrAdd(PlayerState))
+	{
+		Rank->SetServiceLevel(ServiceLevel); // clamped
+	}
+	// The callsign becomes the scoreboard name; the server re-checks it.
+	if (PlayerState && FSSProgressionRules::IsValidCallsign(Callsign) && PlayerState->GetPlayerName() != Callsign.TrimStartAndEnd())
+	{
+		if (AGameModeBase* GameMode = GetWorld() ? GetWorld()->GetAuthGameMode() : nullptr)
+		{
+			GameMode->ChangeName(Owner, Callsign.TrimStartAndEnd(), /*bNameChange=*/ true);
+		}
+	}
+	UE_LOG(LogSSProgression, Log, TEXT("Service profile: %s level %d."),
+		PlayerState ? *PlayerState->GetPlayerName() : TEXT("?"), ServiceLevel);
 }
 
 void USSServiceRelay::ClientServiceAward_Implementation(ESSServiceEvent Event, int32 XpDelta)
@@ -170,6 +208,44 @@ void USSPlayerProfileSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 	Provider = MakeUnique<FSSLocalDevPersistence>(FPaths::Combine(FPaths::ProjectSavedDir(), TEXT("SouthernSpear"), TEXT("Profiles")));
 	LoadOrCreate();
 	Publish();
+
+	TWeakObjectPtr<USSPlayerProfileSubsystem> WeakThis(this);
+	CallsignCommand = IConsoleManager::Get().RegisterConsoleCommand(TEXT("ss.Callsign"),
+		TEXT("Set your callsign (2-16 letters, digits, space, - or _). Shown on the scoreboard. Example: ss.Callsign Dingo 2-1"),
+		FConsoleCommandWithArgsDelegate::CreateLambda([WeakThis](const TArray<FString>& Args)
+		{
+			USSPlayerProfileSubsystem* Self = WeakThis.Get();
+			const FString Name = FString::Join(Args, TEXT(" "));
+			if (Self && !Self->SetCallsign(Name))
+			{
+				UE_LOG(LogSSProgression, Warning, TEXT("ss.Callsign: '%s' is not a valid callsign (2-16 letters, digits, space, - or _)."), *Name);
+			}
+		}), ECVF_Default);
+}
+
+void USSPlayerProfileSubsystem::Deinitialize()
+{
+	if (CallsignCommand)
+	{
+		IConsoleManager::Get().UnregisterConsoleObject(CallsignCommand);
+		CallsignCommand = nullptr;
+	}
+	Super::Deinitialize();
+}
+
+int32 USSPlayerProfileSubsystem::GetServiceLevel() const
+{
+	return FSSServiceRanks::LevelForXp(Record.ServiceXp);
+}
+
+void USSPlayerProfileSubsystem::ReportToServer() const
+{
+	const UGameInstance* GameInstance = GetGameInstance();
+	APlayerController* Controller = GameInstance ? GameInstance->GetFirstLocalPlayerController() : nullptr;
+	if (USSServiceRelay* Relay = Controller ? Controller->FindComponentByClass<USSServiceRelay>() : nullptr)
+	{
+		Relay->ServerReportProfile(GetServiceLevel(), Record.Callsign);
+	}
 }
 
 void USSPlayerProfileSubsystem::LoadOrCreate()
@@ -231,7 +307,7 @@ void USSPlayerProfileSubsystem::Save()
 
 void USSPlayerProfileSubsystem::ApplyServiceAward(ESSServiceEvent Event, int32 XpDelta)
 {
-	const int32 RankBefore = FSSProgressionRules::ResolveRankIndex(Record.ServiceXp, ProgressionSettings().Ranks);
+	const int32 LevelBefore = GetServiceLevel();
 	FSSProgressionRules::ApplyAward(Record, Event, XpDelta);
 	Save();
 	Publish();
@@ -243,10 +319,13 @@ void USSPlayerProfileSubsystem::ApplyServiceAward(ESSServiceEvent Event, int32 X
 			FSSProgressionRules::EventName(Event), FText::FromString(XpDelta > 0 ? TEXT("+") : TEXT("")), FText::AsNumber(XpDelta));
 		State->LastAwardTime = FPlatformTime::Seconds();
 	}
-	const int32 RankAfter = FSSProgressionRules::ResolveRankIndex(Record.ServiceXp, ProgressionSettings().Ranks);
-	if (RankAfter != RankBefore && ProgressionSettings().Ranks.IsValidIndex(RankAfter))
+	const int32 LevelAfter = GetServiceLevel();
+	if (LevelAfter != LevelBefore)
 	{
-		UE_LOG(LogSSProgression, Log, TEXT("Rank changed: %s."), *ProgressionSettings().Ranks[RankAfter].DisplayName.ToString());
+		const FSSRankDefinition* Rank = FSSServiceRanks::RankForLevel(LevelAfter);
+		UE_LOG(LogSSProgression, Log, TEXT("Service level %d -> %d (%s)."), LevelBefore, LevelAfter,
+			Rank ? *Rank->DisplayName.ToString() : TEXT("no rank"));
+		ReportToServer();
 	}
 }
 
@@ -259,6 +338,7 @@ bool USSPlayerProfileSubsystem::SetCallsign(const FString& NewCallsign)
 	Record.Callsign = NewCallsign.TrimStartAndEnd();
 	Save();
 	Publish();
+	ReportToServer();
 	return true;
 }
 
@@ -269,28 +349,30 @@ void USSPlayerProfileSubsystem::Publish()
 	{
 		return;
 	}
-	const TArray<FSSRankDefinition>& Ranks = ProgressionSettings().Ranks;
-	const int32 Index = FSSProgressionRules::ResolveRankIndex(Record.ServiceXp, Ranks);
+	const USSRankSettings& Settings = *GetDefault<USSRankSettings>();
+	const int32 Level = GetServiceLevel();
+	const int32 Index = FSSServiceRanks::RankIndexForLevel(Level, Settings.Ranks);
 
 	State->bLoaded = true;
 	State->Callsign = Record.Callsign.IsEmpty() ? LOCTEXT("NoCallsign", "Unassigned").ToString() : Record.Callsign;
 	State->ServiceXp = Record.ServiceXp;
+	State->ServiceLevel = Level;
+	State->LevelFloorXp = int32(FSSServiceRanks::XpForLevel(Level));
+	State->NextLevelXp = Level < Settings.MaxLevel ? int32(FSSServiceRanks::XpForLevel(Level + 1)) : -1;
 	State->MatchesCompleted = Record.Statistics.MatchesCompleted;
 	State->RoundsWon = Record.Statistics.RoundsWon;
 	State->RankIndex = FMath::Max(0, Index);
-	if (Ranks.IsValidIndex(Index))
+	if (Settings.Ranks.IsValidIndex(Index))
 	{
-		State->RankName = Ranks[Index].DisplayName;
-		State->RankAbbreviation = Ranks[Index].Abbreviation;
-		State->RankFloorXp = Ranks[Index].MinServiceXp;
-		State->NextRankXp = Ranks.IsValidIndex(Index + 1) ? Ranks[Index + 1].MinServiceXp : -1;
+		State->RankName = Settings.Ranks[Index].DisplayName;
+		State->RankAbbreviation = Settings.Ranks[Index].Abbreviation;
+		State->NextRankLevel = Settings.Ranks.IsValidIndex(Index + 1) ? Settings.Ranks[Index + 1].MinLevel : -1;
 	}
 	else
 	{
 		State->RankName = LOCTEXT("NoRanks", "Unranked");
 		State->RankAbbreviation = FText::GetEmpty();
-		State->RankFloorXp = 0;
-		State->NextRankXp = -1;
+		State->NextRankLevel = -1;
 	}
 }
 

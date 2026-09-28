@@ -12,10 +12,10 @@ class AController;
  * Things a player did in a match that progression may reward (ADR-032).
  *
  * The list is the GDD §6.3 "what progression rewards", as far as the game can
- * observe it today. There is deliberately NO kill event: kills are a means,
- * never the score (GDD §1, §6.4), and a per-kill award is a review blocker.
- * Guard rule SS009 fails the build if a *Kill* member other than FriendlyKill
- * is added. Append new members at the end: award rules name them in config.
+ * observe it today, plus kills of the other side (ADR-033, producer override
+ * of GDD §6.4). Every positive award is capped per match, and a captured
+ * objective is worth ten kills in the shipped table. Append new members at the
+ * end: award rules name them in config.
  */
 UENUM(BlueprintType)
 enum class ESSServiceEvent : uint8
@@ -33,6 +33,8 @@ enum class ESSServiceEvent : uint8
 	MatchWon,
 	/** The player killed a teammate. A penalty. */
 	FriendlyKill,
+	/** The player killed a player of the other team (ADR-033). */
+	EnemyKill,
 };
 
 DECLARE_MULTICAST_DELEGATE_TwoParams(FSSOnServiceEvent, AController* /*Player*/, ESSServiceEvent /*Event*/);

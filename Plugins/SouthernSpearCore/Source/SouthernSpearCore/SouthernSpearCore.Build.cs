@@ -46,8 +46,9 @@ public class SouthernSpearCore : ModuleRules
 		PrivateDependencyModuleNames.AddRange(
 			new string[]
 			{
-				// Deliberately empty beyond the public set. See the dependency
-				// policy comment above before adding anything.
+				// Engine modules only. See the dependency policy comment above
+				// before adding anything.
+				"NetCore", // DOREPLIFETIME for USSServiceRankComponent (ADR-033)
 			}
 		);
 	}
