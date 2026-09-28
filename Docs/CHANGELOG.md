@@ -3894,6 +3894,63 @@ the weapons plan's W1 is the next build task.)
 
 ---
 
+## Session 050 — 2026-09-28 — Licensing Settled (ADR-035), And W1: The A-Series Stop Being One Rifle
+
+### COMPLETED
+
+- **ADR-035 (producer):** Southern Spear is free to play. Every asset the project holds is cleared: Fab, other free
+  sources, and ADFRC from its creators. Real names are allowed everywhere: weapons, the Australian Army, its ranks
+  and insignia, ADF equipment and camouflage. `LICENCE_REGISTER.md` gets a §0 current-position section and
+  in-place amendments (L-0003 hold and L-0004 prohibition lifted; L-0007 narrowed to ripped/CAD sources; release
+  gate revised; L-0021 cleared). CLAUDE.md's content rules are rewritten to match, and the GDD, ADFRC readmes and
+  code comments are updated. These still stand, as non-licence rules: no endorsement claim, MAF portrayal, no
+  *America's Army* content, no ripped assets. **R-57** records the accepted residual trademark/emblem risk.
+  Pushed as 15bc062a.
+- **W1 per-weapon stats** (`Docs/WEAPONS_ANIMATION_PLAN.md`):
+  - **Core:** `SSWeaponStats.h/.cpp` (`FSSWeaponStats`, `USSWeaponStatsSettings`, `FSSWeaponStatsRules`) and
+    `Tests/SSWeaponStatsTests.cpp` (2 tests).
+  - **Config:** eight rows from `Docs/WEAPON_SOURCE_DATA.md`. A88/A88G 682 rpm, 30 rounds; A89 750 rpm, a
+    200-round belt, spread ×1.74; A4/A416 857 rpm; A417 600 rpm, 20 rounds, ×1.18; A25 semi-auto, 20 rounds,
+    ×0.75; A9 semi-auto, 15 rounds.
+  - **Bridge:** `USSWeaponStatsSubsystem`. On the server, each new `ID_SS_*` item gets its magazine size, a full
+    magazine and its spare rounds (Lyra's stat-tag functions, by reflection). On every machine, each new ranged
+    weapon instance has its own copy of `HeatToSpreadCurve` scaled. Lyra is unmodified.
+  - **Rate of fire and semi/full-auto are not applied yet.** Lyra keeps them in its fire-ability Blueprint.
+    `Tools/Unreal/probe_weapon_fire.py` (new, read-only) dumps the Blueprint-declared variables along
+    WID → ability sets → abilities, using the new `USSObjectivesEditorLibrary::ListPropertiesAsText`.
+
+### FILES CHANGED
+
+- `Docs/DECISION_LOG.md` (ADR-035), `Docs/LICENCE_REGISTER.md`, `CLAUDE.md`, `Docs/GAME_DESIGN_DOCUMENT.md`,
+  `Docs/Sourced/ADFRC/README.md`, `Docs/Sourced/ADFRC/ADFRC_CONFIG_REGISTRY.md`, `Docs/WEAPONS_ANIMATION_PLAN.md`,
+  `Docs/WEAPON_SOURCE_DATA.md`, `Tools/Weapons/adfrc_weapon_data.py`, `SSInsigniaRaster.h`, `Config/DefaultGame.ini`.
+- Core: `SSWeaponStats.h/.cpp`, `Tests/SSWeaponStatsTests.cpp`. Bridge: `SSWeaponStatsSubsystem.h/.cpp`.
+  Objectives editor: `SSObjectivesEditorLibrary.h/.cpp` (`ListPropertiesAsText`). `Tools/Unreal/probe_weapon_fire.py`.
+
+### TESTING
+
+- `python Tools/validate_architecture.py`: **exit 0**. `python Tools/Weapons/adfrc_weapon_data.py`: **exit 0**,
+  8/8. `probe_weapon_fire.py` parses (`ast`).
+- **NOT RUN (no Unreal Engine here):** the build; `SouthernSpear.Core.Weapons.*` (2); a live check that the
+  A89 shows 200/200 and the A25 20/80 on the HUD, and that the `LogSSWeaponStats` lines print; the probe.
+
+### RISKS
+
+- **R-57 (accepted, ADR-035):** third-party trademarks and Commonwealth emblems; remedy if ever needed is a
+  rename or a swap.
+- **R-58 (open, medium):** W1 reaches Lyra by reflection (`GetStatTagStackCount`/`Add`/`RemoveStatTagStack`,
+  `HeatToSpreadCurve`). A signature change fails soft, with a log line and Lyra's numbers kept. The first build
+  and a live check confirm it.
+- **R-59 (open, low):** a weapon whose ammo was granted before the subsystem's first pass (0.25 s) could fire one
+  magazine at Lyra's size. Items are adjusted once, on first sight.
+
+### NEXT ACTION
+
+**Build, run the tests, and run `Tools/Unreal/probe_weapon_fire.py`.** Then send me `Build/probe_weapon_fire.json`
+so I can wire rate of fire and semi/full-auto (the rest of W1) before W2.
+
+---
+
 
 ## Open Threads
 

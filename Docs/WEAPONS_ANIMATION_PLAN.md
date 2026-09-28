@@ -34,6 +34,11 @@ The measured per-weapon values are in `Docs/WEAPON_SOURCE_DATA.md` (generated; `
 Each step is one commit with evidence, like the rest of the project.
 
 ### W1. Per-weapon gameplay stats from data (biggest feel change, no animation needed)
+
+**Session 050: built (uncompiled).** The table is `[/Script/SouthernSpearCore.SSWeaponStatsSettings]`. The Lyra
+bridge's `USSWeaponStatsSubsystem` applies magazine size, a full magazine and spare rounds (server) and scales
+spread (every machine) as each weapon spawns. **Rate of fire and semi/full-auto are pending**:
+`Tools/Unreal/probe_weapon_fire.py` finds the fire ability's variable, and the next step wires it.
 - A committed table `Config/DefaultGame.ini [SSWeaponStats]` (or a DataTable), seeded from
   `WEAPON_SOURCE_DATA.json`: rpm, spread, magazine, fire modes, and ADS/sway factors from inertia and dexterity.
   A88 and its MAF counterpart still share one row (ADR-016).

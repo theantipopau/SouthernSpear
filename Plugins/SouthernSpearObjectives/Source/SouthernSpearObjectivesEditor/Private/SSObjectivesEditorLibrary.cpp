@@ -5,6 +5,7 @@
 #include "GameFeatureAction_AddComponents.h"
 #include "GameFeatureData.h"
 #include "Modules/ModuleManager.h"
+#include "UObject/UnrealType.h"
 
 IMPLEMENT_MODULE(FDefaultModuleImpl, SouthernSpearObjectivesEditor)
 
@@ -71,4 +72,30 @@ FString USSObjectivesEditorLibrary::GetPropertyAsText(UObject* Target, FName Pro
 		Property->ExportText_InContainer(0, Out, Target, Target, Target, PPF_None);
 	}
 	return Out;
+}
+
+TArray<FString> USSObjectivesEditorLibrary::ListPropertiesAsText(UObject* Target, UClass* StopAtClass)
+{
+	TArray<FString> Lines;
+	if (!Target)
+	{
+		return Lines;
+	}
+	for (TFieldIterator<FProperty> It(Target->GetClass(), EFieldIteratorFlags::IncludeSuper); It; ++It)
+	{
+		const FProperty* Property = *It;
+		const UClass* Owner = Property->GetOwnerClass();
+		if (StopAtClass && Owner && (Owner == StopAtClass || StopAtClass->IsChildOf(Owner)))
+		{
+			continue; // declared at or above the stop class
+		}
+		FString Value;
+		Property->ExportText_InContainer(0, Value, Target, Target, Target, PPF_None);
+		if (Value.Len() > 300)
+		{
+			Value = Value.Left(300) + TEXT("...");
+		}
+		Lines.Add(FString::Printf(TEXT("%s.%s = %s"), Owner ? *Owner->GetName() : TEXT("?"), *Property->GetName(), *Value));
+	}
+	return Lines;
 }

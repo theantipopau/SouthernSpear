@@ -58,4 +58,12 @@ public:
 	/** Export a property as text (the inverse of SetPropertyFromText); empty if missing. */
 	UFUNCTION(BlueprintCallable, Category = "Southern Spear|Editor")
 	static FString GetPropertyAsText(UObject* Target, FName PropertyName);
+
+	/**
+	 * Every property of Target's class, as "Owner.Name = value" text, down to (not including) StopAtClass
+	 * (nullptr: the whole chain). For probing Blueprint variables, which Python cannot enumerate
+	 * (Tools/Unreal/probe_weapon_fire.py). Values longer than 300 characters are cut.
+	 */
+	UFUNCTION(BlueprintCallable, Category = "Southern Spear|Editor")
+	static TArray<FString> ListPropertiesAsText(UObject* Target, UClass* StopAtClass);
 };
