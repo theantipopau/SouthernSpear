@@ -202,8 +202,9 @@ the repository start with [`CLAUDE.md`](CLAUDE.md).
 ## Source control
 
 This repository is **private**: it vendors Lyra and Epic content, which must not be republished. Binary
-assets (`.uasset`, `.umap`, `.fbx`, `.blend`, `.png`, `.jpg`) are tracked with **Git LFS** but pushed as
-pointers only (`GIT_LFS_SKIP_PUSH=1`, R-14), so a clone needs the content from the development machine.
+assets (`.uasset`, `.umap`, `.fbx`, `.blend`, `.png`, `.jpg`) are tracked with **Git LFS**. GitHub refuses a push
+that references LFS objects it doesn't hold, so rebuilt assets are uploaded with `git lfs push` before the
+commit is pushed; a fresh clone runs `git lfs pull` to fetch them. See [`CLAUDE.md`](CLAUDE.md) for the exact steps.
 Third-party Fab packs and the raw ADF Re-Cut extraction are git-ignored and referenced in place (ADR-021).
 The public website lives in [`theantipopau/southernspear-site`](https://github.com/theantipopau/southernspear-site).
 
