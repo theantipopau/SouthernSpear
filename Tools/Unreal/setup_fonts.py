@@ -6,6 +6,12 @@ builds the composite fonts from them at runtime (Python cannot author
 UFont typefaces). Report: Build/fonts_setup.json."""
 import json
 import unreal
+import os
+import sys
+
+# does_asset_exist() misses Game Feature assets in a commandlet; see Tools/Unreal/ss_assets.py.
+sys.path.insert(0, os.path.join(unreal.Paths.convert_relative_path_to_full(unreal.Paths.project_dir()), "Tools", "Unreal"))
+from ss_assets import asset_exists  # noqa: E402
 
 DEST = "/SouthernSpearUI/Fonts"
 ART = "E:/SouthernSpear/Art/Fonts/"
@@ -13,7 +19,7 @@ eal = unreal.EditorAssetLibrary
 tools = unreal.AssetToolsHelpers.get_asset_tools()
 report = {}
 for stale in ("F_SS_Display", "F_SS_Body", "F_SS_Mono"):
-    if eal.does_asset_exist(DEST + "/" + stale):
+    if asset_exists(DEST + "/" + stale):
         eal.delete_asset(DEST + "/" + stale)
 for ttf in ("BarlowCondensed.ttf", "Inter-Regular.ttf", "Inter-SemiBold.ttf", "IBMPlexMono.ttf"):
     name = "FF_" + ttf.replace(".ttf", "").replace("-", "_")

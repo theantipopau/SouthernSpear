@@ -15,6 +15,11 @@ import os
 import traceback
 
 import unreal
+import sys
+
+# does_asset_exist() misses Game Feature assets in a commandlet; see Tools/Unreal/ss_assets.py.
+sys.path.insert(0, os.path.join(unreal.Paths.convert_relative_path_to_full(unreal.Paths.project_dir()), "Tools", "Unreal"))
+from ss_assets import asset_exists  # noqa: E402
 
 PROJECT_DIR = unreal.Paths.convert_relative_path_to_full(unreal.Paths.project_dir())
 REPORT = os.path.join(PROJECT_DIR, "Build", "tactical_movement_setup.json")
@@ -34,7 +39,7 @@ def step(name, ok, detail=""):
 
 def input_action(name, consume=True):
     path = INPUT + "/" + name
-    ia = unreal.load_asset(path) if eal.does_asset_exist(path) else tools.create_asset(name, INPUT, unreal.InputAction, unreal.InputAction_Factory())
+    ia = unreal.load_asset(path) if asset_exists(path) else tools.create_asset(name, INPUT, unreal.InputAction, unreal.InputAction_Factory())
     ia.set_editor_property("value_type", unreal.InputActionValueType.BOOLEAN)
     ia.set_editor_property("consume_input", consume)
     eal.save_loaded_asset(ia, False)
@@ -56,7 +61,7 @@ def main():
         "IA_SS_LeanRight": ("E", True),
     }
     path = INPUT + "/IMC_SS_Tactical"
-    if eal.does_asset_exist(path):
+    if asset_exists(path):
         eal.delete_asset(path)
     imc = tools.create_asset("IMC_SS_Tactical", INPUT, unreal.InputMappingContext, unreal.InputMappingContext_Factory())
     for name, (k, consume) in ours.items():
@@ -76,7 +81,7 @@ def main():
     unreal.BlueprintEditorLibrary.compile_blueprint(base)
     step("hero_default_reparented", eal.save_loaded_asset(base, False), "B_Hero_Default -> SSCharacter")
     for old in ("B_SS_Hero", "B_SS_Hero_Default", "HeroData_SS"):
-        if eal.does_asset_exist(CHARS + "/" + old):
+        if asset_exists(CHARS + "/" + old):
             eal.delete_asset(CHARS + "/" + old)
 
     exp = unreal.load_asset(EXPERIENCE)

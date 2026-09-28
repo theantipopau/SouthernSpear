@@ -17,6 +17,11 @@ import os
 import traceback
 
 import unreal
+import sys
+
+# does_asset_exist() misses Game Feature assets in a commandlet; see Tools/Unreal/ss_assets.py.
+sys.path.insert(0, os.path.join(unreal.Paths.convert_relative_path_to_full(unreal.Paths.project_dir()), "Tools", "Unreal"))
+from ss_assets import asset_exists  # noqa: E402
 
 PROJECT_DIR = unreal.Paths.convert_relative_path_to_full(unreal.Paths.project_dir())
 REPORT = os.path.join(PROJECT_DIR, "Build", "damage_model_setup.json")
@@ -54,7 +59,7 @@ def step(name, ok, detail=""):
 def physical_material(zone, tags_text):
     name = "PM_SS_" + zone
     path = PHYS + "/" + name
-    if not eal.does_asset_exist(path):
+    if not asset_exists(path):
         eal.duplicate_asset("/Game/Characters/Heroes/PhysMat_Player_WeakSpot", path)  # keeps class and surface
     pm = unreal.load_asset(path)
     ok = lib.set_property_from_text(pm, "Tags", tags_text)
@@ -72,7 +77,7 @@ def main():
     for w, (kind, head, torso, limb) in WANTED.items():
         base, src = BASE[kind]
         path = "{0}/{1}/B_SS_WeaponInstance_{1}".format(WEAPONS, w)
-        if not eal.does_asset_exist(path):
+        if not asset_exists(path):
             eal.duplicate_asset(src, path)
         bp = unreal.load_asset(path)
         cdo = unreal.get_default_object(bp.generated_class())

@@ -14,6 +14,11 @@ import re
 import traceback
 
 import unreal
+import sys
+
+# does_asset_exist() misses Game Feature assets in a commandlet; see Tools/Unreal/ss_assets.py.
+sys.path.insert(0, os.path.join(unreal.Paths.convert_relative_path_to_full(unreal.Paths.project_dir()), "Tools", "Unreal"))
+from ss_assets import asset_exists  # noqa: E402
 
 PROJECT_DIR = unreal.Paths.convert_relative_path_to_full(unreal.Paths.project_dir())
 ART = os.path.join(PROJECT_DIR, "Art", "Characters", "ADF")
@@ -43,7 +48,7 @@ for path in glob.glob(os.path.join(TEX_ROOT, "**", "*.png"), recursive=True):
 def gear_master():
     """M_SS_GearPBR: the weapon PBR graph (colour, normal, SMDI) flagged for skeletal meshes."""
     path = DEST + "/M_SS_GearPBR"
-    if not eal.does_asset_exist(path):
+    if not asset_exists(path):
         eal.duplicate_asset("/SSExp_ObjectiveAssault/Materials/M_SS_WeaponPBR", path)
     m = unreal.load_asset(path)
     m.set_editor_property("used_with_skeletal_mesh", True)
@@ -118,7 +123,7 @@ def texture(stem, normal=False, masks=False):
         return None
     name = "T_ADF_" + re.sub(r"[^A-Za-z0-9_]", "_", stem)
     path = DEST + "/Textures/" + name
-    if not eal.does_asset_exist(path):
+    if not asset_exists(path):
         task = unreal.AssetImportTask()
         task.filename = src
         task.destination_path = DEST + "/Textures"

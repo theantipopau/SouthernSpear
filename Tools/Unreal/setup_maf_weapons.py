@@ -13,6 +13,11 @@ import json
 import os
 
 import unreal
+import sys
+
+# does_asset_exist() misses Game Feature assets in a commandlet; see Tools/Unreal/ss_assets.py.
+sys.path.insert(0, os.path.join(unreal.Paths.convert_relative_path_to_full(unreal.Paths.project_dir()), "Tools", "Unreal"))
+from ss_assets import asset_exists  # noqa: E402
 
 ROOT = unreal.Paths.convert_relative_path_to_full(unreal.Paths.project_dir())
 DEST = "/SSExp_ObjectiveAssault/Weapons/MAF"
@@ -51,7 +56,7 @@ else:
     eal.save_loaded_asset(mesh, False)
     report["meshes"]["SM_MAF_R1"] = {"slots": [(str(s.material_slot_name), s.material_interface.get_name() if s.material_interface else None) for s in slots],
                                      "muzzle": str(mesh.find_socket("Muzzle").get_editor_property("relative_location")) if mesh.find_socket("Muzzle") else None}
-    if eal.does_asset_exist(DEST + "/SM_MAF_S1"):
+    if asset_exists(DEST + "/SM_MAF_S1"):
         eal.delete_asset(DEST + "/SM_MAF_S1")
     support = eal.duplicate_asset(DEST + "/SM_MAF_R1", DEST + "/SM_MAF_S1")
     report["meshes"]["SM_MAF_S1"] = bool(support) and eal.save_loaded_asset(support, False)

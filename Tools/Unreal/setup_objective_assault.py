@@ -26,6 +26,11 @@ import os
 import traceback
 
 import unreal
+import sys
+
+# does_asset_exist() misses Game Feature assets in a commandlet; see Tools/Unreal/ss_assets.py.
+sys.path.insert(0, os.path.join(unreal.Paths.convert_relative_path_to_full(unreal.Paths.project_dir()), "Tools", "Unreal"))
+from ss_assets import asset_exists  # noqa: E402
 
 PROJECT_DIR = unreal.Paths.convert_relative_path_to_full(unreal.Paths.project_dir())
 REPORT = os.path.join(PROJECT_DIR, "Build", "objective_assault_setup.json")
@@ -74,7 +79,7 @@ def component_entry(actor_class, component_class, client, server):
 
 def ensure_game_feature_data():
     path = "{}/{}".format(GF_ROOT, GFD_NAME)
-    gfd = eal.load_asset(path) if eal.does_asset_exist(path) else None
+    gfd = eal.load_asset(path) if asset_exists(path) else None
     if gfd is None:
         factory = unreal.DataAssetFactory()
         factory.set_editor_property("data_asset_class", unreal.GameFeatureData)
@@ -134,7 +139,7 @@ def ensure_game_feature_data():
 
 def ensure_experience():
     path = "{}/{}".format(EXP_DIR, EXP_NAME)
-    bp = eal.load_asset(path) if eal.does_asset_exist(path) else None
+    bp = eal.load_asset(path) if asset_exists(path) else None
     if bp is None:
         factory = unreal.BlueprintFactory()
         factory.set_editor_property("parent_class", load_class("/Script/LyraGame.LyraExperienceDefinition"))

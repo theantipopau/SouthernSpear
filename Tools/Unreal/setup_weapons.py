@@ -21,6 +21,11 @@ import os
 import traceback
 
 import unreal
+import sys
+
+# does_asset_exist() misses Game Feature assets in a commandlet; see Tools/Unreal/ss_assets.py.
+sys.path.insert(0, os.path.join(unreal.Paths.convert_relative_path_to_full(unreal.Paths.project_dir()), "Tools", "Unreal"))
+from ss_assets import asset_exists  # noqa: E402
 
 PROJECT_DIR = unreal.Paths.convert_relative_path_to_full(unreal.Paths.project_dir())
 WEAPONS = ["A88", "A88G", "A89", "A4", "A416", "A25", "A9"]
@@ -111,7 +116,7 @@ def import_mesh():
 
 def master_material():
     path = MAT_DIR + "/M_SS_FlatPBR"
-    if eal.does_asset_exist(path):
+    if asset_exists(path):
         return unreal.load_asset(path)
     mat = tools.create_asset("M_SS_FlatPBR", MAT_DIR, unreal.Material, unreal.MaterialFactoryNew())
     col = mel.create_material_expression(mat, unreal.MaterialExpressionVectorParameter, -400, 0)
@@ -131,7 +136,7 @@ def master_material():
 
 def textured_master():
     path = MAT_DIR + "/M_SS_TexturedPBR"
-    if eal.does_asset_exist(path):
+    if asset_exists(path):
         return unreal.load_asset(path)
     mat = tools.create_asset("M_SS_TexturedPBR", MAT_DIR, unreal.Material, unreal.MaterialFactoryNew())
     tex = mel.create_material_expression(mat, unreal.MaterialExpressionTextureSampleParameter2D, -500, 0)
@@ -174,7 +179,7 @@ def textured_finishes(mesh):
         name = str(slot.material_slot_name)
         entry = textures.get(name) or textures.get(name.lower()) or {}
         mi_path = DEST + "/MI_" + W + "_" + name
-        mi = unreal.load_asset(mi_path) if eal.does_asset_exist(mi_path) else tools.create_asset(
+        mi = unreal.load_asset(mi_path) if asset_exists(mi_path) else tools.create_asset(
             "MI_" + W + "_" + name, DEST, unreal.MaterialInstanceConstant, unreal.MaterialInstanceConstantFactoryNew())
         if entry.get("colour"):
             mi.set_editor_property("parent", parent)
@@ -204,7 +209,7 @@ def finishes(mesh):
         if not key:
             continue
         mi_path = DEST + "/MI_" + W + "_" + key
-        mi = unreal.load_asset(mi_path) if eal.does_asset_exist(mi_path) else tools.create_asset(
+        mi = unreal.load_asset(mi_path) if asset_exists(mi_path) else tools.create_asset(
             "MI_" + W + "_" + key, DEST, unreal.MaterialInstanceConstant, unreal.MaterialInstanceConstantFactoryNew())
         mi.set_editor_property("parent", parent)
         f = FINISHES[key]
@@ -225,7 +230,7 @@ def visual_blueprint(mesh):
     rifle mesh is hidden and our static mesh is added in its place."""
     name = "B_SS_" + W + "_Weapon"
     path = DEST + "/" + name
-    if eal.does_asset_exist(path):
+    if asset_exists(path):
         eal.delete_asset(path)
     factory = unreal.BlueprintFactory()
     factory.set_editor_property("parent_class", unreal.load_class(None, base_of(W)[2]))
@@ -257,7 +262,7 @@ def visual_blueprint(mesh):
 
 def copy_definition(src, name):
     path = DEST + "/" + name
-    if not eal.does_asset_exist(path):
+    if not asset_exists(path):
         eal.duplicate_asset(src, path)
     return unreal.load_asset(path)
 
@@ -334,7 +339,7 @@ def semi_auto(wid):
             continue
         name = "AbilitySet_SS_{}_Semi".format(W)
         copy_path = DEST + "/" + name
-        if not eal.does_asset_exist(copy_path):
+        if not asset_exists(copy_path):
             eal.duplicate_asset(set_path.split(".")[0], copy_path)
         copy = unreal.load_asset(copy_path)
         ok = copy and lib.set_property_from_text(copy, "GrantedGameplayAbilities", text.replace(auto_path, semi_path))

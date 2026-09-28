@@ -8,6 +8,11 @@ import json
 import os
 import re
 import unreal
+import sys
+
+# does_asset_exist() misses Game Feature assets in a commandlet; see Tools/Unreal/ss_assets.py.
+sys.path.insert(0, os.path.join(unreal.Paths.convert_relative_path_to_full(unreal.Paths.project_dir()), "Tools", "Unreal"))
+from ss_assets import asset_exists  # noqa: E402
 
 ROOT = "E:/SouthernSpear/Art/Weapons"
 MAT = "/SSExp_ObjectiveAssault/Materials/M_SS_WeaponPBR"
@@ -19,7 +24,7 @@ report = {}
 
 
 def master():
-    if eal.does_asset_exist(MAT):
+    if asset_exists(MAT):
         return unreal.load_asset(MAT)
     m = tools.create_asset("M_SS_WeaponPBR", os.path.dirname(MAT), unreal.Material, unreal.MaterialFactoryNew())
     E = unreal
@@ -99,7 +104,7 @@ for w in WEAPONS:
     done = []
     for slot, entry in textures.items():
         mi_path = dest + "/MI_{}_{}".format(w, slot)
-        if not entry.get("colour") or not eal.does_asset_exist(mi_path):
+        if not entry.get("colour") or not asset_exists(mi_path):
             continue
         mi = unreal.load_asset(mi_path)
         if isinstance(mi.get_editor_property("parent"), unreal.Material) and mi.get_editor_property("parent").get_name() == "M_SS_OpticGlass":

@@ -14,6 +14,11 @@ import os
 import traceback
 
 import unreal
+import sys
+
+# does_asset_exist() misses Game Feature assets in a commandlet; see Tools/Unreal/ss_assets.py.
+sys.path.insert(0, os.path.join(unreal.Paths.convert_relative_path_to_full(unreal.Paths.project_dir()), "Tools", "Unreal"))
+from ss_assets import asset_exists  # noqa: E402
 
 PROJECT_DIR = unreal.Paths.convert_relative_path_to_full(unreal.Paths.project_dir())
 REPORT = os.path.join(PROJECT_DIR, "Build", "soldiers_setup.json")
@@ -41,7 +46,7 @@ def step(name, ok, detail=""):
 
 def blueprint(name, parent):
     path = DEST + "/" + name
-    if eal.does_asset_exist(path):
+    if asset_exists(path):
         return unreal.load_asset(path)
     f = unreal.BlueprintFactory()
     f.set_editor_property("parent_class", parent)

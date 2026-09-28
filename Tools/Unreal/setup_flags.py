@@ -5,6 +5,12 @@ pack's cloth-flag material. USSObjectiveFlagSubsystem shows them per viewer.
 Report: Build/flags_setup.json."""
 import json
 import unreal
+import os
+import sys
+
+# does_asset_exist() misses Game Feature assets in a commandlet; see Tools/Unreal/ss_assets.py.
+sys.path.insert(0, os.path.join(unreal.Paths.convert_relative_path_to_full(unreal.Paths.project_dir()), "Tools", "Unreal"))
+from ss_assets import asset_exists  # noqa: E402
 
 DEST = "/SSExp_ObjectiveAssault/Flags"
 eal = unreal.EditorAssetLibrary
@@ -18,7 +24,7 @@ base = au.get_editor_property("parent")
 
 def mi(name):
     path = DEST + "/" + name
-    if eal.does_asset_exist(path):
+    if asset_exists(path):
         return unreal.load_asset(path)
     return tools.create_asset(name, DEST, unreal.MaterialInstanceConstant, unreal.MaterialInstanceConstantFactoryNew())
 

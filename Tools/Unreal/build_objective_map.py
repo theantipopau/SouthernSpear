@@ -17,6 +17,11 @@ import os
 import traceback
 
 import unreal
+import sys
+
+# does_asset_exist() misses Game Feature assets in a commandlet; see Tools/Unreal/ss_assets.py.
+sys.path.insert(0, os.path.join(unreal.Paths.convert_relative_path_to_full(unreal.Paths.project_dir()), "Tools", "Unreal"))
+from ss_assets import asset_exists  # noqa: E402
 
 PROJECT_DIR = unreal.Paths.convert_relative_path_to_full(unreal.Paths.project_dir())
 EXP_CLASS = "/SSExp_ObjectiveAssault/Experiences/B_SS_ObjectiveAssault.B_SS_ObjectiveAssault_C"
@@ -86,7 +91,7 @@ def world_ground_material(cfg):
     col_tex, nrm_tex = unreal.load_asset(cfg["ground_d"]), unreal.load_asset(cfg["ground_n"])
     vt = bool(col_tex.get_editor_property("virtual_texture_streaming"))
     path = "/Game/Art/Environment/Fab/M_SS_WorldGround" + ("VT" if vt else "")
-    if eal.does_asset_exist(path):
+    if asset_exists(path):
         master = unreal.load_asset(path)
     else:
         tools = unreal.AssetToolsHelpers.get_asset_tools()
@@ -127,7 +132,7 @@ def world_ground_material(cfg):
         mel.recompile_material(master)
         eal.save_loaded_asset(master)
     mi_path = "/Game/Art/Environment/Fab/MI_SS_WorldGround_" + CFG["label"]
-    if eal.does_asset_exist(mi_path):
+    if asset_exists(mi_path):
         eal.delete_asset(mi_path)
     tools = unreal.AssetToolsHelpers.get_asset_tools()
     mi = tools.create_asset(mi_path.split("/")[-1], "/Game/Art/Environment/Fab", unreal.MaterialInstanceConstant, unreal.MaterialInstanceConstantFactoryNew())
@@ -305,7 +310,7 @@ def prepare_diorama(world, actors, cfg):
 
 
 def level_pass():
-    if eal.does_asset_exist(CFG["dst"]):
+    if asset_exists(CFG["dst"]):
         eal.delete_asset(CFG["dst"])
     world = unreal.EditorLoadingAndSavingUtils.load_map(CFG["src"])
     if not step("load_map", world is not None, CFG["src"]):

@@ -4174,6 +4174,62 @@ send them to me. Also check in game that the A89 shows 200/200, the A25 fires on
 ---
 
 
+## Session 053 — 2026-09-28 — The "Asset Does Not Exist" Trap Swept Out Of Every Plugin Script
+
+### COMPLETED
+
+- The producer's agent (fec930c1) found that `EditorAssetLibrary.does_asset_exist()` answers False for
+  `/SSExp_ObjectiveAssault/...` assets in a commandlet while `load_asset()` resolves them. So a
+  load-if-exists-else-create script tries to create an existing asset, and the run dies part-way. It fixed
+  `setup_adf_soldier.py` and asked for a sweep of the rest.
+- New `Tools/Unreal/ss_assets.py`: `asset_exists(path)` = `does_asset_exist(path)`, then `load_asset(path) is not
+  None` (the check proven on the producer's machine). Every `does_asset_exist` call in the 15 scripts that write
+  under a plugin mount (`/SSExp_ObjectiveAssault`, `/SouthernSpearUI`) now uses it: 31 calls. Scripts that only touch
+  `/Game` are unchanged.
+- This matters now because `setup_weapons.py`, the next script the producer runs (Session 052), had 7 such checks.
+  Among them are the new `AbilitySet_SS_A25_Semi` copy and the `B_SS_*_Weapon` delete-then-create.
+
+### FILES CHANGED
+
+`Tools/Unreal/ss_assets.py` (new); `setup_weapons.py`, `setup_ui.py`, `setup_maf_weapons.py`, `setup_flags.py`,
+`setup_objective_assault.py`, `setup_damage_model.py`, `setup_tactical_movement.py`, `setup_fp_arms.py`,
+`setup_fonts.py`, `setup_soldiers.py`, `setup_character_textures.py`, `upgrade_weapon_materials.py`,
+`build_objective_map.py`, `fix_visual_regressions.py`, `setup_adf_soldier.py` (all `Tools/Unreal/`);
+`Docs/CHANGELOG.md`.
+
+### TESTING
+
+- `python3 -m py_compile` on every `Tools/Unreal/*.py`: **exit 0**, all parse.
+- `asset_exists` with a stub `unreal` module in which the registry misses an on-disk plugin asset: **True** for
+  that asset, **False** for a missing one.
+- `python Tools/validate_architecture.py`: **exit 0**, PASS.
+- **NOT RUN (needs the producer's machine):** any of the 15 scripts in Unreal. The first real check is the
+  Session 052 run of `setup_weapons.py`.
+
+### ASSETS
+
+None.
+
+### RISKS
+
+No new risks. A missing asset now also costs one `load_asset` miss, which may log a "failed to find"
+warning on a first run. That is harmless.
+
+### DEFECTS FOUND
+
+- Latent in 14 more scripts: the same misleading existence check the producer's agent found in
+  `setup_adf_soldier.py`. Found by grep after its report. None had failed yet, because each had only ever
+  run once, or the registry happened to know the asset.
+
+### NEXT ACTION
+
+Unchanged from Session 052. **On the producer's machine:** run `python Tools/build_adfrc_weapons.py`, then
+`Tools/Unreal/setup_weapons.py`, then build and test. Send each `Art/Weapons/<NAME>/ADFRC/manifest.json → grip`,
+and check in game: A89 200/200, A25 one shot per press, and the `LogSSWeaponStats` rpm lines.
+
+---
+
+
 ## Open Threads
 
 | Item | Blocked on | Owner |

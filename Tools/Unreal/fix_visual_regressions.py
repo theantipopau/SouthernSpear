@@ -6,6 +6,12 @@
 Report: Build/visual_fix_report.json."""
 import json
 import unreal
+import os
+import sys
+
+# does_asset_exist() misses Game Feature assets in a commandlet; see Tools/Unreal/ss_assets.py.
+sys.path.insert(0, os.path.join(unreal.Paths.convert_relative_path_to_full(unreal.Paths.project_dir()), "Tools", "Unreal"))
+from ss_assets import asset_exists  # noqa: E402
 
 eal = unreal.EditorAssetLibrary
 mel = unreal.MaterialEditingLibrary
@@ -40,7 +46,7 @@ for root in ["/Game"]:
             out["vegetation_reverted"].append(path)
 
 glass_path = "/SSExp_ObjectiveAssault/Materials/M_SS_OpticGlass"
-glass = unreal.load_asset(glass_path) if eal.does_asset_exist(glass_path) else None
+glass = unreal.load_asset(glass_path) if asset_exists(glass_path) else None
 if not glass:
     glass = tools.create_asset("M_SS_OpticGlass", "/SSExp_ObjectiveAssault/Materials", unreal.Material, unreal.MaterialFactoryNew())
     glass.set_editor_property("blend_mode", unreal.BlendMode.BLEND_TRANSLUCENT)
@@ -75,7 +81,7 @@ for name in WEAPONS:
             changed = True
         elif slot_name.endswith("_ca"):
             own = "/SSExp_ObjectiveAssault/Weapons/{0}/MI_{0}_{1}".format(name, slot_name)
-            if eal.does_asset_exist(own) and slot.get_editor_property("material_interface") == glass:
+            if asset_exists(own) and slot.get_editor_property("material_interface") == glass:
                 mesh.set_material(i, unreal.load_asset(own))
                 changed = True
     if changed:

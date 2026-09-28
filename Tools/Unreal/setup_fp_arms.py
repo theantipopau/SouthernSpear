@@ -16,6 +16,11 @@ import os
 import traceback
 
 import unreal
+import sys
+
+# does_asset_exist() misses Game Feature assets in a commandlet; see Tools/Unreal/ss_assets.py.
+sys.path.insert(0, os.path.join(unreal.Paths.convert_relative_path_to_full(unreal.Paths.project_dir()), "Tools", "Unreal"))
+from ss_assets import asset_exists  # noqa: E402
 
 PROJECT_DIR = unreal.Paths.convert_relative_path_to_full(unreal.Paths.project_dir())
 BUILD = os.path.join(PROJECT_DIR, "Build", "fp_arms")
@@ -70,7 +75,7 @@ def setup(name):
         tex.set_editor_property("never_stream", True)  # script-built materials: see setup_adf_soldier.py
         eal.save_loaded_asset(tex)
     mi_path = dest + "/MI_FP_Arms_" + name
-    if eal.does_asset_exist(mi_path):
+    if asset_exists(mi_path):
         eal.delete_asset(mi_path)
     mi = tools.create_asset("MI_FP_Arms_" + name, dest, unreal.MaterialInstanceConstant, unreal.MaterialInstanceConstantFactoryNew())
     mel.set_material_instance_parent(mi, unreal.load_asset(FABRIC))
@@ -100,7 +105,7 @@ def setup(name):
             clean = "A_" + name_.split("Armature_", 1)[1] if "Armature_" in name_ else name_
             if clean != name_:
                 target = dest + "/" + clean
-                if eal.does_asset_exist(target):
+                if asset_exists(target):
                     eal.delete_asset(target)
                 eal.rename_asset(a.get_path_name().split(".")[0], target)
             anims[clean] = round(a.get_play_length(), 2)

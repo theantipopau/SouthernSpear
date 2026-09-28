@@ -13,6 +13,11 @@ import os
 import traceback
 
 import unreal
+import sys
+
+# does_asset_exist() misses Game Feature assets in a commandlet; see Tools/Unreal/ss_assets.py.
+sys.path.insert(0, os.path.join(unreal.Paths.convert_relative_path_to_full(unreal.Paths.project_dir()), "Tools", "Unreal"))
+from ss_assets import asset_exists  # noqa: E402
 
 PROJECT_DIR = unreal.Paths.convert_relative_path_to_full(unreal.Paths.project_dir())
 REPORT = os.path.join(PROJECT_DIR, "Build", "ui_setup.json")
@@ -49,7 +54,7 @@ def import_key_art(source=None, name="T_SS_KeyArt"):
 
 
 def front_end_map():
-    if eal.does_asset_exist(FRONT_END):
+    if asset_exists(FRONT_END):
         eal.delete_asset(FRONT_END)
     les = unreal.get_editor_subsystem(unreal.LevelEditorSubsystem)
     ok = les.new_level(FRONT_END)
