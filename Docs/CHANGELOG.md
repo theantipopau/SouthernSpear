@@ -4348,6 +4348,44 @@ None. The `--export` JSONs are ADFRC pose data (L-0021, ADR-035) once committed.
 3. Run `Tools/Unreal/setup_weapons.py`, then build and test.
 4. Report each `manifest.json → grip`: `fit`, `hierarchy`, `right_hand_to_trigger_m` or `attempts`. Also report
    whether `setup_weapons.py` completes with `ok: true`.
+### ADDENDUM — Quantum modular character assessed (ADR-037): good modules, blocked toolchain
+
+The producer asked whether the main player model could pivot to the Quantum **modular** character.
+**ADR-036 was wrong on the fact it decided on**, and ADR-037 withdraws that point.
+
+`Content/QuantumCharacter/Mesh/Modules/` is a genuinely modular set — eight separate meshes, one or two
+clean slots each: `SKM_Head` (5), `SKM_Arms`, `SKM_Shirt_RolledUp_Blue`, `SKM_Jeans`,
+`SKM_Bulletproof_Bege`, `SKM_Holster_Hard_Bege` (2), `SKM_Drops_1_Bege`, `SKM_Patch_Back`. Each ships a
+physics asset, the eight total 27 MB against 22 MB for the three ADF parts, and the pack has its own
+locomotion set. That is Lyra's character-parts shape, and it gives the head from the same pack as the
+body — which is what ADR-036 wanted. ADR-036 retired the *assembled* mesh on its 14 tangled slots and
+nobody had looked at `Modules/`.
+
+**The catch is the skeleton.** `SK_Military_Character_Skeleton` has **351 bones**: 159 shared with
+Manny's 164, **192 Quantum-only** (fingers, toes, face). Not leader-pose compatible.
+
+**The prototype the producer authorised — modules on Manny, ADF camo on shirt and jeans — is blocked on
+tooling.** All three routes fail:
+
+- **No source meshes.** The pack ships **230 `.uasset`, zero FBX/OBJ**, so the Blender re-rig route
+  that produced the ADFRC gear cannot be repeated.
+- **No reparameterise API** in UE 5.8 Python. Checked `SkeletalMeshTools`, `SkeletalMeshEditorSubsystem`,
+  `AnimationLibrary`, `EditorSkeletalMeshLibrary`, `SkeletalMeshUtilitiesLibrary` — none exposes it.
+- **`SkeletalMeshExporterFBX` crashes the editor**: hard assert `MeshObject`
+  (`SkinnedMeshComponent.cpp:4987`) inside `MeshMergeUtilities`, killing the commandlet with no Python
+  traceback. Reproduced **with and without `-nullrhi`**, so not a headless artefact.
+
+**The only route that needs no re-export is to adopt the 351-bone skeleton itself** and use the modules
+unmodified with our own ABP — the larger risk §P2 already flagged, and not what was authorised. Left
+undecided for the producer. No committed file changed by this investigation; the probe scripts were
+removed and the tree is clean.
+
+### NEXT ACTION (Session 055 addendum)
+
+**Producer decision: re-scope the Quantum pivot to the 351-bone skeleton, or leave it held open.** It is
+the only path that works with today's toolchain. If held open, the fallback is a UE bug report for
+`SkeletalMeshExporterFBX` on high-bone-count meshes, since a working export is what unblocks the cheap
+Manny prototype.
 
 ---
 

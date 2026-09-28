@@ -1132,3 +1132,54 @@ asset work the decision requires.
 **Consequence.** P2 of `Docs/PLAYER_MODEL_PLAN.md` unblocks: the skeleton can move off Lyra's mannequin
 once the body is settled. The texture work in P1 is unaffected — the cap fix (P1.1) and the flat-fallback
 removal (P1.2) apply to the same textures whichever body is used.
+
+---
+
+## ADR-037 — Quantum modular character: assessed, and ADR-036 point 3 corrected
+
+**Status:** Accepted (producer, 2026-09-28). Amends ADR-036 point 3. The prototype it authorises is
+**blocked on tooling**, recorded below.
+**Date:** 2026-09-28
+
+**Correction to ADR-036.** ADR-036 retired `SKM_QuantumCharacter` on the grounds that "its 14 slots all
+sit on vendor materials". That is true of the **assembled** mesh, and the decision was made without
+looking at `Content/QuantumCharacter/Mesh/Modules/`, which is a genuinely modular set of eight separate
+meshes with one or two clean slots each:
+
+`SKM_Head` (5 slots, incl. eyes and teeth) · `SKM_Arms` (1) · `SKM_Shirt_RolledUp_Blue` (1) ·
+`SKM_Jeans` (1) · `SKM_Bulletproof_Bege` (1) · `SKM_Holster_Hard_Bege` (2) · `SKM_Drops_1_Bege` (1) ·
+`SKM_Patch_Back` (1)
+
+That is the shape Lyra's character-parts system wants, it gives the head from the same pack as the body
+(what ADR-036 wanted), each module ships a **physics asset**, and the eight total 27 MB against 22 MB
+for the three ADF parts. The pack also carries its own locomotion set on its own skeleton
+(`A_MM_Idle/Walk_Fwd/Run_Fwd/Jump/Land/Fall_Loop`). **ADR-036 point 3 is therefore wrong and is
+withdrawn**; nothing else in ADR-036 changes.
+
+**The skeleton is the catch.** `SK_Military_Character_Skeleton` has **351 bones**: 159 share names with
+Manny's 164, and **192 are Quantum-only** (fingers, toes, facial rig). The modules are therefore **not**
+leader-pose compatible with Lyra's mannequin, and the articulated hands are the prize here — they are
+what would finally give the W2 hand-grip work something to grip *with*.
+
+**Decision.**
+
+1. **Prototype the modules on Manny, with ADF camo on the shirt and jeans** (producer, 2026-09-28).
+   Reversible; touches nothing committed; answers whether the Quantum silhouette and proportions beat
+   the G3's.
+2. **The prototype is currently blocked on tooling**, and this is the finding that matters:
+
+   | Route | Result |
+   |---|---|
+   | Blender re-rig from source | **Not available.** The pack ships **230 `.uasset` and zero FBX/OBJ**, so there is no source mesh — the route that produced the ADFRC gear cannot be repeated. |
+   | UE "Reparameterize Mesh" | **Not exposed** in UE 5.8 Python. `SkeletalMeshTools`, `SkeletalMeshEditorSubsystem`, `AnimationLibrary` and `EditorSkeletalMeshLibrary` have no such function. |
+   | Export to FBX, re-rig in Blender | **Crashes the editor.** `SkeletalMeshExporterFBX` hard-asserts `MeshObject` (`SkinnedMeshComponent.cpp:4987`) inside `MeshMergeUtilities`, killing the commandlet with no Python traceback. Reproduced **with and without `-nullrhi`**, so it is not a headless artefact. |
+
+3. **So the only route that does not need re-export is to adopt `SK_Military_Character_Skeleton` itself**
+   and use the modules on it unmodified, with our own ABP. That is the larger risk ADR-036 §P2 already
+   flagged, and it is **not** what point 1 authorised. It is a producer decision and is **not** taken
+   here.
+
+**Consequence.** ADR-036 stands for the body (ADFRC G3) and the texture work continues unchanged. The
+Quantum modules are a live option, held open, that becomes actionable either when a reparameterise or
+export route exists, or if the producer chooses the skeleton move. **Not decided:** whether to re-scope
+to the 351-bone skeleton now that it is the only working path.
