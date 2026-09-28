@@ -48,6 +48,11 @@ timings, and weapon/vehicle animation bindings. Start with the manifest, then
 3. **The folder is under `Content\`.** Unreal will try to auto-import 12 GB on
    next editor open — move it to a staging path or exclude it.
 
+> **Licence position for Southern Spear (ADR-035, 2026-09-28):** the APL-SA text below is the pack's public
+> licence. For this project it is superseded by the producer's blanket permission from the mod team (L-0021):
+> ADFRC models, textures, animations, audio and configs, including derived work, are cleared for use in the
+> free game. Raw files stay out of git for redistribution and size only.
+
 ## Licence
 
 ADFRC is **APL-SA**. Per the upstream Workshop page and `ASSETS_LICENSE.md`,

@@ -4,7 +4,7 @@
 **Status:** Baseline — Phase 0
 **Last updated:** 2026-09-26
 
-> **Fictional entertainment project.** Southern Spear is an original work. It is not endorsed, developed, sponsored or approved by the Australian Defence Force, the Department of Defence, or the Australian Army. All units, insignia, ranks-as-presented, operations, places and factions are fictional. Any resemblance to real equipment is descriptive, not a reproduction.
+> **Free-to-play entertainment project.** Southern Spear is not endorsed, developed, sponsored or approved by the Australian Defence Force, the Department of Defence, or the Australian Army. Its units, operations, places and opposing faction are fictional; real equipment, ranks and insignia are used by name (ADR-035).
 
 ---
 
@@ -244,7 +244,7 @@ Recruit → Private → Private Proficient → Lance Corporal → Corporal → S
 
 > **Superseded for progression by ADR-034 (producer, 2026-09-28).** Ranks are the Australian Army's, Private to General, earned as service levels 1–100 (like America's Army honour) and shown with their insignia on the scoreboard. Kills earn capped XP; objectives are worth ten times more.
 
-> **Legal note.** Rank insignia designs are **original placeholders** until legal and branding review clears them for public release. See `LICENCE_REGISTER.md` entry L-0003.
+> **Insignia (ADR-034, ADR-035).** The Australian Army's rank insignia are used, drawn in code. L-0003's hold is lifted.
 
 ### 6.3 What progression rewards
 
@@ -309,13 +309,12 @@ Binding on all production:
 
 1. **No copying of *America's Army 2*** — no source code, map layouts, mission names, UI, audio, dialogue, artwork or proprietary assets.
 2. **No real-world weapon manufacturing guidance.** All weapon work is game simulation. Real published specifications may inform *starting* tuning values; gameplay tuning is maintained separately and is not a reproduction of any technical manual.
-3. **No manufacturer CAD, commercial game models, or ripped assets.**
+3. **No manufacturer CAD or ripped commercial-game assets.** Models from cleared sources (Fab, ADFRC, free sources) are fine (ADR-035).
 4. **Fictional hostile faction only.** No real ethnic, religious, political or contemporary conflict group. No derogatory imagery, language or stereotypes. Fictional insignia, names and backstory.
 5. **No ADF endorsement implied.** Marketing, packaging and store listings must carry the fictional-work disclaimer.
-6. **Original camouflage.** An original multicam-style material, not a reproduction of any protected commercial pattern.
-7. **Rank insignia** are original placeholders pending legal clearance.
+6. ~~Original camouflage~~ and 7. ~~placeholder rank insignia~~: **superseded by ADR-033/034/035.** Real names, camouflage and insignia from cleared sources are used; R-57 is accepted.
 
-Every third-party asset must have a `LICENCE_REGISTER.md` entry **before** it enters the repository, and must be verified as permissible in a packaged commercial product.
+Every third-party asset gets a `LICENCE_REGISTER.md` / `ASSET_REGISTER.md` entry for **provenance and credits**. The game is free to play, and every asset the project holds is cleared (ADR-035).
 
 ---
 

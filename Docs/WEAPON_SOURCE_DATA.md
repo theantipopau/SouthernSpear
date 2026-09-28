@@ -1,7 +1,7 @@
 # Weapon Source Data — the A-series as the ADF Re-Cut configs describe them
 
 **Generated** by `python Tools/Weapons/adfrc_weapon_data.py` from `Docs/Sourced/ADFRC/config_registry.json`.
-Do not edit by hand. Internal research only: real product names stay out of game data and UI (ADR-016).
+Do not edit by hand. Real names are allowed anywhere (ADR-035); the A-series names are what the game uses today.
 
 These are the values our weapons *should* be tuned from. Today every A-series weapon is a copy of Lyra's
 rifle or pistol definition (`Tools/Unreal/setup_weapons.py`), so none of this is applied yet.

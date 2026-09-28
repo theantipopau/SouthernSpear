@@ -30,28 +30,29 @@ Southern Spear is an original, fictional, Australian-inspired tactical multiplay
 5. Other design docs (GDD, TDD, MAPS_DRYRIVER, registers)
 6. Historical material. **Never edit `Docs/ORIGINAL_BRIEF.md`** (immutable).
 
-## Non-negotiable content rules
+## Content and licensing rules (ADR-035: free-to-play; real names allowed; every project asset cleared)
 
-- **Fictional only (ADR-016).** Use: CDS (Commonwealth Defence Service), CLS (Commonwealth Land Service),
-  ACR / **3 ACR**, 2 CG, SOR, **MAF** (Murasian Armed Forces — a competent conventional force; never
-  insurgents/terrorists/militia/ethnic/religious/real-nation), **CMECU** uniform.
-- **Art (ADR-020):** original, script-built in Blender (`Tools/Blender/`); weapons as static meshes on Lyra sockets, gear skinned to the Lyra mannequin.
-- **Weapons are A-series:** A88 (+C/G/M/T), A89, A4, A416, A417, A9. Real names (EF88, F89, M4, AK,
-  Minimi…) only in internal research notes — never in code identifiers, data, UI or public docs.
-- No ADF/Army branding, insignia, Rising Sun, mottos, colour patches; no Multicam or Auscam/Musorian copies
-  (Multicam is a Crye Precision trademark). **Exception (ADR-025, producer, 2026-09-27):** the friendly
-  soldiers wear ADFRC uniforms, gear and AMCU textures (L-0021). Strip patches and flags. Release needs
-  Defence permission or the CMECU swap (R-27). No America's Army content. No manufacturer logos/CAD/ripped assets.
+- **Free product, cleared assets (ADR-035, producer).** Southern Spear is free to play. Every asset the project
+  holds is cleared for use: Fab (ADR-028), other free sources, and the ADF Re-Cut pack from its creators (L-0021,
+  blanket permission), including converted and derived work. **Do not hold anything back for a licence check.**
+  Still record provenance in `Docs/ASSET_REGISTER.md` / `Docs/LICENCE_REGISTER.md` (for the credits screen) and
+  honour CC BY credit lines.
+- **Real names are allowed** in code, data, UI, docs and the site: real weapon names (EF88, F89, M4, HK416,
+  Glock, Minimi …), the Australian Army, its ranks and insignia (ADR-034), ADF equipment and camouflage. The
+  current A-series names (A88, A89, A4, A416, A417, A25, A9) and fictional units (**3 ACR**, **MAF** — Murasian
+  Armed Forces, **CMECU**) remain in use until deliberately renamed.
+- **Still standing (not licence questions):** never claim endorsement by the ADF, Defence or the Australian Army,
+  and keep the fictional-work disclaimer. **MAF** is a competent conventional force, never
+  insurgents/terrorists/militia/ethnic/religious/real-nation. No *America's Army* content (L-0008) and no ripped
+  commercial-game assets (L-0007): neither comes from a cleared source.
+- **Accepted risk R-57:** creators' permission covers their work, not third-party trademarks or Commonwealth
+  emblems. The producer accepts this. If anyone objects, the fix is a rename or a swap.
+- **Art pipeline (ADR-020):** script-built in Blender (`Tools/Blender/`); weapons as static meshes on Lyra sockets, gear skinned to the Lyra mannequin.
 - A88 and its MAF counterpart share **one** gameplay definition; only cosmetics differ.
-- **ADFRC assets are cleared for use (R-24 lifted, L-0021).** The ADF Re-Cut / ADFRC pack is **authorised for free use in Southern Spear** — models, textures, animations, audio, configs and scripts, in any form including converted and derived work. The producer holds a blanket 100% permission from the mod team, which lifts the earlier item-by-item hold and the multi-author gap (the original grant came from one author who was not among those credited in the pack). Use them as game art and as direct visual/design references. Two limits remain, neither of which the mod team can lift:
-  - **Third-party and service marks.** Crye Precision (G3), Ops-Core, PASGT, "Team Wendy", and ADF camouflage/insignia belong to those companies and to the ADF, not to the mod team. Strip or replace them before release (ADR-016, R-27) — this is a build requirement, not a pending approval.
-  - **Redistribution.** Use in the project is cleared; redistribution via the repository is not. `Art/ADFRC/*` and `Art/ADFRC_Player/*` stay git-ignored — only their `.md` files are tracked. Keep it that way.
-  Evidence and the full terms are in `Docs/LICENCE_REGISTER.md` (L-0021) and `Docs/evidence/`.
-- Before importing any asset: check `Docs/ASSET_REGISTER.md` **and** `Docs/LICENCE_REGISTER.md`, add entries.
-- **Every Fab asset is cleared for use (ADR-028, producer).** Do not look up or confirm Fab licences, and never hold a Fab
-  asset back for a licence check: record it in the registers as "Fab, cleared under ADR-028". CC BY listings get a credit line.
+- **Redistribution, not licence, keeps raw packs out of git:** `Art/ADFRC/*`, `Art/ADFRC_Player/*`, `Content/Sourced/`
+  and Fab packs stay git-ignored (size, and R-14: Epic content isn't republished). Only their `.md` files are tracked.
 - Never invent release dates, versions, downloads, player counts or testimonials (site or docs).
-- Paid dependencies, legal-risk content and architecture changes need producer approval.
+- Paid dependencies and architecture changes need producer approval.
 
 ## Architecture (enforced by `Tools/validate_architecture.py`)
 
@@ -121,7 +122,7 @@ Blender source: `Tools/Blender/dryriver_blockout.py`, `dryriver_dressing.py`; sh
 `UnrealEditor-Cmd ... -ExecutePythonScript=E:/SouthernSpear/Tools/Unreal/setup_weapons.py` → mesh, `MI_A88_*`, `B_SS_A88`
 (`ASSHeldItemVisualActor`, +90° yaw offset cancels Lyra's -90° attach), `WID_SS_A88`/`ID_SS_A88` (copies of Lyra's
 rifle definitions, pointed at ours). The starting loadout is data: `Config/DefaultGame.ini` `[/Script/SouthernSpearLyraBridge.SSLoadoutSettings]`.
-`Content/Sourced/` is git-ignored and not automatically usable (`Docs/SOURCED_ASSET_REVIEW.md`, R-17). The ADFRC extraction at `Content/Sourced/ADF_Extracted/` is the one exception: it is now **cleared for free use** under L-0021 (see the ADFRC rule above), including conversion, derived work and visual reference. It stays git-ignored, and third-party branding must be replaced before release.
+`Content/Sourced/` is git-ignored (size and redistribution) but **cleared for use** (ADR-035), including the ADFRC extraction at `Content/Sourced/ADF_Extracted/` (L-0021).
 
 ## Unreal Python gotchas (all learned the hard way)
 
@@ -175,4 +176,4 @@ dedicated-server support while R-09 is open. Then commit, push, and publish the 
 
 R-09 no Server target (engine distribution) · R-12 nav tile count unmeasured · R-14 GitHub holds LFS
 pointers only · R-15 level pass-1 self-check reports failure · R-16 win streaks / spawn proximity to OBJ B ·
-R-56 Session 049 C++ (ranks, insignia, kill XP) unverified by build (R-50, Session 048, closed: 52/52) · R-55 release gate: Army insignia, crown, Coat of Arms.
+R-56 Session 049 C++ (ranks, insignia, kill XP) unverified by build (R-50, Session 048, closed: 52/52) · R-57 accepted: third-party marks and emblems (ADR-035).

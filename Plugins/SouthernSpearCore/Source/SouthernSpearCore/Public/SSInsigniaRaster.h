@@ -25,8 +25,8 @@
  *   GEN            crown and pip above crossed sword and baton
  *
  * They are silhouettes sized for a scoreboard row, not heraldic reproductions.
- * The crown and the Coat of Arms are Crown and Commonwealth emblems: their use
- * is a release gate recorded in ADR-034 (R-55), as ADR-025 did for uniforms.
+ * Using the Army's insignia is the producer's decision (ADR-034, ADR-035); the
+ * residual emblem risk is accepted as R-57.
  *
  * Output is white coverage (0..255) on transparent, so the UI tints it.
  */

@@ -99,9 +99,9 @@ The registry doesn't hold mesh data. It points at the next three mesh fixes:
 
 ## Licence note
 
-The pack's own README still says APL-SA "no model reuse". **L-0021 supersedes that for this project**: the
-producer holds a blanket permission from the mod team. Third-party marks (optics makers etc.) are still
-stripped before release (R-27).
+The pack's README carries APL-SA's "no model reuse" wording. For this project that is superseded by the
+producer's blanket permission (L-0021) and ADR-035: everything is cleared for the free game, including real
+weapon and optic names. R-27 is producer-accepted; the residual trademark exposure is R-57.
 
 ## Recommendation
 

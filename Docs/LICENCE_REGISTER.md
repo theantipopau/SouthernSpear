@@ -2,9 +2,29 @@
 
 **Document ID:** `Docs/LICENCE_REGISTER.md`
 **Status:** Baseline — Phase 0
-**Last updated:** 2026-09-26
+**Last updated:** 2026-09-28
 
-> **Fictional entertainment project.** Not endorsed, developed or approved by the Australian Defence Force, the Department of Defence or the Australian Army.
+> **Not endorsed, developed or approved by the Australian Defence Force, the Department of Defence or the Australian Army.**
+
+---
+
+## 0. Current position — ADR-035 (producer, 2026-09-28) — read this first
+
+**Southern Spear is a free-to-play product. Every asset the project holds is cleared for use**: Fab (ADR-028),
+other free sources, and the ADF Re-Cut pack from its creators (L-0021, blanket permission). **Real names are
+allowed**: weapons, the Australian Army, its ranks and insignia, ADF equipment and camouflage.
+
+Where an entry below says *hold*, *prohibited*, *Class D/E* or *release blocker* because of a commercial or
+fiction-only reading, **ADR-035 supersedes it**. Those entries are kept as the historical record and amended
+in place where it matters (L-0003, L-0004, L-0006, L-0007, L-0021, §5.2, §7).
+
+This register still does two jobs:
+- It records **provenance and credits** (publisher, source, attribution) for the credits screen and CC BY lines.
+- It records what stands for **non-licence reasons**: no endorsement claim; MAF portrayal (§5.3); no *America's
+  Army* content (L-0008) and no ripped commercial-game assets (L-0007), because neither comes from a cleared source.
+
+**Accepted risk R-57:** permission from creators covers their own work, not a third party's trademark or a
+Commonwealth emblem. The producer accepts this; the remedy, if ever needed, is a rename or a swap.
 
 ---
 
@@ -69,7 +89,12 @@ Anything class **D** or **E** is a release blocker. There is no exception.
 | **Modifications** | **None.** Installed Build used as-is |
 | **Action** | Track EULA obligations (royalty reporting, credit notice) in release planning |
 
-### L-0003 — Rank insignia and unit insignia — **LEGAL HOLD**
+### L-0003 — Rank insignia and unit insignia — ~~LEGAL HOLD~~ **lifted by ADR-035**
+
+> **ADR-035 (2026-09-28):** hold lifted. Australian Army ranks and their insignia are used faithfully (ADR-034),
+> drawn in code by `SSInsigniaRaster.h` (Class F implementation of a real design). No endorsement is claimed.
+> The table below is the original record.
+
 
 | Field | Value |
 |---|---|
@@ -85,6 +110,9 @@ Anything class **D** or **E** is a release blocker. There is no exception.
 > This hold is binding. It is the reason the game carries original placeholder insignia rather than realistic slides. It also constrains naming: the project does not present itself as an official Australian Army product.
 
 ### L-0004 — Australian Defence Force / Australian Army name and marks
+
+> **ADR-035 (2026-09-28):** real names, ranks, equipment and camouflage are **allowed**. The one rule that stands
+> is the no-endorsement statement below, and the disclaimer ships.
 
 | Field | Value |
 |---|---|
@@ -145,6 +173,8 @@ necessary.
 
 ### L-0006 — Fab / Marketplace assets
 
+> **Superseded by ADR-028 / ADR-035:** every Fab asset is cleared; record it as "Fab, cleared under ADR-028" (see L-0016, L-0023).
+
 | Field | Value |
 |---|---|
 | **Component** | Any asset acquired from Fab |
@@ -154,6 +184,10 @@ necessary.
 | **Rule** | Never download from unverified model-ripping or redistribution sites. Never assume a free asset permits commercial packaging |
 
 ### L-0007 — Prohibited sources (standing prohibition)
+
+> **Narrowed by ADR-035:** real-world camouflage and real weapon models **from cleared sources** (Fab, ADFRC,
+> free sources) are allowed. What stands: nothing **ripped** from commercial games or model-ripping sites, and
+> no traced manufacturer CAD. Neither is a cleared source.
 
 | Field | Value |
 |---|---|
@@ -275,7 +309,7 @@ Department of Defence, the Australian Defence Force or the Australian Army.
 
 ### 5.2 Prohibited real-world material
 
-- **No ADF/Army emblems.** No Rising Sun, corps badge, colour patch, unit emblem, motto, battle honour, ceremonial tradition or official rank-slide artwork is used, reproduced or traced. L-0003 remains on legal hold.
+- ~~**No ADF/Army emblems.**~~ **Lifted by ADR-035 (2026-09-28):** Army ranks and rank insignia are used (ADR-034); other ADF emblems may be used where they serve the game. No endorsement is claimed.
 - **No real battalion titles or mottos**, and nothing derived from the Royal Australian Regiment.
 - **No manufacturer logos, roll marks or CAD.** All weapon geometry is original or appropriately licensed.
 - **No copied commercial-game assets, and no ripped assets**, under any circumstances.
@@ -315,11 +349,11 @@ Department of Defence, the Australian Defence Force or the Australian Army.
 
 ## 7. Release Gate
 
-Before any public release:
+**Revised by ADR-035 (2026-09-28)** for a free-to-play release. Before any public release:
 
-- [ ] Zero class D or E entries
-- [ ] L-0003 insignia review complete and resolved
-- [ ] L-0004 name/marks position confirmed with legal
+- [x] ~~Zero class D or E entries~~: every project asset is cleared (ADR-035)
+- [x] ~~L-0003 insignia review~~: lifted (ADR-035); R-57 accepted
+- [ ] The no-endorsement disclaimer ships (credits, store page, site)
 - [ ] L-0001 Lyra sample-content shipping terms confirmed
 - [ ] L-0002 UE EULA obligations satisfied (royalty reporting, credit)
 - [ ] Attribution file generated from this register and shipped
@@ -332,6 +366,7 @@ Before any public release:
 | Date | Change | Entry |
 |---|---|---|
 | 2026-09-26 | Register created. Lyra and UE recorded. Insignia, ADF marks and prohibited sources placed on hold. No third-party assets acquired. | All |
+| 2026-09-28 | **ADR-035**: free-to-play; every project asset cleared; real names allowed; L-0003 hold and L-0004 prohibition lifted; L-0007 narrowed to ripped/CAD sources; release gate revised; R-57 accepted. | §0, L-0003, L-0004, L-0006, L-0007, §5.2, §7, L-0021 |
 
 ### L-0016 — Fab packs (Standard License), added 2026-09-27; **table completed 2026-09-28**
 
@@ -427,7 +462,7 @@ Before any public release:
 | **Location** | Relocated 2026-09-27 to `Art/ADFRC/` (source: 177 `.p3d`, 1,471 PNG, 292 animation files, 68 configs). **Converted 2026-09-27** to `Art/ADFRC_MLOD/` (177 MLOD) and `Art/ADFRC_BLEND/` (**179 `.blend` with verified geometry**), including 40 optics and the `adfrc_SR25` DMR. Player/worn gear consolidated in `Art/ADFRC_Player/` (57 models + 1,538 textures). Every model has a sibling `_textures/` folder. See `Art/ADFRC/MANIFEST.md`, `Art/ADFRC_Player/README.md`. The full extraction remains at `Content/Sourced/ADF_Extracted/` |
 | **Conversion tooling** | `UKSFTA-P3D` (ODOL v73–v75 debinarizer, built on .NET 10) plus Arma 3 Object Builder v2.5.1 in Blender 5.2. Both live **outside** the repository at `E:/_tools/`. One local patch to `BlenderExport.cs` so the generated Blender script also tries the `bl_ext.user_default.*` module id. The converted output is **derived work** from the L-0021 material and is covered by the same terms |
 | **Git handling** | `Art/ADFRC/*` is **git-ignored**; only `LICENSE.md` and `MANIFEST.md` are tracked. Rationale: these are third-party source files redistributed from someone else's distribution, and the pack is not the producer's to publish, so it must not travel via the repository. Without this rule 5.5 GB of third-party content would have become committable the moment it moved out of the already-ignored `Content/Sourced/`. **Amended 2026-09-28 (producer):** the earlier wording here said the authorisation was "personal and non-commercial" and treated the project's own release model as the constraint. The project is a free-to-play product and the producer has directed that this is not a limitation, so the git rule now rests solely on the redistribution point above and not on a non-commercial reading. |
-| **Status** | **Authorised for use (producer-accepted), Class E.** Release still gated on branding substitution (R-27) and legal review. R-28 (conversion) is **closed**; R-29 tracks the remaining gap — FBX export, Unreal materials, and unpacked textures |
+| **Status** | **Cleared for use in Southern Spear (ADR-035)**, including release in the free game. R-27 (branding substitution) is producer-accepted, not a blocker. Raw files stay git-ignored for redistribution and size. R-28 (conversion) is **closed**; R-29 tracks the remaining gap — FBX export, Unreal materials, and unpacked textures |
 
 ### L-0022 — Original Southern Spear character materials (script-authored, applied over L-0016 bodies)
 

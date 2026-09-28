@@ -1047,3 +1047,45 @@ CMECU/3 ACR ones. The swap is a change to `SSInsigniaRaster.h`, with no data or 
 
 **Known limit.** The level shown to other players comes from each player's own local record, which isn't
 authoritative (R-53). It is display only and gates nothing. Server-authoritative records are Phase 5 work.
+
+---
+
+## ADR-035 — Free-to-play release: real names are allowed, and every project asset is cleared
+
+**Status:** Accepted (producer, 2026-09-28, in session): "this is a free to play product — so the use of real
+names etc is okay. All assets obtained — levels, 3D objects — are free from Fab or other sources, or given to
+me (ADFRC) from the original creators, so all can be used. This is a free product, so licensing should be
+fine." Amends ADR-016, ADR-025, ADR-033 and ADR-034, and the matching entries in `LICENCE_REGISTER.md`.
+**Date:** 2026-09-28
+
+**Decision.**
+1. **Southern Spear is a free product.** No sale, no paid content. The register's "commercial packaging"
+   test (§1–2) is read against that model: an asset whose terms allow free, non-commercial distribution is
+   clear for this project.
+2. **Real names are allowed** in code, data, UI, docs and the website. That covers real weapon names (EF88,
+   F89, M4, HK416, Glock, Minimi …), the Australian Army, its ranks and rank insignia (ADR-034, drawn
+   faithfully), ADF equipment names and service camouflage. The A-series names and the fictional
+   organisations (3 ACR, MAF, CMECU …) are **not** withdrawn: they stay until someone chooses to rename,
+   and a rename is a normal change, not an ADR.
+3. **Every asset the project holds is cleared for use**: Fab (ADR-028), other free sources, and the ADF
+   Re-Cut pack from its creators (L-0021, blanket permission). No per-asset licence hold. Registers still
+   record **provenance and credits**, so the credits screen can be generated and CC BY lines honoured.
+4. **Release gates lifted:** R-27 (ADFRC branding substitution) and R-55 (Army insignia, crown and Coat of
+   Arms) become **producer-accepted**, not blockers. L-0003's legal hold and L-0004's prohibition are lifted.
+
+**Still standing, because they are not licence questions:**
+- **No endorsement claim.** The game doesn't present itself as made, approved or sponsored by the ADF,
+  Defence or the Australian Army, and it keeps the fictional-work disclaimer. That statement is simply
+  true, and it's what makes real names safe to use.
+- **MAF portrayal** (LICENCE_REGISTER §5.3): a credible conventional force, never a real ethnic, religious
+  or political group or a caricature. This is a content-ethics rule.
+- **No *America's Army* content** (L-0008): none of it was obtained from any cleared source, so it isn't
+  covered by this decision. Its design philosophy is fine, as ADR-031 already uses it.
+- **No ripped commercial-game assets** (L-0007): again, not from a cleared source.
+- **Engine and Lyra credits** (L-0001, L-0002) and CC BY credit lines still ship.
+
+**Accepted risk, recorded once (R-57).** Permission from the people who made an asset covers their own
+work. It doesn't by itself license another party's trademark (a weapon maker's name, Crye's G3 and
+MultiCam) or a Commonwealth emblem (the Coat of Arms on the WO1 insignia), and free distribution reduces
+but doesn't remove that exposure. The producer has decided to accept it. If a rights holder ever objects,
+the fix is a rename or a texture or device swap. Nothing is structurally tied to any of these names.

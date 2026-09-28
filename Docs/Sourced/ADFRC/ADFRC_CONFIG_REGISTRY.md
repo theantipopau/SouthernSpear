@@ -9,6 +9,11 @@ weapon plays, what a magazine holds, and how a weapon's parts attach to it.
 named weapon/vehicle/uniform actually is, or writing tooling that needs the
 class hierarchy rather than the file listing.
 
+> **Licence position for Southern Spear (ADR-035, 2026-09-28):** the APL-SA text below is the pack's public
+> licence. For this project it is superseded by the producer's blanket permission from the mod team (L-0021):
+> ADFRC models, textures, animations, audio and configs, including derived work, are cleared for use in the
+> free game. Raw files stay out of git for redistribution and size only.
+
 **Provenance/licence warning first:** ADFRC is **APL-SA**. Code, configs and
 textures are open; the **3D models may not be extracted or reused
 commercially**. See §7 of `ADFRC_INTEGRATION_GUIDE.md`. Log provenance in
