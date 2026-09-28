@@ -626,7 +626,10 @@ def main():
             with open(os.path.join(RIG_DIR, key_, anim_filename(rel)), "w",
                       encoding="utf-8") as fh:
                 json.dump({
-                    "schema": "adfrc-anim-local/1",
+                    # /2: quaternions are standard (rotation_from_stored applied, quat_from_mat written).
+                    # /1 files carried the stored convention; readers such as Tools/Common/adfrc_grip.py
+                    # convert by schema, so a /2 file must never be labelled /1.
+                    "schema": "adfrc-anim-local/2",
                     "rig": key_,
                     "clip": os.path.splitext(os.path.basename(p))[0],
                     "source": rel,

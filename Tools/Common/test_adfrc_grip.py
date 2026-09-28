@@ -120,6 +120,17 @@ def main():
             {k: rep[k] for k in ("left_hand_forward_m", "left_hand_to_bore_m", "left_hand_along_barrel")}))
     check("an 8-inch handguard puts the hands closer than a 10-inch", spans["A4"] < spans["A25"], str(spans))
 
+    # A standard-quaternion (schema adfrc-anim-local/2) copy of a real clip gives the same hands as the
+    # stored-convention evidence: the decoder's R-64 output must not be flipped twice.
+    bones_e, parents_e, frame_e = g.load_clip("hk416_cgrip_static")
+    standard = [{"q": [-e["q"][0], -e["q"][1], e["q"][2], e["q"][3]], "p": e["p"]} for e in frame_e]
+    converted = g.to_stored_convention([standard], "adfrc-anim-local/2")[0]
+    l_old, r_old = g.hands_in_weapon_space(bones_e, parents_e, frame_e)
+    l_new, r_new = g.hands_in_weapon_space(bones_e, parents_e, converted)
+    check("schema /2 files read the same as the stored evidence", close(l_old, l_new, 1e-9) and close(r_old, r_new, 1e-9))
+    check("schema /1 and unlabelled files are left as stored",
+          g.to_stored_convention([frame_e], "adfrc-anim-local/1")[0] is frame_e and g.to_stored_convention([frame_e], "")[0] is frame_e)
+
     # The shipped manifest names every grip clip the weapon build uses.
     with open(g.MANIFEST, encoding="utf-8") as fh:
         names = {k.replace("\\", "/").split("/")[-1] for k in json.load(fh)["clips"]}

@@ -5224,6 +5224,82 @@ and the FP/third-person camo mismatch belong to the other agent. The recommendat
 
 ---
 
+## Session 064 — 2026-09-29 — W5 Reload Tooling, And A Trap Between The Fixed Decoder And The Grip
+
+### COMPLETED
+
+- **A trap between R-64's decoder fix and W2's grip, closed before it fired.** The fixed decoder
+  (`rtm_rigs.py`, Session 062) now converts rotations while decoding and writes *standard* quaternions. It
+  still labelled its output `adfrc-anim-local/1`, the tag the old stored-convention files carry.
+  `adfrc_grip.py` reads the stored convention. So the first weapon build after the full 165-clip decode
+  would have flipped every rotation twice and put the hands in the wrong place, silently, since the grip
+  fit reports only whether a pose fits.
+  - The decoder now writes `adfrc-anim-local/2`.
+  - `adfrc_grip.load_clip_frames` converts /2 files back to the stored convention on load.
+  - /1 files and the unlabelled committed evidence are left as they are.
+- **W5 tooling (the A88 bullpup reload):**
+  - `adfrc_grip.load_clip_frames` returns every frame of a clip, from the decoded tree or from
+    `Docs/evidence/w5_reload_clips`.
+  - `python Tools/Common/adfrc_grip.py --export-frames Docs/evidence/w5_reload_clips` exports the four
+    reload clips (`GestureReloadAUG`, `…Prone`, `MPP_Fast_Reload`, `MPP_Slow_Reload`) in full.
+  - `Tools/Common/adfrc_reload.py <weapon> [clip] [samples]` turns a reload clip into the left wrist's path
+    relative to the right-hand grip, in the weapon's own axes: forward from the grip to the muzzle, the
+    shooter's right, and up. It writes `Build/reload_path_<weapon>.json` with the sampled keys, the start
+    and end offsets, the static grip pose's offset (the game uses it to check its right-axis sign), the
+    distance from the path's start to the grip, the largest per-frame step, and the magazine switch phase
+    (0.48 for the EF88 family, from the config registry).
+  - `Tools/Blender/probe_weapon_parts.py <src.blend> <out.json>` lists a weapon MLOD's named selections
+    with vertex counts. It answers whether the magazine is a separate part that can come off in the hand.
+- **What the reload clips hold** (from `ASSET_MANIFEST.json`):
+  - `GestureReloadAUG` and `…Prone` have 165 frames each, in both trees. The Source copies are absolute
+    RTM; the Workshop copies are BMTR.
+  - Their 66-bone rig has `weapon`, both arms and hands, and no magazine bone. Arma moves the magazine
+    through the weapon model (its `magazine` selection is hidden and swapped at
+    `magazineReloadSwitchPhase`).
+
+### FILES CHANGED
+
+`Docs/Sourced/ADFRC/rtm_rigs.py` (schema /2), `Tools/Common/adfrc_grip.py`, `Tools/Common/test_adfrc_grip.py`,
+`Tools/Common/adfrc_reload.py` (new), `Tools/Common/test_adfrc_reload.py` (new),
+`Tools/Blender/probe_weapon_parts.py` (new), `Docs/CHANGELOG.md`.
+
+### TESTING
+
+- `python Tools/Common/test_adfrc_grip.py`: **exit 0, 26/26.** New checks: a /2 copy of a real clip gives
+  the same hands as the stored evidence (1e-9), and /1 and unlabelled frames pass through untouched.
+- `python Tools/Common/test_rtm_rigs.py`: exit 0.
+- `python Tools/Common/test_adfrc_reload.py`: **exit 0, 10/10.**
+  - On a synthetic reload the path is recovered exactly: 25 cm forward and 5 cm left at the start; 5 cm
+    forward and 12 cm down at the magazine well half-way; back to the start; no frame step over 3 cm.
+  - The weapon axes are forward down the barrel, z up and the shooter's right.
+  - A one-frame clip is refused.
+  - On the real A88 grip pose, the left hand is 22.2 cm forward, 9.4 cm left and 1.5 cm below the right.
+- `python3 -m py_compile` on the new scripts: exit 0.
+- **NOT RUN:** the reload clips themselves (they exist only on the producer's machine), the Blender probe,
+  and anything in Unreal.
+
+### ASSETS
+
+None.
+
+### RISKS
+
+- **R-77 (open, medium):** the reload path is relative to the weapon, so it can only drive the left hand
+  once the hand IK actually runs. It doesn't in 5.8 (R-65, Session 063). W5 waits on the R-65 fix.
+
+### DEFECTS FOUND
+
+- The decoder's /2 output was still labelled /1. Found by reading the fixed decoder's writer before planning
+  W5. Fixed at both ends.
+
+### NEXT ACTION
+
+**On the producer's machine:** fix R-65. Confirm in the 5.8 source which post-evaluation hook runs in a game
+frame (see the prompt in the Session 064 reply), and build the replacement.
+
+---
+
+
 ## Open Threads
 
 | Item | Blocked on | Owner |

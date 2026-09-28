@@ -41,6 +41,7 @@ import os
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 MANIFEST = os.path.join(ROOT, "Docs", "Sourced", "ADFRC", "ASSET_MANIFEST.json")
 EVIDENCE = os.path.join(ROOT, "Docs", "evidence", "w2_grip_clips")
+EVIDENCE_FOLDERS = (EVIDENCE, os.path.join(ROOT, "Docs", "evidence", "w5_reload_clips"))
 # Where the decoded Animations/ tree lives on the producer's machine (git-ignored).
 ANIM_ROOTS = [
     os.path.join(ROOT, "Content", "Sourced", "ADF_Extracted", "Animations"),
@@ -251,9 +252,24 @@ def place_hands(left, right, trigger, muzzle):
 
 # --------------------------------------------------------------------------- files
 
-def load_clip(stem, manifest_path=MANIFEST, roots=None):
-    """(bones, parents, first frame) of the decoded clip named <stem> (e.g. EF88_Vg_static). Looks in the
-    decoded Animations/ tree, then in the committed evidence (Docs/evidence/w2_grip_clips)."""
+# The decoder (Docs/Sourced/ADFRC/rtm_rigs.py) wrote the file's own quaternion convention through until R-64
+# was fixed (schema adfrc-anim-local/1, and the committed evidence, which has no schema). From
+# adfrc-anim-local/2 it writes standard quaternions. Everything here works in the stored convention, so a
+# standard file is converted back on load; reading a /2 file as /1 would flip every rotation twice.
+STANDARD_SCHEMAS = ("adfrc-anim-local/2",)
+
+
+def to_stored_convention(frames, schema):
+    """Frames in the stored convention (clip_rotation reads them), whatever the file's schema."""
+    if schema not in STANDARD_SCHEMAS:
+        return frames
+    return [[{"q": [-e["q"][0], -e["q"][1], e["q"][2], e["q"][3]], "p": e["p"]} for e in frame] for frame in frames]
+
+
+def load_clip_frames(stem, manifest_path=MANIFEST, roots=None):
+    """(bones, parents, every frame) of the decoded clip named <stem> (e.g. GestureReloadAUG), in the stored
+    convention. Looks in the decoded Animations/ tree, then in the committed evidence
+    (Docs/evidence/w2_grip_clips, Docs/evidence/w5_reload_clips)."""
     with open(manifest_path, encoding="utf-8") as fh:
         clips = json.load(fh)["clips"]
     entry = None
@@ -271,15 +287,24 @@ def load_clip(stem, manifest_path=MANIFEST, roots=None):
                     rig = json.load(fh)
                 with open(clip_path, encoding="utf-8") as fh:
                     clip = json.load(fh)
-                return rig["bones"], rig["parents"], clip["frames"][0]
-    evidence = os.path.join(EVIDENCE, stem + ".json")
-    if roots is None and os.path.exists(evidence):
-        with open(evidence, encoding="utf-8") as fh:
-            d = json.load(fh)
-        return d["bones"], d["parents"], d["frame"]
+                return rig["bones"], rig["parents"], to_stored_convention(clip["frames"], clip.get("schema", ""))
+    if roots is None:
+        for folder in EVIDENCE_FOLDERS:
+            evidence = os.path.join(folder, stem + ".json")
+            if os.path.exists(evidence):
+                with open(evidence, encoding="utf-8") as fh:
+                    d = json.load(fh)
+                frames = d["frames"] if "frames" in d else [d["frame"]]
+                return d["bones"], d["parents"], to_stored_convention(frames, d.get("schema", ""))
     if not entry:
         raise FileNotFoundError("clip {} is not in {}".format(stem, manifest_path))
     raise FileNotFoundError("decoded clip {} not found under {}".format(entry["local_anim"], roots or ANIM_ROOTS))
+
+
+def load_clip(stem, manifest_path=MANIFEST, roots=None):
+    """(bones, parents, first frame) of the decoded clip named <stem>, in the stored convention."""
+    bones, parents, frames = load_clip_frames(stem, manifest_path, roots)
+    return bones, parents, frames[0]
 
 
 def grip_points(stem, trigger, muzzle, manifest_path=MANIFEST, roots=None):
@@ -320,6 +345,29 @@ def export(out_dir, stems=GRIP_CLIPS, manifest_path=MANIFEST, roots=None):
     return written
 
 
+RELOAD_CLIPS = ("GestureReloadAUG", "GestureReloadAUGProne", "MPP_Fast_Reload", "MPP_Slow_Reload")
+
+
+def export_frames(out_dir, stems=RELOAD_CLIPS, manifest_path=MANIFEST, roots=None):
+    """Every frame of each clip (stored convention, 5 decimals) to out_dir, for W5's reload paths.
+    Small enough to commit: 165 frames x 66 bones is about 0.7 MB."""
+    os.makedirs(out_dir, exist_ok=True)
+    written = []
+    for stem in stems:
+        try:
+            bones, parents, frames = load_clip_frames(stem, manifest_path, roots or ANIM_ROOTS)
+        except FileNotFoundError as error:
+            print("skip", stem, error)
+            continue
+        slim = [[{"q": [round(c, 5) for c in e["q"]], "p": [round(c, 5) for c in e["p"]]} for e in frame] for frame in frames]
+        path = os.path.join(out_dir, stem + ".json")
+        with open(path, "w", encoding="utf-8") as fh:
+            json.dump({"clip": stem, "convention": "stored", "bones": bones, "parents": parents, "frames": slim}, fh)
+        written.append(path)
+        print("{:24s} {} frames, {} bones".format(stem, len(frames), len(bones)))
+    return written
+
+
 def evidence_clips(folder=EVIDENCE):
     out = []
     for name in sorted(os.listdir(folder)):
@@ -332,10 +380,13 @@ def evidence_clips(folder=EVIDENCE):
 
 if __name__ == "__main__":
     import sys
-    if len(sys.argv) >= 3 and sys.argv[1] == "--export":
+    if len(sys.argv) >= 3 and sys.argv[1] == "--export-frames":
+        print("{} clip(s) written".format(len(export_frames(sys.argv[2]))))
+    elif len(sys.argv) >= 3 and sys.argv[1] == "--export":
         print("{} clip(s) written".format(len(export(sys.argv[2]))))
     elif len(sys.argv) >= 2 and sys.argv[1] == "--solve-rest":
         for name, (x, rms) in solve_rest_joints(evidence_clips()).items():
             print("{:10s} rest {} rms {:.5f} m".format(name, [round(c, 4) for c in x], rms))
     else:
-        print("usage: python Tools/Common/adfrc_grip.py --export Docs/evidence/w2_grip_clips | --solve-rest")
+        print("usage: python Tools/Common/adfrc_grip.py --export Docs/evidence/w2_grip_clips"
+              " | --export-frames Docs/evidence/w5_reload_clips | --solve-rest")
