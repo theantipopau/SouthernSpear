@@ -128,19 +128,22 @@ bool FSSHudSectionAssault::RunTest(const FString& Parameters)
 	TestEqual(TEXT("own rounds first"), One.FirstScore, 3);
 	TestEqual(TEXT("opposing rounds second"), One.SecondScore, 1);
 	TestFalse(TEXT("Team One defends"), One.bViewerAttacking);
-	TestEqual(TEXT("defend, own alive first"), One.PhaseLabel.ToString(), FString(TEXT("Defend  4 v 2")));
-	TestEqual(TEXT("round in match"), One.RoundLabel.ToString(), FString(TEXT("Round 5  ·  Half 2")));
+	TestEqual(TEXT("defend"), One.PhaseLabel.ToString(), FString(TEXT("Defend")));
+	TestEqual(TEXT("own alive first"), One.Alive.ToString(), FString(TEXT("4 v 2")));
+	TestEqual(TEXT("round in match"), One.RoundLabel.ToString(), FString(TEXT("Round 5")));
 
 	FSSObjectiveHudModel Two = FSSObjectiveHudModel::Build(InProgressRound(), &Obj, Name, ESSTeamId::TeamTwo);
 	Two.ApplySectionAssault(InProgressRound(), Match, ESSTeamId::TeamTwo);
 	TestEqual(TEXT("mirror: own rounds first"), Two.FirstScore, 1);
 	TestTrue(TEXT("Team Two attacks"), Two.bViewerAttacking);
-	TestEqual(TEXT("attack, own alive first"), Two.PhaseLabel.ToString(), FString(TEXT("Attack  2 v 4")));
+	TestEqual(TEXT("attack"), Two.PhaseLabel.ToString(), FString(TEXT("Attack")));
+	TestEqual(TEXT("mirror: own alive first"), Two.Alive.ToString(), FString(TEXT("2 v 4")));
 
 	FSSObjectiveHudModel Spectator = FSSObjectiveHudModel::Build(InProgressRound(), &Obj, Name, ESSTeamId::None);
 	Spectator.ApplySectionAssault(InProgressRound(), Match, ESSTeamId::None);
 	TestTrue(TEXT("no team: no role guessed"), Spectator.Role.IsEmpty());
-	TestEqual(TEXT("neutral vantage"), Spectator.PhaseLabel.ToString(), FString(TEXT("Team Two attacking  4 v 2")));
+	TestEqual(TEXT("neutral vantage"), Spectator.PhaseLabel.ToString(), FString(TEXT("Team Two attack")));
+	TestEqual(TEXT("neutral alive order"), Spectator.Alive.ToString(), FString(TEXT("4 v 2")));
 
 	FSSRoundState Over = InProgressRound();
 	Over.Phase = ESSRoundPhase::PostRound;
@@ -150,8 +153,16 @@ bool FSSHudSectionAssault::RunTest(const FString& Parameters)
 	Match.LastRoundReason = ESSRoundEndReason::TimeExpired;
 	FSSObjectiveHudModel End = FSSObjectiveHudModel::Build(Over, nullptr, FText::GetEmpty(), ESSTeamId::TeamTwo);
 	End.ApplySectionAssault(Over, Match, ESSTeamId::TeamTwo);
-	TestEqual(TEXT("match result from the viewer"), End.PhaseLabel.ToString(), FString(TEXT("Match: Opposing win")));
-	TestTrue(TEXT("reason in the header"), End.Header.ToString().Contains(TEXT("time expired")));
+	TestEqual(TEXT("match result from the viewer"), End.PhaseLabel.ToString(), FString(TEXT("Match lost")));
+	TestEqual(TEXT("the header is only the reason"), End.Header.ToString(), FString(TEXT("time expired")));
+	TestTrue(TEXT("no alive count after the round"), End.Alive.IsEmpty());
+
+	// Every Section Assault string fits the 184 px panel: the longest is kept short by construction.
+	for (const FSSObjectiveHudModel* M : { &One, &Two, &Spectator, &End })
+	{
+		TestTrue(TEXT("round label short"), M->RoundLabel.ToString().Len() <= 9);
+		TestTrue(TEXT("phase label short"), M->PhaseLabel.ToString().Len() <= 16);
+	}
 	return true;
 }
 

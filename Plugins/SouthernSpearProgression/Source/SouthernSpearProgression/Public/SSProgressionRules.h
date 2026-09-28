@@ -13,18 +13,12 @@ struct FSSMatchTally
 };
 
 /**
- * Pure progression rules (ADR-032): rank resolution, award caps, record
- * updates and schema migration. No world, no files, no clock beyond what the
+ * Pure progression rules (ADR-032): award caps, record updates and schema
+ * migration. Levels and ranks are Core's (FSSServiceRanks, ADR-034). No world, no files, no clock beyond what the
  * caller passes, so every rule is unit-testable.
  */
 struct SSPROG_API FSSProgressionRules
 {
-	/** Index of the highest rank whose MinServiceXp <= Xp; INDEX_NONE for an empty ladder. Assumes a valid ladder. */
-	static int32 ResolveRankIndex(int32 Xp, TConstArrayView<FSSRankDefinition> Ranks);
-
-	/** A usable ladder: not empty, first rank at 0, thresholds strictly rising, ids unique and set. */
-	static bool ValidateRanks(TConstArrayView<FSSRankDefinition> Ranks, TArray<FString>& OutErrors);
-
 	/**
 	 * A usable award table: one rule per event at most, no None event, no zero
 	 * award, and every positive award capped at 1..100 per match.

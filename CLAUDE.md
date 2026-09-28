@@ -72,8 +72,9 @@ Rules: ADR-004 — presentation may never expose/modify damage, health, ammo, re
 hitboxes, abilities, authority, roles or objectives. ADR-017 — resolution fails loudly, never defaults to a
 side; spectators/replays need an explicit authorised vantage. Gameplay logic is C++; Blueprints configure.
 Export macros: `SSCORE_API`, `SSTEAM_API`, `SSOBJ_API`, `SSOBJUI_API`, `SSPROG_API` (aliased in each `Build.cs`).
-Extend the guard when adding a module (SS001 sibling deps — a `<Module>UI` may depend on `<Module>`; SS002 no-Lyra list; SS003 presentation includes; SS005 only `*UI` modules may use UMG/CommonUI; SS009 no kill event in `ESSServiceEvent`).
-Cross-module traffic goes through Core subsystems: `USSRespawnGate` (single-life roster, director ↔ bridge), `USSServiceEventSubsystem` (service events → progression), `USSLocalProfileState` (profile → UI).
+Extend the guard when adding a module (SS001 sibling deps — a `<Module>UI` may depend on `<Module>`; SS002 no-Lyra list; SS003 presentation includes; SS005 only `*UI` modules may use UMG/CommonUI; SS009 was retired by ADR-034).
+Cross-module traffic goes through Core subsystems: `USSRespawnGate` (single-life roster, director ↔ bridge), `USSServiceEventSubsystem` (service events → progression), `USSLocalProfileState` (profile → UI), `USSServiceRankComponent` (replicated service level on the player state → scoreboard).
+Ranks (ADR-034): Australian Army PTE→GEN as service levels 1–100 in `[/Script/SouthernSpearCore.SSRankSettings]`; insignia drawn by engine-free `SSInsigniaRaster.h`. Preview and check without Unreal: `python Tools/Progression/rank_preview.py` (g++).
 
 ## Build and test (run from repo root; Git Bash)
 
@@ -85,7 +86,7 @@ python Tools/verify_dressing.py
 ```
 
 - `-NoLoadingScreen` keeps Lyra's loading screen off headless test viewports (its ensure failed the network smoke test).
-- Tests: `SouthernSpear.Core.*` (9), `SouthernSpear.Presentation.*` (6), `SouthernSpear.Objectives.*` (14, incl. `.Hud.*`; Session 048 adds `.Section.*` ×8 and `.Hud.SectionAssault`), `SouthernSpear.Progression.*` (6, Session 048). Count
+- Tests: `SouthernSpear.Core.*` (9), `SouthernSpear.Presentation.*` (6), `SouthernSpear.Objectives.*` (14, incl. `.Hud.*`; Session 048 adds `.Section.*` ×8 and `.Hud.SectionAssault`), `SouthernSpear.Progression.*` (6), `SouthernSpear.Core.Ranks.*` (3, Session 049). Count
   `Result={Success}` in the log; declare intentionally-logged errors with `AddExpectedError`.
 - Bare test worlds: use `World->GetWorldSettings()->NotifyBeginPlay()` (no GameMode → `World->BeginPlay()` does nothing).
 - Guard negative test: copy `Tools/` + SS plugins to the scratchpad, inject violations, expect exit 1. Never leave
@@ -174,4 +175,4 @@ dedicated-server support while R-09 is open. Then commit, push, and publish the 
 
 R-09 no Server target (engine distribution) · R-12 nav tile count unmeasured · R-14 GitHub holds LFS
 pointers only · R-15 level pass-1 self-check reports failure · R-16 win streaks / spawn proximity to OBJ B ·
-R-43 Session 048 C++ (Section Assault, Progression) written without a compiler: first build/test unverified.
+R-50 Session 048 C++ (Section Assault, Progression) written without a compiler: first build/test unverified.

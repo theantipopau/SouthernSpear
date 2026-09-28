@@ -66,12 +66,15 @@ struct SSOBJUI_API FSSObjectiveHudModel
 	/** Section Assault (ADR-031): the viewer's role this round, "Attack" or "Defend"; empty without a team. */
 	FText Role;
 	bool bViewerAttacking = false;
+	/** Section Assault, in play: players alive, own side first ("5 v 4"); empty otherwise. */
+	FText Alive;
 
 	/**
 	 * Section Assault: turn a model built by Build into the match view. Scores
-	 * become rounds won, the round label counts rounds in this match, the phase
-	 * label carries the viewer's role and alive counts ("Attack  4 v 3"), and the
-	 * post-round header says why the round ended.
+	 * become rounds won and the round label counts rounds in this match. Every
+	 * string stays short enough for the panel under the minimap: the phase label
+	 * is just the role or the result, the alive count has its own field, and the
+	 * post-round header is only the reason ("Defenders eliminated").
 	 */
 	void ApplySectionAssault(const FSSRoundState& Round, const FSSMatchState& Match, ESSTeamId ViewerTeam);
 

@@ -28,15 +28,6 @@ namespace
 		return R;
 	}
 
-	FSSRankDefinition Rank(const TCHAR* Id, int32 Min)
-	{
-		FSSRankDefinition R;
-		R.Id = Id;
-		R.DisplayName = FText::FromString(Id);
-		R.MinServiceXp = Min;
-		return R;
-	}
-
 	/** A scratch directory under Saved/Automation, removed by the destructor. */
 	struct FScratchDir
 	{
@@ -56,13 +47,11 @@ bool FSSProgShippedTables::RunTest(const FString& Parameters)
 	// The tables in Config/DefaultGame.ini, exactly as the game loads them.
 	const USSProgressionSettings* Settings = GetDefault<USSProgressionSettings>();
 	TArray<FString> Errors;
-	TestTrue(TEXT("rank ladder valid"), FSSProgressionRules::ValidateRanks(Settings->Ranks, Errors));
 	TestTrue(TEXT("award table valid"), FSSProgressionRules::ValidateAwards(Settings->Awards, Errors));
 	for (const FString& Error : Errors)
 	{
 		AddError(Error);
 	}
-	TestEqual(TEXT("nine enlisted ranks (GDD 6.2)"), Settings->Ranks.Num(), 9);
 	TestTrue(TEXT("awards configured"), Settings->Awards.Num() > 0);
 
 	// TDD 6.2: a test asserts that no award rule is uncapped.
@@ -76,22 +65,35 @@ bool FSSProgShippedTables::RunTest(const FString& Parameters)
 	return true;
 }
 
-IMPLEMENT_SIMPLE_AUTOMATION_TEST(FSSProgNoKillReward, "SouthernSpear.Progression.NoKillReward", SSProgressionTestFlags)
-bool FSSProgNoKillReward::RunTest(const FString& Parameters)
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FSSProgKillAwards, "SouthernSpear.Progression.KillAwards", SSProgressionTestFlags)
+bool FSSProgKillAwards::RunTest(const FString& Parameters)
 {
-	// GDD 6.4: per-kill awards are a review blocker. The only *Kill* event is the
-	// friendly-kill penalty, and nothing may reward it.
-	const UEnum* Events = StaticEnum<ESSServiceEvent>();
-	for (int32 Index = 0; Index < Events->NumEnums() - 1; ++Index) // last entry is _MAX
+	// ADR-034: kills of the other side earn XP, capped per match, and a captured
+	// objective is still worth more than a kill. A friendly kill never earns.
+	const TArray<FSSXpAwardRule>& Awards = GetDefault<USSProgressionSettings>()->Awards;
+	const FSSXpAwardRule* Kill = FSSProgressionRules::FindRule(ESSServiceEvent::EnemyKill, Awards);
+	const FSSXpAwardRule* Objective = FSSProgressionRules::FindRule(ESSServiceEvent::ObjectiveCaptured, Awards);
+	if (!TestNotNull(TEXT("kill award configured"), Kill) || !TestNotNull(TEXT("objective award configured"), Objective))
 	{
-		const FString Name = Events->GetNameStringByIndex(Index);
-		if (Name.Contains(TEXT("Kill")))
-		{
-			TestEqual(TEXT("the only kill event is FriendlyKill"), Name, FString(TEXT("FriendlyKill")));
-		}
+		return false;
 	}
-	const FSSXpAwardRule* FriendlyKill = FSSProgressionRules::FindRule(ESSServiceEvent::FriendlyKill, GetDefault<USSProgressionSettings>()->Awards);
+	TestTrue(TEXT("a kill earns XP"), Kill->Award > 0);
+	TestTrue(TEXT("kills are capped per match"), Kill->MaxPerMatch >= 1);
+	TestTrue(TEXT("an objective is worth more than a kill"), Objective->Award > Kill->Award);
+	const FSSXpAwardRule* FriendlyKill = FSSProgressionRules::FindRule(ESSServiceEvent::FriendlyKill, Awards);
 	TestTrue(TEXT("a friendly kill never earns XP"), !FriendlyKill || FriendlyKill->Award < 0);
+
+	FSSMatchTally Tally;
+	int32 Earned = 0;
+	for (int32 Index = 0; Index < Kill->MaxPerMatch + 25; ++Index)
+	{
+		Earned += FSSProgressionRules::GrantAward(Tally, ESSServiceEvent::EnemyKill, Awards);
+	}
+	TestEqual(TEXT("farming stops at the cap"), Earned, Kill->Award * Kill->MaxPerMatch);
+
+	FSSServiceRecord Record;
+	FSSProgressionRules::ApplyAward(Record, ESSServiceEvent::EnemyKill, Kill->Award);
+	TestEqual(TEXT("kill statistic"), Record.Statistics.EnemyKills, 1);
 	return true;
 }
 
@@ -99,17 +101,6 @@ IMPLEMENT_SIMPLE_AUTOMATION_TEST(FSSProgValidation, "SouthernSpear.Progression.V
 bool FSSProgValidation::RunTest(const FString& Parameters)
 {
 	TArray<FString> E;
-	TestFalse(TEXT("empty ladder"), FSSProgressionRules::ValidateRanks({}, E));
-	E.Reset();
-	TestFalse(TEXT("first rank above 0"), FSSProgressionRules::ValidateRanks({ Rank(TEXT("A"), 10) }, E));
-	E.Reset();
-	TestFalse(TEXT("thresholds must rise"), FSSProgressionRules::ValidateRanks({ Rank(TEXT("A"), 0), Rank(TEXT("B"), 0) }, E));
-	E.Reset();
-	TestFalse(TEXT("duplicate ids"), FSSProgressionRules::ValidateRanks({ Rank(TEXT("A"), 0), Rank(TEXT("A"), 5) }, E));
-	E.Reset();
-	TestTrue(TEXT("good ladder"), FSSProgressionRules::ValidateRanks({ Rank(TEXT("A"), 0), Rank(TEXT("B"), 5) }, E));
-
-	E.Reset();
 	TestFalse(TEXT("uncapped reward"), FSSProgressionRules::ValidateAwards({ Rule(ESSServiceEvent::RoundWon, 50, 0) }, E));
 	E.Reset();
 	TestFalse(TEXT("absurd cap"), FSSProgressionRules::ValidateAwards({ Rule(ESSServiceEvent::RoundWon, 50, 100000) }, E));
@@ -122,16 +113,9 @@ bool FSSProgValidation::RunTest(const FString& Parameters)
 	return true;
 }
 
-IMPLEMENT_SIMPLE_AUTOMATION_TEST(FSSProgRanksAndCaps, "SouthernSpear.Progression.RanksAndCaps", SSProgressionTestFlags)
-bool FSSProgRanksAndCaps::RunTest(const FString& Parameters)
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FSSProgCaps, "SouthernSpear.Progression.Caps", SSProgressionTestFlags)
+bool FSSProgCaps::RunTest(const FString& Parameters)
 {
-	const TArray<FSSRankDefinition> Ranks = { Rank(TEXT("A"), 0), Rank(TEXT("B"), 100), Rank(TEXT("C"), 250) };
-	TestEqual(TEXT("0 XP: first rank"), FSSProgressionRules::ResolveRankIndex(0, Ranks), 0);
-	TestEqual(TEXT("99 XP: first rank"), FSSProgressionRules::ResolveRankIndex(99, Ranks), 0);
-	TestEqual(TEXT("100 XP: promoted on the threshold"), FSSProgressionRules::ResolveRankIndex(100, Ranks), 1);
-	TestEqual(TEXT("top rank"), FSSProgressionRules::ResolveRankIndex(100000, Ranks), 2);
-	TestEqual(TEXT("empty ladder"), FSSProgressionRules::ResolveRankIndex(50, TArray<FSSRankDefinition>()), INDEX_NONE);
-
 	const TArray<FSSXpAwardRule> Awards = { Rule(ESSServiceEvent::RoundWon, 50, 2), Rule(ESSServiceEvent::FriendlyKill, -30, 0) };
 	FSSMatchTally Tally;
 	TestEqual(TEXT("first win"), FSSProgressionRules::GrantAward(Tally, ESSServiceEvent::RoundWon, Awards), 50);
@@ -213,6 +197,12 @@ bool FSSProgPersistence::RunTest(const FString& Parameters)
 	TestFalse(TEXT("moved aside"), Aside.IsEmpty());
 	TestTrue(TEXT("kept as a backup"), IFileManager::Get().FileExists(*Aside));
 	TestFalse(TEXT("original path free for a new record"), IFileManager::Get().FileExists(*Path));
+
+	// A v1 record (ADR-032) migrates to the current schema on load, keeping its XP.
+	FFileHelper::SaveStringToFile(TEXT("{\"schemaVersion\": 1, \"playerId\": \"p1\", \"serviceXp\": 777}"), *Path);
+	TestEqual(TEXT("v1 record loads"), Store.LoadServiceRecord(TEXT("p1"), Out, Error), ESSRecordLoad::Loaded);
+	TestEqual(TEXT("... migrated to the current schema"), Out.SchemaVersion, FSSServiceRecord::CurrentSchemaVersion);
+	TestEqual(TEXT("... XP kept"), Out.ServiceXp, 777);
 
 	FFileHelper::SaveStringToFile(TEXT("{\"schemaVersion\": 0}"), *Path);
 	TestEqual(TEXT("version 0 unreadable"), Store.LoadServiceRecord(TEXT("p1"), Out, Error), ESSRecordLoad::Unreadable);

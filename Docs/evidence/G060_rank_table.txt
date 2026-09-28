@@ -1,0 +1,23 @@
+$ python Tools/Progression/rank_preview.py Docs/evidence/G060_rank_insignia_sheet.png   (2026-09-28, Session 049; g++ -std=c++20 -Wall -Wextra -Werror against the game headers)
+PTE     levels   1-4    XP        0-835       ink   0.0%  ok
+LCPL    levels   5-9    XP      836-3900      ink   9.2%  ok
+CPL     levels  10-15   XP     3901-10296     ink  18.4%  ok
+SGT     levels  16-22   XP    10297-21317     ink  27.5%  ok
+SSGT    levels  23-28   XP    21318-33708     ink  19.2%  ok
+WO2     levels  29-34   XP    33709-48747     ink  26.6%  ok
+WO1     levels  35-40   XP    48748-66383     ink  25.8%  ok
+2LT     levels  41-46   XP    66384-86574     ink  10.6%  ok
+LT      levels  47-53   XP    86575-113311    ink  14.8%  ok
+CAPT    levels  54-61   XP   113312-148005    ink   9.7%  ok
+MAJ     levels  62-69   XP   148006-187052    ink  26.6%  ok
+LTCOL   levels  70-77   XP   187053-230400    ink  14.9%  ok
+COL     levels  78-84   XP   230401-271819    ink  10.0%  ok
+BRIG    levels  85-90   XP   271820-309892    ink  12.1%  ok
+MAJGEN  levels  91-95   XP   309893-343419    ink  10.0%  ok
+LTGEN   levels  96-99   XP   343420-371413    ink  10.3%  ok
+GEN     levels 100-100  XP   371414-          ink   7.7%  ok
+level 100 needs 371414 XP; LevelForXp(huge) = 100
+/tmp/tmpiqv2166x/sheet.raw: 1632 x 96, 17 ranks, 0 failure(s)
+order: PTE  LCPL  CPL  SGT  SSGT  WO2  WO1  2LT  LT  CAPT  MAJ  LTCOL  COL  BRIG  MAJGEN  LTGEN  GEN
+wrote Docs/evidence/G060_rank_insignia_sheet.png
+exit=0

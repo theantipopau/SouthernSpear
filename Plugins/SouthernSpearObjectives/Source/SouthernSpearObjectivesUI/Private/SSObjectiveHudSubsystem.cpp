@@ -12,6 +12,7 @@
 #include "SSRoundBannerWidget.h"
 #include "InputCoreTypes.h"
 #include "SSObjectiveTypes.h"
+#include "SSScoreboardState.h"
 #include "Misc/CommandLine.h"
 #include "Misc/Parse.h"
 #include "UnrealClient.h"
@@ -36,6 +37,21 @@ TStatId USSObjectiveHudSubsystem::GetStatId() const
 
 void USSObjectiveHudSubsystem::Tick(float DeltaTime)
 {
+	// The scoreboard (SouthernSpearUI, Core-only) names the rule set from here:
+	// only this module can see the director. RulesMode replicates.
+	if (USSScoreboardState* Scores = GetWorld() ? GetWorld()->GetSubsystem<USSScoreboardState>() : nullptr)
+	{
+		const ASSObjectiveAssaultDirector* Director = nullptr;
+		for (TActorIterator<ASSObjectiveAssaultDirector> It(GetWorld()); It; ++It)
+		{
+			Director = *It;
+			break;
+		}
+		Scores->ModeTitle = !Director ? FText::GetEmpty() : Director->IsSectionAssault()
+			? NSLOCTEXT("SSScore", "SectionAssault", "SECTION ASSAULT  ·  ONE LIFE")
+			: NSLOCTEXT("SSScore", "ObjectiveAssault", "OBJECTIVE ASSAULT");
+	}
+
 	// Dev capture: -SSShotAt=<seconds> takes one viewport screenshot
 	// (Saved/Screenshots) without touching the desktop or window focus.
 	ElapsedSeconds += DeltaTime;

@@ -22,6 +22,8 @@ struct FSSScoreRow
 	UPROPERTY(BlueprintReadOnly, Category = "Scoreboard") int32 PingMs = -1;
 	UPROPERTY(BlueprintReadOnly, Category = "Scoreboard") bool bLocal = false;
 	UPROPERTY(BlueprintReadOnly, Category = "Scoreboard") bool bBot = false;
+	/** Service level 1..100 from USSServiceRankComponent (ADR-034); 0 without a record (bots). */
+	UPROPERTY(BlueprintReadOnly, Category = "Scoreboard") int32 ServiceLevel = 0;
 };
 
 /**
@@ -41,4 +43,8 @@ public:
 	/** The local viewer's team, for the friendly/opposing split. */
 	UPROPERTY(Transient, BlueprintReadOnly, Category = "Scoreboard")
 	ESSTeamId LocalTeam = ESSTeamId::None;
+
+	/** The running rule set's name ("SECTION ASSAULT"), filled by the objective HUD; empty until known. */
+	UPROPERTY(Transient, BlueprintReadOnly, Category = "Scoreboard")
+	FText ModeTitle;
 };

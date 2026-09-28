@@ -16,58 +16,6 @@ namespace
 	constexpr int32 MaxSaneCap = 100;
 }
 
-int32 FSSProgressionRules::ResolveRankIndex(int32 Xp, TConstArrayView<FSSRankDefinition> Ranks)
-{
-	int32 Found = Ranks.Num() > 0 ? 0 : INDEX_NONE;
-	for (int32 Index = 0; Index < Ranks.Num(); ++Index)
-	{
-		if (Ranks[Index].MinServiceXp <= Xp)
-		{
-			Found = Index;
-		}
-	}
-	return Found;
-}
-
-bool FSSProgressionRules::ValidateRanks(TConstArrayView<FSSRankDefinition> Ranks, TArray<FString>& OutErrors)
-{
-	const int32 Before = OutErrors.Num();
-	if (Ranks.Num() == 0)
-	{
-		OutErrors.Add(TEXT("The rank ladder is empty."));
-		return false;
-	}
-	if (Ranks[0].MinServiceXp != 0)
-	{
-		OutErrors.Add(FString::Printf(TEXT("The first rank '%s' starts at %d XP; it must start at 0."),
-			*Ranks[0].Id.ToString(), Ranks[0].MinServiceXp));
-	}
-	TSet<FName> Seen;
-	for (int32 Index = 0; Index < Ranks.Num(); ++Index)
-	{
-		const FSSRankDefinition& Rank = Ranks[Index];
-		if (Rank.Id.IsNone())
-		{
-			OutErrors.Add(FString::Printf(TEXT("Rank %d has no Id."), Index));
-		}
-		else if (Seen.Contains(Rank.Id))
-		{
-			OutErrors.Add(FString::Printf(TEXT("Rank Id '%s' appears twice."), *Rank.Id.ToString()));
-		}
-		Seen.Add(Rank.Id);
-		if (Rank.DisplayName.IsEmpty())
-		{
-			OutErrors.Add(FString::Printf(TEXT("Rank '%s' has no display name."), *Rank.Id.ToString()));
-		}
-		if (Index > 0 && Rank.MinServiceXp <= Ranks[Index - 1].MinServiceXp)
-		{
-			OutErrors.Add(FString::Printf(TEXT("Rank '%s' (%d XP) does not rise above '%s' (%d XP)."),
-				*Rank.Id.ToString(), Rank.MinServiceXp, *Ranks[Index - 1].Id.ToString(), Ranks[Index - 1].MinServiceXp));
-		}
-	}
-	return OutErrors.Num() == Before;
-}
-
 bool FSSProgressionRules::ValidateAwards(TConstArrayView<FSSXpAwardRule> Awards, TArray<FString>& OutErrors)
 {
 	const int32 Before = OutErrors.Num();
@@ -141,6 +89,7 @@ void FSSProgressionRules::ApplyAward(FSSServiceRecord& Record, ESSServiceEvent E
 	case ESSServiceEvent::MatchCompleted:		++S.MatchesCompleted; break;
 	case ESSServiceEvent::MatchWon:				++S.MatchesWon; break;
 	case ESSServiceEvent::FriendlyKill:			++S.FriendlyKills; break;
+	case ESSServiceEvent::EnemyKill:			++S.EnemyKills; break;
 	default:									break;
 	}
 }
@@ -158,8 +107,13 @@ bool FSSProgressionRules::Migrate(FSSServiceRecord& Record, FString& OutError)
 			Record.SchemaVersion, FSSServiceRecord::CurrentSchemaVersion);
 		return false;
 	}
-	// The chain: one step per version, applied in order. v1 is the first schema.
-	// if (Record.SchemaVersion == 1) { ...v1 -> v2...; Record.SchemaVersion = 2; }
+	// The chain: one step per version, applied in order.
+	if (Record.SchemaVersion == 1)
+	{
+		// v2 added Statistics.EnemyKills; a v1 record has none to count.
+		Record.Statistics.EnemyKills = 0;
+		Record.SchemaVersion = 2;
+	}
 	Record.ServiceXp = FMath::Max(0, Record.ServiceXp);
 	return true;
 }
@@ -204,6 +158,7 @@ FText FSSProgressionRules::EventName(ESSServiceEvent Event)
 	case ESSServiceEvent::MatchCompleted:		return LOCTEXT("EvMatchCompleted", "Match completed");
 	case ESSServiceEvent::MatchWon:				return LOCTEXT("EvMatchWon", "Match won");
 	case ESSServiceEvent::FriendlyKill:			return LOCTEXT("EvFriendlyKill", "Friendly kill");
+	case ESSServiceEvent::EnemyKill:			return LOCTEXT("EvEnemyKill", "Enemy killed");
 	default:									return FText::GetEmpty();
 	}
 }

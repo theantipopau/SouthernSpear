@@ -4,6 +4,7 @@
 
 #include "Engine/World.h"
 #include "SSScoreboardState.h"
+#include "SSServiceRanks.h"
 #include "SSWidgetKit.h"
 
 using namespace SSWidgetKit;
@@ -11,6 +12,8 @@ using namespace SSWidgetKit;
 namespace
 {
 	constexpr float ColumnWidth = 520.f;
+	constexpr float InsigniaSize = 22.f;
+	constexpr float LevelWidth = 30.f;
 	const float StatWidths[] = { 44.f, 44.f, 44.f, 64.f };
 
 	UTextBlock* Cell(UWidgetTree* T, UHorizontalBox* Line, float Width, bool bBold, const FLinearColor& Colour, int32 Size = 14)
@@ -59,8 +62,8 @@ bool USSScoreboardWidget::Initialize()
 	AddV(Col, Head);
 	UVerticalBox* Titles = T->ConstructWidget<UVerticalBox>();
 	AddH(Head, Titles, true);
-	UTextBlock* Kicker = Text(T, 11, true, SSPalette::Brass300(), 300);
-	Kicker->SetText(NSLOCTEXT("SSScore", "Kicker", "OBJECTIVE ASSAULT"));
+	Kicker = Text(T, 11, true, SSPalette::Brass300(), 300);
+	Kicker->SetText(NSLOCTEXT("SSScore", "Kicker", "SOUTHERN SPEAR"));
 	AddV(Titles, Kicker);
 	UTextBlock* Title = Text(T, 30, true, SSPalette::Sand100(), 100);
 	Title->SetText(NSLOCTEXT("SSScore", "Title", "SCOREBOARD"));
@@ -100,6 +103,14 @@ bool USSScoreboardWidget::Initialize()
 		UHorizontalBox* LabelLine = T->ConstructWidget<UHorizontalBox>();
 		LabelPad->SetContent(LabelLine);
 		AddH(Labels, LabelPad, true);
+		{
+			USizeBox* RankLabelBox = T->ConstructWidget<USizeBox>();
+			RankLabelBox->SetWidthOverride(InsigniaSize + 6.f + LevelWidth + 8.f);
+			UTextBlock* RankLabel = Text(T, 11, true, SSPalette::Sage400());
+			RankLabel->SetText(NSLOCTEXT("SSScore", "RankColumn", "RANK"));
+			RankLabelBox->AddChild(RankLabel);
+			AddH(LabelLine, RankLabelBox);
+		}
 		for (int32 Index = 0; Index < 5; ++Index)
 		{
 			UTextBlock* Label = Cell(T, LabelLine, Index == 0 ? 0.f : StatWidths[Index - 1], true, SSPalette::Sage400(), 11);
@@ -113,6 +124,18 @@ bool USSScoreboardWidget::Initialize()
 			Row.Plate = Plate(T, SSPalette::Field800(Index % 2 ? 0.55f : 0.8f), FMargin(12.f, 6.f));
 			UHorizontalBox* Line = T->ConstructWidget<UHorizontalBox>();
 			Row.Plate->SetContent(Line);
+			USizeBox* InsigniaBox = T->ConstructWidget<USizeBox>();
+			InsigniaBox->SetWidthOverride(InsigniaSize);
+			InsigniaBox->SetHeightOverride(InsigniaSize);
+			Row.Insignia = T->ConstructWidget<UImage>();
+			Row.Insignia->SetColorAndOpacity(SSPalette::Brass300());
+			InsigniaBox->AddChild(Row.Insignia);
+			AddH(Line, InsigniaBox)->SetPadding(FMargin(0.f, 0.f, 6.f, 0.f));
+			USizeBox* LevelBox = T->ConstructWidget<USizeBox>();
+			LevelBox->SetWidthOverride(LevelWidth);
+			Row.Level = Text(T, 14, true, SSPalette::Brass300());
+			LevelBox->AddChild(Row.Level);
+			AddH(Line, LevelBox)->SetPadding(FMargin(0.f, 0.f, 8.f, 0.f));
 			Row.Name = Cell(T, Line, 0.f, false, SSPalette::Sand100(), 14);
 			Row.Kills = Cell(T, Line, StatWidths[0], true, SSPalette::Sand100(), 15);
 			Row.Deaths = Cell(T, Line, StatWidths[1], true, SSPalette::Sage200(), 15);
@@ -132,6 +155,10 @@ void USSScoreboardWidget::Refresh()
 	if (!State)
 	{
 		return;
+	}
+	if (!State->ModeTitle.IsEmpty())
+	{
+		Kicker->SetText(State->ModeTitle);
 	}
 	TArray<const FSSScoreRow*> Split[2];
 	for (const FSSScoreRow& Row : State->Rows)
@@ -155,6 +182,13 @@ void USSScoreboardWidget::Refresh()
 			Kills += Row->Kills;
 			Widgets.Plate->SetBrushColor(Row->bLocal ? SSPalette::Brass500(0.28f) : SSPalette::Field800(Index % 2 ? 0.55f : 0.8f));
 			Widgets.Name->SetText(FText::FromString(Row->bBot ? Row->Name + TEXT("  ·  BOT") : Row->Name));
+			// Rank insignia and level; nothing for a player without a record (bots).
+			const FSSRankDefinition* Rank = Row->ServiceLevel > 0 ? FSSServiceRanks::RankForLevel(Row->ServiceLevel) : nullptr;
+			UTexture2D* Insignia = Rank ? FSSServiceRanks::InsigniaTexture(Rank->Insignia) : nullptr;
+			Widgets.Insignia->SetBrushFromTexture(Insignia);
+			Widgets.Insignia->SetVisibility(Insignia ? ESlateVisibility::HitTestInvisible : ESlateVisibility::Hidden);
+			Widgets.Insignia->SetToolTipText(Rank ? Rank->DisplayName : FText::GetEmpty());
+			Widgets.Level->SetText(Row->ServiceLevel > 0 ? FText::AsNumber(Row->ServiceLevel) : FText::FromString(TEXT("—")));
 			Widgets.Name->SetColorAndOpacity(Row->bLocal ? SSPalette::Brass300() : SSPalette::Sand100());
 			Widgets.Kills->SetText(FText::AsNumber(Row->Kills));
 			Widgets.Deaths->SetText(FText::AsNumber(Row->Deaths));

@@ -7,26 +7,6 @@
 #include "SSServiceEvents.h"
 #include "SSProgressionSettings.generated.h"
 
-/** One rank in the ladder (GDD §6.2). Insignia are placeholders pending L-0003. */
-USTRUCT(BlueprintType)
-struct FSSRankDefinition
-{
-	GENERATED_BODY()
-
-	UPROPERTY(Config, EditAnywhere, BlueprintReadOnly, Category = "Rank")
-	FName Id;
-
-	UPROPERTY(Config, EditAnywhere, BlueprintReadOnly, Category = "Rank")
-	FText DisplayName;
-
-	UPROPERTY(Config, EditAnywhere, BlueprintReadOnly, Category = "Rank")
-	FText Abbreviation;
-
-	/** Service XP at which this rank is reached. The first rank must be 0; each after it higher. */
-	UPROPERTY(Config, EditAnywhere, BlueprintReadOnly, Category = "Rank")
-	int32 MinServiceXp = 0;
-};
-
 /**
  * Service XP for one service event (TDD §6.2). A positive award must carry a
  * per-match cap, which is how "no reward for idling or farming" is enforced
@@ -50,9 +30,10 @@ struct FSSXpAwardRule
 };
 
 /**
- * The rank ladder and the award table (ADR-032). Data, not code:
- * Config/DefaultGame.ini [/Script/SouthernSpearProgression.SSProgressionSettings].
- * Validated on load (FSSProgressionRules::ValidateRanks/ValidateAwards) and by test.
+ * The award table (ADR-032, ADR-034). Data, not code: Config/DefaultGame.ini
+ * [/Script/SouthernSpearProgression.SSProgressionSettings]. The rank ladder and
+ * level curve live in Core (USSRankSettings), because the scoreboard reads them.
+ * Validated on load (FSSProgressionRules::ValidateAwards) and by test.
  */
 UCLASS(Config = Game, DefaultConfig, meta = (DisplayName = "Southern Spear Progression"))
 class SSPROG_API USSProgressionSettings : public UDeveloperSettings
@@ -60,9 +41,6 @@ class SSPROG_API USSProgressionSettings : public UDeveloperSettings
 	GENERATED_BODY()
 
 public:
-	UPROPERTY(Config, EditAnywhere, BlueprintReadOnly, Category = "Ranks")
-	TArray<FSSRankDefinition> Ranks;
-
 	UPROPERTY(Config, EditAnywhere, BlueprintReadOnly, Category = "Awards")
 	TArray<FSSXpAwardRule> Awards;
 };

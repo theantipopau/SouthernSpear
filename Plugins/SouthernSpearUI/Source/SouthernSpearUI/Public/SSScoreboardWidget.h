@@ -7,12 +7,14 @@
 #include "SSScoreboardWidget.generated.h"
 
 class UBorder;
+class UImage;
 class UTextBlock;
 
 /**
  * Scoreboard (hold Tab): the viewer's own side first as 3 ACR, the other side
  * as MAF (viewer-relative, like every Southern Spear presentation), each
- * player's eliminations, deaths, assists and ping. Reads USSScoreboardState
+ * player's rank insignia and service level (ADR-034), eliminations, deaths,
+ * assists and ping. Reads USSScoreboardState
  * (Core), which the Lyra bridge fills. Built in C++ in the website style.
  */
 UCLASS()
@@ -30,6 +32,9 @@ private:
 	struct FRowWidgets
 	{
 		UBorder* Plate = nullptr;
+		/** ADR-034: rank insignia and service level, like America's Army honour. */
+		UImage* Insignia = nullptr;
+		UTextBlock* Level = nullptr;
 		UTextBlock* Name = nullptr;
 		UTextBlock* Kills = nullptr;
 		UTextBlock* Deaths = nullptr;
@@ -44,4 +49,6 @@ private:
 	float RefreshIn = 0.f;
 	float Elapsed = 0.f;
 	UPROPERTY(Transient) TObjectPtr<UWidget> Panel;
+	/** The rule set's name above the title, from USSScoreboardState::ModeTitle. */
+	UPROPERTY(Transient) TObjectPtr<UTextBlock> Kicker;
 };

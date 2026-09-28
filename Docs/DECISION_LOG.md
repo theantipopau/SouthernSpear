@@ -1004,3 +1004,46 @@ depend on colour alone, and the instruction to rename assets with redirectors ra
 rename. Only the camouflage-pattern sentence and the `CMECU` row are withdrawn. L-0021's git handling is
 also unchanged — `Art/ADFRC/*` stays ignored, because that rule is about redistribution of third-party
 source, not about what the game may wear.
+
+---
+
+## ADR-034 — Australian Army ranks as service levels 1–100, with insignia; kills earn capped XP
+
+**Status:** Accepted (producer, 2026-09-28, in session): "mimic Australian Army rankings, private through to
+general, even with their insignia (displayed in the scoreboard), like honor was for America's Army. XP is
+gained through kills, objectives etc. ... highest rank is general 100 ... private might be 1–4, then at 5 it
+goes to lance corporal", then "needs to be realistic", pointing to army.gov.au/about-us/ranks.
+**Supersedes:** ADR-032's rank ladder and its no-kill-event rule (guard SS009, retired); GDD §6.2 "officer
+ranks are reserved" and §6.4 "kills are not rewarded", for progression. **Extends:** ADR-016 by exception,
+as ADR-025 did. (Numbered 034: ADR-033 was taken concurrently by the uniform-texture decision.)
+**Date:** 2026-09-28
+
+**Decision.**
+- **Service level 1–100**, shown with the rank insignia on the scoreboard and front end, as honour was in
+  America's Army. Level comes from service XP: `XpForLevel(n) = round(60 · (n−1)^1.9)`. Level 100 needs
+  371,414 XP.
+- **Seventeen ranks, Private to General**, per the Army's own rank list: PTE 1–4, LCPL 5–9, CPL 10–15,
+  SGT 16–22, SSGT 23–28, WO2 29–34, WO1 35–40, 2LT 41–46, LT 47–53, CAPT 54–61, MAJ 62–69, LTCOL 70–77,
+  COL 78–84, BRIG 85–90, MAJGEN 91–95, LTGEN 96–99, GEN 100. RSM-A (a single appointment) and Field
+  Marshal (honorary) aren't levels. All of it is data: `[/Script/SouthernSpearCore.SSRankSettings]`.
+- **Insignia are drawn in code** (`SSInsigniaRaster.h`, engine-free) from each rank's description, following
+  the Army's devices: point-down chevrons, crown (St Edward's pattern) over chevrons for SSGT, crown for WO2,
+  the Coat of Arms for WO1, pips (Order of the Bath star) in a column, crown and pips for field officers
+  (Brigadier's three in a triangle), and crossed sword and baton for generals. They're silhouettes for a
+  22 px scoreboard cell, not heraldic reproductions. There are no image files, so nothing needs importing
+  or registering.
+- **Kills earn XP** (`EnemyKill`, 10 XP, capped at 50 per match). Objectives still dominate: one capture
+  (100 XP) is worth ten kills. A friendly kill costs 150 XP and is never capped.
+- **Where it lives.** The ladder and curve are in Core (`USSRankSettings`, `FSSServiceRanks`), because the
+  scoreboard (SouthernSpearUI) and progression both read them. The level travels client → server through
+  `USSServiceRelay::ServerReportProfile` into a replicated `USSServiceRankComponent` on the player state.
+  The same call carries the callsign (`ss.Callsign <name>`), which becomes the scoreboard name.
+
+**Release gate — R-55.** The crown and the Coat of Arms are Crown and Commonwealth emblems, and the insignia
+set as a whole is the Australian Army's. Using them was the producer's call for development, as ADR-025 was
+for uniforms. **Before release** they need permission (Defence for the insignia; the Department of the Prime
+Minister and Cabinet for the Coat of Arms), or the WO1 and crown devices are swapped for the fictional
+CMECU/3 ACR ones. The swap is a change to `SSInsigniaRaster.h`, with no data or assets to replace.
+
+**Known limit.** The level shown to other players comes from each player's own local record, which isn't
+authoritative (R-53). It is display only and gates nothing. Server-authoritative records are Phase 5 work.

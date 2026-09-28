@@ -13,10 +13,13 @@
 
 class AController;
 class APlayerController;
+class IConsoleObject;
 
 /**
  * Added by the server to every player controller: delivers each service event
- * and the XP it earned to the owning client, which records it (ADR-032).
+ * and the XP it earned to the owning client, which records it (ADR-032), and
+ * carries the client's service level and callsign back to the server for the
+ * scoreboard (ADR-034).
  */
 UCLASS()
 class SSPROG_API USSServiceRelay : public UActorComponent
@@ -26,9 +29,20 @@ class SSPROG_API USSServiceRelay : public UActorComponent
 public:
 	USSServiceRelay();
 
+	virtual void BeginPlay() override;
+
 	/** XpDelta is the server's decision after caps; zero once an award is capped (the statistic still counts). */
 	UFUNCTION(Client, Reliable)
 	void ClientServiceAward(ESSServiceEvent Event, int32 XpDelta);
+
+	/**
+	 * The owning client's level (from its local record) and callsign. The server
+	 * shows them on the scoreboard: the level through USSServiceRankComponent on
+	 * the player state, the callsign as the player name. Display only: the record
+	 * is not authoritative (R-53), so nothing is gated on it.
+	 */
+	UFUNCTION(Server, Reliable)
+	void ServerReportProfile(int32 ServiceLevel, const FString& Callsign);
 };
 
 /**
@@ -79,8 +93,16 @@ public:
 	virtual bool ShouldCreateSubsystem(UObject* Outer) const override;
 	virtual void Initialize(FSubsystemCollectionBase& Collection) override;
 
+	virtual void Deinitialize() override;
+
 	/** Record one award from the server and save. */
 	void ApplyServiceAward(ESSServiceEvent Event, int32 XpDelta);
+
+	/** Send level and callsign to the server through the local player's relay, if it exists yet. */
+	void ReportToServer() const;
+
+	/** The current service level from the record's XP. */
+	int32 GetServiceLevel() const;
 
 	/** Set the callsign; false (and unchanged) if it is not a valid callsign. */
 	UFUNCTION(BlueprintCallable, Category = "Southern Spear|Profile")
@@ -98,6 +120,9 @@ private:
 	void LoadOrCreate();
 	void Save();
 	void Publish();
+
+	/** ss.Callsign <name>: set the callsign from the console until the front end has a field for it. */
+	IConsoleObject* CallsignCommand = nullptr;
 
 	TUniquePtr<FSSLocalDevPersistence> Provider;
 	FSSServiceRecord Record;

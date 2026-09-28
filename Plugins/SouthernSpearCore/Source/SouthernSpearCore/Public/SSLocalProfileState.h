@@ -37,16 +37,24 @@ public:
 	UPROPERTY(Transient, BlueprintReadOnly, Category = "Profile")
 	int32 RankIndex = 0;
 
+	/** Service level 1..100 (ADR-034), shown with the insignia like America's Army honour. */
+	UPROPERTY(Transient, BlueprintReadOnly, Category = "Profile")
+	int32 ServiceLevel = 1;
+
 	UPROPERTY(Transient, BlueprintReadOnly, Category = "Profile")
 	int32 ServiceXp = 0;
 
-	/** Service XP at which the current rank starts. */
+	/** Service XP at which the current level starts. */
 	UPROPERTY(Transient, BlueprintReadOnly, Category = "Profile")
-	int32 RankFloorXp = 0;
+	int32 LevelFloorXp = 0;
 
-	/** Service XP for the next rank; -1 at the highest rank. */
+	/** Service XP for the next level; -1 at the top level. */
 	UPROPERTY(Transient, BlueprintReadOnly, Category = "Profile")
-	int32 NextRankXp = -1;
+	int32 NextLevelXp = -1;
+
+	/** Level at which the next rank is reached; -1 at the top rank. */
+	UPROPERTY(Transient, BlueprintReadOnly, Category = "Profile")
+	int32 NextRankLevel = -1;
 
 	UPROPERTY(Transient, BlueprintReadOnly, Category = "Profile")
 	int32 MatchesCompleted = 0;
@@ -62,13 +70,13 @@ public:
 	UPROPERTY(Transient, BlueprintReadOnly, Category = "Profile")
 	double LastAwardTime = -1.0;
 
-	/** 0..1 through the current rank; 1 at the highest rank. */
-	float GetRankProgress() const
+	/** 0..1 through the current level; 1 at the top level. */
+	float GetLevelProgress() const
 	{
-		if (NextRankXp < 0 || NextRankXp <= RankFloorXp)
+		if (NextLevelXp < 0 || NextLevelXp <= LevelFloorXp)
 		{
 			return 1.f;
 		}
-		return FMath::Clamp(float(ServiceXp - RankFloorXp) / float(NextRankXp - RankFloorXp), 0.f, 1.f);
+		return FMath::Clamp(float(ServiceXp - LevelFloorXp) / float(NextLevelXp - LevelFloorXp), 0.f, 1.f);
 	}
 };

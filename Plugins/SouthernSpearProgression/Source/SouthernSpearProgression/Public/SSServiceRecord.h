@@ -19,25 +19,29 @@ struct FSSServiceStatistics
 	UPROPERTY(BlueprintReadOnly, Category = "Service") int32 RoundsWonAlive = 0;
 	UPROPERTY(BlueprintReadOnly, Category = "Service") int32 ObjectivesCaptured = 0;
 	UPROPERTY(BlueprintReadOnly, Category = "Service") int32 FriendlyKills = 0;
+	/** Schema v2 (ADR-034). */
+	UPROPERTY(BlueprintReadOnly, Category = "Service") int32 EnemyKills = 0;
 };
 
 /**
- * A player's persistent service record (TDD §6.4, ADR-032). Schema v1.
+ * A player's persistent service record (TDD §6.4, ADR-032). Schema v2.
  *
  * Versioned from day one: a record carries its SchemaVersion, loading runs the
  * migration chain, and a record from a newer schema is refused rather than
  * mis-read. Add fields only with a version bump and a migration step in
  * FSSProgressionRules::Migrate.
  *
- * Rank is not stored: it is derived from ServiceXp and the rank table, so a
- * change to the thresholds applies to every record without a migration.
+ * Level and rank are not stored: they are derived from ServiceXp, the level
+ * curve and the rank ladder (USSRankSettings), so a change to any of them
+ * applies to every record without a migration.
  */
 USTRUCT(BlueprintType)
 struct FSSServiceRecord
 {
 	GENERATED_BODY()
 
-	static constexpr int32 CurrentSchemaVersion = 1;
+	/** v1: ADR-032. v2: Statistics.EnemyKills (ADR-034). */
+	static constexpr int32 CurrentSchemaVersion = 2;
 
 	UPROPERTY(BlueprintReadOnly, Category = "Service")
 	int32 SchemaVersion = CurrentSchemaVersion;
