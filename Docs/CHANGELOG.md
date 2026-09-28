@@ -3938,10 +3938,10 @@ the weapons plan's W1 is the next build task.)
 
 - **R-57 (accepted, ADR-035):** third-party trademarks and Commonwealth emblems; remedy if ever needed is a
   rename or a swap.
-- **R-58 (open, medium):** W1 reaches Lyra by reflection (`GetStatTagStackCount`/`Add`/`RemoveStatTagStack`,
+- **R-60 (open, medium; was R-58, renumbered: Session 051 also used R-58/R-59):** W1 reaches Lyra by reflection (`GetStatTagStackCount`/`Add`/`RemoveStatTagStack`,
   `HeatToSpreadCurve`). A signature change fails soft, with a log line and Lyra's numbers kept. The first build
   and a live check confirm it.
-- **R-59 (open, low):** a weapon whose ammo was granted before the subsystem's first pass (0.25 s) could fire one
+- **R-61 (open, low; was R-59):** a weapon whose ammo was granted before the subsystem's first pass (0.25 s) could fire one
   magazine at Lyra's size. Items are adjusted once, on first sight.
 
 ### DEFECTS FOUND
@@ -3966,6 +3966,18 @@ the weapons plan's W1 is the next build task.)
   because firing is predicted: A88 0.088 s, A89 0.080, A4/A416 0.070, A417/A25/A9 0.100.
 - Still pending: semi-auto for the A25 and A9 (grant the semi-automatic fire ability). NOT RUN: build, and a live
   check of the `LogSSWeaponStats` "rpm" lines.
+
+### ADDENDUM 2 — semi-automatic A25, and IDs
+
+- `Tools/Unreal/setup_weapons.py`: the weapons whose stats row has `bFullAuto=False` (read from
+  `DefaultGame.ini`: A25, A9) and that copy Lyra's rifle (the A25; the A9 is already pistol-based) get
+  `AbilitySet_SS_<W>_Semi`. That is a copy of the rifle's ability set with `GA_Weapon_Fire_Rifle_Auto` swapped for
+  `GA_Weapon_Fire_Pistol` (one shot per press, per the producer's probe). `WID_SS_A25` points at the copy.
+  Paths are found from Lyra's own sets, not hard-coded. No Lyra asset is modified. Pure helpers checked here
+  against the real config (semi = A25, A9) and sample property text. **NOT RUN:** the script in the editor,
+  and whether the pistol ability's fire montage looks right on a rifle (third person).
+- Risk IDs renumbered: this session's R-58/R-59 became **R-60/R-61**, because Session 051 (the other agent,
+  concurrently) also used R-58/R-59 for the soldier skeleton and vertex budget.
 
 ### NEXT ACTION
 
@@ -4072,7 +4084,7 @@ fallback, and the broken material verifier).
 | **Dedicated server target build (R-09)** | **Producer decision — this engine distribution cannot build Server targets at all. See `PROJECT_AUDIT.md` §6.1 and producer question 5** | **Producer** |
 | Fab account / engine registration (R-03) | Producer decision | Producer |
 | Second client machine for 4-client test (R-05) | Producer decision | Producer |
-| Insignia legal clearance (L-0003) | Legal review | Producer |
+| ~~Insignia legal clearance (L-0003)~~ | **CLOSED** — hold lifted by ADR-035 (free-to-play; R-57 accepted) | — |
 
 ---
 

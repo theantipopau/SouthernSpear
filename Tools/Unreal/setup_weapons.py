@@ -25,6 +25,7 @@ import unreal
 PROJECT_DIR = unreal.Paths.convert_relative_path_to_full(unreal.Paths.project_dir())
 WEAPONS = ["A88", "A88G", "A89", "A4", "A416", "A25", "A9"]
 W = FBX = DEST = None  # set per weapon by main()
+SEMI_AUTO = set()
 REPORT = os.path.join(PROJECT_DIR, "Build", "weapons_setup.json")
 MAT_DIR = "/SSExp_ObjectiveAssault/Materials"
 LYRA_WID = "/ShooterCore/Weapons/Rifle/WID_Rifle"
@@ -289,6 +290,65 @@ def item_definition(wid):
     return step("item_definition", pointed == 1, "{} equippable fragment(s) -> {}".format(pointed, ours.get_name()))
 
 
+# Semi-automatic rifles (W1): Config/DefaultGame.ini SSWeaponStatsSettings rows with bFullAuto=False that copy
+# Lyra's rifle. Lyra's rifle fire ability (GA_Weapon_Fire_Rifle_Auto) repeats while held; its pistol fire
+# ability (GA_Weapon_Fire_Pistol) is one shot per press. Found by Tools/Unreal/probe_weapon_fire.py.
+LYRA_PISTOL_WID = "/ShooterCore/Weapons/Pistol/WID_Pistol"
+
+
+def semi_auto_weapons():
+    """Weapons whose stats row says bFullAuto=False, read from the config the game reads."""
+    ini = os.path.join(PROJECT_DIR, "Config", "DefaultGame.ini")
+    with open(ini, encoding="utf-8") as fh:
+        text = fh.read()
+    return set(re.findall(r"^\+Weapons=\(Weapon=(\w+),[^\n]*bFullAuto=False", text, re.M))
+
+
+def class_path_in(text, stem):
+    """The full object path of the Blueprint class named <stem>..._C inside a property's text form."""
+    match = re.search(r"(/[\w/]+/" + stem + r"[\w]*\." + stem + r"[\w]*_C)", text)
+    return match.group(1) if match else None
+
+
+def semi_auto(wid):
+    """Give W a copy of its ability sets with the auto fire ability swapped for the pistol's semi-auto one."""
+    cdo = unreal.get_default_object(wid.generated_class())
+    sets_text = lib.get_property_as_text(cdo, "AbilitySetsToGrant")
+    pistol = unreal.load_asset(LYRA_PISTOL_WID)
+    pistol_sets = lib.get_property_as_text(unreal.get_default_object(pistol.generated_class()), "AbilitySetsToGrant") if pistol else ""
+    semi_path = None
+    for set_path in re.findall(r"(/[\w/]+\.[\w]+)", pistol_sets):
+        ability_set = unreal.load_asset(set_path)
+        text = lib.get_property_as_text(ability_set, "GrantedGameplayAbilities") if ability_set else ""
+        semi_path = semi_path or class_path_in(text, "GA_Weapon_Fire_Pistol")
+    if not semi_path:
+        return step("semi_auto", False, "pistol fire ability not found in {}".format(pistol_sets))
+
+    new_sets_text = sets_text
+    swapped = 0
+    for set_path in re.findall(r"(/[\w/]+\.[\w]+)", sets_text):
+        ability_set = unreal.load_asset(set_path)
+        text = lib.get_property_as_text(ability_set, "GrantedGameplayAbilities") if ability_set else ""
+        auto_path = class_path_in(text, "GA_Weapon_Fire_Rifle_Auto")
+        if not auto_path:
+            continue
+        name = "AbilitySet_SS_{}_Semi".format(W)
+        copy_path = DEST + "/" + name
+        if not eal.does_asset_exist(copy_path):
+            eal.duplicate_asset(set_path.split(".")[0], copy_path)
+        copy = unreal.load_asset(copy_path)
+        ok = copy and lib.set_property_from_text(copy, "GrantedGameplayAbilities", text.replace(auto_path, semi_path))
+        if ok:
+            eal.save_loaded_asset(copy)
+            new_sets_text = new_sets_text.replace(set_path, copy.get_path_name())
+            swapped += 1
+    ok = swapped > 0 and lib.set_property_from_text(cdo, "AbilitySetsToGrant", new_sets_text)
+    if ok:
+        eal.save_loaded_asset(wid)
+    report.setdefault("semi_auto", {})[W] = {"fire_ability": semi_path, "ability_sets": lib.get_property_as_text(cdo, "AbilitySetsToGrant")}
+    return step("semi_auto", ok, "{} set(s) now fire {}".format(swapped, semi_path))
+
+
 def build_one():
     mesh = import_mesh()
     if not mesh:
@@ -296,11 +356,15 @@ def build_one():
     textured_finishes(mesh) if W in SOURCED else finishes(mesh)
     bp = visual_blueprint(mesh)
     wid = equipment_definition(bp) if bp else None
+    if wid and W in SEMI_AUTO and base_of(W)[0] == LYRA_WID:
+        semi_auto(wid)
     return item_definition(wid) if wid else False
 
 
 def main():
-    global W, FBX, DEST
+    global W, FBX, DEST, SEMI_AUTO
+    SEMI_AUTO = semi_auto_weapons()
+    report["semi_auto_weapons"] = sorted(SEMI_AUTO)
     results = []
     for name in WEAPONS:
         W = name
