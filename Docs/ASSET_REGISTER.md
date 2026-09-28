@@ -172,10 +172,11 @@ Lyra content is a **technical foundation, not Southern Spear art.** It is a plac
 
 | ID | Asset | Status | Licence dep. | Notes |
 |---|---|---|---|---|
-| E-001 | Muzzle flash | `PLACEHOLDER` | — | |
+| E-001 | Muzzle flash | `PLACEHOLDER` | — | Lyra's fire-cue sprite, moved onto the visible barrel (`ASSCharacter::AlignLyraMuzzle`), plus a code-driven muzzle light (`USSMuzzleLightSubsystem`, Session 060, no asset). A realistic flash sprite is still to choose. |
 | E-002 | Tracers | `PLACEHOLDER` | — | |
 | E-003 | Impact decals + debris | `PLACEHOLDER` | — | |
 | E-004 | Dust / weather | `DEFERRED` | — | Layer-driven |
+| E-005 | Spent cases | `PLACEHOLDER` | — | Engine cylinder in a brass tint, sized per calibre (`USSShellEjectSubsystem`, Session 059). A modelled case would replace the cylinder. |
 | E-005 | Suppression visual | `PLACEHOLDER` | — | |
 | E-006 | Smoke grenade | `PLACEHOLDER` | — | |
 

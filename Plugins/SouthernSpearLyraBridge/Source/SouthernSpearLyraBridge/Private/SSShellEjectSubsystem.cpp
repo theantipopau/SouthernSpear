@@ -2,6 +2,8 @@
 
 #include "SSShellEjectSubsystem.h"
 
+#include "SSWeaponPresentation.h"
+
 #include "Components/StaticMeshComponent.h"
 #include "Engine/StaticMesh.h"
 #include "Engine/World.h"
@@ -17,22 +19,6 @@ namespace
 	constexpr int32 PoolSize = 48;
 	constexpr float FlightTimeout = 6.f;  // s: a case still falling after this (off the map) is dropped
 	constexpr float RestLifetime = 30.f;  // s on the ground before it fades out of the pool
-	const FName EjectSockets[] = { TEXT("Eject"), TEXT("SOCKET_Eject") };
-	const FName EjectEndSockets[] = { TEXT("EjectEnd"), TEXT("SOCKET_EjectEnd") };
-	const FName MuzzleSockets[] = { TEXT("Muzzle"), TEXT("SOCKET_Muzzle") };
-
-	template <int32 N>
-	FName FirstSocket(const UStaticMeshComponent* Mesh, const FName (&Names)[N])
-	{
-		for (const FName& Name : Names)
-		{
-			if (Mesh->DoesSocketExist(Name))
-			{
-				return Name;
-			}
-		}
-		return NAME_None;
-	}
 }
 
 // --------------------------------------------------------------------------- pure rules
@@ -103,37 +89,6 @@ TStatId USSShellEjectSubsystem::GetStatId() const
 	RETURN_QUICK_DECLARE_CYCLE_STAT(USSShellEjectSubsystem, STATGROUP_Tickables);
 }
 
-UStaticMeshComponent* USSShellEjectSubsystem::FindEjectingWeapon(APawn* Shooter) const
-{
-	// The local player sees the first-person weapon (only-owner-see); everyone else sees the third-person
-	// one. Search the pawn's own components (the first-person view model) and the actors attached to it
-	// (Lyra's spawned weapon actor and its SSVisual mesh).
-	TArray<AActor*> Owners;
-	Shooter->GetAttachedActors(Owners, true, true);
-	Owners.Insert(Shooter, 0);
-	const bool bLocalView = Shooter->IsLocallyControlled() && Shooter->IsPlayerControlled();
-	UStaticMeshComponent* Fallback = nullptr;
-	for (AActor* Owner : Owners)
-	{
-		TInlineComponentArray<UStaticMeshComponent*> Meshes(Owner);
-		for (UStaticMeshComponent* Mesh : Meshes)
-		{
-			if (!Mesh || !Mesh->IsVisible() || FirstSocket(Mesh, EjectSockets).IsNone())
-			{
-				continue;
-			}
-			// The first-person view model is only-owner-see (USSFirstPersonSubsystem).
-			const bool bFirstPerson = Mesh->bOnlyOwnerSee;
-			if (bFirstPerson == bLocalView)
-			{
-				return Mesh;
-			}
-			Fallback = Fallback ? Fallback : Mesh;
-		}
-	}
-	return Fallback;
-}
-
 UStaticMeshComponent* USSShellEjectSubsystem::CaseComponent(int32 Index)
 {
 	UWorld* World = GetWorld();
@@ -201,14 +156,14 @@ void USSShellEjectSubsystem::EjectFrom(APawn* Shooter)
 	{
 		return;
 	}
-	UStaticMeshComponent* Weapon = FindEjectingWeapon(Shooter);
+	UStaticMeshComponent* Weapon = FSSWeaponPresentation::FindViewerWeapon(Shooter, FSSWeaponPresentation::EjectSockets());
 	if (!Weapon || !Weapon->GetStaticMesh())
 	{
 		return;
 	}
-	const FName Port = FirstSocket(Weapon, EjectSockets);
-	const FName End = FirstSocket(Weapon, EjectEndSockets);
-	const FName Muzzle = FirstSocket(Weapon, MuzzleSockets);
+	const FName Port = FSSWeaponPresentation::FirstSocket(Weapon, FSSWeaponPresentation::EjectSockets());
+	const FName End = FSSWeaponPresentation::FirstSocket(Weapon, FSSWeaponPresentation::EjectEndSockets());
+	const FName Muzzle = FSSWeaponPresentation::FirstSocket(Weapon, FSSWeaponPresentation::MuzzleSockets());
 	const FVector PortWorld = Weapon->GetSocketLocation(Port);
 	// Arma rifles eject to the right: the weapon's right side when the end marker is missing.
 	FVector Throw = End.IsNone() ? Weapon->GetRightVector() : (Weapon->GetSocketLocation(End) - PortWorld).GetSafeNormal();

@@ -3,6 +3,7 @@
 #include "SSCharacter.h"
 
 #include "SSHandIKMeshComponent.h"
+#include "SSMuzzleLightSubsystem.h"
 #include "SSShellEjectSubsystem.h"
 
 #include "AbilitySystem/LyraAbilitySystemComponent.h"
@@ -221,6 +222,11 @@ void ASSCharacter::HandleGameplayCue(UObject* Self, FGameplayTag GameplayCueTag,
 		if (USSShellEjectSubsystem* Shells = GetWorld() ? GetWorld()->GetSubsystem<USSShellEjectSubsystem>() : nullptr)
 		{
 			Shells->EjectFrom(this);
+		}
+		// Its flash of light at the muzzle (W3, presentation only).
+		if (USSMuzzleLightSubsystem* MuzzleLight = GetWorld() ? GetWorld()->GetSubsystem<USSMuzzleLightSubsystem>() : nullptr)
+		{
+			MuzzleLight->FlashFrom(this);
 		}
 		if (bRifleFire)
 		{

@@ -82,8 +82,6 @@ public:
 	int32 NumActive() const { return Casings.Num(); }
 
 private:
-	/** The static mesh component with the Eject socket that the local viewer sees for this shooter. */
-	UStaticMeshComponent* FindEjectingWeapon(APawn* Shooter) const;
 	UStaticMeshComponent* CaseComponent(int32 Index);
 
 	struct FLiveCasing

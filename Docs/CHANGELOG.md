@@ -4758,6 +4758,84 @@ None (engine cylinder and material).
 ---
 
 
+## Session 060 — 2026-09-28 — W3 Muzzle Light: Every Shot Lights Its Surroundings
+
+### COMPLETED
+
+- **A muzzle flash already existed.** Lyra's fire cue plays its flash sprite and tracer at its hidden
+  rifle's muzzle, and `ASSCharacter::AlignLyraMuzzle` (an earlier session) moves that muzzle onto our
+  visible barrel, in first person onto the view model's. What a real shot adds, and Lyra's sprite doesn't,
+  is light.
+- **`USSMuzzleLightSubsystem`** (Lyra bridge, clients only; `ss.MuzzleLight 0` turns it off). On each rifle or
+  pistol fire cue, `ASSCharacter` flashes a warm point light (1.0, 0.62, 0.28) just ahead of the muzzle of the
+  weapon the viewer sees. It lights the shooter's hands and face and the ground and walls near the muzzle,
+  and full-auto fire strobes.
+  - It fades quadratically from its peak to zero over the flash (`FSSMuzzleLightRules::Intensity`).
+  - Peak intensity varies ±20% per shot.
+  - The flash per weapon (`SpecFor`):
+
+    | Weapons | Peak | Radius | Duration |
+    |---|---|---|---|
+    | 5.56 rifles | 2,500 cd | 7 m | 45 ms |
+    | 7.62×51 (A25/A417) | 3,500 cd | 9 m | 55 ms |
+    | A9 pistol | 1,200 cd | 4.5 m | 35 ms |
+
+  - Eight pooled lights, no new asset. Shadows are off by default for cost; `ss.MuzzleLightShadows 1` turns
+    them on.
+- **Shared lookup.** "Which weapon mesh does this viewer see for this shooter" moved from the casing code to
+  `FSSWeaponPresentation::FindViewerWeapon`. The first-person view model is found for the local player, the
+  third-person weapon for everyone else. The imported socket names (`Muzzle`, `Eject`, `EjectEnd`) are
+  tried before the Blender `SOCKET_` names. Casings and the muzzle light both use it.
+- `Docs/ASSET_REGISTER.md`: E-001 muzzle flash describes what exists now, and new row E-005 is spent cases.
+
+### FILES CHANGED
+
+`Plugins/SouthernSpearLyraBridge/Source/SouthernSpearLyraBridge/Public/SSMuzzleLightSubsystem.h` (new),
+`Private/SSMuzzleLightSubsystem.cpp` (new), `Public/SSWeaponPresentation.h` (new),
+`Private/SSWeaponPresentation.cpp` (new), `Private/Tests/SSMuzzleLightTests.cpp` (new),
+`Private/SSShellEjectSubsystem.cpp`, `Public/SSShellEjectSubsystem.h`, `Private/SSCharacter.cpp`; `CLAUDE.md`;
+`Docs/ASSET_REGISTER.md`; `Docs/WEAPONS_ANIMATION_PLAN.md`; `Docs/CHANGELOG.md`.
+
+### TESTING
+
+- `python Tools/validate_architecture.py`: **exit 0**, PASS.
+- A unity-build name check over the bridge found no clashes for the new file-level names.
+- New automation test `SouthernSpear.Bridge.MuzzleLight.Rules`:
+  - the light is at its peak at the shot, at a quarter by half time, and dark at and after its duration;
+  - zero duration gives no light, and the fall is monotonic;
+  - a pistol is dimmer, smaller and shorter than a rifle, and 7.62 brighter and wider than 5.56;
+  - every flash is under 60 ms.
+- **NOT RUN (the producer's machine):** the build. Expect **61 tests**: 57 existing, HandIK 1, Casings 2,
+  MuzzleLight 1. Also not run: the look in game. The brightness is a first estimate; judge it indoors and
+  at dusk.
+
+### ASSETS
+
+None.
+
+### RISKS
+
+- **R-68 (open, low):** a daylight scene's exposure may make 2,500 cd barely visible outdoors while indoors
+  it reads strongly. That is correct behaviour, but check it looks intended. The values are in `SpecFor`.
+
+### DEFECTS FOUND
+
+None new.
+
+### NEXT ACTION
+
+**On the producer's machine, one combined run for Sessions 058–060:**
+1. Pull, run `python Tools/build_adfrc_weapons.py` and `Tools/Unreal/setup_weapons.py`, and check the report's
+   `sockets` table (every rifle: `LeftHandGrip`, `Eject`, `EjectEnd`).
+2. Build and run the tests (expect 61/61).
+3. In a match, with the A88 in both views, check:
+   - the left hand is on the handguard (`ss.HandIK 1` against `0`);
+   - cases leave the right side and land;
+   - each shot lights the surroundings (`ss.MuzzleLight 1` against `0`, best indoors).
+
+---
+
+
 ## Open Threads
 
 | Item | Blocked on | Owner |

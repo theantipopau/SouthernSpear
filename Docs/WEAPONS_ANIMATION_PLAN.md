@@ -74,7 +74,7 @@ run the build on the producer's machine, check `manifest.json → grip`, then dr
 **Session 059: shell ejection built (uncompiled).** `adfrc_weapon.py` writes `SOCKET_Eject` / `SOCKET_EjectEnd`
 from `nabojnicestart` / `nabojniceend` (imported as `Eject` / `EjectEnd`); `USSShellEjectSubsystem` (bridge,
 clients only) throws a pooled brass case per rifle or pistol fire cue from the viewer's weapon, flies it
-ballistically, bounces it off the world and leaves it lying. The muzzle flash is still to do.
+ballistically, bounces it off the world and leaves it lying. **Session 060: muzzle light** — `USSMuzzleLightSubsystem` flashes a warm point light at the visible muzzle for 35–55 ms per shot (Lyra's flash sprite already sits on our barrel via `AlignLyraMuzzle`). Still open: a realistic flash sprite in place of Lyra's.
 - Extend `Tools/Blender/adfrc_weapon.py` (it already reads memory points for the muzzle and the sight) to
   emit `SOCKET_Eject` from `nabojnicestart`, with the direction to `nabojniceend`.
 - A shell-casing Niagara (or pooled static-mesh casings) and a muzzle flash on `SOCKET_Muzzle`, in first and
