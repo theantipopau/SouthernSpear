@@ -21,13 +21,15 @@
   "materials_decoded": 614,
   "rigs": 13,
   "animation_clips": 165,
-  "sounds_wav": 257
+  "sounds_wav": 266,
+  "sounds_from_ogg": 9
  },
  "notes": {
   "binding": "Models_UE FBX carry image bindings; Models_FBX do not. Always prefer Models_UE.",
   "scale": "Arma is metres, UE is centimetres. Import FBX with scale 0.01 or convert on import.",
   "textures": "Textures/_ue_manifest.json carries per-texture sRGB + compression. Run _tools/ue_apply_texture_settings.py in-editor.",
   "rigs": "Animations_UE holds a skeleton FBX per rig plus one FBX per clip. Clips are parent-relative and need retargeting to a UE skeleton.",
+  "sounds": "sounds[] covers both sources: .wss and .ogg. WAVs with source=ogg were decoded by _tools/ogg_to_wav.py and are 16-bit PCM at the OGG's native rate. A few OGGs decode above 0 dBFS (lossy Vorbis) and are clipped by 16-bit PCM; source_peak_dbfs records the pre-clip level so the gain can be dialled back on import. Two files carry name_conflicts_with_ogg: mag-58 exists as both a .wss (1.0s mono 11kHz, what Arma plays) and an .ogg (2.4s stereo 44.1kHz), which are different recordings. Both were kept; _tools/ogg_sounds.json has the details.",
   "unbound_textures": [
    "adfrc_romeo2_glass_ca",
    "adfrc_romeo2_sight_fde_co",
@@ -39623,6 +39625,30 @@
  },
  "sounds": [
   {
+   "wav": "Source/adfrc_carlgustav/sound/carlgustav_reload.wav",
+   "seconds": 6.273,
+   "channels": 1,
+   "rate": 48000,
+   "bits": 16,
+   "source": "ogg",
+   "ogg": "Source/adfrc_carlgustav/sound/carlgustav_reload.ogg",
+   "ogg_md5": "e189cec84390cab53f14aaa668fc471f",
+   "source_peak_dbfs": 5.0,
+   "source_over_0dbfs_pct": 0.0631
+  },
+  {
+   "wav": "Source/adfrc_carlgustav/sound/carlgustav_shot.wav",
+   "seconds": 3.901,
+   "channels": 2,
+   "rate": 48000,
+   "bits": 16,
+   "source": "ogg",
+   "ogg": "Source/adfrc_carlgustav/sound/carlgustav_shot.ogg",
+   "ogg_md5": "88e49cad05573f2fb5b521e8ada7f15c",
+   "source_peak_dbfs": 13.87,
+   "source_over_0dbfs_pct": 1.9245
+  },
+  {
    "wav": "Source/adfrc_ef88/Data/Sounds/AUG_UGL_reload.wav",
    "seconds": 3.003,
    "channels": 2,
@@ -39879,7 +39905,16 @@
    "seconds": 1.004,
    "channels": 1,
    "rate": 11025,
-   "bits": 16
+   "bits": 16,
+   "source": "wss",
+   "name_conflicts_with_ogg": {
+    "ogg": "Source/adfrc_mag58/sound/mag-58.ogg",
+    "ogg_seconds": 2.41,
+    "ogg_rate": 44100,
+    "ogg_channels": 2,
+    "wss_seconds": 1.004,
+    "note": "the .ogg and the .wss of this name are different recordings; this file is the .wss, which is what Arma plays"
+   }
   },
   {
    "wav": "Source/adfrc_mag58/sound/reload.wav",
@@ -40869,6 +40904,30 @@
    "bits": 16
   },
   {
+   "wav": "Workshop/ADF_Weapons/adfrc_carlgustav/sound/carlgustav_reload.wav",
+   "seconds": 6.273,
+   "channels": 1,
+   "rate": 48000,
+   "bits": 16,
+   "source": "ogg",
+   "ogg": "Workshop/ADF_Weapons/adfrc_carlgustav/sound/carlgustav_reload.ogg",
+   "ogg_md5": "e189cec84390cab53f14aaa668fc471f",
+   "source_peak_dbfs": 5.0,
+   "source_over_0dbfs_pct": 0.0631
+  },
+  {
+   "wav": "Workshop/ADF_Weapons/adfrc_carlgustav/sound/carlgustav_shot.wav",
+   "seconds": 3.901,
+   "channels": 2,
+   "rate": 48000,
+   "bits": 16,
+   "source": "ogg",
+   "ogg": "Workshop/ADF_Weapons/adfrc_carlgustav/sound/carlgustav_shot.ogg",
+   "ogg_md5": "88e49cad05573f2fb5b521e8ada7f15c",
+   "source_peak_dbfs": 13.87,
+   "source_over_0dbfs_pct": 1.9245
+  },
+  {
    "wav": "Workshop/ADF_Weapons/adfrc_ef88/Data/Sounds/AUG_UGL_reload.wav",
    "seconds": 3.003,
    "channels": 2,
@@ -41125,7 +41184,16 @@
    "seconds": 1.004,
    "channels": 1,
    "rate": 11025,
-   "bits": 16
+   "bits": 16,
+   "source": "wss",
+   "name_conflicts_with_ogg": {
+    "ogg": "Workshop/ADF_Weapons/adfrc_mag58/sound/mag-58.ogg",
+    "ogg_seconds": 2.41,
+    "ogg_rate": 44100,
+    "ogg_channels": 2,
+    "wss_seconds": 1.004,
+    "note": "the .ogg and the .wss of this name are different recordings; this file is the .wss, which is what Arma plays"
+   }
   },
   {
    "wav": "Workshop/ADF_Weapons/adfrc_mag58/sound/reload.wav",
@@ -41224,6 +41292,54 @@
    "channels": 1,
    "rate": 44100,
    "bits": 16
+  },
+  {
+   "wav": "Workshop/ADF_Weapons/core/animsounds/MPP_Fast_Reload.wav",
+   "seconds": 2.302,
+   "channels": 2,
+   "rate": 48000,
+   "bits": 16,
+   "source": "ogg",
+   "ogg": "Workshop/ADF_Weapons/core/animsounds/MPP_Fast_Reload.ogg",
+   "ogg_md5": "5972dc3984aaa58e0f3b0b406f47a552",
+   "source_peak_dbfs": 2.86,
+   "source_over_0dbfs_pct": 0.1009
+  },
+  {
+   "wav": "Workshop/ADF_Weapons/core/animsounds/MPP_Slow_Reload.wav",
+   "seconds": 3.704,
+   "channels": 2,
+   "rate": 48000,
+   "bits": 16,
+   "source": "ogg",
+   "ogg": "Workshop/ADF_Weapons/core/animsounds/MPP_Slow_Reload.ogg",
+   "ogg_md5": "04a97db8d0c8c9ca56ac9ce5dff9607b",
+   "source_peak_dbfs": 2.15,
+   "source_over_0dbfs_pct": 0.0383
+  },
+  {
+   "wav": "Workshop/ADF_Wheeled/adfrc_boxer/sound/boxer-horn.wav",
+   "seconds": 1.215,
+   "channels": 2,
+   "rate": 48000,
+   "bits": 16,
+   "source": "ogg",
+   "ogg": "Workshop/ADF_Wheeled/adfrc_boxer/sound/boxer-horn.ogg",
+   "ogg_md5": "69c57d17aa88389770af6a9f92202cdb",
+   "source_peak_dbfs": 0.14,
+   "source_over_0dbfs_pct": 0.0017
+  },
+  {
+   "wav": "Workshop/ADF_Wheeled/adfrc_boxer/sound/skid_extend.wav",
+   "seconds": 4.021,
+   "channels": 1,
+   "rate": 11025,
+   "bits": 16,
+   "source": "ogg",
+   "ogg": "Workshop/ADF_Wheeled/adfrc_boxer/sound/skid_extend.ogg",
+   "ogg_md5": "c3ab670b1a1ce2cf109ce272a344a7a6",
+   "source_peak_dbfs": 1.66,
+   "source_over_0dbfs_pct": 0.0338
   },
   {
    "wav": "Workshop/bma3/bma3_bushmaster_sounds/DISTANCE.wav",
@@ -41399,6 +41515,18 @@
    "channels": 1,
    "rate": 44100,
    "bits": 16
+  },
+  {
+   "wav": "Workshop/bma3/bma3_bushmaster_sounds/mag-58.wav",
+   "seconds": 2.41,
+   "channels": 2,
+   "rate": 44100,
+   "bits": 16,
+   "source": "ogg",
+   "ogg": "Workshop/bma3/bma3_bushmaster_sounds/mag-58.ogg",
+   "ogg_md5": "922498d9b757b02f1ce427edac5edcc5",
+   "source_peak_dbfs": -0.43,
+   "source_over_0dbfs_pct": 0.0
   },
   {
    "wav": "Workshop/bma3/bma3_bushmaster_sounds/rev.wav",

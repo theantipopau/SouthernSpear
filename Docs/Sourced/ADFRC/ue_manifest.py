@@ -159,6 +159,21 @@ def build_rigs():
 
 
 def build_sounds():
+    """Every WAV in the tree, plus provenance for the ones decoded from OGG."""
+    ogg_prov = {}
+    ogg_report = os.path.join(ROOT, "_tools", "ogg_sounds.json")
+    if os.path.exists(ogg_report):
+        try:
+            with open(ogg_report, encoding="utf-8") as fh:
+                data = json.load(fh)
+            for e in data.get("files", []):
+                if e.get("wav"):
+                    # Case-insensitive: the tree mixes MAG-58.wss / mag-58.ogg
+                    # and Windows will not tell us which casing won.
+                    ogg_prov[e["wav"].replace("\\", "/").lower()] = e
+        except Exception:  # noqa: BLE001
+            ogg_prov = {}
+
     out = []
     for p in sorted(glob.glob(os.path.join(ROOT, "**", "*.wav"), recursive=True)):
         rel = os.path.relpath(p, ROOT).replace("\\", "/")
@@ -172,7 +187,32 @@ def build_sounds():
                         "bits": w.getsampwidth() * 8}
         except Exception:  # noqa: BLE001
             dur, meta = 0.0, {}
-        out.append({"wav": rel, "seconds": round(dur, 3), **meta})
+        entry = {"wav": rel, "seconds": round(dur, 3), **meta}
+        prov = ogg_prov.get(rel.lower())
+        if prov:
+            src = prov.get("ogg_audio") or {}
+            if prov.get("existing_wav_differs"):
+                # Same name, different audio: this WAV is the .wss decode.
+                entry["source"] = "wss"
+                entry["name_conflicts_with_ogg"] = {
+                    "ogg": prov["ogg"],
+                    "ogg_seconds": src.get("seconds"),
+                    "ogg_rate": src.get("rate"),
+                    "ogg_channels": src.get("channels"),
+                    "wss_seconds": (prov.get("existing_wav") or {}).get("seconds"),
+                    "note": ("the .ogg and the .wss of this name are different "
+                             "recordings; this file is the .wss, which is what "
+                             "Arma plays"),
+                }
+            else:
+                entry["source"] = "ogg"
+                entry["ogg"] = prov["ogg"]
+                entry["ogg_md5"] = prov["ogg_md5"]
+                if src.get("peak_dbfs") is not None:
+                    # Vorbis decodes above 0 dBFS; 16-bit PCM clips there.
+                    entry["source_peak_dbfs"] = src["peak_dbfs"]
+                    entry["source_over_0dbfs_pct"] = src.get("clipped_pct")
+        out.append(entry)
     return out
 
 
@@ -205,6 +245,7 @@ def main():
             "rigs": len(rigs),
             "animation_clips": len(clips),
             "sounds_wav": len(sounds),
+            "sounds_from_ogg": sum(1 for s in sounds if s.get("source") == "ogg"),
         },
         "notes": {
             "binding": ("Models_UE FBX carry image bindings; Models_FBX do not. "
@@ -216,6 +257,16 @@ def main():
             "rigs": ("Animations_UE holds a skeleton FBX per rig plus one FBX per "
                      "clip. Clips are parent-relative and need retargeting to a UE "
                      "skeleton."),
+            "sounds": ("sounds[] covers both sources: .wss and .ogg. WAVs with "
+                       "source=ogg were decoded by _tools/ogg_to_wav.py and are "
+                       "16-bit PCM at the OGG's native rate. A few OGGs decode "
+                       "above 0 dBFS (lossy Vorbis) and are clipped by 16-bit "
+                       "PCM; source_peak_dbfs records the pre-clip level so the "
+                       "gain can be dialled back on import. Two files carry "
+                       "name_conflicts_with_ogg: mag-58 exists as both a .wss "
+                       "(1.0s mono 11kHz, what Arma plays) and an .ogg (2.4s "
+                       "stereo 44.1kHz), which are different recordings. Both "
+                       "were kept; _tools/ogg_sounds.json has the details."),
             "unbound_textures": missing,
         },
         "models": models,

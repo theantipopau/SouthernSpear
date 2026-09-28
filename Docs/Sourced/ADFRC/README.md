@@ -1,46 +1,49 @@
-# Docs/Sourced/ADFRC — ADF Re-Cut asset pipeline (tracked)
+# ADF_Extracted — extracted ADF Re-Cut assets for Unreal
 
-This directory holds the **documentation and tooling** for the extracted
-Arma 3 *ADF Re-Cut (ADFRC)* asset set, so the pipeline survives even though the
-19 GB of extracted assets themselves are deliberately not in git.
+Free-licensed Arma 3 *ADF Re-Cut (ADFRC)* assets, decoded out of their native
+formats and prepared for Unreal Engine 5.
 
-| File | What it is |
+**Read `ADFRC_INTEGRATION_GUIDE.md` first** — it explains how models, textures,
+materials and animations fit together and how to drive them from another agent.
+**`ASSET_MANIFEST.json`** is the machine-readable registry; start there.
+
+## Totals
+
+| | |
 |---|---|
-| `ADFRC_INTEGRATION_GUIDE.md` | **Start here.** How models, textures, materials and animations fit together, and how to drive them from another agent. |
-| `EXTRACTION_README.md` | Layout and totals of the extraction output tree. |
-| `ASSET_MANIFEST.json` | Registry: 268 models with material→texture bindings, 614 materials, 13 rigs, 165 clips, 257 sounds. |
-| `TEXTURE_MANIFEST.json` | Per-texture sRGB + compression + channel role for all 2,494 PNGs. |
-| `*.py`, `*.sh`, `*.c`, `*.h` | Every script used to build the extraction. All resumable, all take explicit paths. |
+| Files / size | 9,544 · 19 GB |
+| Models (FBX, textures bound) | 268 |
+| Textures (PNG) | 2,494 |
+| Materials (decoded to text) | 614 `.rvmat` + 69 `config.bin` |
+| Animation rigs / clips | 13 / 165 |
+| Sounds (WAV) | 266 (257 from `.wss`, 9 from `.ogg`) |
 
-## The live output tree
+## Layout
 
-The assets these scripts produce are **not** in git — `Content/Sourced/` is
-excluded by `.gitignore`. They live at:
+| Path | What |
+|---|---|
+| `Models_UE/` | **FBX with PNG textures bound — use this** |
+| `Models_FBX/` | FBX geometry only, no image bindings (intermediate) |
+| `Models/` | raw Arma `.p3d` (ODOL), for reference |
+| `Textures/` | decoded PNGs + `_ue_manifest.json` (per-texture sRGB + compression) |
+| `Materials_Text/` | every `.rvmat`/`config.bin` as readable config script |
+| `Animations/` | `.rtm`, decoded JSON, and `Rig/` (hierarchy + rest pose) |
+| `Animations_UE/` | skeleton FBX per rig + one FBX per clip |
+| `Source/`, `Workshop/` | untouched original PBO payloads (provenance) |
+| `_tools/` | every script, all re-runnable and resumable (+ `ogg_sounds.json`, `texheaders_report.json`) |
+| `ASSET_MANIFEST.json` | the registry |
 
-```
-E:\SouthernSpear\Content\Sourced\ADF_Extracted\
-├── Models_UE/        268 FBX with textures bound  ← import these
-├── Models_FBX/       268 FBX geometry only         ← intermediate
-├── Models/           268 raw .p3d (ODOL)           ← reference
-├── Textures/         2,494 PNG + manifest
-├── Materials_Text/   683 decoded .rvmat / config.bin
-├── Animations/       .rtm, JSON, Rig/ (hierarchy + rest pose)
-├── Animations_UE/    13 skeleton FBX + 165 clip FBX
-└── _tools/           the scripts, mirrored from here
-```
+## The three things that bite
 
-The two JSON manifests are **copies** of files inside that tree. If you re-run
-`ue_manifest.py` or `texture_manifest.py`, refresh them here:
-
-```bash
-cp Content/Sourced/ADF_Extracted/ASSET_MANIFEST.json        Docs/Sourced/ADFRC/
-cp Content/Sourced/ADF_Extracted/Textures/_ue_manifest.json Docs/Sourced/ADFRC/TEXTURE_MANIFEST.json
-```
+1. **Use `Models_UE/`, not `Models_FBX/`.** Only `Models_UE` has textures wired
+   into materials (1,524 bindings over 444 textures).
+2. **Import scale 0.01.** Arma is metres, Unreal is centimetres.
+3. **The folder is under `Content\`.** Unreal will try to auto-import 12 GB on
+   next editor open — move it to a staging path or exclude it.
 
 ## Licence
 
-ADFRC is **APL-SA**. Per the upstream Workshop page and the pack's
-`ASSETS_LICENSE.md`, code/configs/textures are open, but **3D models may not be
-extracted or reused commercially**. No extracted asset data is committed here —
-only the tooling and documentation. Log provenance in
-`Docs/LICENCE_REGISTER.md` and `Docs/ASSET_REGISTER.md` before shipping.
+ADFRC is **APL-SA**. Per the upstream Workshop page and `ASSETS_LICENSE.md`,
+code/configs/textures are open but **3D models may not be extracted or reused
+commercially**. Log provenance in `Docs\LICENCE_REGISTER.md` and
+`ASSET_REGISTER.md` before shipping. See §7 of the integration guide.

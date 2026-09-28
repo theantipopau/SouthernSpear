@@ -30,8 +30,8 @@
 | `Animations/` | 509 | 91 MB | `.rtm` + decoded JSON + `Rig/` | Reference |
 | `Animations_UE/` | 178 | 84 MB | **Skeleton + clip FBX** | ✅ Yes |
 | `ASSET_MANIFEST.json` | 1 | 1.1 MB | **The registry — start here** | ✅ Yes |
-| `Source/`, `Workshop/` | 4,833 | 5.7 GB | Untouched original PBO payloads | Only for provenance |
-| `_tools/` | 16 | 452 KB | Every script used to build this | Re-runnable |
+| `Source/`, `Workshop/` | 4,842 | 5.7 GB | Untouched original PBO payloads | Only for provenance |
+| `_tools/` | 27 | 2.9 MB | Every script used to build this | Re-runnable |
 
 `Source/` is the original ADFRC source pack; `Workshop/` is the 15 unpacked Steam Workshop `.pbo` bundles. `Workshop/` contains the bulk of the unique content (weapons, vehicles, optics, gear).
 
@@ -103,6 +103,41 @@ ship. Those meshes render neutral grey, which is honest and visible in the log.
 > **Naming trap:** filenames are case-insensitive on Windows. `Mag58.json` and
 > `mag58.json` are different clips that collapse to one file. The pipeline
 > disambiguates (`mag58__1.fbx`); a naive join will silently lose ~15 clips.
+
+### 2.4 Texture verification — `texHeaders.bin`
+
+Each addon ships a `texHeaders.bin`: BI's texture LOD dictionary (the P3D
+`\0DHT` tag). It is a *second, independent* record of every texture's size,
+written by the engine rather than by the PAA encoder, which makes it a usable
+oracle for the PNG decode. `texheaders.py` parses it and cross-checks
+everything:
+
+| Check | Result |
+|---|---|
+| 12 files parse, declared record count == `.paa` name strings | 2,500 / 2,500 |
+| Recorded mip offsets == the `.paa`'s own offset table | 2,500 / 2,500 |
+| PNG dimensions == the `.paa` mip0 header | 2,500 / 2,500 |
+| PNG format consistent with the PAA compression type | 2,500 / 2,500 |
+| Completeness both ways vs the `.paa` on disk | 0 missing, 0 extra |
+
+**Zero mismatches.** The decode is sound.
+
+Three things the table told us that are worth knowing:
+
+1. **The mip chain starts at mip1.** Where a chain is recorded it is
+   `mip1 … mipN` — mip0's size is simply absent, so the largest recorded value
+   is half the real texture size. Read the `.paa` mip0 header, not this table,
+   when you want the top-level size.
+2. **Chains exist for exactly the DXT1 textures.** 1,612 DXT1 textures have a
+   recorded chain and all 888 DXT5 textures have none — no cross terms at all.
+   That is a property of the format, not a parsing artefact.
+3. **All 2,500 decoded PNGs are 8-bit RGBA**, including the 1,612 DXT1 ones.
+   DXT1 carries at most 1 bit of alpha, so their alpha is binary and an RGB
+   import in Unreal would be visually lossless and roughly a third cheaper in
+   memory. 285 textures are non-square and 17 distinct sizes appear, up to
+   4096×4096 — do not assume square or power-of-two on import.
+
+Per-texture detail is in `_tools/texheaders_report.json`.
 
 ---
 
@@ -270,8 +305,36 @@ and build a **Static Mesh Editor LOD group**, or you lose the LOD chain.
 
 ### 5.4 Audio
 
-257 `.wav` files, already decoded from Arma `.wss`. Import as SoundWave; the
-channels/rate/duration for each are in `ASSET_MANIFEST.json → sounds`.
+266 `.wav` files, already decoded from Arma's two audio formats. Import as
+SoundWave; channels/rate/duration for each are in
+`ASSET_MANIFEST.json → sounds`.
+
+| Source | Count | Decoded by |
+|---|---:|---|
+| `.wss` (the bulk of the pack) | 257 | `wss2wav.py` |
+| `.ogg` (shipped alongside) | 9 | `ogg_to_wav.py` |
+
+Every WAV keeps its source's native sample rate and channel count — the pack
+mixes 8 kHz to 96 kHz, mono and stereo — so check `rate` before assuming
+anything. The nine OGG-derived files carry `source: "ogg"` in the manifest plus
+the originating `.ogg` path and its MD5.
+
+**Clipping.** Lossy Vorbis decodes above 0 dBFS, which 16-bit PCM cannot hold,
+so a few peaks are flattened. The manifest records the pre-clip level as
+`source_peak_dbfs` and the affected fraction as `source_over_0dbfs_pct`, so you
+can pull the gain back on import:
+
+| File | Source peak | Samples over 0 dBFS |
+|---|---:|---:|
+| `carlgustav_shot` | +13.9 dBFS | 1.92 % |
+| `carlgustav_reload` | +5.0 dBFS | 0.06 % |
+| `MPP_Fast_Reload` | +2.9 dBFS | 0.10 % |
+
+**`mag-58` is two different recordings.** It exists as both `MAG-58.wss`
+(1.0 s, mono, 11 kHz — what Arma actually plays) and `mag-58.ogg` (2.4 s,
+stereo, 44.1 kHz). Both are kept side by side. The manifest marks the `.wss`
+version `source: "wss"` with a `name_conflicts_with_ogg` block so nobody picks
+one by filename. `_tools/ogg_sounds.json` has the full per-file detail.
 
 ---
 
@@ -363,9 +426,11 @@ take explicit paths.
 | `run_anim.sh` | Parallel driver for the above |
 | `texture_manifest.py` | `Textures/_ue_manifest.json` + the UE editor script |
 | `rap2txt.py` | `\0raP` / LZSS-`\0raP` → readable config text |
+| `texheaders.py` | `texHeaders.bin` → per-texture mip table; cross-checks every PNG |
 | `ue_manifest.py` | `ASSET_MANIFEST.json` |
 | `paa2png.c` | `.paa` (DXT1/3/5, LZO mips) → PNG |
 | `wss2wav.py` | `.wss` → `.wav` |
+| `ogg_to_wav.py` | `.ogg` → 16-bit PCM `.wav`, with level + conflict reporting |
 | `extract_pbo.py`, `extract_textures.py`, `extract_workshop_textures.py` | Stage-1 extraction |
 
 ### Two bugs worth knowing about
@@ -391,10 +456,11 @@ records.
 |---|---|
 | 22 texture references resolve to nothing (vanilla Arma content) | Neutral-grey stand-in; listed in the manifest |
 | 26 `.rvmat` files reference `.tga` textures that exist nowhere in the pack | Broken upstream; no action possible |
-| 37 `.uasset` files (magic `0x9e2a83c1`) | Undecoded — not WSS, PAA, LZSS, zlib, lzma, bz2, or Ogg. Mostly audio-named; a few look like textures. Several have `.ogg` twins already extracted. |
+| 37 `.uasset` files | **Solved — they are Unreal Engine 5.8 editor assets**, not an unknown format. `0x9e2a83c1` is the UE package tag; the payloads carry `++UE5+Release-5.8`, `/Script/Engine.Texture2D` / `.SoundWave`, and package paths like `/Game/Sourced/ADF/...` that map exactly onto this repo's `Content/Sourced/ADF/` (and `SouthernSpear.uproject` is `EngineAssociation 5.8`). 9 Texture2D + 28 SoundWave. They need no decoding — copy them in and they load. Content is largely redundant with the `.paa`/`.wss` set; the only genuinely new one is `exfil_co.uasset` (a UE-built 4 MB version of the helmet camo texture). |
 | 1 config file fails to decode | `adfrc_f1grenade/config.bin`, unsupported value sign |
 | No skinned meshes | By design — the pack ships static geometry only |
 | LODs merged into single FBX | Split on import, build LOD groups manually |
+| Decoded PNGs sit in two different trees | 1,255 textures are at `Textures/<mod>/…` while 1,232 keep the `Textures/Workshop/<addon>/…` prefix the PBO unpack produced, and 13 match neither (6 extraction outputs kept the source extension in the name, e.g. `X.PAA.png`; 7 name a texture that lives in a different addon folder than the header table claims). Content is complete; only the path layout is inconsistent, so path-based tooling must not assume one shape. |
 | `_smdi` packed channels not split | Bound whole to Roughness; split to ORM for accurate metal/rough |
 | `motion[]` root translation not baked | Apply manually per clip if you need traverse/reload root motion |
 

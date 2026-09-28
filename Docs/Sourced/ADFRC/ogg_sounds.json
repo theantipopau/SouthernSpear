@@ -1,0 +1,479 @@
+{
+ "summary": {
+  "ogg_files": 11,
+  "unique_sounds": 7,
+  "converted": 0,
+  "present": 9,
+  "skipped": 2,
+  "failed": 0,
+  "conflicts": 2
+ },
+ "unique": [
+  {
+   "name": "MPP_Slow_Reload",
+   "ogg_md5": "04a97db8d0c8c9ca56ac9ce5dff9607b",
+   "copies": 1,
+   "paths": [
+    "Workshop/ADF_Weapons/core/animsounds/MPP_Slow_Reload.ogg"
+   ],
+   "wav": "Workshop/ADF_Weapons/core/animsounds/MPP_Slow_Reload.wav",
+   "wav_produced_by_this_pass": false,
+   "rate": 48000,
+   "channels": 2,
+   "seconds": 3.704,
+   "source_peak_dbfs": 2.15,
+   "source_over_0dbfs_pct": 0.0383,
+   "status": "wav already present",
+   "note": null
+  },
+  {
+   "name": "MPP_Fast_Reload",
+   "ogg_md5": "5972dc3984aaa58e0f3b0b406f47a552",
+   "copies": 1,
+   "paths": [
+    "Workshop/ADF_Weapons/core/animsounds/MPP_Fast_Reload.ogg"
+   ],
+   "wav": "Workshop/ADF_Weapons/core/animsounds/MPP_Fast_Reload.wav",
+   "wav_produced_by_this_pass": false,
+   "rate": 48000,
+   "channels": 2,
+   "seconds": 2.302,
+   "source_peak_dbfs": 2.86,
+   "source_over_0dbfs_pct": 0.1009,
+   "status": "wav already present",
+   "note": null
+  },
+  {
+   "name": "boxer-horn",
+   "ogg_md5": "69c57d17aa88389770af6a9f92202cdb",
+   "copies": 1,
+   "paths": [
+    "Workshop/ADF_Wheeled/adfrc_boxer/sound/boxer-horn.ogg"
+   ],
+   "wav": "Workshop/ADF_Wheeled/adfrc_boxer/sound/boxer-horn.wav",
+   "wav_produced_by_this_pass": false,
+   "rate": 48000,
+   "channels": 2,
+   "seconds": 1.215,
+   "source_peak_dbfs": 0.14,
+   "source_over_0dbfs_pct": 0.0017,
+   "status": "wav already present",
+   "note": null
+  },
+  {
+   "name": "carlgustav_shot",
+   "ogg_md5": "88e49cad05573f2fb5b521e8ada7f15c",
+   "copies": 2,
+   "paths": [
+    "Source/adfrc_carlgustav/sound/carlgustav_shot.ogg",
+    "Workshop/ADF_Weapons/adfrc_carlgustav/sound/carlgustav_shot.ogg"
+   ],
+   "wav": "Source/adfrc_carlgustav/sound/carlgustav_shot.wav",
+   "wav_produced_by_this_pass": false,
+   "rate": 48000,
+   "channels": 2,
+   "seconds": 3.901,
+   "source_peak_dbfs": 13.87,
+   "source_over_0dbfs_pct": 1.9245,
+   "status": "wav already present",
+   "note": null
+  },
+  {
+   "name": "mag-58",
+   "ogg_md5": "922498d9b757b02f1ce427edac5edcc5",
+   "copies": 3,
+   "paths": [
+    "Source/adfrc_mag58/sound/mag-58.ogg",
+    "Workshop/ADF_Weapons/adfrc_mag58/sound/mag-58.ogg",
+    "Workshop/bma3/bma3_bushmaster_sounds/mag-58.ogg"
+   ],
+   "wav": null,
+   "wav_produced_by_this_pass": false,
+   "rate": 44100,
+   "channels": 2,
+   "seconds": 2.41,
+   "source_peak_dbfs": -0.43,
+   "source_over_0dbfs_pct": 0.0,
+   "status": "wav predates this pass and DIFFERS from the ogg",
+   "note": "a .wss-derived wav of the same name already exists and differs from this ogg; both were kept"
+  },
+  {
+   "name": "skid_extend",
+   "ogg_md5": "c3ab670b1a1ce2cf109ce272a344a7a6",
+   "copies": 1,
+   "paths": [
+    "Workshop/ADF_Wheeled/adfrc_boxer/sound/skid_extend.ogg"
+   ],
+   "wav": "Workshop/ADF_Wheeled/adfrc_boxer/sound/skid_extend.wav",
+   "wav_produced_by_this_pass": false,
+   "rate": 11025,
+   "channels": 1,
+   "seconds": 4.021,
+   "source_peak_dbfs": 1.66,
+   "source_over_0dbfs_pct": 0.0338,
+   "status": "wav already present",
+   "note": null
+  },
+  {
+   "name": "carlgustav_reload",
+   "ogg_md5": "e189cec84390cab53f14aaa668fc471f",
+   "copies": 2,
+   "paths": [
+    "Source/adfrc_carlgustav/sound/carlgustav_reload.ogg",
+    "Workshop/ADF_Weapons/adfrc_carlgustav/sound/carlgustav_reload.ogg"
+   ],
+   "wav": "Source/adfrc_carlgustav/sound/carlgustav_reload.wav",
+   "wav_produced_by_this_pass": false,
+   "rate": 48000,
+   "channels": 1,
+   "seconds": 6.273,
+   "source_peak_dbfs": 5.0,
+   "source_over_0dbfs_pct": 0.0631,
+   "status": "wav already present",
+   "note": null
+  }
+ ],
+ "files": [
+  {
+   "ogg": "Source/adfrc_carlgustav/sound/carlgustav_reload.ogg",
+   "wav": "Source/adfrc_carlgustav/sound/carlgustav_reload.wav",
+   "ogg_md5": "e189cec84390cab53f14aaa668fc471f",
+   "ogg_audio": {
+    "frames": 301126,
+    "rate": 48000,
+    "channels": 1,
+    "seconds": 6.273,
+    "peak_dbfs": 5.0,
+    "rms_dbfs": -20.63,
+    "clipped_samples": 190,
+    "clipped_pct": 0.0631
+   },
+   "status": "wav already present",
+   "existing_wav": {
+    "rate": 48000,
+    "channels": 1,
+    "seconds": 6.273
+   },
+   "wav_audio": {
+    "frames": 301126,
+    "rate": 48000,
+    "channels": 1,
+    "seconds": 6.273,
+    "peak_dbfs": 0.0,
+    "rms_dbfs": -20.79,
+    "clipped_samples": 0,
+    "clipped_pct": 0.0,
+    "bytes": 602296,
+    "subtype": "PCM_16"
+   }
+  },
+  {
+   "ogg": "Source/adfrc_carlgustav/sound/carlgustav_shot.ogg",
+   "wav": "Source/adfrc_carlgustav/sound/carlgustav_shot.wav",
+   "ogg_md5": "88e49cad05573f2fb5b521e8ada7f15c",
+   "ogg_audio": {
+    "frames": 187266,
+    "rate": 48000,
+    "channels": 2,
+    "seconds": 3.901,
+    "peak_dbfs": 13.87,
+    "rms_dbfs": -10.69,
+    "clipped_samples": 7208,
+    "clipped_pct": 1.9245
+   },
+   "status": "wav already present",
+   "existing_wav": {
+    "rate": 48000,
+    "channels": 2,
+    "seconds": 3.901
+   },
+   "wav_audio": {
+    "frames": 187266,
+    "rate": 48000,
+    "channels": 2,
+    "seconds": 3.901,
+    "peak_dbfs": 0.0,
+    "rms_dbfs": -14.97,
+    "clipped_samples": 0,
+    "clipped_pct": 0.0,
+    "bytes": 749108,
+    "subtype": "PCM_16"
+   }
+  },
+  {
+   "ogg": "Source/adfrc_mag58/sound/mag-58.ogg",
+   "wav": "Source/adfrc_mag58/sound/mag-58.wav",
+   "ogg_md5": "922498d9b757b02f1ce427edac5edcc5",
+   "ogg_audio": {
+    "frames": 106297,
+    "rate": 44100,
+    "channels": 2,
+    "seconds": 2.41,
+    "peak_dbfs": -0.43,
+    "rms_dbfs": -24.87,
+    "clipped_samples": 0,
+    "clipped_pct": 0.0
+   },
+   "status": "wav predates this pass and DIFFERS from the ogg",
+   "existing_wav": {
+    "rate": 11025,
+    "channels": 1,
+    "seconds": 1.004
+   },
+   "existing_wav_differs": true
+  },
+  {
+   "ogg": "Workshop/ADF_Weapons/adfrc_carlgustav/sound/carlgustav_reload.ogg",
+   "wav": "Workshop/ADF_Weapons/adfrc_carlgustav/sound/carlgustav_reload.wav",
+   "ogg_md5": "e189cec84390cab53f14aaa668fc471f",
+   "ogg_audio": {
+    "frames": 301126,
+    "rate": 48000,
+    "channels": 1,
+    "seconds": 6.273,
+    "peak_dbfs": 5.0,
+    "rms_dbfs": -20.63,
+    "clipped_samples": 190,
+    "clipped_pct": 0.0631
+   },
+   "status": "wav already present",
+   "existing_wav": {
+    "rate": 48000,
+    "channels": 1,
+    "seconds": 6.273
+   },
+   "wav_audio": {
+    "frames": 301126,
+    "rate": 48000,
+    "channels": 1,
+    "seconds": 6.273,
+    "peak_dbfs": 0.0,
+    "rms_dbfs": -20.79,
+    "clipped_samples": 0,
+    "clipped_pct": 0.0,
+    "bytes": 602296,
+    "subtype": "PCM_16"
+   }
+  },
+  {
+   "ogg": "Workshop/ADF_Weapons/adfrc_carlgustav/sound/carlgustav_shot.ogg",
+   "wav": "Workshop/ADF_Weapons/adfrc_carlgustav/sound/carlgustav_shot.wav",
+   "ogg_md5": "88e49cad05573f2fb5b521e8ada7f15c",
+   "ogg_audio": {
+    "frames": 187266,
+    "rate": 48000,
+    "channels": 2,
+    "seconds": 3.901,
+    "peak_dbfs": 13.87,
+    "rms_dbfs": -10.69,
+    "clipped_samples": 7208,
+    "clipped_pct": 1.9245
+   },
+   "status": "wav already present",
+   "existing_wav": {
+    "rate": 48000,
+    "channels": 2,
+    "seconds": 3.901
+   },
+   "wav_audio": {
+    "frames": 187266,
+    "rate": 48000,
+    "channels": 2,
+    "seconds": 3.901,
+    "peak_dbfs": 0.0,
+    "rms_dbfs": -14.97,
+    "clipped_samples": 0,
+    "clipped_pct": 0.0,
+    "bytes": 749108,
+    "subtype": "PCM_16"
+   }
+  },
+  {
+   "ogg": "Workshop/ADF_Weapons/adfrc_mag58/sound/mag-58.ogg",
+   "wav": "Workshop/ADF_Weapons/adfrc_mag58/sound/mag-58.wav",
+   "ogg_md5": "922498d9b757b02f1ce427edac5edcc5",
+   "ogg_audio": {
+    "frames": 106297,
+    "rate": 44100,
+    "channels": 2,
+    "seconds": 2.41,
+    "peak_dbfs": -0.43,
+    "rms_dbfs": -24.87,
+    "clipped_samples": 0,
+    "clipped_pct": 0.0
+   },
+   "status": "wav predates this pass and DIFFERS from the ogg",
+   "existing_wav": {
+    "rate": 11025,
+    "channels": 1,
+    "seconds": 1.004
+   },
+   "existing_wav_differs": true
+  },
+  {
+   "ogg": "Workshop/ADF_Weapons/core/animsounds/MPP_Fast_Reload.ogg",
+   "wav": "Workshop/ADF_Weapons/core/animsounds/MPP_Fast_Reload.wav",
+   "ogg_md5": "5972dc3984aaa58e0f3b0b406f47a552",
+   "ogg_audio": {
+    "frames": 110510,
+    "rate": 48000,
+    "channels": 2,
+    "seconds": 2.302,
+    "peak_dbfs": 2.86,
+    "rms_dbfs": -19.86,
+    "clipped_samples": 223,
+    "clipped_pct": 0.1009
+   },
+   "status": "wav already present",
+   "existing_wav": {
+    "rate": 48000,
+    "channels": 2,
+    "seconds": 2.302
+   },
+   "wav_audio": {
+    "frames": 110510,
+    "rate": 48000,
+    "channels": 2,
+    "seconds": 2.302,
+    "peak_dbfs": 0.0,
+    "rms_dbfs": -19.98,
+    "clipped_samples": 0,
+    "clipped_pct": 0.0,
+    "bytes": 442084,
+    "subtype": "PCM_16"
+   }
+  },
+  {
+   "ogg": "Workshop/ADF_Weapons/core/animsounds/MPP_Slow_Reload.ogg",
+   "wav": "Workshop/ADF_Weapons/core/animsounds/MPP_Slow_Reload.wav",
+   "ogg_md5": "04a97db8d0c8c9ca56ac9ce5dff9607b",
+   "ogg_audio": {
+    "frames": 177777,
+    "rate": 48000,
+    "channels": 2,
+    "seconds": 3.704,
+    "peak_dbfs": 2.15,
+    "rms_dbfs": -24.53,
+    "clipped_samples": 136,
+    "clipped_pct": 0.0383
+   },
+   "status": "wav already present",
+   "existing_wav": {
+    "rate": 48000,
+    "channels": 2,
+    "seconds": 3.704
+   },
+   "wav_audio": {
+    "frames": 177777,
+    "rate": 48000,
+    "channels": 2,
+    "seconds": 3.704,
+    "peak_dbfs": 0.0,
+    "rms_dbfs": -24.61,
+    "clipped_samples": 0,
+    "clipped_pct": 0.0,
+    "bytes": 711152,
+    "subtype": "PCM_16"
+   }
+  },
+  {
+   "ogg": "Workshop/ADF_Wheeled/adfrc_boxer/sound/boxer-horn.ogg",
+   "wav": "Workshop/ADF_Wheeled/adfrc_boxer/sound/boxer-horn.wav",
+   "ogg_md5": "69c57d17aa88389770af6a9f92202cdb",
+   "ogg_audio": {
+    "frames": 58338,
+    "rate": 48000,
+    "channels": 2,
+    "seconds": 1.215,
+    "peak_dbfs": 0.14,
+    "rms_dbfs": -12.82,
+    "clipped_samples": 2,
+    "clipped_pct": 0.0017
+   },
+   "status": "wav already present",
+   "existing_wav": {
+    "rate": 48000,
+    "channels": 2,
+    "seconds": 1.215
+   },
+   "wav_audio": {
+    "frames": 58338,
+    "rate": 48000,
+    "channels": 2,
+    "seconds": 1.215,
+    "peak_dbfs": -0.0,
+    "rms_dbfs": -12.82,
+    "clipped_samples": 0,
+    "clipped_pct": 0.0,
+    "bytes": 233396,
+    "subtype": "PCM_16"
+   }
+  },
+  {
+   "ogg": "Workshop/ADF_Wheeled/adfrc_boxer/sound/skid_extend.ogg",
+   "wav": "Workshop/ADF_Wheeled/adfrc_boxer/sound/skid_extend.wav",
+   "ogg_md5": "c3ab670b1a1ce2cf109ce272a344a7a6",
+   "ogg_audio": {
+    "frames": 44331,
+    "rate": 11025,
+    "channels": 1,
+    "seconds": 4.021,
+    "peak_dbfs": 1.66,
+    "rms_dbfs": -12.07,
+    "clipped_samples": 15,
+    "clipped_pct": 0.0338
+   },
+   "status": "wav already present",
+   "existing_wav": {
+    "rate": 11025,
+    "channels": 1,
+    "seconds": 4.021
+   },
+   "wav_audio": {
+    "frames": 44331,
+    "rate": 11025,
+    "channels": 1,
+    "seconds": 4.021,
+    "peak_dbfs": -0.0,
+    "rms_dbfs": -12.07,
+    "clipped_samples": 0,
+    "clipped_pct": 0.0,
+    "bytes": 88706,
+    "subtype": "PCM_16"
+   }
+  },
+  {
+   "ogg": "Workshop/bma3/bma3_bushmaster_sounds/mag-58.ogg",
+   "wav": "Workshop/bma3/bma3_bushmaster_sounds/mag-58.wav",
+   "ogg_md5": "922498d9b757b02f1ce427edac5edcc5",
+   "ogg_audio": {
+    "frames": 106297,
+    "rate": 44100,
+    "channels": 2,
+    "seconds": 2.41,
+    "peak_dbfs": -0.43,
+    "rms_dbfs": -24.87,
+    "clipped_samples": 0,
+    "clipped_pct": 0.0
+   },
+   "status": "wav already present",
+   "existing_wav": {
+    "rate": 44100,
+    "channels": 2,
+    "seconds": 2.41
+   },
+   "wav_audio": {
+    "frames": 106297,
+    "rate": 44100,
+    "channels": 2,
+    "seconds": 2.41,
+    "peak_dbfs": -0.43,
+    "rms_dbfs": -24.87,
+    "clipped_samples": 0,
+    "clipped_pct": 0.0,
+    "bytes": 425232,
+    "subtype": "PCM_16"
+   }
+  }
+ ]
+}
