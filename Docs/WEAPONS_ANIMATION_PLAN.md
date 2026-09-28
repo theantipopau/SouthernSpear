@@ -53,7 +53,7 @@ for the A25 and A9: it needs the item to grant Lyra's semi-automatic fire abilit
 
 ### W2. Left-hand grip sockets from the `handAnim` poses (fixes the hands on every weapon)
 
-**Session 052: sockets built (not yet run on the real data).** `Tools/Common/adfrc_grip.py` + `test_adfrc_grip.py`
+**Session 054: the first real run fitted 0 of 7. Session 055: two causes fixed** (case-sensitive bone names; the decoder parents `weapon` to the right hand, where Arma's skeleton has `Spine1`). Both hierarchies are now tried, and a refusal reports its numbers. Awaiting the next run. **Session 052: sockets built.** `Tools/Common/adfrc_grip.py` + `test_adfrc_grip.py`
 (synthetic-rig tests pass here); `adfrc_weapon.py` writes `SOCKET_LeftHandGrip` / `SOCKET_RightHandGrip` when
 `build_adfrc_weapons.py` passes `SS_GRIP_CLIP`. The Arma-to-MLOD axis map is calibrated per weapon (right hand on
 `trigger_axis`, left hand forward on the barrel), and a pose that doesn't fit is refused and reported. **Next:**

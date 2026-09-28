@@ -227,36 +227,33 @@ def visual_blueprint(mesh):
     """B_SS_<W>_Weapon: a child of Lyra's B_Rifle, so everything Lyra's weapon
     abilities expect from the weapon actor (the reload in particular only works
     with a B_Rifle-derived actor, Session 024) is inherited unchanged. Lyra's
-    rifle mesh is hidden and our static mesh is added in its place."""
+    rifle mesh is hidden and our static mesh is added in its place.
+
+    Built in place: an existing blueprint is loaded and its SSVisual component updated, never deleted
+    and re-created. delete_asset() does not remove it in a commandlet (the file stays, and create_asset
+    then returns None for the taken name), which stopped every run on the first weapon (Session 054)."""
     name = "B_SS_" + W + "_Weapon"
     path = DEST + "/" + name
-    if asset_exists(path):
-        eal.delete_asset(path)
-        # delete_asset does not actually remove the blueprint here: the file is still on disk and the
-        # next create_asset returns None for the name that is taken. That None is what the empty
-        # subobject gather was reporting, on the first weapon, every run (Session 054).
-        if asset_exists(path):
-            raise RuntimeError(
-                "could not delete the existing " + path + "; create_asset would return None for a "
-                "name still in use. Delete it in the editor, or build into the asset in place.")
     parent_path = base_of(W)[2]
     parent = unreal.load_class(None, parent_path)
     if parent is None:
         raise RuntimeError("parent class " + parent_path + " did not load for " + W)
-    factory = unreal.BlueprintFactory()
-    factory.set_editor_property("parent_class", parent)
-    bp = tools.create_asset(name, DEST, unreal.Blueprint, factory)
-    if bp is None:
-        raise RuntimeError("could not create " + path)
+    bp = unreal.load_asset(path) if asset_exists(path) else None
+    created = bp is None
+    if created:
+        factory = unreal.BlueprintFactory()
+        factory.set_editor_property("parent_class", parent)
+        bp = tools.create_asset(name, DEST, unreal.Blueprint, factory)
+        if bp is None:
+            raise RuntimeError("could not create " + path)
     sub = unreal.get_engine_subsystem(unreal.SubobjectDataSubsystem)
     lib_sd = unreal.SubobjectDataBlueprintFunctionLibrary
-    # A blueprint straight out of the factory has an empty construction script until it has been
-    # compiled; gather afterwards, and never index handles[0] without checking it (Session 054).
     unreal.BlueprintEditorLibrary.compile_blueprint(bp)
     handles = sub.k2_gather_subobject_data_for_blueprint(bp)
     if not handles:
-        raise RuntimeError("no components on the new blueprint " + path)
+        raise RuntimeError("no components on the blueprint " + path)
     skeletal = None
+    visual = None
     for h in handles:
         data = lib_sd.get_data(h)
         obj = lib_sd.get_object_for_blueprint(data, bp)
@@ -264,18 +261,24 @@ def visual_blueprint(mesh):
             skeletal = h
             obj.set_editor_property("hidden_in_game", True)
             obj.set_editor_property("cast_shadow", False)
-    added, reason = sub.add_new_subobject(unreal.AddNewSubobjectParams(
-        parent_handle=skeletal or handles[0], new_class=unreal.StaticMeshComponent, blueprint_context=bp))
-    sub.rename_subobject(added, unreal.Text("SSVisual"))
-    visual = lib_sd.get_object_for_blueprint(lib_sd.get_data(added), bp)
+        elif isinstance(obj, unreal.StaticMeshComponent) and str(lib_sd.get_variable_name(data)) == "SSVisual":
+            visual = obj
+    reason = "updated in place" if not created else ""
+    if visual is None:
+        added, reason = sub.add_new_subobject(unreal.AddNewSubobjectParams(
+            parent_handle=skeletal or handles[0], new_class=unreal.StaticMeshComponent, blueprint_context=bp))
+        sub.rename_subobject(added, unreal.Text("SSVisual"))
+        visual = lib_sd.get_object_for_blueprint(lib_sd.get_data(added), bp)
+    if visual is None:
+        raise RuntimeError("no SSVisual component on " + path + " " + str(reason))
     visual.set_editor_property("static_mesh", mesh)
     # Lyra attaches with -90 yaw (its meshes face +Y); ours faces +X, so cancel it.
     visual.set_editor_property("relative_rotation", unreal.Rotator(roll=0, pitch=0, yaw=90))
     visual.set_collision_enabled(unreal.CollisionEnabled.NO_COLLISION)
     unreal.BlueprintEditorLibrary.compile_blueprint(bp)
     eal.save_loaded_asset(bp)
-    return step("visual_blueprint", skeletal is not None and visual is not None, "{} (hid Lyra mesh: {}) {}".format(
-        path, skeletal is not None, reason)) and bp
+    return step("visual_blueprint", skeletal is not None and visual is not None, "{} (hid Lyra mesh: {}, created: {}) {}".format(
+        path, skeletal is not None, created, reason)) and bp
 
 
 def copy_definition(src, name):

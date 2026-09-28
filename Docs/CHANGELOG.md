@@ -4225,7 +4225,9 @@ warning on a first run. That is harmless.
 
 Unchanged from Session 052. **On the producer's machine:** run `python Tools/build_adfrc_weapons.py`, then
 `Tools/Unreal/setup_weapons.py`, then build and test. Send each `Art/Weapons/<NAME>/ADFRC/manifest.json → grip`,
-and check in game: A89 200/200, A25 one shot per press, and the `LogSSWeaponStats` rpm lines.### ADDENDUM — weapons pipeline run: the grip fit produced nothing, and setup_weapons.py has its own blocker
+and check in game: A89 200/200, A25 one shot per press, and the `LogSSWeaponStats` rpm lines.
+
+### ADDENDUM — weapons pipeline run: the grip fit produced nothing, and setup_weapons.py has its own blocker
 
 **Ran `python Tools/build_adfrc_weapons.py`. All seven weapons built, but the grip fit failed on
 every one of them**, so there are no grip numbers to send:
@@ -4273,7 +4275,82 @@ unblocks P2. NOT DONE: the head swap itself, which needs an ADFRC head in `Art/C
 data problem. **Still needs a human: the live match** (A89 shows 200/200, the A25 fires one shot per
 press with 20 rounds, `LogSSWeaponStats` prints the rpm lines) — none of that can be checked headlessly.
 
+## Session 055 — 2026-09-28 — Both Session 054 Blockers Fixed: Weapon Blueprint Built In Place, Grip Fit Tries Arma's Skeleton
+
+### COMPLETED
+
+- **`setup_weapons.py` no longer deletes the weapon blueprint.** `visual_blueprint()` loads an existing
+  `B_SS_<W>_Weapon` and updates its `SSVisual` component (mesh, +90° yaw, no collision). It adds the component only
+  when it is missing, and creates the blueprint only when there is none. The Session 054 guards stay in place:
+  compile before the gather, and fail loudly on a missing parent class, a failed create or empty handles. The
+  report says `created: True/False` per weapon.
+- **Grip fit, with three causes found by reading the decoded pose data in `ASSET_MANIFEST.json` and
+  `rtm_rigs.py`:**
+  1. **A88G:** `AUG_GL`'s rig uses capitalised names (`LeftHand`, `RightHand`) and the lookup was
+     case-sensitive. Bones are now matched case-insensitively.
+  2. **Every rifle (probable):** `rtm_rigs.py` parents `weapon` to `righthand` by a naming rule. The clips list
+     their bones in Arma's own skeleton order (`pelvis, spine…spine3, camera, weapon, launcher, neck…`). In
+     Arma's `OFP2_ManSkeleton` (from memory, not from a file in the repo), `weapon` and `launcher` are children of
+     `Spine1` and `Camera` of `Pelvis`. Composing a Spine1-relative weapon bone under the hand puts it somewhere
+     meaningless, and no axis map can fit that. `adfrc_grip.py` now tries both hierarchies (`arma` first, then
+     `decoded`) and reports which one fits.
+  3. **No numbers on failure:** a refusal said only why. It now carries the hand span, the trigger-to-muzzle
+     length, the nearest failing axis map with its distances, and each hierarchy's hands in weapon space.
+     The trigger and muzzle memory points are included too. One failed run now diagnoses itself.
+- `python Tools/Common/adfrc_grip.py --export Docs/evidence/w2_grip_clips` copies each grip clip's first frame and
+  its rig into small JSONs. It prints both hierarchies' hand positions. Committed, these let the maths be checked
+  without the git-ignored `Animations/` tree.
+
+### FILES CHANGED
+
+`Tools/Unreal/setup_weapons.py`, `Tools/Common/adfrc_grip.py`, `Tools/Common/test_adfrc_grip.py`, `Docs/CHANGELOG.md`
+(also fixes the Session 054 addendum heading, which had been joined onto the previous line).
+
+### TESTING
+
+- `python Tools/Common/test_adfrc_grip.py`: **exit 0, 23/23 PASS** (16 before). New checks:
+  - the `arma` hierarchy re-parents `weapon` to `Spine1`;
+  - capitalised bone names resolve;
+  - on a synthetic rig stored Spine1-relative with the decoder's `weapon -> RightHand` parents, `grip_points`
+    picks `arma` and reports the failed `decoded` attempt with its numbers;
+  - a refusal carries the hand span and barrel length.
+- `python3 -m py_compile` on `setup_weapons.py`, `adfrc_weapon.py` and `adfrc_grip.py`: exit 0.
+  `python Tools/validate_architecture.py`: exit 0, PASS.
+- **NOT RUN (the producer's machine):** `build_adfrc_weapons.py` on the real clips, and whether the Arma hierarchy
+  is the actual cause. It is the probable one, not a proven one. Also not run: `setup_weapons.py` in Unreal,
+  including `SubobjectDataBlueprintFunctionLibrary.get_variable_name`, which is used here for the first time.
+
+### ASSETS
+
+None. The `--export` JSONs are ADFRC pose data (L-0021, ADR-035) once committed.
+
+### RISKS
+
+- R-62 (W2 assumes the weapon model's origin sits on the `weapon` bone) still stands. If both hierarchies fail
+  with the full report, R-62 is the next suspect, and the exported clips let it be checked here.
+
+### DEFECTS FOUND
+
+- Case-sensitive bone lookup (A88G). Found by reading the rig bone lists in `ASSET_MANIFEST.json`.
+- The pose maths trusted `rtm_rigs.py`'s rule hierarchy for the attachment bones. Found by comparing each clip's
+  bone order with Arma's skeleton order.
+- A refused fit reported no numbers, so a 7/7 failure could not be diagnosed remotely. Found by the producer's
+  run.
+- `setup_weapons.py` deleted and re-created the blueprint, which cannot work when the delete silently fails.
+  Found by the producer's agent (Session 054 addendum). Fixed by building in place.
+
+### NEXT ACTION
+
+**On the producer's machine:**
+1. Pull.
+2. Run `python Tools/build_adfrc_weapons.py`, then `python Tools/Common/adfrc_grip.py --export
+   Docs/evidence/w2_grip_clips`, and commit that folder along with the seven `manifest.json` files.
+3. Run `Tools/Unreal/setup_weapons.py`, then build and test.
+4. Report each `manifest.json → grip`: `fit`, `hierarchy`, `right_hand_to_trigger_m` or `attempts`. Also report
+   whether `setup_weapons.py` completes with `ok: true`.
+
 ---
+
 
 ## Open Threads
 

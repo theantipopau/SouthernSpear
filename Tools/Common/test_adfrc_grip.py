@@ -30,6 +30,10 @@ def quat_about_y(angle):
     return [0.0, math.sin(angle / 2), 0.0, math.cos(angle / 2)]
 
 
+def sub3(a, b):
+    return tuple(x - y for x, y in zip(a, b))
+
+
 def close(a, b, tol=1e-6):
     return all(abs(x - y) <= tol for x, y in zip(a, b))
 
@@ -93,6 +97,43 @@ def main():
             check("missing clip raises", False)
         except FileNotFoundError:
             check("missing clip raises", True)
+
+    # Arma hierarchy: the clip stores `weapon` relative to Spine1 (Arma's parent), but the decoder's rig
+    # file says righthand. Capitalised names, as in AUG_GL's rig. grip_points must pick "arma".
+    abones = ["Pelvis", "Spine", "Spine1", "weapon", "RightHand", "LeftHand"]
+    decoded_parents = [None, 0, 1, 4, 2, 2]  # weapon under RightHand, as rtm_rigs.py writes it
+    spine1_p = (0.0, 0.3, 0.0)
+    wp_arma = (0.2, 1.0, 0.4)               # weapon, relative to Spine1
+    hand_off = tuple(a + b for a, b in zip(spine1_p, wp_arma))
+    aframe = [
+        {"q": [0, 0, 0, 1], "p": [0, 0, 0]},
+        {"q": [0, 0, 0, 1], "p": [0, 0, 0]},
+        {"q": [0, 0, 0, 1], "p": list(spine1_p)},
+        {"q": quat_about_y(math.radians(35)), "p": list(wp_arma)},
+        # hands relative to Spine1, placed where the weapon-local truth says
+        {"q": [0, 0, 0, 1], "p": list(sub3(tuple(a + b for a, b in zip(g.mat_vec(wr, right_local), hand_off)), spine1_p))},
+        {"q": [0, 0, 0, 1], "p": list(sub3(tuple(a + b for a, b in zip(g.mat_vec(wr, left_local), hand_off)), spine1_p))},
+    ]
+    check("arma hierarchy re-parents weapon to Spine1", g.parents_for(abones, decoded_parents, "arma")[3] == 2)
+    l_a, r_a = g.hands_in_weapon_space(abones, g.parents_for(abones, decoded_parents, "arma"), aframe)
+    check("capitalised bone names are found", close(l_a, left_local) and close(r_a, right_local), str((l_a, r_a)))
+    with tempfile.TemporaryDirectory() as tmp:
+        os.makedirs(os.path.join(tmp, "Rig", "a"))
+        with open(os.path.join(tmp, "Rig", "a.json"), "w") as fh:
+            json.dump({"bones": abones, "parents": decoded_parents}, fh)
+        with open(os.path.join(tmp, "Rig", "a", "AUG_GL__1.json"), "w") as fh:
+            json.dump({"frames": [aframe]}, fh)
+        manifest = os.path.join(tmp, "manifest.json")
+        with open(manifest, "w") as fh:
+            json.dump({"clips": {"x/AUG_GL.json": {"rig_file": "Rig/a.json", "local_anim": "Rig/a/AUG_GL__1.json"}}}, fh)
+        gl, gr, rep = g.grip_points("AUG_GL", trigger, muzzle, manifest, [tmp])
+        check("grip_points picks the arma hierarchy", rep.get("hierarchy") == "arma" and gl is not None, json.dumps(rep)[:300])
+        check("the failed hierarchy is reported with numbers",
+              "decoded" in rep["attempts"] and "left_weapon_space" in rep["attempts"]["decoded"])
+
+    # A refused fit carries its nearest miss, so a failure on real data comes back with numbers.
+    _, miss = g.choose_axis_map(left, tuple(c + 5.0 for c in left), trigger, trigger)
+    check("a refusal reports hand span and barrel length", "hand_span_m" in miss and "barrel_m" in miss, json.dumps(miss))
 
     # The shipped manifest names every grip clip the weapon build uses.
     with open(g.MANIFEST, encoding="utf-8") as fh:
