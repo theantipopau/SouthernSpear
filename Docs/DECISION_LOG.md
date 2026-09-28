@@ -619,6 +619,81 @@ alternatives (copying Lyra's hero and weapon chain) were tried for the hero and 
 
 **Consequences.** Lyra updates need the two departures re-applied (script for D-08; code patch for D-09).
 
+---
+
+## ADR-027 — Ravenshoe Crossing: an original Australian gorge crossing, no third-party base
+
+**Status:** Accepted (producer decision, 2026-09-28: "Snowy gorge + wrought-iron road bridge"; "scoping
+doc + ADR + register rows").
+**Date:** 2026-09-28
+
+**Context.** The producer asked for a map "re-creating the famous bridge crossing map from *America's Army
+2*, with an Australian twist", built from the assets already in the project plus the Fab packs in
+`Content/Downloaded/VaultCache/`. That request sits against four standing constraints: **L-0008**
+(no *America's Army 2* content of any kind), **L-0007** (no commercial game models), **ADR-013** (maps
+are built original; a third-party environment is never a base map) and **ADR-021** (licensed third-party
+art may dress an original layout but never define one).
+
+Two inventory findings shaped the decision.
+
+**First, there is nothing to import.** All 18 content roots in the VaultCache are already installed in
+`Content/`; the only unimported folder is a VFX pack. The cache is the Fab desktop staging area, not a
+source of new map geometry.
+
+**Second, there is no bridge to reuse.** A keyword sweep of all of `Content/` for bridge, gate, arch,
+tunnel, pier, stone and wall returned 430 hits, every one of them Quarry Slate rock ledges, Singapore_Canal
+stone *materials*, or Lyra audio. **No structural mesh exists in the project or in any installed pack.**
+The only packs with buildings are Asian canal architecture (ruled out on look and culture, ADR-016) and
+the Rural Australia pack, which has none at all.
+
+**Decision.**
+
+- **Ravenshoe Crossing** (`/Game/Maps/L_Ravenshoe_01`) is designed and built **original**: 300 × 200 m,
+  a high-country granite gorge crossed by a **wrought-iron lattice-girder road bridge**, with a **stone
+  road-gate house** whose arched road passage is the terminal objective. Design in `Docs/MAPS_RAVENSHOE.md`.
+- The bridge, the gatehouse, the abutments and the gorge walls are **modelled by us** in Blender and are
+  **Class F** (L-0011, ADR-020). Dressed with already-installed Class A packs by reference only.
+- **Only the design principle is taken from the reference**, and it is stated as such in the map document:
+  a single chokepoint, a threshold-shaped terminal objective, a hard axial lane, flanking approaches, and a
+  playable lower space. **No geometry is traced or approximated, no names are carried across, and no AA2
+  asset is used.** The bridge is specifically a **lattice girder, not a masonry arch** — the reference's
+  signature form is rejected on both provenance and gameplay grounds (a stone parapet is a dead lane; a
+  lattice is a repeating cover rhythm).
+- The 20 m maximum-open-crossing rule in `MAPS_DRYRIVER.md` §5 is **not** silently waived. The 68 m deck
+  is recorded as the map's one deliberate exception, with four named mitigations that must exist in the
+  blockout or the exception is unjustified.
+- Objective A sits at **mid-span**, not at a bridgehead, because a bridgehead objective is 68 m closer to
+  one deployment than the other and no amount of dressing repairs that. Objectives are **sequential A→B**,
+  which is what makes the mid-span choice fair under `MAPS_DRYRIVER.md` §6.1.
+- The **known northern overwatch asymmetry is recorded, not hidden**, with the same treatment Dry River
+  §6.1 gives Bravo's advantage and the same rebalance rule (terrain only, never team capability, ADR-003).
+
+**Alternatives.**
+- *Reuse the *America's Army 2* layout and geometry* — rejected. Barred outright by L-0008 and L-0007.
+- *Adopt the reference's stone-arch vocabulary* — rejected. It is the reference's most identifying feature,
+  and a stone parapet is worse cover geometry than the lattice that replaces it.
+- *Model a tropical timber trestle or an arid steel truss* — rejected. The trestle's piers fragment the
+  deck into a pick-up-beat shooter space; the arid truss gives up the gorge depth that makes the second
+  lane exist at all.
+- *Find a bridge mesh in the VaultCache* — not available. The sweep found none, so the question is moot.
+- *Import the unimported VFX pack* — rejected as irrelevant. A VFX common pack has no map geometry.
+- *Wait for a capture on Red Gum before designing another map* — rejected. Red Gum's stalemate is a
+  balance problem in a 1 km open map, not a reason to stop designing small maps.
+
+**Consequences.**
+- The map adds **no new third-party dependency** and needs no new import; it is buildable from the
+  project as it stands. That is deliberate — it is the strongest available answer to L-0008.
+- Two original Blender generators are needed (`ravenshoe_bridge.py`, `ravenshoe_gatehouse.py`) plus a
+  `Tools/Common/ravenshoe_spec.py` shared with the CI verifier, following the `dryriver_blockout.py`
+  pattern.
+- The inventory exposed a **pre-existing licence gap**: nine already-installed Fab packs, including
+  `Scene_QuarrySlate` which this map builds on, had no row in either register. Corrected in this session
+  as bookkeeping under **L-0016b**. No asset changed.
+- The map is a **candidate fifth map** (`M-008`), not a replacement for Dry River as the slice test bed.
+- Sizing, rotation distances, cover counts and sightlines are **design targets until the blockout is
+  generated and measured**. Navigation must be baked in the interactive editor, and no cover or sightline
+  figure may be quoted from a commandlet.
+
 ## ADR-028 — Every Fab asset is cleared for Southern Spear; no per-asset licence lookups
 
 **Status:** Accepted (producer, 2026-09-28: "EVERY asset added via FAB is free for our use case ... no need to
@@ -637,3 +712,38 @@ website never carries asset files.
 
 **Map base.** On the same direction ("activate that african map"), `L_Bluestone_01` uses the Fab African Slate
 Quarry scene as its base, as ADR-022 did for Red Gum; ADR-013's original-layout rule is superseded for that map only.
+
+## ADR-029 — Third-party props are prepped in Blender before import, never imported raw
+
+**Status:** Accepted (2026-09-28)
+**Date:** 2026-09-28
+
+**Decision.** Every third-party prop mesh enters the project through a Blender prep pass
+(`Tools/Blender/prep_fab_props.py`) that measures the file, rescales it to real-world size, strips the
+vendor's ground plane, re-pivots it base-at-z-0, and decimates it to a stated triangle budget. The
+project holds the prepped copy; the vendor file in the Fab cache is never edited. Props then enter the
+engine by reference, with the material applied as a **per-instance component override** rather than on the
+mesh asset's slots.
+
+**Why.** ADR-021 lets licensed art dress an original layout, but says nothing about the condition the art
+arrives in. Measured on the 2026-09-28 delivery: the red car wreck authors at **27.3 × 21.0 × 11.2 m** and
+**1,166,165 triangles** because it is a scan carrying a ground plane at roughly six times real scale; the
+hand pump authors **5.85 m** tall. Imported raw, the map gets a 27 m car on a 6 m-wide bridge and a
+person-sized obstacle that is four times human height. A 75 MB four-car pack was rejected for the same
+reason: the single wreck covers the need at a third of the file size. The triangle budgets are the second
+half — the compressor was rejected at 73,622 triangles for a 2.5 m prop, and 19,751 triangles for a flat
+0.77 m debris piece is not a trade this map should make.
+
+**The per-instance material rule.** On UE 5.8 every route to a `StaticMesh`'s material *slots* is a silent
+no-op: writing into the array from `get_editor_property("static_materials")` mutates local copies, and
+assigning it back with `set_editor_property` does not persist. The slots read back `[None, None]`. The
+component override `StaticMeshComponent.set_material(i, mat)` is a real component property, survives a save
+and reload, and is what actually renders. Props therefore carry their material per instance, and
+`audit_ravenshoe.py` checks the component, not the asset.
+
+**Verification, not assertion.** `Tools/Unreal/audit_ravenshoe.py` re-opens the saved `.umap` and measures:
+the wreck at **z = 14.00 m** on a 14.00 m deck, inside the 7.5 m footprint, blocking, on an authored
+`ScanPBR` instance, with all four VFX components holding live Cascade templates. **32/32 pass.** This is
+load-bearing: an earlier version of the pass reported 26 actors placed and **0 errors** against a `.umap`
+that was byte-for-byte unchanged, because `get_editor_world()` had handed it a blank untitled level. A pass
+that reports success is not evidence; every placement in this project is checked from outside.
