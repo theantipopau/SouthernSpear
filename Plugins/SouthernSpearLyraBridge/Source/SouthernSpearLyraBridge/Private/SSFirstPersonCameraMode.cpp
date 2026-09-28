@@ -7,6 +7,7 @@
 #include "HAL/IConsoleManager.h"
 #include "GameFramework/Character.h"
 #include "SSCharacter.h"
+#include "SSLocalHudState.h"
 #include "SSUserPrefs.h"
 
 USSFirstPersonCameraMode::USSFirstPersonCameraMode()
@@ -28,6 +29,15 @@ USSFirstPersonADSCameraMode::USSFirstPersonADSCameraMode()
 void USSFirstPersonCameraMode::UpdateView(float DeltaTime)
 {
 	FieldOfView = FSSUserPrefs::GetFieldOfView() * FovScale; // settings menu preference
+	// Aiming through a magnified optic: the view narrows by its power (the HUD draws the eyepiece and reticle,
+	// and the view model is hidden; producer: "scopes don't work at all").
+	const UWorld* ViewWorld = GetTargetActor() ? GetTargetActor()->GetWorld() : nullptr;
+	const USSLocalHudState* Hud = ViewWorld ? ViewWorld->GetSubsystem<USSLocalHudState>() : nullptr;
+	if (bSightEye && Hud && Hud->OpticMagnification > 1.f)
+	{
+		const float Base = FMath::DegreesToRadians(FSSUserPrefs::GetFieldOfView());
+		FieldOfView = FMath::RadiansToDegrees(2.f * FMath::Atan(FMath::Tan(Base * 0.5f) / Hud->OpticMagnification));
+	}
 	Super::UpdateView(DeltaTime); // pivot location/rotation, pitch clamp, FOV
 
 	const ACharacter* Character = Cast<ACharacter>(GetTargetActor());

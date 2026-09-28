@@ -10,6 +10,7 @@
 #include "SSMenuWidget.h"
 #include "SSPlayerHudWidget.h"
 #include "SSScoreboardWidget.h"
+#include "SSKillFeedState.h"
 #include "SSKillFeedWidget.h"
 #include "UObject/UObjectIterator.h"
 
@@ -86,9 +87,20 @@ void USSPlayerHudSubsystem::Tick(float DeltaTime)
 	const bool bHasPawn = State && State->bHasPawn;
 	if (ClassSelect)
 	{
-		if (bHadPawn && !bHasPawn && !ClassSelect->IsVisible())
+		if (bHadPawn && !bHasPawn)
 		{
-			ClassSelect->Open(/*bAfterDeath=*/ true);
+			bClassSelectPending = true;
+		}
+		// After a death, "KILLED IN ACTION" shows first (the kill feed widget); then the class selection.
+		const USSKillFeedState* Feed = World->GetSubsystem<USSKillFeedState>();
+		const bool bKiaShowing = Feed && FSSKillFeedRules::RecentLocalDeath(Feed->Entries, World->GetTimeSeconds()) != nullptr;
+		if (bClassSelectPending && (bHasPawn || !bKiaShowing))
+		{
+			bClassSelectPending = false;
+			if (!bHasPawn && !ClassSelect->IsVisible())
+			{
+				ClassSelect->Open(/*bAfterDeath=*/ true);
+			}
 		}
 		else if (Player->WasInputKeyJustPressed(EKeys::L))
 		{

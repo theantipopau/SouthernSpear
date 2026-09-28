@@ -25,6 +25,11 @@ public:
 
 	UFUNCTION(Client, Reliable)
 	void ClientAddKill(const FSSKillFeedEntry& Entry);
+
+	/** RE-DEPLOY (match menu): the owning player asks to end this life and respawn with the selected class.
+	 * The server applies Lyra's own self-destruct to the pawn; it counts as a death, not a kill. */
+	UFUNCTION(Server, Reliable)
+	void ServerRedeploy();
 };
 
 /**

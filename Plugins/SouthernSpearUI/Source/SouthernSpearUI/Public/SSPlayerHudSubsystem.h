@@ -36,4 +36,5 @@ private:
 	UPROPERTY(Transient) TObjectPtr<USSScoreboardWidget> Scoreboard;
 	UPROPERTY(Transient) TObjectPtr<USSKillFeedWidget> KillFeed;
 	bool bHadPawn = false;
+	bool bClassSelectPending = false;
 };

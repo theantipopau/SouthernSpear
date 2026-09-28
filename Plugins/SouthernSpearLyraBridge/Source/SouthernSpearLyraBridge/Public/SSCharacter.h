@@ -81,11 +81,35 @@ public:
 	/** Number of physics bodies given each zone (tests and diagnostics). */
 	int32 ZoneCounts[3] = { 0, 0, 0 };
 
+	/**
+	 * Death (presentation, every client; producer: "ragdoll / death animations?"): shortly after death the
+	 * body goes limp into a ragdoll, pushed along the killing shot (the soldier parts follow its bones), and
+	 * stays in the world for CorpseSeconds after Lyra's death sequence detaches the controller (Lyra hid and
+	 * destroyed it at once). Lyra's death cue (GameplayCue.Character.Death: NS_DeathCubes) is refused.
+	 */
+	UPROPERTY(EditDefaultsOnly, Category = "Tactical|Death")
+	float RagdollDelay = 0.12f;
+	UPROPERTY(EditDefaultsOnly, Category = "Tactical|Death")
+	float RagdollPush = 320.f; // cm/s along the killing shot, applied to the upper body
+	UPROPERTY(EditDefaultsOnly, Category = "Tactical|Death")
+	float CorpseSeconds = 15.f;
+
+	virtual bool ShouldAcceptGameplayCue(UObject* Self, FGameplayTag GameplayCueTag, EGameplayCueEvent::Type EventType, const FGameplayCueParameters& Parameters) override;
+
 	/** -1 left, 0 none, +1 right. */
 	UFUNCTION(BlueprintPure, Category = "Tactical")
 	int32 GetLean() const { return Lean; }
 
+protected:
+	virtual void OnDeathStarted(AActor* OwningActor) override;
+	virtual void OnDeathFinished(AActor* OwningActor) override;
+
 private:
+	void StartRagdoll();
+	/** Direction of the last hit taken (from the damage cue), for the ragdoll push. */
+	FVector LastShotDirection = FVector::ZeroVector;
+	FTimerHandle RagdollTimer;
+
 	void OnSprint(const FInputActionValue& Value);
 	void OnWalk(const FInputActionValue& Value);
 	void OnAim(const FInputActionValue& Value);

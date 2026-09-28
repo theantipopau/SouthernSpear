@@ -55,4 +55,40 @@ namespace SSGlyphTextures
 		Cache = Texture;
 		return Texture;
 	}
+
+	/** A 512 px scope eyepiece mask: black outside a circle, clear inside, with a soft dark rim (the tube). */
+	inline UTexture2D* ScopeMask()
+	{
+		static TWeakObjectPtr<UTexture2D> Cache;
+		if (Cache.IsValid())
+		{
+			return Cache.Get();
+		}
+		constexpr int32 Size = 512;
+		UTexture2D* Texture = UTexture2D::CreateTransient(Size, Size, PF_B8G8R8A8, TEXT("SS_GlyphScopeMask"));
+		if (!Texture)
+		{
+			return nullptr;
+		}
+		Texture->SRGB = true;
+		Texture->Filter = TF_Bilinear;
+		FTexture2DMipMap& Mip = Texture->GetPlatformData()->Mips[0];
+		FColor* Pixels = static_cast<FColor*>(Mip.BulkData.Lock(LOCK_READ_WRITE));
+		const float Radius = Size * 0.5f - 2.f;
+		for (int32 Y = 0; Y < Size; ++Y)
+		{
+			for (int32 X = 0; X < Size; ++X)
+			{
+				const float D = FVector2f(X + 0.5f - Size * 0.5f, Y + 0.5f - Size * 0.5f).Size() / Radius; // 1 at the edge
+				// Clear centre, darkening over the outer 12% (the tube), opaque past the edge.
+				const float Alpha = FMath::Clamp((D - 0.88f) / 0.12f, 0.f, 1.f);
+				Pixels[Y * Size + X] = FColor(0, 0, 0, static_cast<uint8>(FMath::Square(Alpha) * 255.f));
+			}
+		}
+		Mip.BulkData.Unlock();
+		Texture->UpdateResource();
+		Texture->AddToRoot();
+		Cache = Texture;
+		return Texture;
+	}
 }

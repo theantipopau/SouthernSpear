@@ -5,6 +5,7 @@
 #include "AbilitySystem/Attributes/LyraHealthSet.h"
 #include "AbilitySystemComponent.h"
 #include "AbilitySystemInterface.h"
+#include "Character/LyraHealthComponent.h"
 #include "EngineUtils.h"
 #include "Engine/World.h"
 #include "GameFramework/GameStateBase.h"
@@ -68,6 +69,19 @@ void USSKillFeedRelay::ClientAddKill_Implementation(const FSSKillFeedEntry& Entr
 	FSSKillFeedRules::Add(State->Entries, Local);
 	UE_LOG(LogTemp, Log, TEXT("Southern Spear kill feed: %s [%s] %s%s"), *Entry.Killer, *Entry.Weapon, *Entry.Victim,
 		Entry.bLocalKiller ? TEXT(" (you)") : TEXT(""));
+}
+
+void USSKillFeedRelay::ServerRedeploy_Implementation()
+{
+	const APlayerController* Owner = Cast<APlayerController>(GetOwner());
+	APawn* Pawn = Owner ? Owner->GetPawn() : nullptr;
+	static UClass* HealthClass = FindObject<UClass>(nullptr, TEXT("/Script/LyraGame.LyraHealthComponent"));
+	ULyraHealthComponent* Health = Pawn && HealthClass ? static_cast<ULyraHealthComponent*>(Pawn->GetComponentByClass(HealthClass)) : nullptr;
+	if (Health && Health->GetHealth() > 0.f)
+	{
+		UE_LOG(LogTemp, Log, TEXT("Southern Spear re-deploy: %s"), *Pawn->GetName());
+		Health->DamageSelfDestruct(/*bFellOutOfWorld=*/ false);
+	}
 }
 
 bool USSKillFeedSubsystem::DoesSupportWorldType(const EWorldType::Type WorldType) const

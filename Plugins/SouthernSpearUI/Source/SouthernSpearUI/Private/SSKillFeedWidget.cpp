@@ -4,6 +4,7 @@
 
 #include "Engine/World.h"
 #include "SSKillFeedState.h"
+#include "SSLocalHudState.h"
 #include "SSWidgetKit.h"
 
 using namespace SSWidgetKit;
@@ -35,9 +36,10 @@ bool USSKillFeedWidget::Initialize()
 	UCanvasPanel* Root = T->ConstructWidget<UCanvasPanel>();
 	T->RootWidget = Root;
 
-	// Feed: right edge, under the minimap.
+	// Feed: top left (the right edge holds the minimap and objective column; producer: the feed "does push
+	// under the mini map"). Below the optional frame-rate counter.
 	UVerticalBox* Feed = T->ConstructWidget<UVerticalBox>();
-	Pin(Root, Feed, FVector2D(1.f, 0.f), FVector2D(-24.f, 214.f));
+	Pin(Root, Feed, FVector2D(0.f, 0.f), FVector2D(20.f, 34.f));
 	for (int32 Index = 0; Index < FSSKillFeedRules::MaxEntries; ++Index)
 	{
 		FRowWidgets Row;
@@ -50,7 +52,7 @@ bool USSKillFeedWidget::Initialize()
 		AddH(Line, Row.Weapon)->SetPadding(FMargin(10.f, 0.f));
 		Row.Victim = Text(T, 13, true, SSPalette::Sand100(), 40);
 		AddH(Line, Row.Victim);
-		AddV(Feed, Row.Plate, Index == 0 ? 0.f : 3.f, HAlign_Right);
+		AddV(Feed, Row.Plate, Index == 0 ? 0.f : 3.f, HAlign_Left);
 		Row.Plate->SetVisibility(ESlateVisibility::Collapsed);
 		Keep.Add(Row.Plate);
 		Rows.Add(Row);
@@ -68,6 +70,23 @@ bool USSKillFeedWidget::Initialize()
 	ConfirmWeapon = Text(T, 11, true, SSPalette::Sage400(), 200);
 	AddV(Own, ConfirmWeapon, 2.f, HAlign_Center);
 	Own->SetVisibility(ESlateVisibility::Collapsed);
+
+	// The viewer's own death: a dark wash and "KILLED IN ACTION", with who and with what, until the
+	// class selection opens (FSSKillFeedRules::LocalDeathLifetime; producer request).
+	DeathWash = Plate(T, SSPalette::Ink950(0.f), FMargin(0.f));
+	Fill(Root, DeathWash);
+	DeathWash->SetVisibility(ESlateVisibility::Collapsed);
+	UVerticalBox* Kia = T->ConstructWidget<UVerticalBox>();
+	Death = Kia;
+	Pin(Root, Kia, FVector2D(0.5f, 0.38f), FVector2D(0.f, 0.f));
+	AddV(Kia, Rule(T, SSPalette::Opfor500(), 2.f, 360.f), 0.f, HAlign_Center);
+	DeathTitle = Text(T, 34, true, SSPalette::Sand100(), 260);
+	DeathTitle->SetText(NSLOCTEXT("SSKillFeed", "Kia", "KILLED IN ACTION"));
+	AddV(Kia, DeathTitle, 10.f, HAlign_Center);
+	DeathBy = Text(T, 14, true, SSPalette::Sage200(), 120);
+	AddV(Kia, DeathBy, 6.f, HAlign_Center);
+	AddV(Kia, Rule(T, SSPalette::Opfor500(), 2.f, 360.f), 12.f, HAlign_Center);
+	Kia->SetVisibility(ESlateVisibility::Collapsed);
 	return true;
 }
 
@@ -114,5 +133,24 @@ void USSKillFeedWidget::NativeTick(const FGeometry& MyGeometry, float InDeltaTim
 		Confirm->SetRenderScale(FVector2D(1.f + 0.12f * FMath::Clamp(1.f - Age * 5.f, 0.f, 1.f)));
 		ConfirmName->SetText(FText::FromString(Mine->Victim.ToUpper()));
 		ConfirmWeapon->SetText(FText::FromString(Mine->Weapon.ToUpper()));
+	}
+
+	const FSSKillFeedEntry* Died = FSSKillFeedRules::RecentLocalDeath(State->Entries, Now);
+	Death->SetVisibility(Died ? ESlateVisibility::HitTestInvisible : ESlateVisibility::Collapsed);
+	DeathWash->SetVisibility(Died ? ESlateVisibility::HitTestInvisible : ESlateVisibility::Collapsed);
+	if (Died)
+	{
+		const float Age = static_cast<float>(Now - Died->Time);
+		const float In = FMath::Clamp(Age / 0.6f, 0.f, 1.f);
+		DeathWash->SetBrushColor(SSPalette::Ink950(0.55f * In));
+		Death->SetRenderOpacity(In);
+		const bool bSelf = Died->Killer.IsEmpty() || Died->Killer == Died->Victim;
+		const USSLocalHudState* Hud = World->GetSubsystem<USSLocalHudState>();
+		const bool bRedeploy = bSelf && Hud && Hud->LastRedeployTime >= 0.0 && Died->Time - Hud->LastRedeployTime < 3.0;
+		DeathTitle->SetText(bRedeploy ? NSLOCTEXT("SSKillFeed", "Redeploying", "RE-DEPLOYING") : NSLOCTEXT("SSKillFeed", "Kia", "KILLED IN ACTION"));
+		DeathBy->SetText(bSelf ? FText::GetEmpty()
+			: Died->Weapon.IsEmpty() ? FText::Format(NSLOCTEXT("SSKillFeed", "KiaBy", "BY {0}"), FText::FromString(Died->Killer.ToUpper()))
+			: FText::Format(NSLOCTEXT("SSKillFeed", "KiaByWith", "BY {0}  ·  {1}"), FText::FromString(Died->Killer.ToUpper()), FText::FromString(Died->Weapon.ToUpper())));
+		DeathBy->SetColorAndOpacity(Died->KillerTeam != ESSTeamId::None && Died->KillerTeam == State->LocalTeam ? SSPalette::Sage200() : SSPalette::Opfor300());
 	}
 }

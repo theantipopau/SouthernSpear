@@ -22,7 +22,7 @@
 
 namespace
 {
-	constexpr float StripWidth = 540.f;
+	constexpr float StripWidth = 420.f;
 	constexpr float StripHeight = 26.f;
 	constexpr float VisibleDegrees = 120.f;  // field shown across the strip
 	constexpr int32 LabelStep = 15;
@@ -57,16 +57,16 @@ void USSCompassWidget::Setup(ASSObjectiveAssaultDirector* InDirector)
 	UCanvasPanel* Root = T->ConstructWidget<UCanvasPanel>();
 	T->RootWidget = Root;
 
-	// Sits under the objective panel (top centre).
+	// Top centre, alone (the objective panel sits top right under the minimap).
 	UVerticalBox* Column = T->ConstructWidget<UVerticalBox>();
 	UCanvasPanelSlot* ColumnSlot = Root->AddChildToCanvas(Column);
 	ColumnSlot->SetAnchors(FAnchors(0.5f, 0.f));
 	ColumnSlot->SetAlignment(FVector2D(0.5f, 0.f));
-	ColumnSlot->SetPosition(FVector2D(0.f, 214.f));
+	ColumnSlot->SetPosition(FVector2D(0.f, 8.f));
 	ColumnSlot->SetAutoSize(true);
 
 	UBorder* Plate = T->ConstructWidget<UBorder>();
-	Plate->SetBrushColor(SSUIStyle::Ink900(0.55f));
+	Plate->SetBrushColor(SSUIStyle::Ink900(0.35f));
 	Plate->SetPadding(FMargin(0.f));
 	Column->AddChildToVerticalBox(Plate);
 	USizeBox* Size = T->ConstructWidget<USizeBox>();

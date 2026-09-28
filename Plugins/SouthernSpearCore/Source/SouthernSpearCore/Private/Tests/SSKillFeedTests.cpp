@@ -49,6 +49,15 @@ bool FSSKillFeedRulesTest::RunTest(const FString& Parameters)
 	TArray<FSSKillFeedEntry> Suicide;
 	FSSKillFeedRules::Add(Suicide, Entry(TEXT("Me"), 10.0, true, true));
 	TestNull(TEXT("self-elimination is not a kill"), FSSKillFeedRules::RecentLocalKill(Suicide, 10.5));
+	TestTrue(TEXT("self-elimination is a local death"), FSSKillFeedRules::RecentLocalDeath(Suicide, 10.5) != nullptr);
+
+	TArray<FSSKillFeedEntry> Died;
+	FSSKillFeedRules::Add(Died, Entry(TEXT("Them"), 20.0, false, true));
+	FSSKillFeedRules::Add(Died, Entry(TEXT("Other"), 21.0));
+	const FSSKillFeedEntry* Death = FSSKillFeedRules::RecentLocalDeath(Died, 22.0);
+	TestTrue(TEXT("local death found behind newer entries"), Death && Death->Killer == TEXT("Them"));
+	TestNull(TEXT("local death expires"), FSSKillFeedRules::RecentLocalDeath(Died, 20.0 + FSSKillFeedRules::LocalDeathLifetime + 0.1));
+	TestNull(TEXT("no local death"), FSSKillFeedRules::RecentLocalDeath(Local, 12.0));
 
 	TestEqual(TEXT("weapon name"), FSSKillFeedRules::WeaponShortName(TEXT("ID_SS_A88_C")), FString(TEXT("A88")));
 	TestEqual(TEXT("weapon name, other"), FSSKillFeedRules::WeaponShortName(TEXT("ID_Rifle")), FString(TEXT("ID_Rifle")));

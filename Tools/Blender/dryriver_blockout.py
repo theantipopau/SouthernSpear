@@ -313,7 +313,10 @@ def export_all():
     # blockout); the default exports it as props (COVER_ROWS, above) that
     # Tools/Unreal/dress_dryriver_cover.py places as Rural Australia assets.
     if os.environ.get("SS_DR_COVER", "props") != "mesh":
-        for coll in ("SS_Cover_Rocks", "SS_Cover_Trees", "SS_Cover_Scrub", "SS_Fence"):
+        # The farm greybox (shed, residence, pen rails) and the 2 m layout-marker slabs go too: the farm is dressed
+        # with real buildings and a rail fence in the same places (Tools/Unreal/farm_dryriver.py), and the markers
+        # only ever fed the layout CSV (producer, Session 045: red blockout slabs and walls at the objectives).
+        for coll in ("SS_Cover_Rocks", "SS_Cover_Trees", "SS_Cover_Scrub", "SS_Fence", "SS_ObjB_Farmstead", "SS_LayoutMarkers"):
             c = bpy.data.collections.get(coll)
             for o in list(c.objects) if c else []:
                 bpy.data.objects.remove(o, do_unlink=True)

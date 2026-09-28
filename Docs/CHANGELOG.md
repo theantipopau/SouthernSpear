@@ -3268,6 +3268,139 @@ on death, then blend into ragdoll.
 
 ---
 
+## Session 046 — 2026-09-28 — Ragdoll Deaths, No Lyra Cubes, KILLED IN ACTION, Re-Deploy, Quieter HUD, Working Scopes, Dry River Farm Props
+
+### COMPLETED
+
+- **Build unbroken** (producer: "SouthernSpear could not be compiled"): the death work had three compile errors (a
+  non-existent collision-profile constant, a missing ability-system include, and a `TeamOf` clash between the
+  scoreboard's local helper and `SSLyraReflection::TeamOf` under the unity build; the helper is now
+  `ScoreboardTeamOf`).
+- **Deaths** (producer: "ragdoll / death animations?"): `ASSCharacter` ragdolls the body 0.12 s after death with a
+  push along the killing shot (from the damage cue), keeps the corpse 15 s instead of Lyra's instant hide-and-destroy,
+  and hides the first-person arms and weapon once the body goes limp. 17 ragdolls in a 10-bot match, no new errors.
+- **Lyra cubes gone** (producer: "the spawn 'weird cubes' needs to go"): `ShouldAcceptGameplayCue` refuses
+  `GameplayCue.Character.Death` (NS_DeathCubes) and the spawn cue (`GameplayCue.Character.Spawn`, GCNL_Spawning's cube
+  materialise). The log showed 50 spawn cues refused in one match.
+- **KILLED IN ACTION** (producer): on the viewer's own death the screen darkens and "KILLED IN ACTION / BY <name> ·
+  <weapon>" shows for 4 s (`FSSKillFeedRules::RecentLocalDeath`, tested); the class selection opens after it.
+- **RE-DEPLOY** in the match menu (producer): the menu sets a request in `USSLocalHudState`; the bridge sends it
+  through the player controller's relay (`USSKillFeedRelay::ServerRedeploy`) and the server applies Lyra's own
+  self-destruct, so the player respawns with the selected class. The banner then reads "RE-DEPLOYING".
+- **HUD re-laid, after America's Army 2** (producer: "a lot at the top of the screen", "kill feed does push under the
+  mini map"; AA2 kept objectives small in the top-right corner):
+  - minimap 200 px at the top right, with a compact objective block the same width directly under it;
+  - the kill feed moved to the top left;
+  - the compass is a slim strip alone at the top centre.
+- **Scopes work** (producer: "scopes don't work at all"; the eye looked at the back of a solid optic). Aiming a
+  magnified optic hides the view model, narrows the view by the optic's power and draws an eyepiece (black surround,
+  round mask, stadia, post, aim point). The power comes from `USSLocalHudState::OpticMagnificationFor`, tested:
+  A25 6x, the A88 family and A89 4x, others 0 (iron or red dot, aimed over the view model as before). The producer
+  confirmed "scope on the A88 is working".
+- **Dry River farm props** (producer: "replace the 'cars' that were just boxes with actual cars ... add barns, the
+  windmill, wells"). New re-runnable pass `Tools/Unreal/farm_dryriver.py`:
+  - the three box wrecks become the Fab car wreck at the dressing plan's wreck positions;
+  - a windmill, a water tower, a hand pump and the StoneWell well at the Water Point;
+  - at the Farmstead, the buildings stand where the blockout designed them (`MAPS_DRYRIVER.md` 4.4): the open pole
+    barn as the objective's shed, the enclosed barn as the residence, and a timber rail fence on the stock-pen line;
+  - also a pump, a well, a caravan, an outhouse, and 14 fuel drums by the sheds and barns.
+- **Prop textures** (producer: "all of these have no textures on them and look strange"). Four Fab downloads
+  (windmill, barn, old barn, fuel barrel) shipped their FBX without the texture files it references. Their slots now
+  take textured materials: timber and roofing iron from the Dry River shelters, and rusted or galvanised metal from
+  the Modular Rural Cabin pack. The Cabin pack's own wood and roof came out green and blotchy on these meshes, so
+  they were replaced. The drums became the Cabin pack's textured drum. The pump's textures were embedded in its FBX
+  (`Tools/Blender/extract_fab_textures.py`), and the water tower ships its PNGs: both now have their own PBR
+  instances.
+- **Greybox out of the terrain** (producer screenshot: red wall and slab at the objective): the farm shed, residence,
+  pen rails and 2 m layout-marker slabs no longer export into the terrain FBX (`dryriver_blockout.py`; CSVs
+  byte-identical), re-imported alone by `Tools/Unreal/reimport_dryriver_terrain.py` (120 fewer triangles).
+- Map work then halted on the producer's instruction ("we will get there and improve them down the track").
+
+### FILES CHANGED
+
+- **Core:**
+  - `SSKillFeedState.h/.cpp` (`RecentLocalDeath`);
+  - `SSLocalHudState.h` (re-deploy request, optic power);
+  - `SSGlyphTextures.h` (`ScopeMask`);
+  - tests `SSKillFeedTests.cpp`, `SSHudTests.cpp`.
+- **Bridge:**
+  - `SSCharacter.h/.cpp` (ragdoll, corpse, cue refusal);
+  - `SSFirstPersonSubsystem.cpp` (dead or scoped: hide the view model);
+  - `SSFirstPersonCameraMode.cpp` (scope FOV);
+  - `SSHudStateSubsystem.cpp`;
+  - `SSKillFeedSubsystem.h/.cpp` (`ServerRedeploy`);
+  - `SSScoreboardSubsystem.cpp`.
+- **UI:** `SSKillFeedWidget.h/.cpp`, `SSPlayerHudWidget.h/.cpp`, `SSPlayerHudSubsystem.h/.cpp`, `SSMenuWidget.h/.cpp`.
+- **ObjectivesUI:** `SSObjectiveStatusWidget.cpp`, `SSMinimapWidget.cpp`, `SSCompassWidget.cpp`.
+- **Tools:** `Tools/Unreal/farm_dryriver.py`, `reimport_dryriver_terrain.py`; `Tools/Blender/extract_fab_textures.py`,
+  `dryriver_blockout.py`.
+- **Content:** `Content/Maps/L_DryRiver_01.umap`; `Content/Art/Blockout/SS_MAP_DryRiver_01` (fbx, uasset, blend);
+  `Content/Art/Environment/DryRiver/Farm/*`.
+- **Docs and evidence:** this file; `Docs/evidence/S046_*.jpg`.
+
+### TESTING
+
+| Test | Command | Exit | Result | Evidence |
+|---|---|---|---|---|
+| Guard | `python Tools/validate_architecture.py` | 0 | PASS | console |
+| Build | `Build.bat SouthernSpearEditor Win64 Development` | 0 | Succeeded after every C++ change | console |
+| Automation | as in CLAUDE.md | 0 | 37/37 `Result={Success}` | `Build/tests_046.log` (not retained) |
+| Ragdoll | 10-bot Dry River match, `-FORCELOGFLUSH` | killed | 17 `SSRagdoll` lines, no new errors | log |
+| Cubes | 8-bot match | killed | 50 `SSCue refused GameplayCue.Character.Spawn`; death cue refused in code | log |
+| KIA | `-SSExec="EnableCheats\|DamageSelf 500"` + capture | killed | banner, darkened view, no arms | `Docs/evidence/S046_killed_in_action.jpg` |
+| HUD layout | 8-bot match capture | killed | compass top centre, minimap and objectives top right, feed top left | `Docs/evidence/S046_hud_layout.jpg` |
+| Scope | `-SSExec="ss.FP.ForceAim 1"` + capture | killed | eyepiece, reticle, 4x view, view model hidden | `Docs/evidence/S046_scope_view.jpg` |
+| Farm pass | `farm_dryriver.py` | 0 | ok true (wrecks 3, windmill, tower, pumps, wells, barns, 13 fence segments, drums) | `Build/farm_dryriver_report.json` |
+| Terrain | `reimport_dryriver_terrain.py` | 0 | ok true, 15096 → 14976 triangles, complex-as-simple | `Build/reimport_dryriver_terrain.json` |
+| Nav | `build_dryriver_nav.py` | 0 | ok true, 6 path points | `Build/dryriver_nav_report.json` |
+
+NOT RUN:
+- **RE-DEPLOY** was not exercised in play (no scripted menu click);
+- the **final Farmstead layout** (barns in their designed places, pen fence, greybox gone) was not captured: the
+  producer halted map work first. `S046_dryriver_farmstead.jpg` shows the textured barns before the move;
+- scopes with the A25 (6x) and A89 were not captured;
+- the pistol still has no iron-sight alignment (producer, end of session).
+
+### ASSETS
+
+- **Fab, cleared under ADR-028:**
+  - Old Rustic Hand Water Pump and Water Tower, with their own textures;
+  - Red car wreck, American Old Windmill, Barn and Old Barn, via the Ravenshoe agent's prepared meshes.
+  - Seller AI-use flags on some of these are recorded by that agent (ADR-029).
+- **Packs in `Content/`, referenced in place, not committed (ADR-021):**
+  - Modular Rural Cabin: drums, caravan, outhouse, fence, rust and metal materials;
+  - StoneWell: the well;
+  - Singapore Canal timber; Megascans corrugated iron (already in use).
+  - Both new packs had complex-as-simple collision set on the used meshes.
+
+### RISKS
+
+- **R-42:** Dry River now references the Ravenshoe agent's prop meshes and two further git-ignored packs (Modular
+  Rural Cabin, StoneWell): a clone needs those packs, as R-19/R-41.
+- **R-43:** the Farmstead's barns replace the designed shed and residence by footprint, not by exact cover shape (the
+  open barn is 12 × 8 m against the 18 × 10 m shed); sight lines through the objective were not re-audited.
+
+### DEFECTS FOUND
+
+- Death code broke the build: missing include, a wrong constant, and a unity-build name clash (build log).
+- First-person arms stayed on screen after death (capture).
+- Scoped aim looked at the back of a solid optic (capture).
+- Fab downloads missing their textures, so props rendered flat (producer).
+- The Cabin materials rendered green on foreign meshes (producer screenshot).
+- The farm pass deleted the box wrecks and then its own replacements on a re-run. Fixed: it now places from the
+  dressing CSV.
+- Greybox marker slabs and pen rails were still in the terrain mesh (producer screenshot).
+
+### NEXT ACTION
+
+**First-person weapon handling:**
+- iron-sight alignment for the pistol;
+- a better grip fit in the gloved hands, trying the Fab gloves pack (CC BY 4.0, "Bobeer": credit line);
+- ADFRC weapon animations, textures, models and sounds, using the ADFRC agent's `ASSET_MANIFEST.json` and
+  integration guide.
+
+---
+
 ## Open Threads
 
 | Item | Blocked on | Owner |

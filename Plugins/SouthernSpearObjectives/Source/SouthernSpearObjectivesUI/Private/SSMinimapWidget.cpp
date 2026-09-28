@@ -56,7 +56,7 @@ void USSMinimapWidget::Setup(ASSObjectiveAssaultDirector* InDirector, bool bInFu
 {
 	Director = InDirector;
 	bFullMap = bInFullMap;
-	MapSize = bFullMap ? 760.f : 220.f;
+	MapSize = bFullMap ? 760.f : 200.f;
 	if (!WidgetTree || WidgetTree->RootWidget)
 	{
 		return;
@@ -80,7 +80,7 @@ void USSMinimapWidget::Setup(ASSObjectiveAssaultDirector* InDirector, bool bInFu
 	{
 		FrameSlot->SetAnchors(FAnchors(1.f, 0.f));
 		FrameSlot->SetAlignment(FVector2D(1.f, 0.f));
-		FrameSlot->SetPosition(FVector2D(-24.f, 24.f));
+		FrameSlot->SetPosition(FVector2D(-20.f, 4.f));
 	}
 
 	UCanvasPanel* Inner = T->ConstructWidget<UCanvasPanel>();

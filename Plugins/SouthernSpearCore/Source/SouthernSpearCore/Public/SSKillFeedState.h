@@ -41,6 +41,12 @@ struct SSCORE_API FSSKillFeedRules
 	/** The local player's most recent kill still inside LocalKillLifetime, or nullptr. */
 	static const FSSKillFeedEntry* RecentLocalKill(const TArray<FSSKillFeedEntry>& Entries, double Now);
 
+	/** How long "KILLED IN ACTION" shows before the class selection opens. */
+	static constexpr double LocalDeathLifetime = 4.0;
+
+	/** The local player's own death still inside LocalDeathLifetime (the newest), or nullptr. */
+	static const FSSKillFeedEntry* RecentLocalDeath(const TArray<FSSKillFeedEntry>& Entries, double Now);
+
 	/** Weapon short name from an item definition class name: "ID_SS_A88_C" -> "A88"; others unchanged. */
 	static FString WeaponShortName(const FString& ItemClassName);
 };

@@ -57,6 +57,7 @@ private:
 	UFUNCTION() void OnBots12();
 	UFUNCTION() void OnSettings();
 	UFUNCTION() void OnResume();
+	UFUNCTION() void OnRedeploy();
 	UFUNCTION() void OnMainMenu();
 	UFUNCTION() void OnDiscord();
 	bool bDevSettingsOpened = false;

@@ -382,6 +382,18 @@ void USSFirstPersonSubsystem::UpdateViewModel(APawn* Pawn, float DeltaTime)
 	{
 		HudState->bAiming = *bAiming;
 	}
+	if (const ACharacter* Character = Cast<ACharacter>(Pawn); Character && Character->GetMesh()->IsSimulatingPhysics())
+	{
+		// Dead (ASSCharacter ragdolls the body): the arms and weapon leave the view.
+		if (Arms) { Arms->SetVisibility(false, true); }
+		if (ViewModel) { ViewModel->SetVisibility(false); }
+		return;
+	}
+	// Looking through a magnified scope: the eyepiece view replaces the weapon (HUD overlay, narrowed FOV).
+	const USSLocalHudState* Optics = GetWorld()->GetSubsystem<USSLocalHudState>();
+	const bool bScoped = *bAiming && Optics && Optics->OpticMagnification > 1.f;
+	if (Arms && Arms->IsVisible() == bScoped) { Arms->SetVisibility(!bScoped, true); }
+	if (ViewModel && ViewModel->IsVisible() == bScoped) { ViewModel->SetVisibility(!bScoped); }
 	if (!ViewModel)
 	{
 		// Body view: the soldier parts and the held weapon hide themselves

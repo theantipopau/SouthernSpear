@@ -2,7 +2,11 @@
 
 #include "SSCharacter.h"
 
+#include "AbilitySystem/LyraAbilitySystemComponent.h"
+#include "Character/LyraPawnExtensionComponent.h"
 #include "Components/AudioComponent.h"
+#include "Components/CapsuleComponent.h"
+#include "Engine/CollisionProfile.h"
 #include "Components/ChildActorComponent.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
@@ -218,6 +222,7 @@ void ASSCharacter::HandleGameplayCue(UObject* Self, FGameplayTag GameplayCueTag,
 	// Spray away from the shooter, out of the exit side.
 	const FVector Shot = Hit && !Hit->TraceStart.Equals(Hit->TraceEnd) ? (FVector(Hit->TraceEnd) - FVector(Hit->TraceStart)).GetSafeNormal()
 		: -GetActorForwardVector();
+	LastShotDirection = Shot; // the ragdoll push if this hit kills
 	// Hit direction for the local player's HUD.
 	if (IsLocallyControlled() && IsPlayerControlled())
 	{
@@ -319,4 +324,82 @@ void ASSCharacter::PlayRifleFire()
 		}
 	}
 	UE_LOG(LogTemp, Verbose, TEXT("SSRifleAudio %s local=%d muted=%d"), *GetName(), bShooterIsListener, Muted);
+}
+
+bool ASSCharacter::ShouldAcceptGameplayCue(UObject* Self, FGameplayTag GameplayCueTag, EGameplayCueEvent::Type EventType, const FGameplayCueParameters& Parameters)
+{
+	// Lyra's death cue bursts the body into cubes (NS_DeathCubes); the soldier ragdolls instead.
+	static const FGameplayTag DeathCue = FGameplayTag::RequestGameplayTag(TEXT("GameplayCue.Character.Death"), false);
+	if (DeathCue.IsValid() && GameplayCueTag.MatchesTagExact(DeathCue))
+	{
+		return false;
+	}
+	// Lyra's spawn-in cue (GCNL_Spawning) materialises the body out of cubes (producer: "the spawn weird
+	// cubes needs to go"). Its tag lives in the ShooterCore feature, so match it by name.
+	if (GameplayCueTag.ToString().Contains(TEXT("Spawn")))
+	{
+		UE_LOG(LogTemp, Log, TEXT("SSCue refused %s on %s"), *GameplayCueTag.ToString(), *GetName());
+		return false;
+	}
+	return Super::ShouldAcceptGameplayCue(Self, GameplayCueTag, EventType, Parameters);
+}
+
+void ASSCharacter::OnDeathStarted(AActor* OwningActor)
+{
+	Super::OnDeathStarted(OwningActor); // movement and capsule collision off
+	if (GetNetMode() != NM_DedicatedServer)
+	{
+		GetWorldTimerManager().SetTimer(RagdollTimer, this, &ASSCharacter::StartRagdoll, FMath::Max(0.01f, RagdollDelay), false);
+	}
+}
+
+void ASSCharacter::StartRagdoll()
+{
+	USkeletalMeshComponent* Body = GetMesh();
+	if (!Body || !Body->GetPhysicsAsset() || Body->IsSimulatingPhysics())
+	{
+		return;
+	}
+	if (UAnimInstance* Anim = Body->GetAnimInstance())
+	{
+		Anim->StopAllMontages(0.1f);
+	}
+	// Presentation only: each machine simulates its own copy; nothing about it replicates.
+	Body->SetCollisionProfileName(FName(TEXT("Ragdoll")));
+	Body->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+	Body->SetAllBodiesSimulatePhysics(true);
+	Body->SetSimulatePhysics(true);
+	Body->WakeAllRigidBodies();
+	Body->bBlendPhysics = true;
+	UE_LOG(LogTemp, Log, TEXT("SSRagdoll %s push %s"), *GetName(), *LastShotDirection.ToCompactString());
+	const FVector Push = (LastShotDirection.IsNearlyZero() ? -GetActorForwardVector() : LastShotDirection) * RagdollPush;
+	static const FName UpperBody(TEXT("spine_03"));
+	if (Body->GetBoneIndex(UpperBody) != INDEX_NONE)
+	{
+		Body->AddImpulseToAllBodiesBelow(Push, UpperBody, /*bVelChange=*/ true);
+	}
+	else
+	{
+		Body->AddImpulse(Push, NAME_None, true);
+	}
+}
+
+void ASSCharacter::OnDeathFinished(AActor* OwningActor)
+{
+	// Lyra: detach the controller (it respawns now), uninitialise the ability system, then hide and destroy
+	// the pawn at once. Here the body stays as a corpse for CorpseSeconds (still visible, still simulated).
+	K2_OnDeathFinished();
+	if (GetLocalRole() == ROLE_Authority)
+	{
+		DetachFromControllerPendingDestroy();
+		SetLifeSpan(FMath::Max(0.1f, CorpseSeconds));
+	}
+	if (ULyraPawnExtensionComponent* PawnExt = FindComponentByClass<ULyraPawnExtensionComponent>())
+	{
+		if (ULyraAbilitySystemComponent* Asc = GetLyraAbilitySystemComponent(); Asc && Asc->GetAvatarActor() == this)
+		{
+			PawnExt->UninitializeAbilitySystem();
+		}
+	}
+	StartRagdoll(); // in case the death sequence ended before the ragdoll timer (or on late joiners)
 }

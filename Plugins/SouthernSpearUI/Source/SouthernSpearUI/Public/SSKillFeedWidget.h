@@ -36,4 +36,8 @@ private:
 	UPROPERTY(Transient) TObjectPtr<UWidget> Confirm;
 	UPROPERTY(Transient) TObjectPtr<UTextBlock> ConfirmName;
 	UPROPERTY(Transient) TObjectPtr<UTextBlock> ConfirmWeapon;
+	UPROPERTY(Transient) TObjectPtr<UWidget> Death;
+	UPROPERTY(Transient) TObjectPtr<UBorder> DeathWash;
+	UPROPERTY(Transient) TObjectPtr<UTextBlock> DeathBy;
+	UPROPERTY(Transient) TObjectPtr<UTextBlock> DeathTitle;
 };

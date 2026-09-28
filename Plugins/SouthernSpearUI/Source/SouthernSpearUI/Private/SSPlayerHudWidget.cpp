@@ -34,6 +34,39 @@ bool USSPlayerHudWidget::Initialize()
 	DamageFlash->SetVisibility(ESlateVisibility::HitTestInvisible);
 	Fill(Root, DamageFlash);
 
+	// Scope view: black either side of a square eyepiece (sized to the screen height in NativeTick), the mask
+	// darkening the tube edge, and a fine black reticle: horizontal stadia with a centre gap, a post from below,
+	// a small brass aim point. Shown only while aiming a magnified optic (USSLocalHudState::OpticMagnification).
+	{
+		UHorizontalBox* Row = T->ConstructWidget<UHorizontalBox>();
+		ScopeOverlay = Row;
+		Fill(Root, Row);
+		AddH(Row, Plate(T, FLinearColor::Black, FMargin(0.f)), true, VAlign_Fill);
+		ScopeEyepiece = T->ConstructWidget<USizeBox>();
+		AddH(Row, ScopeEyepiece, false, VAlign_Center);
+		AddH(Row, Plate(T, FLinearColor::Black, FMargin(0.f)), true, VAlign_Fill);
+		UCanvasPanel* Eye = T->ConstructWidget<UCanvasPanel>();
+		ScopeEyepiece->AddChild(Eye);
+		UImage* Mask = T->ConstructWidget<UImage>();
+		Mask->SetBrushFromTexture(SSGlyphTextures::ScopeMask(), /*bMatchSize=*/ false);
+		UCanvasPanelSlot* MaskSlot = Eye->AddChildToCanvas(Mask);
+		MaskSlot->SetAnchors(FAnchors(0.f, 0.f, 1.f, 1.f));
+		MaskSlot->SetOffsets(FMargin(0.f));
+		auto Line = [&](const FAnchors& Anchors, const FMargin& Offsets, const FLinearColor& Colour)
+		{
+			UBorder* B = Plate(T, Colour, FMargin(0.f));
+			UCanvasPanelSlot* S = Eye->AddChildToCanvas(B);
+			S->SetAnchors(Anchors);
+			S->SetOffsets(Offsets);
+		};
+		const FLinearColor Ink(0.02f, 0.02f, 0.02f, 0.95f);
+		Line(FAnchors(0.06f, 0.5f, 0.44f, 0.5f), FMargin(0.f, -1.f, 0.f, 1.f), Ink); // left stadia
+		Line(FAnchors(0.56f, 0.5f, 0.94f, 0.5f), FMargin(0.f, -1.f, 0.f, 1.f), Ink); // right stadia
+		Line(FAnchors(0.5f, 0.54f, 0.5f, 0.94f), FMargin(-1.5f, 0.f, 1.5f, 0.f), Ink); // post from below
+		Line(FAnchors(0.5f, 0.5f), FMargin(-2.f, -2.f, 4.f, 4.f), SSPalette::Brass300()); // aim point
+		Row->SetVisibility(ESlateVisibility::Collapsed);
+	}
+
 	// Hit direction: a clay arrow on a ring around the crosshair, pointing at the shooter.
 	HitArrow = T->ConstructWidget<UImage>();
 	HitArrow->SetBrushFromTexture(SSGlyphTextures::Triangle(), /*bMatchSize=*/ false);
@@ -154,6 +187,15 @@ void USSPlayerHudWidget::NativeTick(const FGeometry& MyGeometry, float InDeltaTi
 		return;
 	}
 	HealthPanel->SetVisibility(State->bHasPawn ? ESlateVisibility::HitTestInvisible : ESlateVisibility::Collapsed);
+	const bool bScoped = State->bHasPawn && State->bAiming && State->OpticMagnification > 1.f;
+	ScopeOverlay->SetVisibility(bScoped ? ESlateVisibility::HitTestInvisible : ESlateVisibility::Collapsed);
+	if (bScoped)
+	{
+		// A round eyepiece as tall as the screen (the widget's local units, so DPI scaling is already applied).
+		const float Height = MyGeometry.GetLocalSize().Y;
+		ScopeEyepiece->SetWidthOverride(Height);
+		ScopeEyepiece->SetHeightOverride(Height);
+	}
 	Crosshair->SetVisibility(State->bHasPawn && !State->bAiming ? ESlateVisibility::HitTestInvisible : ESlateVisibility::Collapsed);
 	AmmoPanel->SetVisibility(State->bHasPawn && State->Magazine >= 0 ? ESlateVisibility::HitTestInvisible : ESlateVisibility::Collapsed);
 

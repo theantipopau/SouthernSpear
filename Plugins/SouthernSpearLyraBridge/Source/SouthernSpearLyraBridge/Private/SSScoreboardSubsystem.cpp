@@ -26,7 +26,7 @@ namespace
 		return Params.ReturnValue;
 	}
 
-	ESSTeamId TeamOf(const APlayerState* PlayerState)
+	ESSTeamId ScoreboardTeamOf(const APlayerState* PlayerState)
 	{
 		const IGenericTeamAgentInterface* Agent = Cast<IGenericTeamAgentInterface>(PlayerState);
 		const uint8 Id = Agent ? Agent->GetGenericTeamId().GetId() : FGenericTeamId::NoTeam.GetId();
@@ -67,7 +67,7 @@ void USSScoreboardSubsystem::Tick(float DeltaTime)
 	const APlayerState* LocalState = LocalController ? LocalController->PlayerState.Get() : nullptr;
 
 	State->Rows.Reset();
-	State->LocalTeam = TeamOf(LocalState);
+	State->LocalTeam = ScoreboardTeamOf(LocalState);
 	for (APlayerState* PlayerState : GameState->PlayerArray)
 	{
 		if (!PlayerState || PlayerState->IsOnlyASpectator())
@@ -76,7 +76,7 @@ void USSScoreboardSubsystem::Tick(float DeltaTime)
 		}
 		FSSScoreRow& Row = State->Rows.AddDefaulted_GetRef();
 		Row.Name = PlayerState->GetPlayerName();
-		Row.Team = TeamOf(PlayerState);
+		Row.Team = ScoreboardTeamOf(PlayerState);
 		Row.Kills = StatCount(PlayerState, Kills);
 		Row.Deaths = StatCount(PlayerState, Deaths);
 		Row.Assists = StatCount(PlayerState, Assists);

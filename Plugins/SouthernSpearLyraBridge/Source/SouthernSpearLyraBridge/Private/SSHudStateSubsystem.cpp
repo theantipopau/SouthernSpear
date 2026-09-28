@@ -9,6 +9,7 @@
 #include "GameFramework/Pawn.h"
 #include "GameFramework/PlayerController.h"
 #include "GameplayTagContainer.h"
+#include "SSKillFeedSubsystem.h"
 #include "SSLocalHudState.h"
 #include "UObject/UnrealType.h"
 #include "Animation/AnimInstance.h"
@@ -103,6 +104,14 @@ void USSHudStateSubsystem::Tick(float DeltaTime)
 	const ULyraHealthComponent* Health = Pawn && HealthClass
 		? static_cast<const ULyraHealthComponent*>(Pawn->GetComponentByClass(HealthClass)) : nullptr;
 	State->bHasPawn = Health != nullptr;
+	if (State->bRedeployRequested)
+	{
+		State->bRedeployRequested = false;
+		if (USSKillFeedRelay* Relay = Player ? Player->FindComponentByClass<USSKillFeedRelay>() : nullptr)
+		{
+			Relay->ServerRedeploy();
+		}
+	}
 	State->Health = Health ? Health->GetHealth() : 0.f;
 	State->MaxHealth = Health ? Health->GetMaxHealth() : 0.f;
 
@@ -114,6 +123,7 @@ void USSHudStateSubsystem::Tick(float DeltaTime)
 	State->Reserve = StatCount(Item, SpareTag);
 	State->MagazineSize = StatCount(Item, SizeTag);
 	State->WeaponName = ItemName(Item);
+	State->OpticMagnification = USSLocalHudState::OpticMagnificationFor(State->WeaponName.ToString());
 
 	CleanupAccumulator += DeltaTime;
 	if (Player && CleanupAccumulator >= 0.5f)

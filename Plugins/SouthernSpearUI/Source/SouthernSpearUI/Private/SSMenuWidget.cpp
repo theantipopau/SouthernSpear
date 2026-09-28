@@ -10,6 +10,7 @@
 #include "GameFramework/PlayerController.h"
 #include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetSystemLibrary.h"
+#include "SSLocalHudState.h"
 #include "SSSettingsWidget.h"
 #include "SSUIAssets.h"
 #include "SSWidgetKit.h"
@@ -311,6 +312,8 @@ void USSMenuWidget::Setup(ESSMenuMode InMode)
 		AddV(Col, Stagger(Rule(T, SSPalette::Brass500(), 2.f, 96.f)), 10.f, HAlign_Left);
 		AddV(Col, Stagger(AddHandler(MenuButton(T, NSLOCTEXT("SSMenu", "Resume", "RESUME"), 360.f, /*bPrimary=*/ true),
 			GET_FUNCTION_NAME_CHECKED(USSMenuWidget, OnResume))), 28.f, HAlign_Left);
+		AddV(Col, Stagger(AddHandler(MenuButton(T, NSLOCTEXT("SSMenu", "Redeploy", "RE-DEPLOY"), 360.f),
+			GET_FUNCTION_NAME_CHECKED(USSMenuWidget, OnRedeploy))), 8.f, HAlign_Left);
 		AddV(Col, Stagger(AddHandler(MenuButton(T, NSLOCTEXT("SSMenu", "Settings", "SETTINGS"), 360.f),
 			GET_FUNCTION_NAME_CHECKED(USSMenuWidget, OnSettings))), 8.f, HAlign_Left);
 		AddV(Col, Stagger(AddHandler(MenuButton(T, NSLOCTEXT("SSMenu", "MainMenu", "LEAVE MATCH"), 360.f),
@@ -457,6 +460,17 @@ void USSMenuWidget::OnResume()
 		Settings->SetVisibility(ESlateVisibility::Collapsed);
 	}
 	SetVisibility(ESlateVisibility::Collapsed);
+}
+
+void USSMenuWidget::OnRedeploy()
+{
+	// Ends this life (the bridge asks the server); the class selection follows, as after any death.
+	if (USSLocalHudState* State = GetWorld() ? GetWorld()->GetSubsystem<USSLocalHudState>() : nullptr)
+	{
+		State->bRedeployRequested = true;
+		State->LastRedeployTime = GetWorld()->GetTimeSeconds();
+	}
+	OnResume();
 }
 
 void USSMenuWidget::OnMainMenu()
