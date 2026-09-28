@@ -585,8 +585,17 @@ def apply_materials(meshes, kind, fbx_path, textures=None):
             # instead of going to a black hole.
             lift = 1.0
             source = co
+            mean = sum(stats[:3]) / 3.0 if stats else 1.0
             if slot.lower().endswith("_ca") and stats and max(stats[:3]) < 0.05:
                 lift = 6.0
+            elif kind_name in ("glass", "reticle", "optic") or "spectr" in slot.lower():
+                # Optic bodies are black in game (the TA31 is literally the
+                # "BLK" variant, the Spectr diffuse averages 30/255). Left at
+                # face value the scope renders as a flat dark shape with no
+                # visible surface, so lift the diffuse until the texture
+                # reads. Body parts are left alone.
+                if mean < 0.16:
+                    lift = min(4.0, 0.22 / max(mean, 0.01))
             mat, nt, bsdf = new_material(slot)
             used_n, used_s = base_from_co(nt, bsdf, source, sibling(co, "smdi"), lift)
             state = "textured" if lift == 1.0 else "textured (cavity map lifted)"

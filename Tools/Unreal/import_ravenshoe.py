@@ -5,6 +5,18 @@ Creates /Game/Maps/L_Ravenshoe_01, imports the three original meshes generated
 by Tools/Blender/ravenshoe_blockout.py, and replaces every greybox cover marker
 with a real mesh from an already-installed Fab pack.
 
+RUN ORDER
+    import_ravenshoe -> dress_ravenshoe_props -> setup_ravenshoe_surfaces
+
+    This pass must come FIRST. It re-imports the bridge FBX with
+    replace_existing and re-spawns the SS_Raven_Geo_* actors, which resets the
+    mesh's material slots AND the per-instance surface overrides. Run
+    setup_ravenshoe_surfaces before this one and the next run silently strips
+    every surface back to flat colours, with the Road slot falling to
+    WorldGridMaterial and nothing reporting an error.
+    audit_ravenshoe.py asserts the overrides on the saved map, which is how
+    that failure is caught rather than shipped.
+
 WHAT IS OURS AND WHAT IS LICENSED
     Class F, authored here, imported by this pass:
         SS_MAP_Ravenshoe_01   terrain heightfield, road corridor, both ramps
@@ -87,6 +99,8 @@ PREFIX = "SS_Raven_"
 PREFIX_GEO = PREFIX + "Geo_"
 PREFIX_COVER = PREFIX + "Cover_"
 PREFIX_DRESS = PREFIX + "Dress_"
+# The objective and deployment markers carry the map name, not PREFIX.
+MARKER_PREFIX = "SS_MAP_Ravenshoe_"
 
 # 68 cover markers is not enough scenery to read as a gorge. These extra
 # passes are the difference between "a bridge on a heightfield" and a place.
@@ -146,10 +160,12 @@ MATERIALS = {
     "Iron": (0.055, 0.058, 0.065, 0.55),   # wrought iron, near-black, metallic
     "Stone": (0.36, 0.345, 0.325, 0.10),   # local granite, warm grey
     "Deck": (0.145, 0.135, 0.120, 0.20),   # weathered timber deck
+    "Road": (0.105, 0.101, 0.094, 0.20),   # the running surface on the deck
     "Terrain": (0.30, 0.255, 0.195, 0.05),  # dry high-country ground
 }
 MAT_KEY_BY_SLOT = {
-    "Iron": "Iron", "Stone": "Stone", "Deck": "Deck", "Terrain": "Terrain",
+    "Iron": "Iron", "Stone": "Stone", "Deck": "Deck", "Road": "Road",
+    "Terrain": "Terrain",
 }
 
 
@@ -203,37 +219,51 @@ def to_ue(bl_x, bl_y, bl_z, bl_yaw=0.0):
 # ---------------------------------------------------------------------------
 
 def build_materials():
-    """Authored constant materials for our own geometry."""
+    """Authored constant materials for our own geometry.
+
+    A safety net, not the look. These give every surface a sane flat colour so
+    nothing renders pure default-grey; setup_ravenshoe_surfaces.py then
+    overrides the bridge, deck and masonry with the real generated surfaces.
+
+    The colours go on as a MaterialInstanceConstant of the project's own
+    M_SS_ScanPBR via its Tint scalar. The previous version called
+    MaterialEditingLibrary.get_material_property, which does not exist in 5.8 -
+    the call raised, was caught, and the materials were created with default
+    values, so for a whole session the "authored constant materials" were
+    whatever a fresh Material defaults to.
+    """
     out = {}
+    parent = unreal.load_asset("/Game/Art/Environment/Fab/M_SS_ScanPBR")
+    if parent is None:
+        report["errors"].append("parent M_SS_ScanPBR missing")
+        return out
     for key, (r, g, b, rough) in MATERIALS.items():
-        path = "{}/M_SS_Raven_{}".format(MAT_DEST, key)
-        existing = unreal.load_asset(path)
-        if existing is None:
-            factory = unreal.MaterialFactoryNew()
-            mat = unreal.AssetToolsHelpers.get_asset_tools().create_asset(
-                "M_SS_Raven_{}".format(key), MAT_DEST, unreal.Material, factory)
-        else:
-            mat = existing
-        if mat is None:
+        name = "MI_SS_RavenFlat_{}".format(key)
+        path = "{}/{}".format(MAT_DEST, name)
+        if unreal.EditorAssetLibrary.does_asset_exist(path):
+            unreal.EditorAssetLibrary.delete_asset(path)
+        factory = unreal.MaterialInstanceConstantFactoryNew()
+        mi = unreal.AssetToolsHelpers.get_asset_tools().create_asset(
+            name, MAT_DEST, unreal.MaterialInstanceConstant, factory)
+        if mi is not None:
+            # The factory has no initial_parent property in 5.8; the parent is
+            # assigned on the instance afterwards, which is what
+            # dress_ravenshoe_props.py does and the only route that works.
+            mi.set_editor_property("parent", parent)
+        if mi is None:
             report["errors"].append("could not create " + path)
             continue
         try:
-            expr = unreal.MaterialEditingLibrary.get_material_property(
-                mat, unreal.MaterialProperty.MP_BASE_COLOR)
-            unreal.MaterialEditingLibrary.set_material_property_vector_value(
-                expr, unreal.LinearColor(r, g, b, 1.0))
-            spec_expr = unreal.MaterialEditingLibrary.get_material_property(
-                mat, unreal.MaterialProperty.MP_SPECULAR)
-            unreal.MaterialEditingLibrary.set_material_property_scalar_value(
-                spec_expr, 0.6 if key == "Iron" else 0.25)
-            rough_expr = unreal.MaterialEditingLibrary.get_material_property(
-                mat, unreal.MaterialProperty.MP_ROUGHNESS)
-            unreal.MaterialEditingLibrary.set_material_property_scalar_value(
-                rough_expr, rough)
+            unreal.MaterialEditingLibrary \
+                .set_material_instance_vector_parameter_value(
+                    mi, "Tint", unreal.LinearColor(r, g, b, 1.0))
+            unreal.MaterialEditingLibrary \
+                .set_material_instance_scalar_parameter_value(
+                    mi, "Tiling", 1.0)
         except Exception as exc:  # noqa: BLE001
             warn("material {}: {}".format(key, exc))
-        unreal.EditorAssetLibrary.save_loaded_asset(mat)
-        out[key] = mat
+        unreal.EditorAssetLibrary.save_loaded_asset(mi)
+        out[key] = mi
     return out
 
 
@@ -303,7 +333,10 @@ def import_mesh(label, filename, materials, slot_map):
         slots = mesh.get_editor_property("static_materials")
         hit = 0
         for i, slot in enumerate(slots):
-            name = (slot.get_editor_property("material_slot_name") or "").strip()
+            # material_slot_name is a unreal.Name, not a str. Calling .strip()
+            # on it raised, aborted the whole loop, and left every mesh slot
+            # pointing at nothing - the slot override silently never ran.
+            name = str(slot.get_editor_property("material_slot_name") or "").strip()
             key = slot_map.get(name)
             if key is None:
                 for suffix, k in MAT_KEY_BY_SLOT.items():
@@ -343,10 +376,20 @@ def load_pack_meshes():
 
 
 def remove_owned_actors(world):
+    """Purge everything this pass owns, so a re-run is idempotent.
+
+    The objective and deployment markers are labelled SS_MAP_Ravenshoe_*, not
+    SS_Raven_*, so a purge matching only PREFIX never removed them. Every
+    re-run of the import then added another objective and another deployment:
+    the audit read 2, then 4, then 6 of each, and the map quietly grew a set of
+    duplicate objective volumes. Both prefixes are ours - the second is the map
+    name - so both are purged.
+    """
     removed = 0
     actor_sub = unreal.get_editor_subsystem(unreal.EditorActorSubsystem)
     for actor in actor_sub.get_all_level_actors():
-        if actor.get_actor_label().startswith(PREFIX):
+        label = actor.get_actor_label()
+        if label.startswith(PREFIX) or label.startswith(MARKER_PREFIX):
             actor_sub.destroy_actor(actor)
             removed += 1
     report["removed_previous_pass"] = removed
@@ -539,7 +582,10 @@ def place_gameplay(world, rows):
             vol.set_actor_label(PREFIX + "NavBounds")
             # The map is 200 x 300 m; the volume covers it with margin, in cm.
             vol.set_actor_scale3d(unreal.Vector(115.0, 165.0, 45.0))
-            vol.set_actor_location(unreal.Vector(0.0, 0.0, 0.0))
+            # 5.8 requires the sweep argument positionally; omitting it raised
+            # and the volume was left at the spawn point with no size, so the
+            # map had a NavMeshBoundsVolume that bounded nothing.
+            vol.set_actor_location(unreal.Vector(0.0, 0.0, 0.0), False, False)
             placed["nav_volume"] = 1
         else:
             warn("nav volume: spawn returned nothing")
@@ -641,7 +687,8 @@ def main():
     meshes = {}
     for label, fname, slot_map in (
             ("SS_MAP_Ravenshoe_01", "SS_MAP_Ravenshoe_01.fbx", {"Terrain": "Terrain"}),
-            ("SS_Raven_Bridge", "SS_Raven_Bridge.fbx", {"Iron": "Iron", "Deck": "Deck"}),
+            ("SS_Raven_Bridge", "SS_Raven_Bridge.fbx",
+             {"Iron": "Iron", "Deck": "Deck", "Road": "Road"}),
             ("SS_Raven_Gatehouse", "SS_Raven_Gatehouse.fbx", {"Stone": "Stone"})):
         m = import_mesh(label, fname, materials, slot_map)
         if m is not None:

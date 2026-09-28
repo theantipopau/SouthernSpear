@@ -271,6 +271,7 @@ section[id], main > section { scroll-margin-top: calc(var(--header-h) + 12px); }
 }
 .badge--concept { border-color: rgba(217, 116, 58, 0.5); color: #e6a179; background: rgba(217, 116, 58, 0.12); }
 .badge--wip { border-color: rgba(211, 169, 98, 0.5); color: var(--brass-300); background: rgba(211, 169, 98, 0.12); }
+.badge--live { border-color: rgba(147, 171, 124, 0.55); color: #b3c79c; background: rgba(147, 171, 124, 0.14); }
 
 /* Status treatments: colour is always paired with a text label. */
 .state { display: inline-flex; align-items: center; gap: 7px; font: 600 0.78rem/1 var(--font-mono); letter-spacing: 0.12em; text-transform: uppercase; }
@@ -923,6 +924,16 @@ body[data-nav-open="true"] { overflow: hidden; }
 .map-card__meta > div { display: grid; grid-template-columns: 92px minmax(0, 1fr); gap: 10px; }
 .map-card__meta dt { font: 600 0.75rem/1.5 var(--font-mono); letter-spacing: 0.1em; text-transform: uppercase; color: var(--sage-400); }
 .map-card__meta dd { margin: 0; font-size: 0.86rem; color: var(--sand-200); }
+.map-card__meta dd strong { color: var(--sand-100); font-weight: 600; }
+
+/* The measured audit. A card like the map cards, but full width and with the
+   scoreboard in it, so the numbers read as a single block rather than as part
+   of any one map's story. It is deliberately not interactive. */
+.maps__audit { margin-top: 28px; }
+.maps__audit > p { max-width: 68ch; }
+.maps__audit-title { font-size: 1.2rem; margin-bottom: 10px; }
+.maps__audit .kv { margin-top: 18px; }
+.maps__audit .section__note { margin-top: 18px; }
 
 /* --------------------------------------------------------------------------
    11. Media showcase and gallery
@@ -1152,7 +1163,12 @@ body[data-nav-open="true"] { overflow: hidden; }
 
 .result-count { margin: 18px 0 0; font: 500 0.82rem/1 var(--font-mono); color: var(--sage-400); letter-spacing: 0.06em; }
 
-.sessions { display: grid; gap: 12px; margin-top: 16px; }
+/* `minmax(0, 1fr)`, not the default `auto` column. A session body containing a
+   wide table sized the single implicit column to max-content (418px on a 390px
+   phone), which pushed every session on the page past the viewport; body has
+   `overflow-x: clip`, so 68px of each entry was clipped and unreachable instead
+   of scrolling. The table keeps its own `overflow-x: auto` and scrolls itself. */
+.sessions { display: grid; grid-template-columns: minmax(0, 1fr); gap: 12px; margin-top: 16px; }
 .session {
   border: 1px solid var(--line-soft);
   border-radius: var(--radius);
@@ -1227,7 +1243,7 @@ body[data-nav-open="true"] { overflow: hidden; }
   max-width: 70ch;
 }
 
-.day-group { margin-top: 26px; }
+.day-group { margin-top: 26px; min-width: 0; }
 .day-group__label {
   display: flex; align-items: center; gap: 12px;
   margin: 0 0 10px;

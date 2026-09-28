@@ -183,7 +183,10 @@ Data-driven: each role is a `FSSRoleDefinition` in a Data Asset. Limits, equipme
 
 ### 4.7 Maps and layers
 
-Five map concepts: **Dry River**, **Red Ridge**, **Ironbark**, **Port Wakefield**, **Wattle Creek**.
+Six maps, at six different stages: **Red Gum Station** and **Dry River** are in the game;
+**Selat Canal** and **Saltbush** are built and in production; **Bluestone** is an early build; and
+**Ravenshoe Crossing** is a written design proposal with nothing built. The map designs and their
+statuses are the source of truth in `Docs/MAPS_*.md` — not this list.
 
 > **Original layout requirement.** No map may reproduce a real military base, sensitive installation, or any operationally useful site. Layouts are designed from the gameplay brief (sightlines, cover rhythm, rotation distances), not surveyed from any real location.
 

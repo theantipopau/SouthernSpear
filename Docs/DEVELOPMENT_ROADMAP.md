@@ -179,14 +179,23 @@ The milestone is complete only when **all** of these are demonstrated with a rec
 | ID | Task |
 |---|---|
 | MP-01 | Layer system fully data-driven (mode, TOD, weather, objectives, roles, vehicles, respawn, tickets, AI) |
-| MP-02 | Red Ridge |
-| MP-03 | Ironbark |
-| MP-04 | Port Wakefield |
-| MP-05 | Wattle Creek |
-| MP-06 | Low-light layers for all maps |
-| MP-07 | Map streaming / World Partition tuning |
-| MP-08 | AI navigation volume + cover generation |
-| MP-09 | Map performance passes against budget |
+| MP-02 | **Selat Canal** — objective placement. All three objectives are 42–75% walk&#8209;imbalanced, on the only Special Forces map. Highest priority: the geometry is the best in the project, the objectives are the worst |
+| MP-03 | **Dry River** — cover in the open ground, and spawn exposure. 35 of 64 start pairs can see each other; an eighth of the ground has no cover within 30 m |
+| MP-04 | **Red Gum Station** — take it out of rotation or dress it. 17% nav coverage and no soft cover on a kilometre map, and it is currently in a match |
+| MP-05 | **Objective walk parity** on Saltbush and Dry River — 35%, 22% and 58% on objectives worth points mid&#8209;round |
+| MP-06 | **Saltbush** — cover mix. 289 hard to 29 soft; every rock is a hard corner, so there is nothing to swing one wide on |
+| MP-07 | **Ravenshoe Crossing** — bake navigation. Built and dressed (467 actors, 32/32 structural checks) but not yet AI&#8209;playable; then run it through the same playability audit |
+| MP-08 | **Bluestone** — first playtest, design document, and the same audit |
+| MP-09 | Low-light layers for all maps |
+| MP-10 | Map streaming / World Partition tuning |
+| MP-11 | AI navigation volume + cover generation |
+| MP-12 | Map performance passes against budget |
+
+`Docs/MAPS_PLAYABILITY_AUDIT.md` measures four maps against the rules written for Dry River
+(`Tools/Unreal/audit_map_playability.py`, read-only). Dry River 3 pass / 6 fail, Red Gum
+3 / 6 / 1 n&#8209;a, Selat Canal 5 / 5, Saltbush 7 / 3. The rows above are that document's own priority
+order. It also found that `layout_spawns.py` measured exposure against a single enemy point rather
+than all 64 pairs, so every earlier exposure figure was optimistic.
 
 Each map: Objective Assault + Secure and Hold + Day + Low-light. **No map reproduces a real base, installation or operationally useful site.**
 

@@ -3146,6 +3146,125 @@ frozen in-engine capture, which is the site's top outstanding asset.
 
 ---
 
+## Session 043 — 2026-09-28 — Map Section Corrected: Four Invented Names Replaced With The Six Real Maps
+
+### OUTCOME
+
+**The website's map section was factually wrong and has been corrected.** It listed five maps —
+**Red Ridge, Ironbark, Port Wakefield and Wattle Creek** — that do not exist and never have. No
+level, no design document, no `.umap` file. They were carried over from the Phase 0 brief and GDD
+and were never reconciled with the maps actually built. The producer caught it.
+
+They are replaced with the **six real maps**, each at its true documented status, taken from
+`Docs/MAPS_*.md` and the ADR log. Published and verified live.
+
+### THE SIX MAPS, AS PUBLISHED
+
+Each map, its level name, and the status the website now publishes. Every one of these is taken
+from the map's own design document, not from the brief.
+
+- **Red Gum Station** (`L_RedGum_01`) — **in the game.** The first playable map (ADR-022). Its
+  objectives were re-laid and its deployments pulled in for fairness. Not signed off, and it has
+  not yet produced a capture. Source: `MAPS_REDGUM.md`.
+- **Dry River** (`L_DryRiver_01`) — **in the game, and in production.** The Phase 1 greybox
+  vertical slice, and the design standard the other maps are measured against. Source:
+  `MAPS_DRYRIVER.md`.
+- **Selat Canal** (`L_SelatCanal_01`) — **in production.** Built; the only urban map and the only
+  Special Forces map. Its walkable area is too small for a fair three-objective sequence, so it
+  needs a redesign pass. Source: `MAPS_SELATCANAL.md`.
+- **Saltbush** (`L_Saltbush_01`) — **in production.** Built; deployment and objectives rebuilt for
+  fairness, and it has produced a capture in a bot match. Navigation, sightlines and cover are
+  still unmeasured. Source: `MAPS_SALTBUSH.md`.
+- **Bluestone** (`L_Bluestone_01`) — **early build.** The flooded slate-pit level, built
+  2026-09-28 from the quarry diorama. Not playtested, and it has no design document yet.
+- **Ravenshoe Crossing** (no level) — **design proposal only. Nothing has been built.** Source:
+  `MAPS_RAVENSHOE.md`, ADR-027.
+
+Each card states what the map is for and what is *not* finished about it. Ravenshoe says in bold
+that nothing has been built, because that is the single most likely thing to be misread as
+implied work.
+
+### THE DEFECT WAS NOT ONLY IN THE HTML
+
+The invented names were in four places, and three of them were still live:
+
+- `Site/index.html` — the map grid, plus a count in the Adapt pillar ("Five original map concepts")
+  and the section title. Fixed.
+- `Docs/DEVELOPMENT_ROADMAP.md` §7 — the Phase 4 task table listed MP-02…MP-05 as *Red Ridge,
+  Ironbark, Port Wakefield, Wattle Creek*. **This file is published to the site as
+  `data/DEVELOPMENT_ROADMAP.md` and rendered in the live Roadmap section**, so the invented maps
+  were visible to any visitor who scrolled there. Rewritten against the real six, with the
+  remaining IDs renumbered to MP-08…MP-11.
+- `Docs/ASSET_REGISTER.md` §4.9 — the map table tracked Dry River, the four invented maps and
+  Ravenshoe, and did not track Red Gum, Selat Canal, Saltbush or Bluestone at all. M-002…M-005
+  now carry the real maps with their real statuses; Ravenshoe stays M-008.
+- `Docs/GAME_DESIGN_DOCUMENT.md` §4.7 — "Five map concepts" listing the invented set. Replaced
+  with the six real maps and a pointer to `Docs/MAPS_*.md` as the source of truth.
+
+`Docs/ORIGINAL_BRIEF.md` still lists the invented names. **Deliberately left alone**: it is the
+Phase 0 brief, a record of what was asked for at the time, and rewriting history in it would be
+worse than the staleness.
+
+### STATUS VOCABULARY
+
+The cards use three badges, and each is a text label rather than a colour, as the design system
+requires: `In the game` (new `.badge--live` modifier, sage), `In production` and `Early build`
+(`.badge--wip`, brass), `Design proposal` (default badge). The section is now titled **Maps in the
+build** rather than "Map concepts", because two of the six are not concepts.
+
+### A RESPONSIVE DEFECT FOUND ON THE WAY
+
+The first draft of this entry carried the six maps as a four-column table, and the changelog page
+immediately measured 418 px wide inside a 390 px phone viewport. The cause was not the table:
+`.sessions` was a grid with the **default `auto` column**, so a single wide descendant sized the
+whole column to max-content, and `body { overflow-x: clip }` turned the resulting 68 px overhang
+into **clipped, unreachable content on every session on the page** — not just the one with the
+table. `responsive_audit` cannot see this: it compares `scrollWidth` to `clientWidth`, and the
+clip defeats the measurement.
+
+Fixed in `Site/styles.css` with `grid-template-columns: minmax(0, 1fr)` on `.sessions` and
+`min-width: 0` on `.day-group`, matching the convention already used by `.pillars`, `.kv` and
+`.phase`. The table would then have scrolled inside its own box, but a 308 px-wide scrollable
+table is a poor way to read six sentences, so the table was replaced with a list anyway. The CSS
+fix stands: it is latent for every other session until the next one carries a wide block.
+
+### FILES CHANGED
+
+- `Site/index.html` — map grid, section title, section lede, Adapt pillar bullet and link.
+- `Site/styles.css` — added `.badge--live`; fixed the `.sessions` grid column (above).
+- `Docs/DEVELOPMENT_ROADMAP.md` — Phase 4 map task table (**published**).
+- `Docs/ASSET_REGISTER.md` — §4.9 map table.
+- `Docs/GAME_DESIGN_DOCUMENT.md` — §4.7.
+- `Docs/CHANGELOG.md`, `Docs/Website/WEBSITE_TEST_REPORT.md` — this entry and the defect note.
+
+### TESTING
+
+- `python Tools/publish_site.py` — built and published.
+- `responsive_audit` — all 12 viewport/page combinations clean.
+- `text_audit` — no text under 12 px, no tap target under 44 px, no viewport spill on either page
+  (the single reported spill on the home page is the intentional full-bleed hero, `scrollW == docW`).
+- `interaction_test` — all checks passed, no console errors, no failed requests.
+- `phase_measure` — shell gaps symmetric at 1920 and 390.
+- `faq_check` — 11 entries, Steam answer intact.
+- `live_verify.js` — console errors none, failed requests none.
+- Live content check: all six real names present, all four invented names and the phrase "map
+  concepts" return **0 hits** on the live page and in the live `data/DEVELOPMENT_ROADMAP.md`.
+
+### RISKS
+
+- **R-40 (open, low).** The website's copy is hand-maintained and is only ever as accurate as the
+  last time someone reconciled it with `Docs/`. A guard that fails the build when a published
+  document names a map with no matching `Docs/MAPS_*.md` entry would catch this class of error
+  automatically. Not written.
+
+### NEXT ACTION
+
+**Add the map-name cross-check to the audit suite** so a published map name without a design
+document behind it fails the build, the way a broken image link does today.
+
+
+---
+
 ## Session 044 — 2026-09-28 — Dry River Expanded And Dressed From Packs, Kill Feed, Lyra Pops Removed, Bluestone Quarry, Gloved First-Person Arms
 
 ### COMPLETED
@@ -3391,15 +3510,124 @@ NOT RUN:
   dressing CSV.
 - Greybox marker slabs and pen rails were still in the terrain mesh (producer screenshot).
 
-### NEXT ACTION
-
-**First-person weapon handling:**
+### NEXT ACTION**First-person weapon handling:**
 - iron-sight alignment for the pistol;
 - a better grip fit in the gloved hands, trying the Fab gloves pack (CC BY 4.0, "Bobeer": credit line);
 - ADFRC weapon animations, textures, models and sounds, using the ADFRC agent's `ASSET_MANIFEST.json` and
   integration guide.
 
 ---
+
+
+## Session 047 — 2026-09-28 — Map Section Brought Up To Date, And The Playability Audit Published
+
+### OUTCOME
+
+**A second agent worked in this repository while Session 043 was still being published, and moved the maps
+a long way.** Sessions 044, 045 and 046 landed: Dry River expanded and dressed from asset packs, Bluestone
+activated into a playable level, and Ravenshoe Crossing went from a written proposal to a built, dressed map
+of 467 actors. A new `Docs/MAPS_PLAYABILITY_AUDIT.md` appeared as well, and it measures the four older maps
+against the design rules written for Dry River. Most of them fail.
+
+The site's map section was therefore wrong again within a day of being corrected, in the most absolute way
+available: it said, in bold, that **nothing had been built** for Ravenshoe Crossing, and 467 actors now
+exist. The section has been rewritten against the current state of the repository, and the audit's verdicts
+are now published on the site.
+
+### THE RAVENSHOE CORRECTION
+
+The card used to read: *"A bridge-crossing map written up as a full design proposal. **Nothing has been
+built** — there is no level for it yet."* It now reads as **in early work**, and says what is true:
+the gorge, a 68 m iron lattice-girder road bridge, a stone road-gate house and a playable creek bed are all
+built and dressed; 467 actors; 32 of 32 structural audit checks pass; **navigation is not baked, so it is
+not yet playable with bots**; and it is early enough that all of it will change. The bridge, gatehouse and
+gorge are original geometry (ADR-027, ADR-029) dressed by already-cleared Class A packs referenced in place
+(ADR-021) — the site's originality rules still hold, and nothing about the map's provenance needed softening.
+
+### THE OTHER FIVE CARDS, AGAINST THE REPOSITORY
+
+- **Red Gum Station** — in the game, the first playable map, and now carries the audit's verdict: 17% nav
+  coverage, twelve hard cover objects and no soft cover on a kilometre map. The card says it is **not
+  playable as it stands**.
+- **Dry River** — in the game and in production; playable area expanded to 340 × 240 m and dressed from
+  cleared packs. The card now records that the map the others are measured against **fails six of its own
+  nine rules**.
+- **Selat Canal** — in production; the best close-quarters geometry measured in the project and the
+  worst-placed objectives, all three between 42% and 75% walk-imbalanced.
+- **Saltbush** — in production, the only map with a capture in a bot match, and measured the strongest of
+  the four: 0 of 64 start pairs see each other, longest sightline 148.5 m.
+- **Bluestone** — **built, being tuned**: showroom and light bars stripped, outdoor daylight and fog, complex
+  collision, boundary rim, three objectives, all legs connecting, on the operations menu, paused for
+  fine-tuning on the producer's instruction.
+
+### THE AUDIT, PUBLISHED
+
+A new panel sits under the grid: **"Measured against their own rules, and not signed off."** It explains that
+`Tools/Unreal/audit_map_playability.py` is read-only — it loads a map, measures it and writes a report, and
+never places, moves or saves anything — and gives the scoreboard: Saltbush 7 pass / 3 fail, Selat Canal
+5 / 5, Dry River 3 / 6, Red Gum 3 / 6 / 1 n-a. The panel also states what the numbers *do not* say: none of
+them measures whether a map is fun, and none can tell whether a piece of cover is fairly placed. That is
+recorded as the producer's decision to publish the failures rather than the passes.
+
+**Every figure was traced back to `MAPS_PLAYABILITY_AUDIT.md` before publication.** Two were adjusted for
+precision rather than left as prose: "a sixth of the ground" became the measured 17%, and Saltbush's
+sightline is quoted as 148.5 m rather than rounded to 148.
+
+`Docs/DEVELOPMENT_ROADMAP.md` §7 (published to the site) now carries the audit's own priority order —
+Selat Canal objectives first, then Dry River cover and spawn exposure, then Red Gum — and `ASSET_REGISTER.md`
+§4.9 rows for the five maps record their measured status.
+
+### COORDINATION NOTE
+
+The other agent is working in this repository concurrently and its files are changing under this session.
+Only website files and the four documentation files above were touched here; nothing belonging to Sessions
+044–046 was edited, staged or committed. **Session 045 has no entry in this changelog** — the Ravenshoe work
+was committed with a descriptive commit message (7cda16a4) and the session body, unlike 044 and 046, was
+never written up. Left alone rather than reconstructed.
+
+### FILES CHANGED
+
+- `Site/index.html` — six map cards, section lede, the new audit panel, Adapt pillar bullet.
+- `Site/styles.css` — `.maps__audit` and `.map-card__meta dd strong`.
+- `Docs/DEVELOPMENT_ROADMAP.md` — Phase 4 map tasks rewritten to the audit's priority order (**published**).
+- `Docs/ASSET_REGISTER.md` — §4.9 rows M-001 to M-005.
+- `Docs/CHANGELOG.md`, `Docs/Website/WEBSITE_TEST_REPORT.md`, `Docs/Website/WEBSITE_DESIGN_SYSTEM.md` —
+  this entry and the content/design rules behind it.
+
+### TESTING
+
+- `python Tools/publish_site.py` — built and published.
+- `responsive_audit` — all 12 viewport/page combinations clean.
+- `text_audit` — no text under 12 px, no tap target under 44 px, no viewport spill on either page.
+- `interaction_test` — all checks passed, no console errors, no failed requests.
+- `faq_check` — 11 entries, Steam answer intact.
+- `maps_check.js` (new, `Build/audit/`) — reads the rendered DOM at 390 and 1440: six cards with the
+  expected names, badges and states, four audit rows with the expected scores, heading order H2→H3 with no
+  skipped level, no element overflowing the viewport at either width, document scroll width equal to the
+  viewport. Console and request errors: none.
+
+### RISKS
+
+- **R-41 (open).** **Published map claims decay in hours when another agent is building in parallel.**
+  Ravenshoe went from "nothing has been built" to 467 actors in a day. The Ravenshoe card says so in as many
+  words, but the same staleness applies to the other five. The site copies status prose by hand; nothing
+  detects that `Docs/MAPS_*.md` and the HTML have diverged.
+- **R-42 (open, low).** The audit's cover counts only `StaticMeshActor`s, so cover inside a blueprint or
+  instanced foliage is not counted and the hard:soft ratios are approximate — the audit document says so for
+  Selat Canal. The site publishes the ratios as "measured" without that caveat in the scoreboard row; the
+  caveat is in the panel's note.
+
+### NEXT ACTION
+
+**Generate the map cards from the map documents' status lines, the way the roadmap, status and changelog
+sections already are**, so a status that changes in `Docs/MAPS_*.md` cannot drift from what the site says
+about it. That closes R-41 and the R-40 class of defect from the same mechanism.
+
+
+---
+
+
+
 
 ## Open Threads
 

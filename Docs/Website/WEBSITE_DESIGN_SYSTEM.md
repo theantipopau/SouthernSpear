@@ -217,6 +217,7 @@ Rules:
 | Module | `.module` | Numbered training module |
 | Faction | `.faction--friendly` / `--opposing` | Top accent rule |
 | Map card | `.map-card` | Grid field, corner bracket, state badge |
+| Audit panel | `.maps__audit` | Card + `.kv` scoreboard, not interactive |
 | Gallery | `.gallery__btn`, `.showcase__frame` | Buttons, not links, so keyboard and SR announce the action |
 | Lightbox | `.lightbox` | `role="dialog"`, `aria-modal`, focus trap, Esc, arrows |
 | Phase | `.phase` + `--current` / `--done` / `--todo` | Timeline rail with node |
@@ -289,6 +290,15 @@ Rules:
   Loadout section says so in its `section__note`, which also states the provenance: which
   licence layer the picture is composed of, that publication is a recorded risk acceptance and
   not a licence clearance, and that the original parts are scheduled for reshaping.
+* **A map's published status comes from its own design document, and a measured result is
+  published whether it is good or bad.** Session 047 published the playability audit's scoreboard,
+  where Dry River fails six of its own nine rules and Red Gum is measured not playable as it
+  stands. The panel says what the numbers do not measure (fun, and whether cover is fairly
+  placed), and every figure is traceable to `Docs/MAPS_PLAYABILITY_AUDIT.md`.
+* **When work is happening in parallel, the site says so on the page.** Ravenshoe moved from
+  nothing built to 467 actors in a day, and its card says in as many words that it is early
+  enough to change. R-41: hand-copied status prose is the weak point, and the fix is to generate
+  the cards from `Docs/MAPS_*.md` the way the roadmap and changelog sections already are.
 * **A render is only published once a person has looked at it.** Session 042 published
   player-model renders that had never been visually reviewed — the preview tooling had failed —
   and they had to be withdrawn the same day. Measure what can be measured (silhouette, exposure,

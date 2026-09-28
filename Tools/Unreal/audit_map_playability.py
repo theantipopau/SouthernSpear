@@ -45,6 +45,19 @@
 #   SS_SAMPLE=<n> walkable sample points (default 220).
 #   SS_OUT=<name>.json writes somewhere else, for re-running one map without
 #   overwriting the others' results.
+#   SS_BUILDPATHS=1 calls BUILDPATHS after loading a map. OFF by default,
+#   because it is not what the note above says it is. It used to be called
+#   unconditionally on the strength of "navigation is locked while a map
+#   loads, so BUILDPATHS is a no-op" - and it is not a no-op, it is a crash.
+#   On Red Gum after the 2026-09-28 dressing pass (720 x 600 m nav volume,
+#   1,140 colliding dressing actors) it takes the commandlet down with an
+#   access violation inside UnrealEd within seconds, before the report is
+#   written, so the audit could not run on the main map at all.
+#   Tools/Unreal/redgum_crash_probe.py isolates it: without SS_BUILDPATHS the
+#   same script loads the map, counts 1,530 actors and traces fine.
+#   Path queries in this audit therefore run against whatever nav data the
+#   level already stores, which is the correct behaviour for an audit - the
+#   numbers describe the map as saved, not a nav rebuild.
 
 import json
 import math
@@ -61,6 +74,7 @@ PROGRESS = os.path.join(PROJECT_DIR, "Build", "map_playability.progress")
 ALL = ["L_DryRiver_01", "L_RedGum_01", "L_Saltbush_01", "L_SelatCanal_01"]
 MAPS = [m for m in os.environ.get("SS_MAPS", ",".join(ALL)).split(",") if m]
 SAMPLE = int(os.environ.get("SS_SAMPLE", "220"))
+BUILD_PATHS = os.environ.get("SS_BUILDPATHS") == "1"
 
 # Dry River reference values (Docs/MAPS_DRYRIVER.md). Centimetres internally.
 MAX_OPEN_CROSSING = 2000.0   # 20 m: no player crosses more open ground
@@ -280,7 +294,8 @@ def audit(name):
     world = unreal.EditorLoadingAndSavingUtils.load_map("/Game/Maps/" + name)
     if not world:
         return {"error": "load failed"}
-    unreal.SystemLibrary.execute_console_command(world, "BUILDPATHS")
+    if BUILD_PATHS:
+        unreal.SystemLibrary.execute_console_command(world, "BUILDPATHS")
 
     objs = sorted(unreal.GameplayStatics.get_all_actors_of_class(world, unreal.SSObjectiveActor),
                   key=lambda o: o.get_editor_property("sequence_index"))

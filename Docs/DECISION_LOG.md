@@ -747,3 +747,85 @@ the wreck at **z = 14.00 m** on a 14.00 m deck, inside the 7.5 m footprint, bloc
 load-bearing: an earlier version of the pass reported 26 actors placed and **0 errors** against a `.umap`
 that was byte-for-byte unchanged, because `get_editor_world()` had handed it a blank untitled level. A pass
 that reports success is not evidence; every placement in this project is checked from outside.
+
+---
+
+## ADR-030 — The bridge's surfaces are generated original textures, not an imported pack
+
+**Status:** accepted, 2026-09-28. Extends ADR-029 and L-0011. Relates to M-008m, M-008n.
+
+**Context.** Ravenshoe Crossing was delivered with four *constant* materials on the one structure the
+map is named for. The geometry was good — 68 m lattice girder, 21 uprights a side, modelled because no
+bridge mesh exists anywhere in the project or in any installed pack — and it rendered as flat colour,
+because nothing in the project could put a surface on it. The Fab cache turned out to hold almost no
+usable tiling textures: 23 of the 30 folders ship under ten images each, and those are mostly prop
+albedos, not tileable PBR sets. The one genuinely good set in the project,
+`Content/AutomotiveBridgeScene/` (319 assets of asphalt, concrete, rust and steel decal maps), is
+**untracked, another agent's in-flight work**. Binding a committed map to it would leave the map
+broken for anyone who checked out this commit without theirs.
+
+**Decision.** Generate the surfaces. `Tools/Textures/make_ravenshoe_surfaces.py` authors four sets —
+sealed gravel road, rusted ironwork, painted steel, coursed granite — from noise, on exactly the
+ground the character camo sets already stand on (CH-TEX-001, ADR-016, L-0011). They are wired to the
+project's own `M_SS_ScanPBR` as instances, so pack textures and generated textures feed one shader.
+
+**Why not a Fab texture pack.** Three reasons, and the third is the one that decides it. Licensing is
+manageable — ADR-028 clears Fab generally, and a register row would cover it. Fit is arguable: most
+scan texture packs are European or North American in weathering and read wrong in Australian
+high country. But a *tiling* texture is only useful if it tiles, and that is a property of the
+generator, not of the marketplace. Buying a texture means accepting whatever the author made, and a
+non-periodic one shows a hard grid the moment it is repeated across a 68 m deck.
+
+**Two constraints enforced in the generator rather than left to eye.**
+
+*A tiling map carries no low-frequency content.* The first gravel set had a wheel-wear crown baked in.
+It looked good alone and would have come back every tile as stripes down the road. The crown was
+removed; large-scale interest now comes from tiling the set at different scales.
+
+*A seam test that is actually a seam test.* Three versions were wrong before one was right. An
+absolute difference flags correct sets, because adjacent samples of a high-frequency field always
+differ. A ratio against the *mean* interior step flags them too — the wrap is one sample pair out of a
+thousand, and its step size varies hugely by chance, scoring a good set at 2.7. The test that holds is
+the wrap step against the tile's own **99th percentile** of interior detail: a real discontinuity
+exceeds the strongest thing already in the texture, and a merely busy one does not.
+
+Granite needed a **bed joint**, not just perpends. The first version generated vertical joints only,
+which is not coursed masonry — it is a wall of vertical strips, and it rendered as flat grey slabs.
+Masonry is defined by the horizontal bed joint as much as by the perpends.
+
+**Tiling is arithmetic, not taste.** The blockout unwraps with `cube_project(cube_size=2.0)`, so one
+UV unit is **2 m**, and the terrain uses a planar projection at `v/4.0`, so one unit is 4 m. The first
+table of tiling values assumed 0..1 UVs and produced 0.53 m tiles against a 7.5 m deck — a 1024 map
+repeating every half metre, which is the same greybox problem wearing a texture. Values are now
+`uv_metres_per_unit / target_tile_m`: 2.0 m for the road, 1.5 m for the ironwork, 0.9 m for the deck
+structure, 1.2 m for the masonry.
+
+**The running surface is its own slot.** The deck slab is a single box, so its top and its fascia
+shared one material. They are now split by polygon into `Road` and `Deck` slots. The fault this
+prevents is invisible from the deck, which is exactly why a verifier checks it: the Road slot's area
+must equal deck width × span, and no Road face may be non-horizontal.
+
+**Three pre-existing bugs this work exposed, all now fixed and all of the same shape.**
+
+`import_ravenshoe.py` called `MaterialEditingLibrary.get_material_property`, which does not exist in
+5.8. The call raised, was caught, and became a warning — so the "authored constant materials" had
+never been configured. It also read `material_slot_name` as a `str` and called `.strip()` on a
+`unreal.Name`, which aborted the whole slot loop, so **the mesh slot override had never run**. And it
+called `set_actor_location` without the now-required `sweep` argument, so the NavMeshBoundsVolume was
+never positioned. All three were reported as *warnings* on a pass whose summary said "0 errors".
+
+The import was also not idempotent: it purged only `SS_Raven_`-prefixed actors, while objectives and
+deployments are labelled `SS_MAP_Ravenshoe_*`. Every re-run added another objective and another
+deployment — the audit read 2, then 4, then 6. It was invisible until the pass was run a second time.
+
+**Run order is now load-bearing, and is stated in all three scripts.**
+`import_ravenshoe` → `dress_ravenshoe_props` → `setup_ravenshoe_surfaces`. The import re-imports the
+bridge FBX and re-spawns the geometry actors, which strips the per-instance overrides; run the
+surfaces pass first and the next import silently returns the bridge to flat colours with the Road slot
+on `WorldGridMaterial`, reporting no error. `audit_ravenshoe.py` asserts the overrides **on the saved
+map**, which is the only place that failure can be caught rather than shipped.
+
+**Verification.** `verify_ravenshoe.py` **53/53** in Blender (was 41) including twelve new probes that
+ray-cast the built bridge and count members off its vertices; spec-only mode still runs in CI with no
+Blender. `audit_ravenshoe.py` **35/35** on the re-opened `.umap`, 468 actors, and the import is
+idempotent at 467–468 actors across repeated runs.

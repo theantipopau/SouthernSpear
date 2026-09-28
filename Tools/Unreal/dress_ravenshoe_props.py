@@ -6,6 +6,9 @@ it and you lose an afternoon of iterating on this layer. This one opens the
 saved L_Ravenshoe_01, swaps its own actors, and leaves everything else alone.
 
 What it does:
+  0. Run order: import_ravenshoe -> dress_ravenshoe_props ->
+     setup_ravenshoe_surfaces. The surfaces pass comes last because the import
+     re-spawns the bridge actor and strips its material overrides.
   1. Imports the prepped prop FBX from Build/ravenshoe/props (Blender output -
      vendor scale, ground planes and triangle budgets already fixed there).
   2. Imports the downscaled texture set.
@@ -629,6 +632,32 @@ def main():
     step("place_wreck", wreck is not None,
          "({:.1f}, {:.1f}, {:.1f}) yaw {:.0f}".format(WRECK_X, WRECK_Y, WRECK_Z, WRECK_YAW))
 
+    # A roadblock of dead vehicles at the SOUTH lip, on the road between the
+    # south deployment and the abutment.
+    #
+    # It is here and not out on the span because the deck's cover is the
+    # structure itself. Scattering cars down the 68 m would add cover, but it
+    # would also narrow a 6.8 m lane and blunt the exposure that the 20 m rule
+    # and the 3.4 m bay rhythm depend on. At the lip the same vehicles do three
+    # jobs instead: they say why the road is shut, they give the south approach
+    # a fight before anyone commits to the span, and they leave the deck itself
+    # untouched.
+    #
+    # Placed with deliberate gaps. A continuous wall of cars would read as a
+    # level-designer's barricade and would also just seal the route; these leave
+    # a walkable line down the west side and a vehicle-width gap at the abutment.
+    blocked = 0
+    for tag, px, py, yaw in (("Roadblock_0", 2.20, -39.5, 28.0),
+                             ("Roadblock_1", -2.40, -42.0, -14.0),
+                             ("Roadblock_2", 0.40, -45.5, 62.0)):
+        mesh = props.get("SS_Raven_WreckJunk") or props.get("SS_Raven_WreckCar")
+        if mesh is None:
+            break
+        if spawn_prop(world, mesh, tag, px, py, SPEC.ground_z(px, py), yaw,
+                      collision=True, tilt=rng.uniform(-3, 3)):
+            blocked += 1
+    step("place_roadblock", blocked == 3, "{} of 3 vehicle(s)".format(blocked))
+
     # Fire and smoke, offset along the wreck's own axis. Placed at the engine
     # end and the cabin rather than only at the centre, so the effect still
     # reads as a burning vehicle from the north approach. The VFX pack sorts
@@ -697,6 +726,17 @@ def main():
         spawn_prop(world, barn, "Barn", -64, 112, SPEC.ground_z(-64, 112),
                    rng.uniform(0, 360), collision=True)
 
+    # The old barn goes on the SOUTH ridge, mirrored across the road. Until now
+    # every landmark on the map sat north: windmill, barn, water tower, two of
+    # the three hand pumps. The south deployment therefore opened onto an empty
+    # plateau, and the player spawning there had nothing to navigate by. The
+    # two deployments are meant to be interchangeable, so each gets a
+    # silhouette and a landmark.
+    old_barn = props.get("SS_Raven_OldBarn")
+    if old_barn:
+        spawn_prop(world, old_barn, "OldBarn", 66, -104,
+                   SPEC.ground_z(66, -104), rng.uniform(0, 360), collision=True)
+
     # A water tower beside the road is the one piece of built infrastructure
     # that explains why there is a road across this gorge at all. Set back
     # from the corridor so it frames the approach rather than blocking it.
@@ -714,8 +754,8 @@ def main():
             spawn_prop(world, pump, "HandPump_%d" % i, px, py,
                        SPEC.ground_z(px, py), rng.uniform(0, 360),
                        collision=True, tilt=rng.uniform(-4, 4))
-    step("place_ridge", bool(wm or barn or tower or pump),
-         "windmill, barn, water tower, 3 hand pumps")
+    step("place_ridge", bool(wm or barn or tower or pump or old_barn),
+         "windmill, barn, old barn, water tower, 3 hand pumps")
 
     # The second wreck goes in the creek bed: the second lane needs the same
     # read, and the bed is where a vehicle that went off the road would end up.
@@ -730,10 +770,12 @@ def main():
     # four VFX actors are not meshes and are deliberately skipped.
     VFX_TAGS = ("Fire_Engine", "Fire_Cabin", "Smoke_Column", "Embers")
     KEY_BY_PREFIX = (("WreckCar", "wreck"), ("WreckJunk", "wreck_junk"),
+                     ("Roadblock", "wreck_junk"),
                      ("Drum", "drum"), ("Sandbag", "canvas"),
                      ("TrenchWall", "metal"), ("WaterTower", "metal"),
                      ("HandPump", "metal"), ("Windmill", "timber"),
-                     ("Barn", "timber"))
+                     ("Barn", "timber"), ("OldBarn", "timber"),
+                     ("Roadblock", "wreck_junk"))
     applied, failed = 0, []
     for actor in unreal.EditorLevelLibrary.get_all_level_actors():
         lbl = actor.get_actor_label()

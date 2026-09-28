@@ -1,12 +1,12 @@
 # MAP DESIGN — Ravenshoe Crossing
 
 **Document ID:** `Docs/MAPS_RAVENSHOE.md`
-**Status:** **In Unreal and dressed.** `/Game/Maps/L_Ravenshoe_01` — 467 actors, **32/32 audit checks pass**.
+**Status:** **In Unreal, dressed, surfaced, lit and wired. Navigation not baked.** `/Game/Maps/L_Ravenshoe_01` — **665 actors**, **35/35 audit checks pass**.
 Navigation is **not baked**; the map is not yet AI-playable.
 **Last updated:** 2026-09-28
 **Authoring:** `Tools/Common/ravenshoe_spec.py` (shared spec) → `Tools/Blender/ravenshoe_blockout.py` → FBX
 **Import/dress:** `Tools/Unreal/import_ravenshoe.py` · **Audit:** `Tools/Unreal/audit_ravenshoe.py` (read-only)
-**Verification:** `Tools/Blender/verify_ravenshoe.py` — **41/41 checks pass** (spec-only mode runs in CI without Blender)
+**Verification:** `Tools/Blender/verify_ravenshoe.py` — **53/53 checks pass** (spec-only mode runs in CI without Blender)
 **Map package:** `/Game/Maps/L_Ravenshoe_01`
 
 **Companion documents:** `MAPS_DRYRIVER.md` (the design standard), `MAPS_REDGUM.md` (the large-map precedent), `MAPS_SALTBUSH.md`, `MAPS_SELATCANAL.md`.
@@ -120,10 +120,124 @@ the whole point.
 | Deck width | **7.5 m** | Wide enough to fight on and to fall back along; narrow enough to be covered. A 4 m deck is a shooting gallery |
 | Team size | 8 v 8 | The vertical slice runs 4 v 4 (Dry River §3). 8 v 8 is the target the map is designed to hold |
 | Cover objects | **68 markers** + 42 truss uprights + 10 lamps | Dry River's budget is ~120 for a smaller area. The 68 scattered markers cover the off-deck routes; the deck's cover is the structure itself, not dressing |
-| Navigation | Full NavMesh, no dynamic nav | As Dry River: a greybox must be navigable by construction. **Not yet baked** — see §7 |
+| Navigation | Full NavMesh, no dynamic nav | As Dry River: a greybox must be navigable by construction. **Infrastructure is in place, the bake is missing — see §7.1** |
 
 **Built and measured** (`SS_MAP_Ravenshoe_01_HI.blend`): terrain 200 × 300 m, 15,000 faces, relief −18.0 to +28.0 m.
-Bridge 852 faces. Gatehouse 450 faces, 9.6 × 6.8 × 6.0 m. 72 layout rows.
+Bridge 1266 faces, four material slots (Iron / Deck / Road / Stone). Gatehouse 450 faces, 9.6 × 6.8 × 6.0 m. 72 layout rows.
+
+### 3.1 Bridge metrics
+
+The dimensions above are inputs. What the bridge is *judged* on are the **ratios** between them, and
+those are printed on every `verify_ravenshoe.py` run and range-checked by
+`check_bridge_metrics()` (M-008n). They can all be wrong while every dimension still reads as the value
+typed into the constant, which is why the checks are on the ratios.
+
+| Metric | Value | Why it is the number that matters |
+|---|---|---|
+| Span, lip to lip | **68.0 m** | The sanctioned exception to the 20 m open-crossing rule |
+| Gorge depth at the bed | **32.0 m** | The drop the deck crosses |
+| Deck width over the parapets | **7.5 m** | Wide enough to fight on, narrow enough to cover |
+| Clear lane between parapets | **6.8 m** | The width a player actually has |
+| Parapet height | **1.05 m** | Crouch cover, and it makes the deck a firing step rather than a lane |
+| Truss depth above the deck | **5.2 m** | The structure's whole visual job |
+| **Span : truss depth** | **1 : 13.1** | A lattice girder of this class sits in 1:12–1:20. Shallower and the chords are scenery; deeper and the portal headroom is being spent on structure |
+| Bay length | **3.4 m** | The cover rhythm. A player crosses one bay per exposure, and it must not become a picket fence |
+| Uprights per side | **21** | The 20 m rule's mitigation, made of geometry |
+| Lamp standards | **10** (one each side every 17 m) | The two at each abutment are a pair, not a shared standard |
+| Clear headroom over the lane | **5.03 m** | Set by the sway frames, not the lateral bracing. Below 4 m a 68 m deck starts to feel like a tunnel |
+| Deck area fought over | **510 m²** | The map's primary firefight, all of it exposed from both approaches |
+| Parapet cover, one side | **71.4 m²** | What the 1.05 m actually buys |
+| Bed-to-deck over the span | **25.2°** | The visible slope of the gorge, lip to lip |
+
+### 3.2 Surfaces
+
+The bridge, its abutments and the gatehouse are surfaced with **generated original textures** (ADR-030,
+M-008m), not an imported pack: sealed gravel on the running surface, rusted ironwork on the lattice and
+parapets, painted steel on the deck structure, coursed granite on the abutments and gatehouse. All four
+are `M_SS_ScanPBR` instances, so pack and generated textures feed one shader.
+
+Two properties are enforced rather than eyeballed. Every set is **periodic** — a tiling map with a
+baked-in low-frequency gradient repeats as stripes down a 68 m deck — and the deck's **running surface
+is its own material slot**, split off the slab by polygon, so the fascia and soffit can be painted steel
+while the top is road. The verifier checks that the Road slot's area equals deck width × span and that
+no Road face is non-horizontal, because the fault it prevents is invisible from the deck.
+
+### 3.3 Atmosphere, vegetation and dressing
+
+| Layer | What | Source |
+|---|---|---|
+| Light | Sun (pitch −54, yaw 38, intensity 9), `SkyAtmosphere`, real-time-capture `SkyLight`, unbound post-process with exposure clamped 0.5–2.0 | `Tools/Unreal/light_ravenshoe.py` |
+| Fog | `ExponentialHeightFog`, `start_distance` **140 m**, density 0.055, max opacity 0.82 | as above |
+| Ground cover | **188** low scrub/litter actors in 11 clusters, collision off | `Tools/Unreal/dress_ravenshoe_groundcover.py`; `Namaqualand` pack |
+| Props | 38 actors incl. a 3-vehicle roadblock at the south lip | `Tools/Unreal/dress_ravenshoe_props.py` |
+| Experience | 2 objectives, 1 director, `DefaultGameplayExperience` bound | `Tools/Unreal/wire_ravenshoe_experience.py` |
+
+**Why the fog is distance, not height.** The obvious tool for a gorge is height fog, pooling in the bed
+and thinning on the crest. Ravenshoe has **46 m of total relief** — bed −18 m, deck +14 m, crest +28 m
+— and `ExponentialHeightFog` on 5.8 exposes `fog_height_falloff` but **not** `fog_height_offset` or
+`fog_height_density` (both probed, both absent). With no offset the height layer pins to z = 0, so a
+falloff of 0.02 makes a **50 cm-thick disc lying across the deck at road level**, not a pool in the
+gorge. The height term is therefore off. `start_distance` is set to 140 m, which leaves the 68 m span
+and both lips completely untouched and fogs only the 200 m ridge-to-ridge shot — which is the sniper
+case the fog exists to break. A true bed-pool needs a property this build will not take.
+
+**Why Namaqualand.** It is the only arid-country vegetation in the project, and Karoo succulent veld is
+genuinely close to Australian arid shrubland in habit. Rejected on look: `Light_Foliage` is temperate
+forest; `Nanite_Plants_Sample_Collection` is Acer and Ophiopogon — ornamental Japanese and Chinese
+garden plants, wrong biome *and* wrong culture (ADR-016). Unlike the Fab props these arrive as ready
+`StaticMesh` assets, so there is nothing to import or prep, and they **keep their own vendor
+materials** (ADR-029) rather than being unified onto `MI_SS_Raven_*` — a dozen different plants reading
+as a dozen different plants is the point of ground cover.
+
+### 3.4 Pipeline and its run order
+
+Order is load-bearing, not cosmetic. `import_ravenshoe` re-imports the bridge FBX and re-spawns the
+geometry actors, which strips the surface overrides; running the surfaces pass first means the next
+import silently returns the bridge to flat colours. Full order:
+
+```
+ravenshoe_blockout.py            (Blender: geometry + spec, generates the FBX)
+verify_ravenshoe.py              (Blender: 53 checks, or spec-only in CI)
+make_ravenshoe_surfaces.py       (Python: 20 PBR sets + the wrap check)
+  --- Unreal, in this order ---
+import_ravenshoe.py
+dress_ravenshoe_props.py
+setup_ravenshoe_surfaces.py
+dress_ravenshoe_groundcover.py
+light_ravenshoe.py
+wire_ravenshoe_experience.py
+build_ravenshoe_nav.py           (VERIFY headless; BUILD needs an editor - §7.1)
+audit_ravenshoe.py
+```
+
+## 7. Open items
+
+### 7.1 Navigation — the one launch blocker
+
+`build_ravenshoe_nav.py` in **verify** mode, run headlessly, reports:
+
+```
+nav_baked              false
+objectives reachable   0/4
+creek bed navigable    false
+deck navigable         false
+```
+
+Everything the bake *needs* is already correct and verified: one `RecastNavMesh` present, one
+`NavMeshBoundsVolume` present with scale `[115, 165, 45]` cm, covering the 200 × 300 m map. **Only the
+build itself is missing.**
+
+It cannot be done headlessly. `BUILDPATHS` is a **no-op without a real rendering device** — it does
+not crash and does not warn, it silently leaves a navmesh covering nothing. Both workarounds were
+tried and both fail on this machine: `-nullrhi` has no RHI, and `-RenderOffscreen` still logs
+`rhiname="Null"` before crashing on exit. `Tools/Unreal/redgum_nav_build.py` documents the same
+constraint for Red Gum.
+
+**To bake:** open the editor with `/Game/Maps/L_Ravenshoe_01` loaded, and either press **Build ▸ Build
+Paths**, or run `build_ravenshoe_nav.py` in the Python console with `SS_RAVENSHOE_NAV_BUILD=1`. The
+map is already saved, so the bounds volume registers on load and the first pass will not be skipped.
+Then re-run the script in verify mode: it must report `nav_baked: true`, `4/4` routes, and both the
+deck and the creek bed navigable.
 
 **Map count.** This is a candidate **fifth** map. It is not a replacement for Dry River and does not
 supersede Red Gum; it is an addition to the §4.9 table as `M-008`.
@@ -364,7 +478,7 @@ without a row. That is fixed in this session as bookkeeping — see `LICENCE_REG
 
 ## 6. Verification — what was checked, and what could not be
 
-`Tools/Blender/verify_ravenshoe.py` runs in two modes and currently reports **41/41 passing**. The split
+`Tools/Blender/verify_ravenshoe.py` runs in two modes and currently reports **53/53 passing**. The split
 matters: the spec mode runs in CI with no Blender, and the geometry mode ray-casts the built meshes.
 
 **Spec mode (no Blender, runs in CI).** Deployment symmetry (S→A and N→A equal to within 0.5 m — measured
@@ -444,8 +558,11 @@ Those two must be measured in-editor or in-game.
 2. **Playtest the 68 m span.** The whole cover contract mitigation (§4.3) is unproven. If the deck is a meat
    grinder, the answer is *widen the deck and narrow the span*, not add more cover props.
 3. **Confirm the creek bed is a lane, not a trap.** §4.4 is the map's best idea and its biggest unknown.
-4. **Art pass the originals.** Constant materials only. The gatehouse wants granite rubble, the truss wants
-   oxidised wrought iron, and the terrain wants a tiled ground material.
+4. **Art pass the terrain.** ~~Constant materials only.~~ **Done for the bridge, deck and masonry**
+   (ADR-030, M-008m): generated gravel, rust ironwork, painted steel and coursed granite, on the
+   project's own `M_SS_ScanPBR`. **Still to do:** the terrain still carries a flat safety-net material
+   and is the largest surface on the map. It needs its own dry high-country ground set at the terrain's
+   4 m UV scale, and the road corridor wants a different, coarser treatment from the open ground.
 5. **Wire the Objective Assault layer.** The two `SSObjectiveActor`s and two `PlayerStart`s are placed and
    labelled, but the map is not yet attached to `B_SS_ObjectiveAssault` the way Dry River is.
 6. **Decide the 8 v 8 team size** honestly — the layout is designed for it, but the slice runs 4 v 4 and a
@@ -469,7 +586,7 @@ dressing layer. `Tools/Unreal/audit_ravenshoe.py` then re-opens the saved `.umap
 | Placed by the import | 424 pack-dressed actors, 0 removed, 0 missing assets |
 | Placed by the prop pass | 30 meshes + 4 VFX actors, 0 missing assets |
 | Pack sources used | `Scene_QuarrySlate` (ledge/rock clusters), `RuralAustralia` (trees, logs, fences), plus the 2026-09-28 Fab prop downloads (L-0016c) |
-| Audit | **32/32 pass** (`Build/ravenshoe_audit_report.json`) |
+| Audit | **35/35 pass** (`Build/ravenshoe_audit_report.json`) |
 
 | Dressed | Count | Source |
 |---|---|---|

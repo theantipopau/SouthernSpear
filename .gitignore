@@ -223,6 +223,20 @@ Content/SampleAnimationPack/
 Content/Vis/
 Content/Namaqualand/
 
+# Installed Fab packs that were on disk but never had a .gitignore line, so
+# they showed as untracked and any broad `git add` would have committed
+# ~6.2 GB of vendor .uasset. Same rule as the block above (ADR-021): vendor
+# meshes are referenced in place, never modified, never committed.
+Content/AnimStarterPack/
+Content/AutomotiveBridgeScene/
+Content/ConcreteFPPack/
+Content/DeadBodies_Poses_nikoff/
+Content/Light_Foliage/
+Content/Modular_Rural_Cabin/
+Content/MSPresets/
+Content/MWLandscapeAutoMaterial/
+Content/StoneWell/
+
 # Converted ADFRC output (L-0021): derived from the third-party source, so also
 # kept out of version control. Docs remain tracked.
 Art/ADFRC_MLOD/

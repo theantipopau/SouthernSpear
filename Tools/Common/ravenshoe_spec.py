@@ -87,8 +87,9 @@ N_BAYS = 20
 BAY = SPAN / N_BAYS         # 3.4 m
 N_UPRIGHT = N_BAYS + 1      # 21 per side
 
-# Lamp standards every 5th upright = every 17 m: 5 per side, and the two at the
-# abutments are shared pairs, so 9 distinct standards on the deck.
+# Lamp standards every 5th upright = every 17 m: 5 per side, 10 on the deck.
+# They stand on the parapet line, one either side of the road, so the pair at
+# each abutment is two separate standards and not a shared one.
 LAMP_STRIDE = 5
 LAMP_R = 0.11
 LAMP_H = 3.6
@@ -651,6 +652,104 @@ def check_spec():
     for name, mx, my, _k, _r in marks:
         if abs(mx - GATE_X) < GATE_W / 2.0 + 1.0 and abs(my - GATE_Y) < GATE_D / 2.0 + 1.0:
             issues.append(("FAIL", "cover marker %s sits in the gatehouse" % name))
+
+    issues.extend(check_bridge_metrics())
+
+    return issues
+
+
+# ---------------------------------------------------------------------------
+# Bridge metrics
+# ---------------------------------------------------------------------------
+
+def bridge_metrics():
+    """The bridge's governing dimensions, derived rather than restated.
+
+    Every number the bridge is judged on is either a dimension or a RATIO of
+    dimensions, and the ratios are the ones worth watching. Span on its own
+    says nothing; span against truss depth is what decides whether the lattice
+    is doing structural work or is scenery, and clear lane against deck width is
+    what decides whether the deck is a fighting space or a corridor.
+
+    Returns a list of (key, label, value, unit) so the verifier can print the
+    whole table and check the ranges, in CI and in the Blender run alike.
+    """
+    lane = DECK_W - 2.0 * PARAPET_T          # between the parapet faces
+    kerb_lane = DECK_W - 2.0 * (PARAPET_T + 0.15 + 0.15)
+    truss_x = DECK_W / 2.0 + TRUSSOUT
+    return [
+        ("span", "span, lip to lip", SPAN, "m"),
+        ("gorge_depth", "gorge depth at the bed", GORGE_DEPTH, "m"),
+        ("deck_w", "deck width over the parapets", DECK_W, "m"),
+        ("lane", "clear lane between parapets", lane, "m"),
+        ("kerb_lane", "running surface inside the kerbs", kerb_lane, "m"),
+        ("parapet_h", "parapet height (crouch cover)", PARAPET_H, "m"),
+        ("truss_depth", "truss depth above the deck", TRUSS_DEPTH, "m"),
+        ("span_depth", "span : truss depth", SPAN / TRUSS_DEPTH, ": 1"),
+        ("bay", "bay length, upright to upright", BAY, "m"),
+        ("uprights", "uprights per side", N_UPRIGHT, ""),
+        ("lamps", "lamp standards on the deck", LAMP_PER_SIDE * 2, ""),
+        ("lamp_stride", "lamp spacing", BAY * LAMP_STRIDE, "m"),
+        ("truss_x", "truss frame outboard of the deck", TRUSSOUT, "m"),
+        ("truss_span", "truss frame to truss frame", 2.0 * truss_x, "m"),
+        ("chord_t", "member section", CHORD_T, "m"),
+        ("headroom", "clear headroom over the lane", TRUSS_DEPTH - CHORD_T / 2.0, "m"),
+        ("gorge_grade", "bed to deck over the span",
+         math.degrees(math.atan2(GORGE_DEPTH, SPAN)), "deg"),
+        ("gorge_grade_run", "bed to deck over the whole 200 m",
+         math.degrees(math.atan2(GORGE_DEPTH, 200.0)), "deg"),
+        ("deck_area", "deck area players fight over", DECK_W * SPAN, "m2"),
+        ("parapet_area", "parapet cover, one side", PARAPET_H * SPAN, "m2"),
+    ]
+
+
+def check_bridge_metrics():
+    """Range checks on the ratios. The spec's own numbers are not re-asserted
+    here - the point is the RATIOS, which can be wrong while every dimension
+    still reads as the value that was typed into the constant."""
+    issues = []
+    m = {k: v for k, _l, v, _u in bridge_metrics()}
+
+    # A wrought-iron lattice girder of this class sits between about 1:12 and
+    # 1:20. Shallower than 1:20 and the chords are scenery; deeper than 1:12
+    # and the portal headroom over the lane is being spent on structure.
+    if not 12.0 <= m["span_depth"] <= 20.0:
+        issues.append(("FAIL", "span:truss depth is 1:%.1f, outside the 1:12-1:20 "
+                      "band for a lattice girder of this span" % m["span_depth"]))
+    if m["span_depth"] < 13.0:
+        issues.append(("WARN", "truss depth %.1f m is near the shallow end of the "
+                      "band; the lattice will read as light" % TRUSS_DEPTH))
+
+    # The lane is what makes the deck a place to fight rather than a corridor.
+    if m["lane"] < 6.0:
+        issues.append(("FAIL", "clear lane %.2f m is too narrow to fight or fall "
+                      "back along" % m["lane"]))
+    if m["lane"] > DECK_W * 0.95:
+        issues.append(("WARN", "the parapets are not eating into the deck at all; "
+                      "check they exist"))
+
+    # A parapet is cover only if a player can get behind it.
+    if not 1.0 <= PARAPET_H <= 1.2:
+        issues.append(("FAIL", "parapet %.2f m is not crouch cover" % PARAPET_H))
+
+    # Headroom over the lane. A through truss needs enough clear height under
+    # its top lateral bracing for a player and a light vehicle; below about
+    # 4 m the portal starts to feel like a tunnel on a 68 m deck.
+    headroom = TRUSS_DEPTH - CHORD_T / 2.0
+    if headroom < 4.0:
+        issues.append(("FAIL", "headroom over the lane is %.2f m, too low to "
+                      "stand and fight under" % headroom))
+
+    # The bay is the cover rhythm: it must be short enough to cross between
+    # uprights and long enough not to be a picket fence.
+    if not 2.5 <= BAY <= 4.0:
+        issues.append(("FAIL", "bay %.2f m outside the 2.5-4.0 m cover rhythm" % BAY))
+
+    # The road corridor has to be at least as wide as the deck it feeds, or
+    # the deck is a widening of a road rather than a crossing on one.
+    if ROAD_HALF * 2.0 < DECK_W:
+        issues.append(("FAIL", "road corridor %.1f m is narrower than the %.1f m "
+                      "deck it feeds" % (ROAD_HALF * 2.0, DECK_W)))
 
     return issues
 

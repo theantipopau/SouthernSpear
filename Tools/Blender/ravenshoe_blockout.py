@@ -76,7 +76,7 @@ OUT_DIR = os.path.normpath(
 # slope rather than as a staircase, at 15k quads for the whole map.
 TERRAIN_STEP = 2.0
 
-SLOTS = ("Terrain", "Rock", "Bush", "Iron", "Stone", "Deck", "Marker")
+SLOTS = ("Terrain", "Rock", "Bush", "Iron", "Stone", "Deck", "Road", "Marker")
 MAT = {name: None for name in SLOTS}
 
 VIEWS = {
@@ -92,6 +92,7 @@ VIEWS = {
     "Iron": (0.34, 0.36, 0.40, 1.0),
     "Stone": (0.66, 0.64, 0.60, 1.0),
     "Deck": (0.44, 0.42, 0.38, 1.0),
+    "Road": (0.30, 0.29, 0.27, 1.0),
     "Marker": (0.80, 0.26, 0.20, 1.0),
 }
 
@@ -149,6 +150,29 @@ def cylinder(name, radius, depth, loc, slot, rot=(0.0, 0.0, 0.0), verts=10):
     obj = bpy.context.active_object
     obj.name = name
     return apply(tag(obj, slot))
+
+
+def retag_faces(obj, slot, predicate):
+    """Move the polygons matching `predicate` into another material slot.
+
+    Used to give the deck's running surface its own slot. The top face of the
+    deck slab is the largest single surface a player looks at on the whole map
+    and it is the one they stand and fight on, so it wants a road surface; the
+    slab's fascia, soffit and edges are structure and want painted steel. One
+    slot for the whole slab cannot give both, and no amount of tiling will make
+    one material read correctly as two.
+    """
+    mat = MAT[slot]
+    idx = obj.data.materials.find(mat.name)
+    if idx < 0:
+        obj.data.materials.append(mat)
+        idx = len(obj.data.materials) - 1
+    moved = 0
+    for poly in obj.data.polygons:
+        if predicate(poly):
+            poly.material_index = idx
+            moved += 1
+    return moved
 
 
 def join(objects, name):
@@ -351,8 +375,12 @@ def build_bridge():
     truss_x = S.DECK_W / 2.0 + S.TRUSSOUT
 
     # Deck slab, with a raised kerb strip each side of the walking surface.
-    parts.append(box("Deck_Slab", (S.DECK_W, S.SPAN, S.DECK_T),
-                     (0.0, 0.0, S.DECK_T / 2.0), "Deck"))
+    # The top face is split into the Road slot: it is the running surface, and
+    # it is the only part of the bridge a player stands on.
+    slab = box("Deck_Slab", (S.DECK_W, S.SPAN, S.DECK_T),
+               (0.0, 0.0, S.DECK_T / 2.0), "Deck")
+    retag_faces(slab, "Road", lambda p: p.normal.z > 0.5)
+    parts.append(slab)
     for sx in (-1.0, 1.0):
         parts.append(box("Kerb", (0.30, S.SPAN, 0.10),
                          (sx * (S.DECK_W / 2.0 - S.PARAPET_T - 0.15),

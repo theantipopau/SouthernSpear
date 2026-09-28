@@ -249,10 +249,144 @@ def verify_geometry():
         check(worst_off <= 1.0, "%s ramp surface follows the spec line" % label,
               "worst deviation %.2f m" % worst_off)
 
+    verify_bridge_metrics(bridge, cast, down, mathutils)
+
+
+def verify_bridge_metrics(bridge, cast, down, mathutils):
+    """Measure the BUILT bridge and report it against the spec.
+
+    The spec-mode checks assert the numbers. These assert that the geometry
+    generated from them actually has those numbers. A box the spec calls 2.0 m
+    tall can be 1.0 m on the mesh, and every spec check still passes; only a
+    cast finds it.
+
+    Everything here is in the bridge's own local frame, where the deck top is
+    z = DECK_T and the span runs along y. Probes start BELOW the lateral
+    bracing and the sway frames, which cross the lane overhead, so a ray meant
+    for the deck does not stop on a member 5 m above it.
+    """
+    half = S.SPAN / 2.0
+    deck = S.DECK_T
+    chord_z = deck + S.CHORD_T / 2.0
+    top_z = deck + S.TRUSS_DEPTH
+    truss_x = S.DECK_W / 2.0 + S.TRUSSOUT
+    parapet_x = S.DECK_W / 2.0 - S.PARAPET_T / 2.0
+
+    # --- the running surface, the parapets and the chords, at their heights --
+    # Mid-bay in y, so no lateral or sway member is overhead.
+    y_probe = -half + S.BAY * 0.5
+    p = cast(bridge, (0.0, y_probe, deck + 0.6), down, dist=20.0)
+    check(p is not None and near(p.z, deck),
+          "bridge deck top is at DECK_T",
+          "z=%.3f want=%.3f" % (p.z if p else float("nan"), deck))
+
+    for sx in (-1.0, 1.0):
+        p = cast(bridge, (sx * parapet_x, y_probe, top_z + 1.0), down, dist=20.0)
+        want = deck + S.PARAPET_H
+        check(p is not None and near(p.z, want),
+              "parapet top is %.2f m above the deck (x=%+.1f)" % (S.PARAPET_H, sx * parapet_x),
+              "z=%.3f want=%.3f" % (p.z if p else float("nan"), want))
+
+        p = cast(bridge, (sx * truss_x, y_probe, top_z + 2.0), down, dist=20.0)
+        want = top_z + S.CHORD_T / 2.0
+        check(p is not None and near(p.z, want),
+              "top chord centre is TRUSS_DEPTH up (x=%+.1f)" % (sx * truss_x),
+              "z=%.3f want=%.3f" % (p.z if p else float("nan"), want))
+
+    # --- the running surface is its own material slot ----------------------
+    # The deck slab is one box, so the split has to be done by reassigning the
+    # top polygons. If that silently did nothing the whole slab would render
+    # as road surface on its fascia and soffit, which is exactly the fault the
+    # slot exists to prevent - and it would not be visible from the deck.
+    slots = [m.name if m else "" for m in bridge.data.materials]
+    road_idx = next((i for i, n in enumerate(slots) if n.endswith("_Road")), None)
+    check(road_idx is not None, "bridge has a Road material slot",
+          "slots: %s" % ", ".join(slots))
+    if road_idx is not None:
+        road_faces = [f for f in bridge.data.polygons
+                      if f.material_index == road_idx]
+        area = sum(f.area for f in road_faces)
+        want = S.DECK_W * S.SPAN
+        tilted = [f for f in road_faces if abs(f.normal.z) < 0.5]
+        check(abs(area - want) < 1.0,
+              "Road slot covers the running surface only",
+              "area=%.1f m2 want=%.1f m2" % (area, want))
+        check(not tilted,
+              "Road slot has no fascia or soffit faces",
+              "%d of %d road faces are not horizontal" % (len(tilted), len(road_faces)))
+
+    # --- the counts the cover rhythm depends on ---------------------------
+    # Measured off the vertices rather than re-derived from the spec: if the
+    # generator dropped every other upright the mesh would say so here.
+    #
+    # The predicates have to separate members that share a plane. On the truss
+    # line sit the chords (0.34 square, corners at +/-0.17 from the frame), the
+    # uprights (0.28 square, corners at +/-0.14), the diagonals (0.16 square,
+    # corners at +/-0.08) and the outriggers, all on the same x. A loose
+    # tolerance counted 138 y positions per side instead of 21 - diagonals and
+    # sway frames contributed their corners. The upright band is therefore the
+    # gap between the diagonal and chord corner offsets, which only the
+    # uprights land in.
+    def distinct_y(pred):
+        seen = set()
+        for v in bridge.data.vertices:
+            if pred(v.co):
+                seen.add(round(v.co.y, 2))
+        return len(seen)
+
+    for sx in (-1.0, 1.0):
+        # Snap each corner to its bay index rather than counting distinct y:
+        # one upright is a box, so it contributes corners at y-0.14 and y+0.14
+        # and a distinct-y count returns 42 for 21 uprights. Snapping also makes
+        # the check stronger - it confirms each upright is at a SPECIFIED bay,
+        # not merely that 21 somethings are out there.
+        bays = set()
+        for v in bridge.data.vertices:
+            c = v.co
+            if 0.10 <= abs(abs(c.x) - truss_x) <= 0.15:
+                bays.add(int(round((c.y + half) / S.BAY)))
+        n = len(bays)
+        check(n == S.N_UPRIGHT and min(bays) == 0 and max(bays) == S.N_UPRIGHT - 1,
+              "uprights on the %s frame" % ("+x" if sx > 0 else "-x"),
+              "%d bays %d..%d, spec says %d bays 0..%d"
+              % (n, min(bays), max(bays), S.N_UPRIGHT, S.N_UPRIGHT - 1))
+
+    # Lamp heads stand on the parapet line at +/-3.575, inboard of the truss at
+    # 4.05, and their tops are above the lateral bracing. Filtering on height
+    # alone also catches the bracing, the portal heads and the sway frames.
+    lamps = distinct_y(lambda c: c.z > deck + S.PARAPET_H + S.LAMP_H
+                       and abs(abs(c.x) - parapet_x) < 0.3)
+    check(lamps == S.LAMP_PER_SIDE * 2,
+          "lamp standards on the deck",
+          "%d found, spec says %d" % (lamps, S.LAMP_PER_SIDE * 2))
+
+    # --- clear headroom over the lane --------------------------------------
+    # The lowest members crossing overhead are the sway frames, not the
+    # lateral bracing, so this is the height a player actually gets.
+    up = (0.0, 0.0, 1.0)
+    head = None
+    for k in range(0, S.N_BAYS + 1, 3):
+        p = cast(bridge, (0.0, -half + k * S.BAY, deck + 0.05), up, dist=20.0)
+        if p is not None:
+            h = p.z - deck
+            head = h if head is None else min(head, h)
+    check(head is not None and head >= 4.0,
+          "clear headroom over the lane is at least 4 m",
+          "%.2f m" % (head if head is not None else float("nan")))
+
 
 # ---------------------------------------------------------------------------
 
 def main():
+    # The bridge's governing table, printed every run. A metric nobody reads is
+    # a metric nobody maintains, and these are the numbers the design argument
+    # actually rests on.
+    print("=" * 78)
+    print("%-14s %-42s %10s %s" % ("KEY", "BRIDGE METRIC", "VALUE", "UNIT"))
+    for _k, label, value, unit in S.bridge_metrics():
+        print("%-14s %-42s %10.3f %s" % (_k, label, value, unit))
+    print("=" * 78)
+
     verify_spec()
     try:
         import bpy  # noqa: F401

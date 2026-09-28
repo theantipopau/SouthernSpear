@@ -120,7 +120,18 @@ the `hero-drift` scale animation caught mid-transform. `.hero` has `overflow: hi
   Derivatives stop at the source width deliberately.
 * The mobile portrait crop is taken from the right of the source (sunset, mesa, gorge) because
   the composited wordmark occupies the centre band of the frame.
-* **The soldier renders are portrait and the section stacks on narrow screens.** At 360 px the
+* **`body` sets `overflow-x: clip`, so a `scrollWidth` check cannot detect clipped content.**
+  Fixed in Session 043: `.sessions` was a grid with the default `auto` column, so one wide
+  descendant (a table in a changelog entry) sized the column to max-content and pushed every
+  session on the page 68 px past a 390 px viewport, where the clip made the excess unreachable.
+  Now `minmax(0, 1fr)`. `responsive_audit` compares `scrollWidth` to `clientWidth` and reported
+  "all viewports clean" throughout; it was `text_audit`'s element-bounds spill check that found
+  it. **A future audit should check element bounds against the viewport, not only scroll width.**
+* **Wide blocks inside a changelog entry scroll inside their own box** rather than being
+  rewritten. A 4-column table in a 308 px reading measure is scrollable but unreadable, so
+  Session 043 uses a list instead. Tables remain supported for genuinely tabular content.
+* **The soldier renders are portrait and the section stacks on narrow screens** — withdrawn in
+  Session 042, retained here as the measurement that was taken. At 360 px the
   two cards stack, making the section roughly 1,600 px tall. That is the cost of showing a
   full-length figure at a readable size; the images are `loading="lazy"`, so nothing is
   fetched until it is scrolled to. Measured at 360, 768, 1280 and 1920: no overflow, AVIF
@@ -296,14 +307,42 @@ cross-browser verified.**
 | Unreal Engine / Epic trademark acknowledgement retained | pass |
 | Every previously working link still resolves | pass |
 | No release date, player count, platform, award or review invented | pass |
-| Map names and descriptions taken verbatim from `ORIGINAL_BRIEF.md` | pass |
+| Map names and descriptions match the real maps | **pass after a fix (Session 043)** — the section previously named four maps that do not exist, taken from `ORIGINAL_BRIEF.md`; the row below records the defect |
+| Each map's stated status matches its design document | pass — Red Gum *in the game, measured not playable*, Dry River *in the game and in production*, Selat Canal and Saltbush *in production*, Bluestone *built and being tuned*, Ravenshoe *in early work, built and dressed* |
+| Ravenshoe's card states that navigation is not baked | pass — built and dressed, 467 actors, 32/32 structural checks, not yet playable with bots |
+| Measured results are published whether good or bad | pass — the playability audit's scoreboard is on the page, including Dry River's 6 failures and Red Gum's "not playable as it stands" |
+| The audit panel says what the numbers do not measure | pass — fun, and whether cover is fairly placed, are named as not measured |
+| Every published figure is traceable to a source document | pass — all figures cross-checked against `Docs/MAPS_PLAYABILITY_AUDIT.md` |
+| Published roadmap's Phase 4 map tasks name only real maps | **pass after a fix (Session 043)** — `data/DEVELOPMENT_ROADMAP.md` is rendered on the live page and previously listed Red Ridge, Ironbark, Port Wakefield and Wattle Creek |
 | Training modules and role prerequisites taken from `GAME_DESIGN_DOCUMENT.md` | pass |
-| Soldier renders labelled as renders, never as gameplay | pass — the section note says "studio renders of the current internal models, not captured gameplay" |
-| Soldier render provenance stated (L-0016 body + L-0021 kit, promotion not clearance) | pass |
-| Camouflage stated as the project's own, generated from noise | pass — the note names `Tools/Textures/make_character_textures.py` |
-| No real unit's insignia claimed or shown | pass — the MAF kit is peacekeeper-style and is described as such, not as any real unit's equipment |
-| No ADF affiliation implied | pass — the disclaimer extends the new section |
-| Camouflage palette checked against the producer's reference photography | pass — render saturation 0.48 vs reference 0.46, pale population 9.8% vs 10.2% |
+| ~~Soldier renders labelled as renders, never as gameplay~~ | section withdrawn in Session 042 |
+| ~~Soldier render provenance stated (L-0016 body + L-0021 kit, promotion not clearance)~~ | section withdrawn in Session 042 |
+| ~~Camouflage stated as the project's own, generated from noise~~ | section withdrawn in Session 042 |
+| ~~No real unit's insignia claimed or shown~~ | section withdrawn in Session 042 |
+| ~~No ADF affiliation implied — the disclaimer extends the new section~~ | section withdrawn in Session 042 |
+| ~~Camouflage palette checked against the producer's reference photography~~ | section withdrawn in Session 042 |
+
+### Content defect found and fixed (Session 043)
+
+**The map section named four maps that do not exist.** The check that should have caught it
+read "Map names and descriptions taken verbatim from `ORIGINAL_BRIEF.md`" and passed, because
+being *verbatim from the brief* was treated as being *true*. `ORIGINAL_BRIEF.md` is the Phase 0
+brief and lists Red Ridge, Ironbark, Port Wakefield and Wattle Creek; none of them has a level, a
+design document or a `.umap` file. The same four names were in the live rendered roadmap.
+
+The check is now "matches the real maps" and the source of truth is `Docs/MAPS_*.md` plus the ADR
+log, not the brief. The general lesson is recorded as **R-40**: a published fact that is checked
+only against its own source is not checked at all, and the audit suite has no way to notice a
+name with nothing behind it. Tracked as the next action.
+
+**It recurred within a day, in a worse form (Session 047).** A second agent built Ravenshoe
+Crossing — 467 actors — while the site still said, in bold, that nothing had been built. The
+check above passed because nothing re-ran it. Recorded as **R-41**: hand-copied status prose is
+the weak point, and it should be generated from `Docs/MAPS_*.md` the way the roadmap, status and
+changelog sections already are. `Build/audit/maps_check.js` was added in Session 047 to read the
+rendered cards, badges, audit rows and heading order out of the live DOM, so a regression in this
+section is at least *visible* to a test run — but it checks what the page says, not whether the
+page is right.
 
 ---
 

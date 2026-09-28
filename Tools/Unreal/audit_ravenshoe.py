@@ -246,10 +246,12 @@ def main():
         if not a.get_actor_label().startswith(PREFIX))
 
     audit_props(spec, actors)
+    audit_surfaces(actors)
 
     report["ok"] = all(f["ok"] for f in report["findings"])
 
 
+GEO_LABEL = "SS_Raven_Geo_"
 PROP_LABEL = "Dress_Prop_"
 PROP_DEST = "/Game/Art/Environment/Ravenshoe/Props"
 VFX = "/Game/Realistic_Starter_VFX_Pack_Vol2"
@@ -396,6 +398,57 @@ def audit_props(spec, actors):
           "every prop mesh is on an authored ScanPBR instance",
           "{} checked{}".format(checked, "" if not unauthored
                                 else ", unauthorised: " + str(unauthored[:4])))
+
+
+def audit_surfaces(actors):
+    """The authored geometry must carry the generated surfaces, and they must
+    still be there after the map has been saved and re-opened.
+
+    This audit runs against the SAVED map, so it is the only place that can
+    prove the overrides persisted. Every material route in this project has at
+    some point written successfully and rendered as nothing: the mesh slot
+    override, the constant-material authoring call, and the component override
+    for a component that was then re-imported over. A check made immediately
+    after setting a value proves nothing; only a check made on the next run
+    does.
+    """
+    wanted = {
+        "SS_Raven_Bridge": {"MI_SS_Raven_Iron", "MI_SS_Raven_Deck",
+                            "MI_SS_Raven_Road", "MI_SS_Raven_Stone"},
+        "SS_Raven_Gatehouse": {"MI_SS_Raven_Stone"},
+    }
+    seen = {}
+    for a in actors:
+        label = a.get_actor_label()
+        if not label.startswith(GEO_LABEL):
+            continue
+        comp = a.get_component_by_class(unreal.StaticMeshComponent)
+        if comp is None:
+            continue
+        mesh = comp.get_editor_property("static_mesh")
+        if mesh is None:
+            continue
+        mats = component_materials(a)
+        seen[mesh.get_name()] = [m for m in mats if m]
+
+    report["surface_overrides"] = seen
+
+    for mesh, expect in wanted.items():
+        got = set(seen.get(mesh, []))
+        missing = expect - got
+        check(not missing and bool(got),
+              "{} carries its generated surfaces".format(mesh),
+              "{} assigned{}".format(sorted(got),
+                                     "" if not missing
+                                     else ", MISSING " + str(sorted(missing))))
+
+    # The running surface has to be its own material, or the whole deck slab
+    # renders as road surface on its fascia and soffit - invisible from the
+    # deck, and the reason the Road slot exists at all.
+    bridge = seen.get("SS_Raven_Bridge", [])
+    check("MI_SS_Raven_Road" in bridge and "MI_SS_Raven_Deck" in bridge,
+          "deck running surface is separate from the deck structure",
+          "bridge slots: {}".format(bridge))
 
 
 def math_dist(a, b):
