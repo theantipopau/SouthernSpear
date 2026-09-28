@@ -1,0 +1,19 @@
+{
+ "source": "E:/SouthernSpear/Build/maf_weapons/SK_AK74U.fbx",
+ "fbx": "E:\\SouthernSpear\\Art\\Weapons\\MAF\\SM_MAF_R1.fbx",
+ "dimensions_m": [
+  0.727141261100769,
+  0.057548925280570984,
+  0.32370367646217346
+ ],
+ "muzzle_m": [
+  0.36460959911346436,
+  0.015928145498037338,
+  0.026428665965795517
+ ],
+ "origin": "trigger bone",
+ "materials": [
+  "MI_AKS74U",
+  "MI_Magazine"
+ ]
+}

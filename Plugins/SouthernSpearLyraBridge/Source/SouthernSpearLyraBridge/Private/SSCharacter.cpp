@@ -309,7 +309,7 @@ void ASSCharacter::PlayRifleFire()
 			}
 		}
 	}
-	const bool bSupport = Held.Contains(TEXT("A89")) || Held.Contains(TEXT("RPK")) || Held.Contains(TEXT("PK"));
+	const bool bSupport = Held.Contains(TEXT("A89")) || Held.Contains(TEXT("MAF_S"));
 	const TArray<TObjectPtr<USoundBase>>& CloseSet = bOpposing && LoadedOpforShots.Num() > 0 ? LoadedOpforShots : LoadedCloseShots;
 	USoundBase* Close = CloseSet[FMath::RandHelper(CloseSet.Num())];
 	const float Pitch = FMath::FRandRange(0.97f, 1.03f) * (bSupport ? SupportPitch : 1.f);

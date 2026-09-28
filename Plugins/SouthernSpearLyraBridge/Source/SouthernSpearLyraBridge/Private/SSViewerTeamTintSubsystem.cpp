@@ -9,6 +9,9 @@
 #include "SSTeamIdentityLibrary.h"
 #include "SSLocalityPresentable.h"
 #include "Components/MeshComponent.h"
+#include "Components/StaticMeshComponent.h"
+#include "Engine/StaticMesh.h"
+#include "Misc/Paths.h"
 #include "Teams/LyraTeamSubsystem.h"
 
 DEFINE_LOG_CATEGORY_STATIC(LogSSBridge, Log, All);
@@ -31,6 +34,65 @@ namespace
 	const FName BaseParams[] = { TEXT("TeamColor") };
 	const FName GlowParams[] = { TEXT("EdgeGlowColor"), TEXT("EmissiveColor"), TEXT("EmissiveColor2"), TEXT("EmissiveColor3") };
 
+	/**
+	 * Held weapon, viewer-relative (ADR-016 W-101/W-102; producer: "the OPFOR need to be MAF"): to this viewer a
+	 * soldier on the other side carries the MAF counterpart of his A-series weapon - same gameplay definition,
+	 * different display mesh (Tools/Unreal/setup_maf_weapons.py). The A-series mesh is remembered in a component
+	 * tag and restored if the soldier reads as friendly again. Pistols keep their mesh (no counterpart yet).
+	 */
+	void SwapHeldWeapon(AActor* Weapon, ESSLocality Locality)
+	{
+		static const FString OriginalTag = TEXT("SSOriginalMesh:");
+		TInlineComponentArray<UStaticMeshComponent*> Visuals(Weapon);
+		for (UStaticMeshComponent* Visual : Visuals)
+		{
+			UStaticMesh* Current = Visual->GetStaticMesh();
+			if (!Current || !Current->FindSocket(TEXT("Muzzle")))
+			{
+				continue;
+			}
+			FString OriginalPath;
+			for (const FName& Tag : Visual->ComponentTags)
+			{
+				if (Tag.ToString().StartsWith(OriginalTag))
+				{
+					OriginalPath = Tag.ToString().Mid(OriginalTag.Len());
+				}
+			}
+			const FString Name = OriginalPath.IsEmpty() ? Current->GetName() : FPaths::GetBaseFilename(OriginalPath);
+			if (Locality == ESSLocality::Opposing)
+			{
+				if (!Name.StartsWith(TEXT("SM_A")) || Name.StartsWith(TEXT("SM_A9")))
+				{
+					continue;
+				}
+				const bool bSupport = Name.StartsWith(TEXT("SM_A89"));
+				static TWeakObjectPtr<UStaticMesh> Rifle, Support;
+				TWeakObjectPtr<UStaticMesh>& Counterpart = bSupport ? Support : Rifle;
+				if (!Counterpart.IsValid())
+				{
+					Counterpart = LoadObject<UStaticMesh>(nullptr, bSupport
+						? TEXT("/SSExp_ObjectiveAssault/Weapons/MAF/SM_MAF_S1.SM_MAF_S1") : TEXT("/SSExp_ObjectiveAssault/Weapons/MAF/SM_MAF_R1.SM_MAF_R1"));
+				}
+				if (Counterpart.IsValid() && Current != Counterpart.Get())
+				{
+					if (OriginalPath.IsEmpty())
+					{
+						Visual->ComponentTags.Add(FName(OriginalTag + Current->GetPathName()));
+					}
+					Visual->SetStaticMesh(Counterpart.Get());
+				}
+			}
+			else if (!OriginalPath.IsEmpty() && Current->GetPathName() != OriginalPath)
+			{
+				if (UStaticMesh* Original = LoadObject<UStaticMesh>(nullptr, *OriginalPath))
+				{
+					Visual->SetStaticMesh(Original);
+				}
+			}
+		}
+	}
+
 	void Tint(AActor* Actor, const FLinearColor& Base, const FLinearColor& Glow, ESSLocality Locality)
 	{
 		TArray<AActor*> Actors { Actor };
@@ -41,6 +103,10 @@ namespace
 			if (ISSLocalityPresentable* Presentable = Cast<ISSLocalityPresentable>(Each))
 			{
 				Presentable->ApplyViewerLocality(Locality);
+			}
+			if (Each != Actor)
+			{
+				SwapHeldWeapon(Each, Locality);
 			}
 			TInlineComponentArray<UMeshComponent*> Meshes(Each);
 			for (UMeshComponent* Mesh : Meshes)
