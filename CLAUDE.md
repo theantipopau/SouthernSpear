@@ -87,7 +87,7 @@ python Tools/verify_dressing.py
 ```
 
 - `-NoLoadingScreen` keeps Lyra's loading screen off headless test viewports (its ensure failed the network smoke test).
-- Tests: `SouthernSpear.Core.*` (9), `SouthernSpear.Presentation.*` (6), `SouthernSpear.Objectives.*` (14, incl. `.Hud.*`; Session 048 adds `.Section.*` ×8 and `.Hud.SectionAssault`), `SouthernSpear.Progression.*` (6), `SouthernSpear.Core.Ranks.*` (3, Session 049), `SouthernSpear.Core.Weapons.*` (2, Session 050). Count
+- Tests: `SouthernSpear.Core.*` (9), `SouthernSpear.Presentation.*` (6), `SouthernSpear.Objectives.*` (14, incl. `.Hud.*`; Session 048 adds `.Section.*` ×8 and `.Hud.SectionAssault`), `SouthernSpear.Progression.*` (6), `SouthernSpear.Core.Ranks.*` (3, Session 049), `SouthernSpear.Core.Weapons.*` (2, Session 050), `SouthernSpear.Bridge.HandIK.*` (1, Session 058). Count
   `Result={Success}` in the log; declare intentionally-logged errors with `AddExpectedError`.
 - Bare test worlds: use `World->GetWorldSettings()->NotifyBeginPlay()` (no GameMode → `World->BeginPlay()` does nothing).
 - Guard negative test: copy `Tools/` + SS plugins to the scratchpad, inject violations, expect exit 1. Never leave

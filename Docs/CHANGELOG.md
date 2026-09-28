@@ -4586,6 +4586,94 @@ and none of them displaces Quantum.
 
 ---
 
+## Session 058 — 2026-09-28 — W2 Finished In Code: The Left Hand Goes To The Grip Socket, First And Third Person
+
+### COMPLETED
+
+- **`USSHandIKMeshComponent`** (`Plugins/SouthernSpearLyraBridge`, the one module allowed to touch Lyra): a
+  skeletal mesh component that puts its left hand on the held weapon's `SOCKET_LeftHandGrip` (Session 057).
+  - **Where it runs.** It overrides `FinalizeBoneTransform`: after each animation evaluation, before the pose
+    is published, it runs a two-bone IK on the left arm in component space. Everything that follows the mesh
+    by leader pose reads that published pose, including the visible 3 ACR / MAF soldier parts and the
+    physics bodies. **No Lyra asset changes and no Animation Blueprint is needed**, which matters because
+    the repo has no headless route to author one.
+  - **Where the target comes from.** Each tick, before the evaluation, it finds the attached static mesh
+    that carries the grip socket. It stores that socket's transform relative to the socket or bone the
+    weapon hangs from; both come from the same (last) frame, so the offset is exact. After evaluation it
+    rebuilds the target from the new pose of that bone, so there is no frame lag.
+  - **The solve (`FSSHandIK::Apply`, pure, written here rather than calling the engine's).** The elbow
+    bends in the plane of the animated elbow. There is no stretching, and the hand stops at full reach.
+    The hand keeps its animated rotation, and twist bones and fingers are carried with their bones. The
+    effector blends by alpha.
+  - **When it switches off.** It fades out at 8 per second:
+    - while a montage named Reload, Equip, Holster, Draw or Inspect plays;
+    - while Lyra's `DisableLHandIK` curve is up;
+    - while ragdolled;
+    - when the target is beyond 1.05× the arm's length;
+    - when the weapon has no grip socket (the A9 pistol).
+    `ss.HandIK 0` turns it off for side-by-side comparison.
+  - **Bones** are found from candidate names, so one class serves Manny (`upperarm_l`, `lowerarm_l`,
+    `hand_l`) and the Fab first-person arms (`LeftArm`, `LeftForeArm`, `LeftHand`). It logs the chain it
+    found, or warns once and stays off.
+- **Wired in two places:**
+  - `ASSCharacter` swaps its body mesh class, as it already does for movement:
+    `SetDefaultSubobjectClass<USSHandIKMeshComponent>(ACharacter::MeshComponentName)`.
+  - `USSFirstPersonSubsystem` creates the first-person arms as the same class. `Play()` suppresses the IK
+    while a Draw, Holster or Reload clip plays, since those clips move the left hand themselves. The
+    subsystem's one-off grip measurement uses the left hand only in a log line, so it is unaffected.
+- A Python port of the solver was run on the test's own scenarios before handing over. The hand landed on
+  the target with error 0.0, bone lengths held to 1e-15, the finger and twist offsets were unchanged, full
+  reach was 57.462 cm against a 57.463 cm limit, and alpha 0.5 landed half-way.
+
+### FILES CHANGED
+
+`Plugins/SouthernSpearLyraBridge/Source/SouthernSpearLyraBridge/Public/SSHandIKMeshComponent.h` (new),
+`Private/SSHandIKMeshComponent.cpp` (new), `Private/Tests/SSHandIKTests.cpp` (new), `Private/SSCharacter.cpp`,
+`Private/SSFirstPersonSubsystem.cpp`; `CLAUDE.md` (test list); `Docs/WEAPONS_ANIMATION_PLAN.md`;
+`Docs/CHANGELOG.md`.
+
+### TESTING
+
+- `python Tools/validate_architecture.py`: **exit 0**, PASS.
+- New automation test `SouthernSpear.Bridge.HandIK.Solve`. It checks:
+  - the hand lands on a reachable target, and the shoulder stays fixed;
+  - both lengths are kept, and the hand keeps its rotation;
+  - the finger and twist bone are carried, and bones outside the arm are untouched;
+  - the elbow stays on the upper arm's axis and the wrist on the forearm's axis;
+  - an out-of-reach target stops at full reach, and alpha 0.5 lands half-way;
+  - alpha 0, a broken chain and mismatched parents are all refused and leave the pose unchanged.
+- Python port of `FSSHandIK::Apply` on those scenarios: all as expected (above).
+- **NOT RUN (the producer's machine):** the build (C++ written here, uncompiled). Also not run: the automation
+  suite (expect 58), and the in-game look in both views, including `LogSSHandIK` naming the chain for
+  `CharacterMesh0` and `SS_FirstPersonArms`.
+
+### ASSETS
+
+None.
+
+### RISKS
+
+- **R-65 (open, medium):** the IK relies on `FinalizeBoneTransform` being called with the new pose still in
+  the editable buffer. That is how `USkeletalMeshComponent` publishes a pose, but it is unverified here.
+  If the hand lags a frame or doesn't move, that is the place to look. The alternative is a post-process
+  Animation Blueprint on a copy of the mannequin mesh.
+- **R-66 (open, low):** the right wrist is anchored at `trigger_axis` (Session 057), so how deep the weapon
+  sits in the palm is an estimate. If the left hand looks consistently a few cm off on every weapon, adjust
+  the anchor once in `adfrc_grip.py`. The spacing between the hands is measured, not estimated.
+
+### DEFECTS FOUND
+
+None new.
+
+### NEXT ACTION
+
+**On the producer's machine:** build and run the tests (expect 58/58). Then, in a match, compare `ss.HandIK 1`
+against `ss.HandIK 0` with the A88 in both views (`-SSShotAt` captures). Also check the left hand leaves the
+grip for a reload and returns after it.
+
+---
+
+
 ## Open Threads
 
 | Item | Blocked on | Owner |

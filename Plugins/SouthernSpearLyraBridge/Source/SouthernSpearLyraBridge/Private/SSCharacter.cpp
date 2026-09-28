@@ -2,6 +2,8 @@
 
 #include "SSCharacter.h"
 
+#include "SSHandIKMeshComponent.h"
+
 #include "AbilitySystem/LyraAbilitySystemComponent.h"
 #include "Character/LyraPawnExtensionComponent.h"
 #include "Components/AudioComponent.h"
@@ -42,7 +44,10 @@ namespace
 }
 
 ASSCharacter::ASSCharacter(const FObjectInitializer& ObjectInitializer)
-	: Super(ObjectInitializer.SetDefaultSubobjectClass<USSCharacterMovementComponent>(ACharacter::CharacterMovementComponentName))
+	// The body mesh puts its left hand on the held weapon's grip socket (W2); the visible soldier parts
+	// follow it by leader pose.
+	: Super(ObjectInitializer.SetDefaultSubobjectClass<USSCharacterMovementComponent>(ACharacter::CharacterMovementComponentName)
+		.SetDefaultSubobjectClass<USSHandIKMeshComponent>(ACharacter::MeshComponentName))
 {
 }
 

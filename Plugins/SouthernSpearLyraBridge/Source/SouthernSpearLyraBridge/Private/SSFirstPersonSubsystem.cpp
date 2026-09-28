@@ -19,6 +19,7 @@
 #include "GameFramework/PlayerController.h"
 #include "HAL/IConsoleManager.h"
 #include "SSFirstPersonCameraMode.h"
+#include "SSHandIKMeshComponent.h"
 #include "SSLocalHudState.h"
 
 DEFINE_LOG_CATEGORY_STATIC(LogSSFirstPerson, Log, All);
@@ -247,7 +248,9 @@ void USSFirstPersonSubsystem::Tick(float DeltaTime)
 	USkeletalMesh* ArmsMesh = CVarArms.GetValueOnGameThread() != 0 ? LoadObject<USkeletalMesh>(nullptr, *ArmsMeshPath(0)) : nullptr;
 	if (ArmsMesh)
 	{
-		Arms = NewObject<USkeletalMeshComponent>(Pawn, TEXT("SS_FirstPersonArms"));
+		// The arms put their left hand on the held weapon's grip socket (W2): the Fab pack's own left hand
+		// sits where its M4 handguard was.
+		Arms = NewObject<USSHandIKMeshComponent>(Pawn, TEXT("SS_FirstPersonArms"));
 		Arms->SetupAttachment(Camera);
 		Arms->SetSkeletalMesh(ArmsMesh);
 		Arms->SetOnlyOwnerSee(true);
@@ -331,6 +334,11 @@ void USSFirstPersonSubsystem::Play(UAnimSequence* Sequence, bool bLoop)
 	}
 	Current = Sequence;
 	Arms->PlayAnimation(Sequence, bLoop);
+	if (USSHandIKMeshComponent* HandIK = Cast<USSHandIKMeshComponent>(Arms))
+	{
+		// Draw, holster and reload move the left hand themselves.
+		HandIK->SetHandIKSuppressed(HandIK->IsSuppressingAnimationName(Sequence->GetName()));
+	}
 	OneShotRemaining = bLoop ? 0.f : Sequence->GetPlayLength();
 }
 
