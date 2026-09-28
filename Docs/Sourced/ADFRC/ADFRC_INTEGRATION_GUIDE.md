@@ -387,6 +387,184 @@ print(rig["skeleton_fbx"], len(rig["clip_fbx"]), "clips")
 
 ---
 
+## 6.1 `config_registry.json` — what each item *is*
+
+`ASSET_MANIFEST.json` says which files exist. `config_registry.json` says what
+they mean: which config class owns which mesh, where a weapon's muzzle sits in
+model space, which animation a weapon plays, what a magazine holds.
+
+`_tools/config_registry.py` runs the Arma config language end to end —
+comment stripping, `\` continuations, a full preprocessor (object- and
+function-like macros, `##` pasting, `#x` stringification, `#include`,
+`#ifdef`/`#else`/`#undef`), class-tree parsing with inheritance, and
+`__EVAL()` arithmetic — then extracts the families below and cross-links them
+against `ASSET_MANIFEST.json`.
+
+```
+218 config files · 73,736 logical lines · 200 macros · 43 includes resolved
+9,927 classes (1,373 top level) · 0 unparsed statements
+2,648 items, 1,444 distinct names (1,204 are repeat declarations — see §6.2)
+```
+
+`unparsed_statements: 0` is the number to watch: anything the parser could not
+consume is counted and reported rather than silently dropped.
+
+> **`ADFRC_CONFIG_REGISTRY.md` is the full reference for this registry** — the
+> complete field-by-field schema, every extracted family with worked examples,
+> the per-vehicle crew-animation table, and the maintenance constants. This
+> section is the summary.
+
+### What each class carries
+
+```jsonc
+{
+  "name": "ADFRC_M4A5_556_Base",
+  "path": "ADFRC_M4A5_556_Base",
+  "config_class": "ADFRC_M4A5_556_Base",
+  "kind": "weapon",              // see the kind table below
+  "is_item": true,               // false for internals (fire modes, slots)
+  "parents": ["Rifle_Base_F"],
+  "source": "Source/adfrc_m4a5/M4A5.hpp",
+  "attachment_points": {          // memory points, verbatim from the config
+    "muzzleend": "konec hlavne", "muzzlepos": "usti hlavne",
+    "cartridgepos": "nabojnicestart", "cartridgevel": "nabojniceend"
+  },
+  "timings": { "magazineReloadSwitchPhase": 0.48 },   // numbers, not strings
+  "magazines": ["ADFRC_30Rnd_PMAG"],
+  "fire_modes": ["Single", "FullAuto"],
+  "linked_items": { "MuzzleSlot": { … } },            // any depth
+  "weapon_slots": { "UnderBarrelSlot": { … } },
+  "models":  [ { "config_path": "…", "stem": "…", "fbx": "Models_UE/…",
+                 "matched": true } ],
+  "animation_clips": [ { "prop": "handAnim[]", "config_path": "…\\EF88_static.rtm",
+                         "clips": [ { "clip": "…json", "rig": "…", "fbx": … } ],
+                         "matched": true } ],
+  "sounds": [ … ], "sound_sets_used": [ … ],
+  "own_properties": { /* every property this class declares itself */ }
+}
+```
+
+`kind` values: `weapon` 1421, `uniform` 198, `model_proxy` 154, `vehicle` 109,
+`unit` 77, `magazine` 75, `ammo` 72, `sound` 69, `item` 68, `insignia` 62,
+`skeleton` 60, `sound_shader` 48, `cloudlet` 37, `soundset` 36, `glasses` 36,
+`gear` 29, `patch` 28, `move` 26, `gesture` 11, `unknown` 10, `ui_template` 8,
+`faction` 7.
+
+Only 10 items are `unknown` — those derive from classes the pack never declares
+(`muzzle_snds_M`, `ADFRC_MD_Green_TAGW_Rolled_Base`), so there is no chain to
+walk. `unknown` 3258 in `by_kind` is the same 10 plus non-item internals.
+
+### Cross-link coverage
+
+| Edge | Refs | Matched to disk |
+|---|---|---|
+| class → FBX (`models`) | 2,673 | **1,953** (1,952 classes) |
+| class → clip (`animation_clips`) | 1,267 | **1,267** — 100 % |
+| class → soundset → shader → WAV | 243 | **243** — 100 % (24 distinct WAVs) |
+
+Clip and audio coverage is total because both are closed chains inside the
+pack. Model coverage is not: 720 references name a `.p3d` the pack never ships
+(vanilla Arma weapons, or a mesh only present as a proxy).
+
+### The two-hop and three-hop audio chain
+
+A weapon never names an audio file. It names a *class*, three times over:
+
+```
+weapon.handAnim / fire mode .soundSetShot[]  →  CfgSoundSets.X
+CfgSoundSets.X .soundShaders[]                →  CfgSoundShaders.Y
+CfgSoundShaders.Y .samples[]                  →  "\ADF_Weapons\…\AUG_closeShot_01"
+```
+
+The last hop is a file path **with no extension**. `config_registry.py` follows
+all three and matches the stem against the manifest; the resolved sets live once
+in a top-level `sound_sets` table, and classes reference them by name from
+`sound_sets_used` (inlining them tripled the file).
+
+Only **6 of the 76** soundset names the pack references are declared in the
+pack — the other 70 are vanilla A3 and are listed per class in
+`sound_sets_unresolved` rather than guessed at.
+
+### Vehicles and crew animation
+
+A vehicle never names a clip either. It names a **CfgMoves state**:
+
+```
+CfgVehicles → Heli_Attack_03_base_F .driverAction = "Heli_Attack_03_pilot"
+CfgMovesMaleSdr.States.Heli_Attack_03_pilot .file = "\ADF_Core\Anim\Heli_Attack_03_pilot.rtm"
+```
+
+`crew_animations` resolves that second hop and records the rtm and clip, with
+the declaring scope so a turret's gunner action is distinguishable from the
+driver's. This is the only vehicle→animation edge in the config: 5 items carry
+one, covering 36 unique bindings of which 7 name a state the pack declares.
+`known_state: false` means the state is vanilla A3
+and absent from the pack (`GetInHigh`, `Heli_Attack_03_Gunner`).
+
+### What the parser could not consume
+
+| | Count | Note |
+|---|---|---|
+| Unparsed statements | **0** | — |
+| Unknown macro calls | 60 | `Grip_Macro`, `circle_xx`, `circle2_xx` — never defined anywhere in the pack. Upstream breakage; each statement is skipped and listed in `unknown_macro_calls`. This is why some grips and the Gustav blast cloudlets are incomplete. |
+| Unresolved includes | 4 | All `\z\aceax\addons\main\…` — external ACE, not shipped here. |
+| Undecodable config | 1 | `Workshop/ADF_Weapons/adfrc_f1grenade/config.bin`, unsupported value sign |
+
+### Four parser bugs worth knowing about
+
+**Arma class names are case-insensitive, and the pack relies on it.** It declares
+`ADFRC_Soldier_base_F` but derives `ADFRC_MD_AMCU_Soldier_Base` from
+`ADFRC_Soldier_Base_F`. A case-sensitive parent walk breaks that chain silently
+and the class falls out of every classification. Same for property names:
+`soundSetShot[]` is spelled `soundsetshot[]`, `soundSetShot[]` and
+`SoundSetShot[]` in different files.
+
+**Forward declarations come first.** `class ADFRC_G19_Base;` appears inside
+`cfgweapons` before the real definition elsewhere. A `setdefault`-style "first
+parent wins" index strands the walk with no parents, so parents are *merged*
+across the whole corpus.
+
+**Classify by walking up, not by direct parent.** A weapon chains
+`ADFRC_EF88_Black → ADFRC_EF88_Base → Rifle_Base_F`. Direct-parent matching
+alone left 472 weapon variants as `unknown`.
+
+**`CfgVehicles` is a mixed bag.** Arma files uniforms, backpacks and vests in it
+alongside vehicles, so a config-root match alone called a plate carrier a
+vehicle. Content properties (`uniformClass`, `isbackpack`, `maximumLoad`,
+`vehicleClass`) are checked *first*. Doing this took unknown items from 1,989 to
+10.
+
+A related trap: `effective` (properties after inheritance) is fine for
+single-valued lookups, but sweeping a subtree with it repeats every inherited
+array once per descendant — that inflated sound references from 2,576 to 46,368
+and the file from 11 MB to 17 MB. Subtree sweeps read **own** properties.
+
+### Example
+
+```python
+import json
+r = json.load(open("_tools/config_registry.json"))
+by = {}
+for c in r["classes"]:
+    if c["is_item"]:
+        by.setdefault(c["name"], c)
+
+w = by["ADFRC_M4A5_556_Base"]
+print(w["kind"], w["attachment_points"])
+print(w["timings"], w["magazines"], w["fire_modes"])
+print([m["fbx"] for m in w["models"] if m["matched"]])
+print(list(w["weapon_slots"]))
+
+# every weapon whose FBX exists
+for c in r["classes"]:
+    if c["is_item"] and c["kind"] == "weapon":
+        hit = [m["fbx"] for m in c["models"] if m["matched"]]
+        if hit:
+            print(c["name"], "→", hit[0], c["timings"])
+```
+
+---
+
 ## 7. Provenance and licence — **read before shipping**
 
 ADFRC is licensed **APL-SA** (Arma Public License). Per the Workshop page and
@@ -431,6 +609,7 @@ take explicit paths.
 | `paa2png.c` | `.paa` (DXT1/3/5, LZO mips) → PNG |
 | `wss2wav.py` | `.wss` → `.wav` |
 | `ogg_to_wav.py` | `.ogg` → 16-bit PCM `.wav`, with level + conflict reporting |
+| `config_registry.py` | The 218 `.hpp`/`.cpp`/`.cfg` files → `config_registry.json` (see §6.1) |
 | `extract_pbo.py`, `extract_textures.py`, `extract_workshop_textures.py` | Stage-1 extraction |
 
 ### Two bugs worth knowing about
@@ -458,6 +637,10 @@ records.
 | 26 `.rvmat` files reference `.tga` textures that exist nowhere in the pack | Broken upstream; no action possible |
 | 37 `.uasset` files | **Solved — they are Unreal Engine 5.8 editor assets**, not an unknown format. `0x9e2a83c1` is the UE package tag; the payloads carry `++UE5+Release-5.8`, `/Script/Engine.Texture2D` / `.SoundWave`, and package paths like `/Game/Sourced/ADF/...` that map exactly onto this repo's `Content/Sourced/ADF/` (and `SouthernSpear.uproject` is `EngineAssociation 5.8`). 9 Texture2D + 28 SoundWave. They need no decoding — copy them in and they load. Content is largely redundant with the `.paa`/`.wss` set; the only genuinely new one is `exfil_co.uasset` (a UE-built 4 MB version of the helmet camo texture). |
 | 1 config file fails to decode | `adfrc_f1grenade/config.bin`, unsupported value sign |
+| 60 config statements use undefined macros | `Grip_Macro`, `circle_xx`, `circle2_xx` are called but never defined in the pack. Upstream breakage; the statements are skipped and listed in `config_registry.json` → `unknown_macro_calls`. Some grips and the Gustav blast cloudlets are therefore incomplete. |
+| 4 includes point outside the pack | `\z\aceax\addons\main\…` (external ACE). `ADFRC_W1_ACEXT` parses without them. |
+| 70 of 76 referenced soundsets are vanilla A3 | Not shipped here, so those weapon sounds do not resolve. Listed per class in `sound_sets_unresolved`. |
+| 720 model references name a `.p3d` the pack does not ship | Vanilla Arma weapons, or meshes present only as a proxy. 1,953 of 2,673 refs resolve. |
 | No skinned meshes | By design — the pack ships static geometry only |
 | LODs merged into single FBX | Split on import, build LOD groups manually |
 | Decoded PNGs sit in two different trees | 1,255 textures are at `Textures/<mod>/…` while 1,232 keep the `Textures/Workshop/<addon>/…` prefix the PBO unpack produced, and 13 match neither (6 extraction outputs kept the source extension in the name, e.g. `X.PAA.png`; 7 name a texture that lives in a different addon folder than the header table claims). Content is complete; only the path layout is inconsistent, so path-based tooling must not assume one shape. |
@@ -491,6 +674,10 @@ python -c "import json;d=json.load(open('Textures/_ue_manifest.json'));print(d['
 
 # 4. Animation rigs
 python -c "import json;[print(r['rig'],r['bone_count'],r['root']) for r in json.load(open('ASSET_MANIFEST.json'))['rigs']]"
+
+# 5. What each item IS — class, muzzle points, timings, magazines
+python -c "import json;d=json.load(open('_tools/config_registry.json'));print(json.dumps(d['summary']['items_by_kind'],indent=1))"
+python -c "import json;d=json.load(open('_tools/config_registry.json'));c=[x for x in d['classes'] if x['name']=='ADFRC_M4A5_556_Base' and x['is_item']][0];print(c['attachment_points'],c['timings'],c['magazines'])"
 ```
 
 ---
