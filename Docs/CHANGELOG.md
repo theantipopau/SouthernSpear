@@ -5524,6 +5524,54 @@ export timestamp is pinned.
 
 ---
 
+## Session 066 — 2026-09-28 — review of Session 065: R-65 reopened as unobserved, the gesture clips don't pose, decoder re-runs
+
+### COMPLETED
+
+- **R-65 is not "the hook never runs".** Session 065 traced `FinalizeAnimationUpdate` (PhysAnim.cpp:468) calling
+  `FinalizeBoneTransform` on every evaluated or interpolated game frame. `USSHandIKMeshComponent` edits the
+  editable buffer before `Super` flips it, so the edit should be published. No one has looked at a rendered frame
+  with `ss.HandIK 1` against `ss.HandIK 0`; R-65 is now "unobserved", and that A/B screenshot is the next action.
+- **`GestureReloadAUG`/`…Prone` do not pose under the grip model**: the wrists come out 1.5-3.2 m apart. The start
+  offset and 0.88 m step in Session 065 were this, not a gesture start pose. `adfrc_reload.py` now refuses any frame
+  with wrists over 0.9 m apart (new test). `MPP_Slow_Reload` passes (steps ≤ 13 cm) but is not the AUG gesture.
+  W5 plan: the left-hand path is authored from the weapon's own points (grip → `magazine_axis` → pouch → back),
+  not decoded.
+- **The decoder can be re-run.** `rtm_rigs.py` skips everything under `Rig/`, not just files directly in it.
+
+### FILES CHANGED
+
+`Docs/Sourced/ADFRC/rtm_rigs.py`, `Tools/Common/adfrc_reload.py`, `Tools/Common/test_adfrc_reload.py`, `Docs/CHANGELOG.md`.
+
+### TESTING
+
+- `python Tools/Common/test_adfrc_reload.py` → exit 0, 11/11 checks passed.
+- `python Tools/Common/test_rtm_rigs.py` → exit 0, 0 failures.
+- `python Tools/Common/adfrc_reload.py A88` → exits with an error: GestureReloadAUG frame 0 has the wrists 1.95 m apart.
+- NOT RUN: running the decoder twice on the real tree (the raw pack is on the producer's machine only), the build,
+  the automation tests, the in-game check.
+
+### ASSETS
+
+None.
+
+### RISKS
+
+- R-65 restated: the hand IK hook runs (Session 065) but its effect on the rendered pose has never been observed.
+- R-78: the ADFRC gesture clips decode to impossible poses, so the reload can't come from Arma's animation.
+
+### DEFECTS FOUND
+
+- The gesture clips give impossible poses (found by measuring the wrist-to-wrist distance per frame).
+- The decoder crashed when re-run (found by the Session 065 agent; fixed here).
+
+### NEXT ACTION
+
+A rendered A/B check of the hand IK: `-game` A88 runs with `-SSShotAt` and `-SSExec=ss.HandIK 0` versus
+`ss.HandIK 1`, and pixel-diff the left hand.
+
+---
+
 ## Open Threads
 
 | Item | Blocked on | Owner |

@@ -488,7 +488,9 @@ def rig_key(bones):
 
 def main():
     files = [f for f in sorted(glob.glob(os.path.join(EX, "**", "*.json"), recursive=True))
-             if os.path.basename(os.path.dirname(f)) != "Rig"]
+             # skip everything under Rig/ (our own output, which lives in Rig/<rigkey>/) so a re-run
+             # never reads what an earlier run wrote
+             if os.path.commonpath([os.path.abspath(f), os.path.abspath(RIG_DIR)]) != os.path.abspath(RIG_DIR)]
     print("decoded clips: %d" % len(files))
 
     groups = collections.defaultdict(list)

@@ -31,6 +31,9 @@ ROOT = g.ROOT
 # Arma's magazineReloadSwitchPhase for the EF88 family (ADFRC_CONFIG_REGISTRY: 0.48): the fraction of the
 # reload at which the old magazine is gone and the new one appears.
 SWITCH_PHASE = {"A88": 0.48, "A88G": 0.48}
+# Wrist to wrist can't exceed two arms across the chest; a clip that does wasn't posed by this model
+# (GestureReloadAUG decodes to 1.5-2.7 m, Session 066) and would teach the game a nonsense path.
+MAX_HAND_SEPARATION_M = 0.9
 
 
 def weapon_axes(trigger, muzzle):
@@ -60,6 +63,10 @@ def reload_path(stem, trigger, muzzle, samples=33, frames_override=None):
     offsets = []
     for frame in frames:
         left, right = g.hands_in_weapon_space(bones, parents, frame)
+        separation = g.norm(g.sub(left, right))
+        if separation > MAX_HAND_SEPARATION_M:
+            raise ValueError("clip {}: hands {:.2f} m apart in frame {}; this clip does not pose under the grip "
+                             "model".format(stem, separation, len(offsets)))
         offsets.append(offset_in_axes(g.sub(left, right), trigger, muzzle))
     samples = max(2, min(samples, len(frames)))
     keys = []

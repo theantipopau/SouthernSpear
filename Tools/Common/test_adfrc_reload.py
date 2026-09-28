@@ -78,6 +78,15 @@ def main():
     except ValueError:
         check("a one-frame clip is refused", True)
 
+    # A clip whose hands end up further apart than arms reach is refused, not turned into a path.
+    wide = [list(f) for f in frames]
+    wide[3] = list(wide[3]); wide[3][4] = translate(g.sub((1.5, 0.0, -0.1), rest["lefthand"]))
+    try:
+        r.reload_path("wide", trigger, muzzle, frames_override=(bones, parents, wide))
+        check("an impossible pose is refused", False)
+    except ValueError:
+        check("an impossible pose is refused", True)
+
     # The real grip pose, in the same axes, puts the left hand forward and to the left of the right hand.
     with open(os.path.join(g.ROOT, "Art", "Weapons", "A88", "ADFRC", "manifest.json"), encoding="utf-8") as fh:
         grip = json.load(fh)["grip"]
