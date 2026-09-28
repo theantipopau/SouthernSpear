@@ -202,8 +202,8 @@ duplicated into the HTML.
 | Current phase card quotes the roadmap, not the older changelog glance | pass — "Phase 1 — Greybox Vertical Slice" |
 | Exit criteria rendered from the Phase Summary table | pass |
 | No invented percentages, dates or counts | pass |
-| Loadout renders come only from Class F original models (A88 W-A88-01, A89 W-A89-01) | pass — no ADFRC, L-0017 or blocked reference model is rendered or published |
-| Loadout section: two renders load, are described, and open full-size in the lightbox | pass |
+| Loadout renders follow the 2026-09-28 producer decision (L-0017/L-0021) | pass — ADFRC-derived and sourced models published as labelled current stand-ins; AKM only as a "not a game weapon" reference card |
+| Loadout section: all six renders load, are described, and open full-size in the lightbox | pass |
 | Header and menu type enlarged (nav 0.80 → 0.92rem, brand 1.02 → 1.2rem) | pass — desktop nav switches to the panel at 1100px; no overflow at any of the nine viewports |
 
 ### Data defects found and fixed during this pass

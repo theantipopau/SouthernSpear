@@ -136,14 +136,16 @@ Rules:
 `#loadout` (weapon render cards) → `#latest` (latest-session panel) →
 `#faq` (narrow accordion).
 
-**Loadout imagery is Class F only.** The `#loadout` section shows studio renders of the
-project's own original weapon models: the A88 first-pass source (W-A88-01) and the A89
-light support weapon (W-A89-01, ADR-020), rendered by `Tools/Blender/render_weapons.py`
-into `Docs/images/weapons/`. Nothing ADFRC-derived, the provisional A88 import (L-0017) or
-any blocked reference model is rendered or published, because the licence register does not
-clear those for republication. The renders carry alpha, so they sit directly on the section
-band with no backdrop, and every card is captioned as a render of a first-pass model rather
-than gameplay.
+**Loadout imagery — producer decision of 2026-09-28.** The `#loadout` section shows studio
+renders of the current internal weapon models: the sourced EF88 as the A88, the
+ADFRC-derived A89, A4, A416 and A25, plus the sourced AKM as a labelled reference render.
+`Tools/Blender/render_weapons.py` renders them into `Docs/images/weapons/`, resolving the
+real textures by material-slot name. Publishing third-party-derived models is a recorded
+producer risk acceptance (LICENCE_REGISTER L-0017/L-0021, ASSET_REGISTER intake rule),
+**not a licence clearance**; the section copy says so plainly — the weapons are described as
+current stand-ins to be reshaped into original A-series designs before release, and the AKM
+card states it is not a game weapon. The renders carry alpha, so they sit directly on the
+section band, and every card is captioned as a render, not gameplay.
 
 **Two pages.** The full searchable changelog lives on `changelog.html` (2026-09-28), which
 opens with `.page-head` — a flat, banner-less header using the ink-900 surface, a radial

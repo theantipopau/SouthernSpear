@@ -242,19 +242,23 @@ def build_concepts():
 
 
 def build_weapons():
-    """Product renders of the project's own A-series weapon designs.
+    """Loadout renders of the current internal weapon models.
 
-    Sources are the Class F original first-pass models rendered by
-    Tools/Blender/render_weapons.py: the A88 (W-A88-01) and the A89 light
-    support weapon (W-A89-01, ADR-020). Nothing ADFRC-derived, the
-    provisional A88 import or any blocked reference file is read here, because
-    none of those may be republished.
+    Sources are the renders produced by Tools/Blender/render_weapons.py: the
+    sourced EF88 model as the A88, the ADFRC-derived A4, A416, A25 and A89,
+    and the sourced AKM as an explicitly labelled reference render. Per the
+    producer decision of 2026-09-28 (LICENCE_REGISTER L-0017/L-0021, and the
+    ASSET_REGISTER intake-rule exception) these are published on the site as
+    promotion; that decision is a recorded risk acceptance, not a licence
+    clearance, and none of this changes the blocked release status of the
+    underlying assets.
 
     Each render is transparent, so the transparent margin is cropped away
     before the derivatives are written: a long thin rifle in a 4:3 frame wastes
     a third of its pixels, and the site's cards are landscape anyway.
     """
-    weapons = (("a88", "weapon-a88"), ("a89", "weapon-a89"))
+    weapons = (("a88", "weapon-a88"), ("a89", "weapon-a89"), ("a4", "weapon-a4"),
+               ("a416", "weapon-a416"), ("a25", "weapon-a25"), ("akm", "weapon-akm"))
     for src_stem, stem in weapons:
         path = os.path.join(SRC, "weapons", src_stem + ".png")
         if not os.path.isfile(path):
