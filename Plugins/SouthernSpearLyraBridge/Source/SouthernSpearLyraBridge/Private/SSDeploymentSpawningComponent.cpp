@@ -4,7 +4,9 @@
 
 #include "Engine/World.h"
 #include "GameFramework/Controller.h"
+#include "GameFramework/Pawn.h"
 #include "Player/LyraPlayerStart.h"
+#include "SSRespawnGate.h"
 #include "Teams/LyraTeamSubsystem.h"
 
 USSDeploymentSpawningComponent::USSDeploymentSpawningComponent(const FObjectInitializer& ObjectInitializer)
@@ -36,4 +38,22 @@ AActor* USSDeploymentSpawningComponent::OnChoosePlayerStart(AController* Player,
 		return nullptr; // map has no tagged deployments
 	}
 	return GetFirstRandomUnoccupiedPlayerStart(Player, Ours);
+}
+
+void USSDeploymentSpawningComponent::OnFinishRestartPlayer(AController* Player, const FRotator& StartRotation)
+{
+	Super::OnFinishRestartPlayer(Player, StartRotation);
+
+	const USSRespawnGate* Gate = GetWorld() ? GetWorld()->GetSubsystem<USSRespawnGate>() : nullptr;
+	if (!Gate || !Player || !Gate->MustHoldOut(Player))
+	{
+		return;
+	}
+	APawn* Pawn = Player->GetPawn();
+	UE_LOG(LogTemp, Log, TEXT("Southern Spear: %s is out until the next round (single life, ADR-031)."), *Player->GetName());
+	Player->UnPossess();
+	if (Pawn)
+	{
+		Pawn->Destroy();
+	}
 }

@@ -55,6 +55,8 @@ private:
 	UFUNCTION() void OnBots4();
 	UFUNCTION() void OnBots8();
 	UFUNCTION() void OnBots12();
+	UFUNCTION() void OnRulesObjective();
+	UFUNCTION() void OnRulesSection();
 	UFUNCTION() void OnSettings();
 	UFUNCTION() void OnResume();
 	UFUNCTION() void OnRedeploy();
@@ -64,6 +66,7 @@ private:
 	UFUNCTION() void OnQuit();
 
 	void SetBots(int32 Count);
+	void SetSectionRules(bool bSection);
 	UButton* AddHandler(UButton* Button, FName Handler);
 	UWidget* Stagger(UWidget* Widget) { Animated.Add(Widget); return Widget; }
 
@@ -76,8 +79,13 @@ private:
 	UPROPERTY(Transient) TObjectPtr<UTextBlock> TitleText;
 	UPROPERTY(Transient) TArray<TObjectPtr<UWidget>> Animated;
 	UPROPERTY(Transient) TArray<TObjectPtr<UButton>> BotButtons;
+	/** Objective Assault, Section Assault (ADR-031). */
+	UPROPERTY(Transient) TArray<TObjectPtr<UButton>> RulesButtons;
 	UPROPERTY(Transient) TObjectPtr<USSSettingsWidget> Settings;
 
 	/** Bots per match chosen on the front end (kept across menu instances). */
 	static int32 SelectedBots;
+
+	/** Section Assault chosen on the front end: the map opens with ?Rules=Section. */
+	static bool bSelectedSectionRules;
 };

@@ -13,6 +13,9 @@
 #include "GameFramework/PlayerController.h"
 #include "GameFramework/PlayerState.h"
 #include "SSLyraReflection.h"
+#include "SSRespawnGate.h"
+#include "SSServiceEvents.h"
+#include "SSTeamIdentityLibrary.h"
 
 using namespace SSLyraReflection;
 
@@ -74,6 +77,13 @@ void USSKillFeedRelay::ClientAddKill_Implementation(const FSSKillFeedEntry& Entr
 void USSKillFeedRelay::ServerRedeploy_Implementation()
 {
 	const APlayerController* Owner = Cast<APlayerController>(GetOwner());
+	// One life per round (ADR-031): re-deploying mid-round would end it for good.
+	const USSRespawnGate* Gate = GetWorld() ? GetWorld()->GetSubsystem<USSRespawnGate>() : nullptr;
+	if (Gate && Gate->IsLocked())
+	{
+		UE_LOG(LogTemp, Log, TEXT("Southern Spear re-deploy refused: single-life round in progress."));
+		return;
+	}
 	APawn* Pawn = Owner ? Owner->GetPawn() : nullptr;
 	static UClass* HealthClass = FindObject<UClass>(nullptr, TEXT("/Script/LyraGame.LyraHealthComponent"));
 	ULyraHealthComponent* Health = Pawn && HealthClass ? static_cast<ULyraHealthComponent*>(Pawn->GetComponentByClass(HealthClass)) : nullptr;
@@ -160,6 +170,22 @@ void USSKillFeedSubsystem::HandleOutOfHealth(const UAttributeSet* Set, AActor* I
 	if (!World || !Victim)
 	{
 		return;
+	}
+
+	// Gameplay consequences, server only: the round's roster (ADR-031) and the
+	// conduct penalty for a friendly kill (ADR-032). Neither changes damage.
+	AController* VictimController = Victim->GetOwningController();
+	if (USSRespawnGate* Gate = World->GetSubsystem<USSRespawnGate>())
+	{
+		Gate->ReportElimination(VictimController);
+	}
+	const ESSTeamId VictimTeam = TeamOf(Victim);
+	if (Killer && Killer != Victim && FSSTeamIdentity::IsPlayableTeam(VictimTeam) && TeamOf(Killer) == VictimTeam)
+	{
+		if (USSServiceEventSubsystem* Bus = World->GetSubsystem<USSServiceEventSubsystem>())
+		{
+			Bus->Post(Killer->GetOwningController(), ESSServiceEvent::FriendlyKill);
+		}
 	}
 
 	FSSKillFeedEntry Entry;

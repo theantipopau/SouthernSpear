@@ -63,6 +63,18 @@ struct SSOBJUI_API FSSObjectiveHudModel
 	static FSSObjectiveHudModel Build(const FSSRoundState& Round, const FSSObjectiveState* Active,
 		const FText& ActiveName, ESSTeamId ViewerTeam);
 
+	/** Section Assault (ADR-031): the viewer's role this round, "Attack" or "Defend"; empty without a team. */
+	FText Role;
+	bool bViewerAttacking = false;
+
+	/**
+	 * Section Assault: turn a model built by Build into the match view. Scores
+	 * become rounds won, the round label counts rounds in this match, the phase
+	 * label carries the viewer's role and alive counts ("Attack  4 v 3"), and the
+	 * post-round header says why the round ended.
+	 */
+	void ApplySectionAssault(const FSSRoundState& Round, const FSSMatchState& Match, ESSTeamId ViewerTeam);
+
 	/** "Friendly"/"Opposing" from the viewer, or "Team One"/"Team Two" without one. */
 	static FText TeamWord(ESSTeamId Team, ESSTeamId ViewerTeam);
 

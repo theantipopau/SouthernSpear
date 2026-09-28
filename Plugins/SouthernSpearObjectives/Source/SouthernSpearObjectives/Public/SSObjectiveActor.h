@@ -7,6 +7,7 @@
 #include "SSObjectiveTypes.h"
 #include "SSObjectiveActor.generated.h"
 
+class AController;
 class USphereComponent;
 
 /**
@@ -42,6 +43,12 @@ public:
 	/** Server only. Count presence per team and advance capture. */
 	void ServerStepCapture(float DeltaSeconds, int32 TeamOneGenericId, int32 TeamTwoGenericId);
 
+	/** Server only. Section Assault (ADR-031): as ServerStepCapture, but only Attacker can take the objective. */
+	void ServerStepAttackCapture(float DeltaSeconds, int32 TeamOneGenericId, int32 TeamTwoGenericId, ESSTeamId Attacker);
+
+	/** Server only. Controllers of the live pawns of one team inside the capture volume now. */
+	void GetPresentControllers(int32 TeamGenericId, TArray<AController*>& OutControllers) const;
+
 	/** Server only. Replace the state (round reset, activation). */
 	void ServerSetState(const FSSObjectiveState& NewState);
 
@@ -63,6 +70,9 @@ protected:
 	void OnRep_State(const FSSObjectiveState& Previous);
 
 private:
+	/** Count controlled pawns per team inside the capture volume; stores the Last*Count values. */
+	void CountPresence(int32 TeamOneGenericId, int32 TeamTwoGenericId);
+
 	int32 LastTeamOneCount = 0;
 	int32 LastTeamTwoCount = 0;
 };

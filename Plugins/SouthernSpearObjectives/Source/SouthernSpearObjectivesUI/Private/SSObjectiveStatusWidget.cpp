@@ -201,6 +201,10 @@ void USSObjectiveStatusWidget::NativeTick(const FGeometry& MyGeometry, float InD
 	FSSObjectiveHudModel Model = FSSObjectiveHudModel::Build(
 		Round, Active ? &Active->GetObjectiveState() : nullptr,
 		Active ? Active->ObjectiveName : FText::GetEmpty(), ViewerTeam);
+	if (Dir->IsSectionAssault())
+	{
+		Model.ApplySectionAssault(Round, Dir->GetMatchState(), ViewerTeam);
+	}
 
 	TArray<FSSObjectiveState> States;
 	for (const ASSObjectiveActor* Objective : Objectives)

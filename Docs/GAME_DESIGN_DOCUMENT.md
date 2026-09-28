@@ -176,6 +176,7 @@ Data-driven: each role is a `FSSRoleDefinition` in a Data Asset. Limits, equipme
 ### 4.6 Game modes
 
 **Objective Assault** — sequential/parallel objectives; attackers take, defenders hold; limited respawns or round-based elimination.
+*As built:* ADR-018 is the symmetric, unlimited-respawn version. **Section Assault** (ADR-031) is the round-based version: one life per round, one team attacks and one defends, sides swap at half time, first to five. Win by final objective or elimination; defenders win on time.
 **Secure and Hold** — capture and hold tactical locations; ticket or round-based scoring.
 **Extraction** — locate, secure and extract an objective; defenders reposition to deny routes.
 **Convoy Interdiction** — escort or stop a convoy. **Explicitly deferred until vehicle networking is proven stable.**

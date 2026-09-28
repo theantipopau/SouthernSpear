@@ -119,6 +119,19 @@ void USSRoundBannerWidget::NativeTick(const FGeometry& MyGeometry, float InDelta
 			Show(FText::Format(NSLOCTEXT("SSBanner", "Round", "Round {0}"), FText::AsNumber(Round.RoundNumber)),
 				NSLOCTEXT("SSBanner", "StandBy", "Stand by  ·  deploying"), SSUIStyle::Brass500());
 		}
+		else if (Round.Phase == ESSRoundPhase::InProgress && Dir->IsSectionAssault())
+		{
+			// ADR-031: one life, so say which job this round is.
+			FSSObjectiveHudModel Model = FSSObjectiveHudModel::Build(Round, nullptr, FText::GetEmpty(), ViewerTeam);
+			Model.ApplySectionAssault(Round, Dir->GetMatchState(), ViewerTeam);
+			const FText Title = Model.Role.IsEmpty() ? NSLOCTEXT("SSBanner", "Assault", "Assault") : Model.Role;
+			Show(Title,
+				FText::Format(Model.bViewerAttacking || Model.Role.IsEmpty()
+						? NSLOCTEXT("SSBanner", "TakeOneLife", "Take objective {0}  ·  {1}  ·  one life")
+						: NSLOCTEXT("SSBanner", "HoldOneLife", "Hold objective {0}  ·  {1}  ·  one life"),
+					Letter(Round.ActiveObjectiveIndex), NameOf(Round.ActiveObjectiveIndex)),
+				SSUIStyle::Brass500());
+		}
 		else if (Round.Phase == ESSRoundPhase::InProgress)
 		{
 			Show(NSLOCTEXT("SSBanner", "Assault", "Assault"),
@@ -127,7 +140,11 @@ void USSRoundBannerWidget::NativeTick(const FGeometry& MyGeometry, float InDelta
 		}
 		else if (Round.Phase == ESSRoundPhase::PostRound)
 		{
-			const FSSObjectiveHudModel Model = FSSObjectiveHudModel::Build(Round, nullptr, FText::GetEmpty(), ViewerTeam);
+			FSSObjectiveHudModel Model = FSSObjectiveHudModel::Build(Round, nullptr, FText::GetEmpty(), ViewerTeam);
+			if (Dir->IsSectionAssault())
+			{
+				Model.ApplySectionAssault(Round, Dir->GetMatchState(), ViewerTeam);
+			}
 			const FLinearColor Tone = Model.FirstScore > Model.SecondScore ? SSUIStyle::ToneColour(Model.FirstTone)
 				: Model.SecondScore > Model.FirstScore ? SSUIStyle::ToneColour(Model.SecondTone) : SSUIStyle::Brass500();
 			Show(Model.PhaseLabel, FText::Format(NSLOCTEXT("SSBanner", "Score", "{0} {1}  –  {2} {3}"),

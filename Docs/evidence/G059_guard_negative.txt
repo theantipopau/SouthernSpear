@@ -1,0 +1,13 @@
+$ python Tools/validate_architecture.py   (scratch copy with injected violations: SouthernSpearProgression depends on LyraGame (SS002); ESSServiceEvent gains EnemyKilled (SS009). A separate run with Progression -> SouthernSpearObjectives failed SS001, exit 1.)
+======================================================================
+SOUTHERN SPEAR - ARCHITECTURE GUARD
+======================================================================
+FAIL - 2 violation(s):
+
+  SS002: Plugins/SouthernSpearProgression/Source/SouthernSpearProgression/SouthernSpearProgression.Build.cs
+      SouthernSpearProgression depends on Lyra gameplay module(s): LyraGame. It must stay independent of weapons, damage, health, abilities, roles, objectives and UI.
+
+  SS009: Plugins/SouthernSpearCore/Source/SouthernSpearCore/Public/SSServiceEvents.h
+      service event 'EnemyKilled' names a kill. Progression must not reward kills (GDD 6.4); FriendlyKill (a penalty) is the only kill event allowed.
+
+exit=1

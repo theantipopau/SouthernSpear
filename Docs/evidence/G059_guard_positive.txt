@@ -1,0 +1,6 @@
+$ python Tools/validate_architecture.py   (real tree, 2026-09-28, Session 048)
+======================================================================
+SOUTHERN SPEAR - ARCHITECTURE GUARD
+======================================================================
+PASS - no architecture violations found.
+exit=0

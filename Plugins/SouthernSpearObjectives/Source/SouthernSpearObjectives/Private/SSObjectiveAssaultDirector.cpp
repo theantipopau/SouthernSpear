@@ -7,11 +7,15 @@
 #include "BehaviorTree/BlackboardComponent.h"
 #include "EngineUtils.h"
 #include "GameFramework/GameModeBase.h"
+#include "GameFramework/PlayerState.h"
 #include "Kismet/GameplayStatics.h"
 #include "TimerManager.h"
 #include "Net/UnrealNetwork.h"
 #include "SSObjectiveActor.h"
 #include "SSObjectiveRules.h"
+#include "SSRespawnGate.h"
+#include "SSSectionAssaultRules.h"
+#include "SSServiceEvents.h"
 #include "SSTeamIdentityLibrary.h"
 
 ASSObjectiveAssaultDirector::ASSObjectiveAssaultDirector()
@@ -27,6 +31,8 @@ void ASSObjectiveAssaultDirector::GetLifetimeReplicatedProps(TArray<FLifetimePro
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 	DOREPLIFETIME(ASSObjectiveAssaultDirector, RoundState);
+	DOREPLIFETIME(ASSObjectiveAssaultDirector, MatchState);
+	DOREPLIFETIME(ASSObjectiveAssaultDirector, RulesMode);
 }
 
 bool ASSObjectiveAssaultDirector::GatherObjectives()
@@ -86,13 +92,36 @@ void ASSObjectiveAssaultDirector::BeginPlay()
 		return;
 	}
 
-	// Playtest overrides from the map URL, e.g. ?RoundSeconds=60
+	// Playtest overrides from the map URL, e.g. ?Rules=Section?RoundSeconds=60
 	if (const AGameModeBase* GameMode = GetWorld()->GetAuthGameMode())
 	{
 		const FString& Options = GameMode->OptionsString;
-		RoundRules.RoundSeconds = UGameplayStatics::GetIntOption(Options, TEXT("RoundSeconds"), FMath::RoundToInt(RoundRules.RoundSeconds));
+		const FString Rules = UGameplayStatics::ParseOption(Options, TEXT("Rules"));
+		if (Rules.Equals(TEXT("Section"), ESearchCase::IgnoreCase))
+		{
+			RulesMode = ESSAssaultRules::SectionAssault;
+		}
+		else if (Rules.Equals(TEXT("Objective"), ESearchCase::IgnoreCase))
+		{
+			RulesMode = ESSAssaultRules::ObjectiveAssault;
+		}
+		else if (!Rules.IsEmpty())
+		{
+			UE_LOG(LogSSObjectives, Error, TEXT("Unknown ?Rules=%s (expected Section or Objective); keeping %s."),
+				*Rules, IsSectionAssault() ? TEXT("Section Assault") : TEXT("Objective Assault"));
+		}
+		float& PlaySeconds = IsSectionAssault() ? SectionRules.RoundSeconds : RoundRules.RoundSeconds;
+		PlaySeconds = UGameplayStatics::GetIntOption(Options, TEXT("RoundSeconds"), FMath::RoundToInt(PlaySeconds));
 		RoundRules.PreRoundSeconds = UGameplayStatics::GetIntOption(Options, TEXT("PreRoundSeconds"), FMath::RoundToInt(RoundRules.PreRoundSeconds));
 		RoundRules.PostRoundSeconds = UGameplayStatics::GetIntOption(Options, TEXT("PostRoundSeconds"), FMath::RoundToInt(RoundRules.PostRoundSeconds));
+		SectionRules.RoundsPerHalf = FMath::Max(1, UGameplayStatics::GetIntOption(Options, TEXT("RoundsPerHalf"), SectionRules.RoundsPerHalf));
+	}
+
+	if (IsSectionAssault())
+	{
+		MatchState = FSSSectionAssaultRules::NewMatch();
+		UE_LOG(LogSSObjectives, Log, TEXT("Section Assault (ADR-031): one life per round, %d round(s) per half, %.0f s rounds."),
+			SectionRules.RoundsPerHalf, SectionRules.RoundSeconds);
 	}
 
 	FSSRoundEvents Events;
@@ -113,14 +142,18 @@ void ASSObjectiveAssaultDirector::Tick(float DeltaSeconds)
 
 void ASSObjectiveAssaultDirector::ServerStep(float DeltaSeconds)
 {
-	ESSTeamId CapturedBy = ESSTeamId::None;
-	if (RoundState.Phase == ESSRoundPhase::InProgress && Objectives.IsValidIndex(RoundState.ActiveObjectiveIndex))
+	if (IsSectionAssault())
 	{
-		ASSObjectiveActor* Active = Objectives[RoundState.ActiveObjectiveIndex];
-		Active->ServerStepCapture(DeltaSeconds, TeamOneGenericId, TeamTwoGenericId);
-		CapturedBy = Active->GetObjectiveState().OwnerTeam;
+		ServerStepSectionAssault(DeltaSeconds);
 	}
+	else
+	{
+		ServerStepObjectiveAssault(DeltaSeconds);
+	}
+}
 
+void ASSObjectiveAssaultDirector::SteerIfDue(float DeltaSeconds)
+{
 	if (bSteerIdleBotsToObjective && RoundState.Phase == ESSRoundPhase::InProgress)
 	{
 		SteerAccumulator += DeltaSeconds;
@@ -130,11 +163,85 @@ void ASSObjectiveAssaultDirector::ServerStep(float DeltaSeconds)
 			SteerIdleBots();
 		}
 	}
+}
+
+void ASSObjectiveAssaultDirector::ServerStepObjectiveAssault(float DeltaSeconds)
+{
+	ESSTeamId CapturedBy = ESSTeamId::None;
+	if (RoundState.Phase == ESSRoundPhase::InProgress && Objectives.IsValidIndex(RoundState.ActiveObjectiveIndex))
+	{
+		ASSObjectiveActor* Active = Objectives[RoundState.ActiveObjectiveIndex];
+		Active->ServerStepCapture(DeltaSeconds, TeamOneGenericId, TeamTwoGenericId);
+		CapturedBy = Active->GetObjectiveState().OwnerTeam;
+		if (FSSTeamIdentity::IsPlayableTeam(CapturedBy))
+		{
+			PostCaptureEvents(Active, CapturedBy);
+		}
+	}
+
+	SteerIfDue(DeltaSeconds);
 
 	FSSRoundEvents Events;
 	const FSSRoundState Previous = RoundState;
 	RoundState = FSSObjectiveRules::StepRound(RoundState, DeltaSeconds, CapturedBy, RoundRules, Events);
 	LogTransition(Previous);
+	if (Events.bRoundEnded)
+	{
+		const ESSTeamId Winner = RoundState.Outcome == ESSRoundOutcome::TeamOneWon ? ESSTeamId::TeamOne
+			: RoundState.Outcome == ESSRoundOutcome::TeamTwoWon ? ESSTeamId::TeamTwo : ESSTeamId::None;
+		PostRoundEndEvents(Winner, false, ESSTeamId::None);
+	}
+	ApplyEvents(Events);
+}
+
+void ASSObjectiveAssaultDirector::ServerStepSectionAssault(float DeltaSeconds)
+{
+	const ESSTeamId Attacker = MatchState.AttackingTeam;
+	ESSTeamId CapturedBy = ESSTeamId::None;
+	if (RoundState.Phase == ESSRoundPhase::InProgress && Objectives.IsValidIndex(RoundState.ActiveObjectiveIndex))
+	{
+		ASSObjectiveActor* Active = Objectives[RoundState.ActiveObjectiveIndex];
+		Active->ServerStepAttackCapture(DeltaSeconds, TeamOneGenericId, TeamTwoGenericId, Attacker);
+		CapturedBy = Active->GetObjectiveState().OwnerTeam;
+		if (FSSTeamIdentity::IsPlayableTeam(CapturedBy))
+		{
+			PostCaptureEvents(Active, CapturedBy);
+		}
+	}
+
+	SteerIfDue(DeltaSeconds);
+
+	FSSSectionInputs Inputs;
+	Inputs.ActiveObjectiveCapturedBy = CapturedBy;
+	GatherSectionInputs(Inputs);
+
+	FSSRoundEvents Events;
+	const FSSRoundState Previous = RoundState;
+	FSSRoundState NextRound;
+	FSSMatchState NextMatch;
+	FSSSectionAssaultRules::StepRound(RoundState, MatchState, DeltaSeconds, Inputs, RoundRules, SectionRules,
+		NextRound, NextMatch, Events);
+	RoundState = NextRound;
+	MatchState = NextMatch;
+	LogTransition(Previous);
+
+	if (Events.bRoundStarted)
+	{
+		LockRespawnGate();
+	}
+	if (Events.bRoundEnded)
+	{
+		const ESSTeamId Winner = RoundState.Outcome == ESSRoundOutcome::TeamOneWon ? ESSTeamId::TeamOne
+			: RoundState.Outcome == ESSRoundOutcome::TeamTwoWon ? ESSTeamId::TeamTwo : ESSTeamId::None;
+		const FString MatchNote = Events.bMatchEnded
+			? FString::Printf(TEXT(" Match over: %s."), *FSSTeamIdentity::ToDebugString(MatchState.MatchWinner)) : FString();
+		UE_LOG(LogSSObjectives, Log, TEXT("Section Assault round %d: %s attacked, %s (%s). Score T1=%d T2=%d.%s"),
+			RoundState.RoundNumber, *FSSTeamIdentity::ToDebugString(Attacker),
+			FSSObjectiveRules::LexOutcome(RoundState.Outcome), FSSSectionAssaultRules::LexReason(MatchState.LastRoundReason),
+			MatchState.TeamOneRounds, MatchState.TeamTwoRounds, *MatchNote);
+		// Before the reset unlocks the gate: RoundWonAlive reads who is still alive.
+		PostRoundEndEvents(Winner, Events.bMatchEnded, MatchState.MatchWinner);
+	}
 	ApplyEvents(Events);
 }
 
@@ -145,6 +252,11 @@ void ASSObjectiveAssaultDirector::ApplyEvents(const FSSRoundEvents& Events)
 		for (ASSObjectiveActor* Objective : Objectives)
 		{
 			Objective->ServerSetState(FSSObjectiveRules::ResetObjective(false));
+		}
+		// Everyone may spawn again before the respawn below asks for pawns.
+		if (USSRespawnGate* Gate = GetWorld() ? GetWorld()->GetSubsystem<USSRespawnGate>() : nullptr)
+		{
+			Gate->Unlock();
 		}
 		// Round 1 players are freshly spawned already; later rounds need it.
 		if (bRespawnAllOnRoundReset && RoundState.RoundNumber > 1)
@@ -259,12 +371,24 @@ int32 ASSObjectiveAssaultDirector::RespawnAllPlayers()
 		return 0;
 	}
 	PendingRespawn.Reset();
+	// Section Assault held Lyra's own respawn off all round, so the dead (bots
+	// included) have nothing pending and are restarted here too.
+	bPendingRestartIncludesBots = IsSectionAssault();
 	for (FConstControllerIterator It = World->GetControllerIterator(); It; ++It)
 	{
-		if (AController* Controller = It->Get(); Controller && Controller->GetPawn())
+		AController* Controller = It->Get();
+		if (!Controller)
+		{
+			continue;
+		}
+		if (Controller->GetPawn())
 		{
 			PendingRespawn.Add(Controller);
 			Controller->GetPawn()->Destroy();
+		}
+		else if (bPendingRestartIncludesBots && FSSTeamIdentity::IsPlayableTeam(TeamOfController(Controller)))
+		{
+			PendingRespawn.Add(Controller);
 		}
 	}
 	// The game mode normally restarts a controller whose pawn is destroyed.
@@ -282,9 +406,10 @@ void ASSObjectiveAssaultDirector::RestartPawnlessControllers()
 	for (const TWeakObjectPtr<AController>& Weak : PendingRespawn)
 	{
 		AController* Controller = Weak.Get();
-		// AI controllers are left to their own respawn path (Lyra bots may
-		// already have one pending from a death), so only players get this.
-		if (GameMode && Controller && Controller->IsPlayerController() && !Controller->GetPawn())
+		// In Objective Assault AI controllers are left to their own respawn path
+		// (Lyra bots may already have one pending from a death), so only players
+		// get this. Section Assault suppressed that path, so bots get it too.
+		if (GameMode && Controller && (Controller->IsPlayerController() || bPendingRestartIncludesBots) && !Controller->GetPawn())
 		{
 			GameMode->RestartPlayer(Controller);
 			++Restarted;
@@ -305,4 +430,136 @@ ESSTeamId ASSObjectiveAssaultDirector::ToTeamId(FGenericTeamId GenericId) const
 		return ESSTeamId::TeamTwo;
 	}
 	return ESSTeamId::None;
+}
+
+ESSTeamId ASSObjectiveAssaultDirector::TeamOfController(const AController* Controller) const
+{
+	if (!Controller)
+	{
+		return ESSTeamId::None;
+	}
+	const UObject* Sources[] = { Controller, Controller->PlayerState.Get(), Controller->GetPawn() };
+	for (const UObject* Source : Sources)
+	{
+		if (const IGenericTeamAgentInterface* Agent = Cast<const IGenericTeamAgentInterface>(Source))
+		{
+			if (Agent->GetGenericTeamId() != FGenericTeamId::NoTeam)
+			{
+				return ToTeamId(Agent->GetGenericTeamId());
+			}
+		}
+	}
+	return ESSTeamId::None;
+}
+
+int32 ASSObjectiveAssaultDirector::GenericIdOf(ESSTeamId Team) const
+{
+	return Team == ESSTeamId::TeamOne ? TeamOneGenericId : Team == ESSTeamId::TeamTwo ? TeamTwoGenericId : INDEX_NONE;
+}
+
+void ASSObjectiveAssaultDirector::GatherSectionInputs(FSSSectionInputs& Inputs) const
+{
+	const UWorld* World = GetWorld();
+	const USSRespawnGate* Gate = World ? World->GetSubsystem<USSRespawnGate>() : nullptr;
+	if (!World || !Gate || !Gate->IsLocked())
+	{
+		return;
+	}
+	for (FConstControllerIterator It = World->GetControllerIterator(); It; ++It)
+	{
+		const AController* Controller = It->Get();
+		if (!Controller || !Gate->IsOnRoster(Controller))
+		{
+			continue;
+		}
+		const ESSTeamId Team = TeamOfController(Controller);
+		const bool bAlive = Gate->IsAlive(Controller);
+		if (Team == ESSTeamId::TeamOne)
+		{
+			++Inputs.TeamOneRoster;
+			Inputs.TeamOneAlive += bAlive ? 1 : 0;
+		}
+		else if (Team == ESSTeamId::TeamTwo)
+		{
+			++Inputs.TeamTwoRoster;
+			Inputs.TeamTwoAlive += bAlive ? 1 : 0;
+		}
+	}
+}
+
+void ASSObjectiveAssaultDirector::LockRespawnGate()
+{
+	UWorld* World = GetWorld();
+	USSRespawnGate* Gate = World ? World->GetSubsystem<USSRespawnGate>() : nullptr;
+	if (!Gate)
+	{
+		UE_LOG(LogSSObjectives, Error, TEXT("Section Assault: no respawn gate in this world; the round has no roster."));
+		return;
+	}
+	TArray<AController*> Roster;
+	for (FConstControllerIterator It = World->GetControllerIterator(); It; ++It)
+	{
+		AController* Controller = It->Get();
+		if (Controller && Controller->GetPawn() && FSSTeamIdentity::IsPlayableTeam(TeamOfController(Controller)))
+		{
+			Roster.Add(Controller);
+		}
+	}
+	Gate->Lock(Roster);
+}
+
+void ASSObjectiveAssaultDirector::PostCaptureEvents(const ASSObjectiveActor* Objective, ESSTeamId Captor)
+{
+	USSServiceEventSubsystem* Bus = GetWorld() ? GetWorld()->GetSubsystem<USSServiceEventSubsystem>() : nullptr;
+	if (!Bus || !Objective)
+	{
+		return;
+	}
+	TArray<AController*> Present;
+	Objective->GetPresentControllers(GenericIdOf(Captor), Present);
+	for (AController* Controller : Present)
+	{
+		Bus->Post(Controller, ESSServiceEvent::ObjectiveCaptured);
+	}
+}
+
+void ASSObjectiveAssaultDirector::PostRoundEndEvents(ESSTeamId Winner, bool bMatchEnded, ESSTeamId MatchWinner)
+{
+	UWorld* World = GetWorld();
+	USSServiceEventSubsystem* Bus = World ? World->GetSubsystem<USSServiceEventSubsystem>() : nullptr;
+	if (!Bus)
+	{
+		return;
+	}
+	const USSRespawnGate* Gate = World->GetSubsystem<USSRespawnGate>();
+	const bool bRoster = IsSectionAssault() && Gate && Gate->IsLocked();
+	for (FConstControllerIterator It = World->GetControllerIterator(); It; ++It)
+	{
+		AController* Controller = It->Get();
+		const ESSTeamId Team = TeamOfController(Controller);
+		if (!Controller || !FSSTeamIdentity::IsPlayableTeam(Team))
+		{
+			continue;
+		}
+		// Section Assault credits the round to the players who started it; a
+		// mid-round joiner earns from the next one.
+		const bool bPlayedRound = !bRoster || Gate->IsOnRoster(Controller);
+		if (bPlayedRound && Team == Winner)
+		{
+			Bus->Post(Controller, ESSServiceEvent::RoundWon);
+			if (bRoster && Gate->IsAlive(Controller))
+			{
+				Bus->Post(Controller, ESSServiceEvent::RoundWonAlive);
+			}
+		}
+		if (bMatchEnded)
+		{
+			// MatchCompleted goes last: progression closes the player's match tally on it.
+			if (Team == MatchWinner)
+			{
+				Bus->Post(Controller, ESSServiceEvent::MatchWon);
+			}
+			Bus->Post(Controller, ESSServiceEvent::MatchCompleted);
+		}
+	}
 }
