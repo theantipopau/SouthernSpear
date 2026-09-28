@@ -19,6 +19,11 @@ OPTICS = os.path.join(B, "adfrc_optics")
 # sits at the front of the upper; the Spectr belongs mid-rail (the Session 041 placement, checked in game).
 OPTIC_X = {"A88": 0.01, "A88G": 0.01}
 
+# W2: each weapon's ADFRC handAnim pose (Docs/WEAPON_SOURCE_DATA.md) -> SOCKET_LeftHandGrip / RightHandGrip.
+# The A9 has none (pistols carry no handAnim in the pack).
+GRIP_CLIPS = {"A88": "EF88_Vg_static", "A88G": "AUG_GL", "A4": "ar15_8in_cgrip_static",
+              "A416": "hk416_cgrip_static", "A25": "ar15_10in_cgrip_static", "A89": "Minimi_Standard"}
+
 # name -> (source MLOD blend, optic blend or None). Optics as the ADF fits them: Spectr on the EF88 family,
 # TA31 ACOG on the M4 / HK416 types, TA648 on the marksman rifle, C79 (ELCAN) on the F89.
 WEAPONS = {
@@ -41,9 +46,14 @@ def main(names):
         env = dict(os.environ)
         if name in OPTIC_X:
             env["SS_OPTIC_X"] = str(OPTIC_X[name])
+        if name in GRIP_CLIPS:
+            env["SS_GRIP_CLIP"] = GRIP_CLIPS[name]
         run = subprocess.run(args, capture_output=True, text=True, errors="replace", env=env)
         line = next((l for l in run.stdout.splitlines() if l.startswith("[ADFRC weapon]")), None)
+        grip = next((l for l in run.stdout.splitlines() if l.startswith("[ADFRC grip]")), None)
         print(name, "OK" if line else "FAILED", line or run.stdout[-600:] + run.stderr[-600:])
+        if grip:
+            print("   ", grip)
         if not line:
             failed.append(name)
     return 1 if failed else 0

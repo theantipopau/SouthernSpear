@@ -16,6 +16,9 @@
 #   memory points: thinner end to +X, bounding-box centre. Metres.
 # - Optional third argument: an optic FBX/blend merged between the iron sights
 #   at eye height (or on the bullpup optic proxy when there are no iron sights).
+# - SS_GRIP_CLIP=<handAnim pose> (W2): SOCKET_LeftHandGrip / SOCKET_RightHandGrip where the ADFRC
+#   pose puts the wrists on this weapon (Tools/Common/adfrc_grip.py, calibrated on trigger_axis and
+#   muzzle_pos). No sockets, and the reason in the manifest, when the pose does not fit.
 #
 # Run: blender --background --factory-startup --python Tools/Blender/adfrc_weapon.py -- <src.blend> <NAME> [optic.fbx]
 
@@ -115,6 +118,25 @@ for slot in obj.material_slots:
 
 # Placement. Points are kept in step with the mesh through every transform.
 points = dict(memory)
+
+# W2: the hands, from the weapon's own handAnim pose, in this MLOD's space (before any transform below).
+grip_report = None
+GRIP_CLIP = os.environ.get("SS_GRIP_CLIP")
+if GRIP_CLIP:
+    sys.path.insert(0, os.path.join(ROOT, "Tools", "Common"))
+    import adfrc_grip
+    if "trigger_axis" in memory and "muzzle_pos" in memory:
+        try:
+            left_hand, right_hand, grip_report = adfrc_grip.grip_points(
+                GRIP_CLIP, tuple(memory["trigger_axis"]), tuple(memory["muzzle_pos"]))
+            if left_hand is not None:
+                points["grip_left"] = mathutils.Vector(left_hand)
+                points["grip_right"] = mathutils.Vector(right_hand)
+        except (OSError, ValueError, KeyError) as error:
+            grip_report = {"clip": GRIP_CLIP, "fit": False, "reason": str(error)}
+    else:
+        grip_report = {"clip": GRIP_CLIP, "fit": False, "reason": "no trigger_axis/muzzle_pos memory points"}
+    print("[ADFRC grip]", NAME, json.dumps(grip_report))
 
 
 def transform(fn):
@@ -280,6 +302,17 @@ sock.location = muzzle
 bpy.context.scene.collection.objects.link(sock)
 sock.parent = obj
 
+# W2: hand IK targets (wrist positions), carried through the same transforms as the mesh.
+for key, socket_name in (("grip_left", "SOCKET_LeftHandGrip"), ("grip_right", "SOCKET_RightHandGrip")):
+    if key in points:
+        hand = bpy.data.objects.new(socket_name, None)
+        hand.location = points[key]
+        bpy.context.scene.collection.objects.link(hand)
+        hand.parent = obj
+if grip_report is not None and "grip_left" in points:
+    grip_report["left_m"] = [round(c, 4) for c in points["grip_left"]]
+    grip_report["right_m"] = [round(c, 4) for c in points["grip_right"]]
+
 fbx = os.path.join(OUT_DIR, "SM_" + NAME + ".fbx")
 bpy.ops.object.select_all(action="SELECT")
 bpy.ops.export_scene.fbx(filepath=fbx, use_selection=True, apply_unit_scale=True, apply_scale_options="FBX_SCALE_UNITS",
@@ -288,7 +321,7 @@ report = {"source": SRC, "fbx": fbx, "dimensions_m": list(obj.dimensions),
           "triangles": sum(len(p.vertices) - 2 for p in obj.data.polygons), "parts": len(keep),
           "dropped": sorted(set(dropped)), "textures": manifest, "muzzle_m": list(muzzle),
           "memory_points": sorted(memory), "origin": "trigger_axis" if "trigger_axis" in memory else "bbox centre",
-          "optic": optic_report}
+          "optic": optic_report, "grip": grip_report}
 with open(os.path.join(OUT_DIR, "manifest.json"), "w") as fh:
     json.dump(report, fh, indent=1)
 print("[ADFRC weapon]", NAME, json.dumps({k: report[k] for k in ("dimensions_m", "triangles", "parts", "dropped")}))

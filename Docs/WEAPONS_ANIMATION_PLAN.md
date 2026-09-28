@@ -52,6 +52,12 @@ for the A25 and A9: it needs the item to grant Lyra's semi-automatic fire abilit
   from shot timestamps.
 
 ### W2. Left-hand grip sockets from the `handAnim` poses (fixes the hands on every weapon)
+
+**Session 052: sockets built (not yet run on the real data).** `Tools/Common/adfrc_grip.py` + `test_adfrc_grip.py`
+(synthetic-rig tests pass here); `adfrc_weapon.py` writes `SOCKET_LeftHandGrip` / `SOCKET_RightHandGrip` when
+`build_adfrc_weapons.py` passes `SS_GRIP_CLIP`. The Arma-to-MLOD axis map is calibrated per weapon (right hand on
+`trigger_axis`, left hand forward on the barrel), and a pose that doesn't fit is refused and reported. **Next:**
+run the build on the producer's machine, check `manifest.json → grip`, then drive left-hand IK to the socket.
 - A stdlib tool (`Tools/Weapons/grip_sockets_from_handanim.py`) reads each weapon's grip clip from
   `Art/ADFRC/Animations/Rig/…` and rebuilds world transforms with the rig hierarchy (`rtm_rigs.world_from_local`).
   It expresses `lefthand` and `righthand` in the `weapon` bone's space and writes `SOCKET_LeftHandGrip` /

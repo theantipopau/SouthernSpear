@@ -4074,6 +4074,68 @@ fallback, and the broken material verifier).
 
 ---
 
+## Session 052 — 2026-09-28 — W1 Finished In Code (Fire Rate, Semi-Auto), W2 Grip Sockets From The ADFRC Poses
+
+### COMPLETED
+
+- **W1 rate of fire** (commit 72b374ad): `USSWeaponStatsSubsystem::ApplyFireRate` sets each weapon's own
+  fire-ability instance `FireDelayTimeSecs` = 60 / rpm. The variable and its shared default (0.120 s on
+  `GA_Weapon_Fire_C`) come from the producer's probe run (`PLAYER_MODEL_PLAN.md` §7).
+- **W1 semi-auto** (commit fe27ff23): `setup_weapons.py` gives the A25 an `AbilitySet_SS_A25_Semi` with Lyra's
+  pistol fire ability in place of the rifle's auto one. The A9 is already pistol-based.
+- **W2 grip sockets:** `Tools/Common/adfrc_grip.py` (pure Python) rebuilds each handAnim pose's bone transforms and
+  expresses both wrists in the `weapon` bone's space. It calibrates the axis map to the converted MLOD from the
+  weapon's own `trigger_axis` and `muzzle_pos` (48 candidates, A3OB's (x, z, y) preferred on a tie), and refuses
+  a pose that doesn't fit. `Tools/Blender/adfrc_weapon.py` carries the two points through the same transforms as
+  the mesh and exports `SOCKET_LeftHandGrip` / `SOCKET_RightHandGrip`, recording the fit in `manifest.json → grip`.
+  `Tools/build_adfrc_weapons.py` maps each weapon to its pose: A88 EF88_Vg_static, A88G AUG_GL, A4
+  ar15_8in_cgrip_static, A416 hk416_cgrip_static, A25 ar15_10in_cgrip_static, A89 Minimi_Standard.
+
+### FILES CHANGED
+
+`Tools/Common/adfrc_grip.py` (new), `Tools/Common/test_adfrc_grip.py` (new), `Tools/Blender/adfrc_weapon.py`,
+`Tools/build_adfrc_weapons.py`, `Docs/WEAPONS_ANIMATION_PLAN.md`, `Docs/CHANGELOG.md`. (Also this session:
+`SSWeaponStatsSubsystem.h/.cpp`, `SSWeaponStats.h`, `Config/DefaultGame.ini`, `Tools/Unreal/setup_weapons.py`,
+already pushed in 72b374ad and fe27ff23.)
+
+### TESTING
+
+- `python Tools/Common/test_adfrc_grip.py`: **exit 0**, 16/16 PASS. A synthetic rig (weapon bone rotated 35° and
+  offset) recovers both wrists exactly in weapon space and picks the A3OB map (right hand 0.022 m from the
+  trigger, left hand 0.048 m off the bore). It refuses a pose 1.7 m out, and every mapped clip is in the committed
+  `ASSET_MANIFEST.json`.
+- `python Tools/validate_architecture.py`: **exit 0**. Both Python scripts parse.
+- **NOT RUN (needs the producer's machine):** `python Tools/build_adfrc_weapons.py` on the real MLODs and clips,
+  so `grip.fit`, the right-hand-to-trigger distances and the sockets are unmeasured. Also not run: `setup_weapons.py`
+  (sockets import with the FBX; semi-auto A25), the build, and the in-game checks of W1.
+
+### ASSETS
+
+No asset files; the weapon FBXs are regenerated on the producer's machine (ADFRC, L-0021, ADR-035).
+
+### RISKS
+
+- **R-62 (open, medium):** W2 assumes the weapon model's origin sits on the Arma `weapon` bone. If Arma places the
+  proxy with an extra offset or rotation, the calibration won't fit and the weapon gets no sockets, and says so.
+  It fails loud, not wrong. The first real run tells.
+- **R-63 (open, low):** the A25's semi-auto swap uses Lyra's pistol fire ability, whose third-person fire montage
+  was made for a pistol. Check it looks right on a rifle.
+
+### DEFECTS FOUND
+
+- My probe script listed only four weapons (A88, A89, A25, A9), which is why the producer's probe report said
+  A4/A416/A417 were "absent". It was not a data gap. Noted rather than re-run: the rows exist and the subsystem
+  reads them by item name.
+
+### NEXT ACTION
+
+**On the producer's machine:** run `python Tools/build_adfrc_weapons.py`, then `Tools/Unreal/setup_weapons.py`, then
+build and test. Read each `Art/Weapons/<NAME>/ADFRC/manifest.json → grip` (`fit`, `right_hand_to_trigger_m`) and
+send them to me. Also check in game that the A89 shows 200/200, the A25 fires one shot per press, and the
+`LogSSWeaponStats` rpm lines print.
+
+---
+
 
 ## Open Threads
 
