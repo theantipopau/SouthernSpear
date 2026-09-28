@@ -2,7 +2,7 @@
 
 **Document ID:** `Docs/CHANGELOG.md`
 **Purpose:** Rolling record of what was actually done, what was actually tested, and what is still open. Appended to at the end of every work session.
-**Last updated:** 2026-09-28
+**Last updated:** 2026-09-29
 
 > **This file records evidence, not narrative.** A line here means a command was run and its result observed. If something was not done, it is not claimed. Anything marked `NOT RUN` is genuinely outstanding, not quietly skipped.
 
@@ -5569,6 +5569,142 @@ None.
 
 A rendered A/B check of the hand IK: `-game` A88 runs with `-SSShotAt` and `-SSExec=ss.HandIK 0` versus
 `ss.HandIK 1`, and pixel-diff the left hand.
+
+---
+
+## Session 067 — 2026-09-29 — R-65 observed: the hand pose does change; and how a single pair nearly read as a lie
+
+The three handover tasks. The R-65 A/B needed more runs than it was asked for: one cross-run pair is not
+evidence, because a `-SSShotAt` capture has no deterministic viewpoint.
+
+### COMPLETED
+
+**1. R-65 is now observed — `ss.HandIK 0` and `ss.HandIK 1` do render a different left-hand pose.** Four runs
+on `/Game/Maps/L_DryRiver_01`, A88 Rifleman kit, `-game -windowed -ResX=1600 -ResY=900 -nosplash -nosound
+-FORCELOGFLUSH -SSNoClassSelect -SSShotAt=20 -SSExecAt=12 "-SSExec=ss.HandIK 0|1"`. The flag reaches the game
+once the pawn exists, and the echo confirms the value:
+
+```
+[2026.09.28-22.23.48:402][954]LogSSObjectives: SSExec at 12.0 s: ss.HandIK 0
+[2026.09.28-22.23.48:412][954]ss.HandIK = "0"
+[2026.09.28-22.23.56:403][764]LogSSObjectives: Requested viewport screenshot at 20.0 s.
+[2026.09.28-22.26.29:423][145]LogSSObjectives: SSExec at 12.0 s: ss.HandIK 1
+[2026.09.28-22.26.29:428][145]ss.HandIK = "1"
+[2026.09.28-22.26.37:425][ 99]LogSSObjectives: Requested viewport screenshot at 20.0 s.
+```
+
+The components the fallback question asked for are already named by the binding log, so `ShowDebug ANIMATION`
+was not needed. Body = `CharacterMesh0` on `SKM_Manny_Invis` (hidden in first person); the first-person arms =
+`SS_FirstPersonArms`, re-pointed per weapon:
+
+```
+LogSSHandIK: CharacterMesh0 (SKM_Manny_Invis): left-hand IK on upperarm_l > lowerarm_l > hand_l.
+LogSSHandIK: SS_FirstPersonArms (SK_FP_Arms_Rifle): left-hand IK on LeftArm > LeftForeArm > LeftHand.
+LogSSHandIK: SS_FirstPersonArms (SK_FP_Arms_Pistol): left-hand IK on LeftArm > LeftForeArm > LeftHand.
+```
+
+All four captured runs held the `SM_A88` rifle view model at the shot, so the weapon is not a confound
+(`LogSSFirstPerson: View model shows SM_A88` is the last view-model line before `Requested viewport
+screenshot` in every one of them; the `SM_A9` pistol line comes after).
+
+| run | `ss.HandIK` | image | log |
+|---|---|---|---|
+| off1 | 0 | `Docs/evidence/handik_ab/off.png` | `Saved/Logs/SS_handik_off.log` |
+| off2 | 0 | `Docs/evidence/handik_ab/off2.png` | `Saved/Logs/SS_handik_off2.log` |
+| on2 | 1 | `Docs/evidence/handik_ab/on.png` | `Saved/Logs/SS_handik_on2.log` |
+| on3 | 1 | `Docs/evidence/handik_ab/on3.png` | `Saved/Logs/SS_handik_on3.log` |
+
+Mean |RGB delta| / coarse-structure correlation (40x22 luma), so the two same-condition pairs are the noise
+floor and any real effect has to beat them in *every* cross pair:
+
+```
+              off1          off2           on2           on3
+off1            --     31.52/0.81    33.22/0.73    31.43/0.78
+off2     31.52/0.81           --     32.32/0.76    30.16/0.79
+on2      33.22/0.73    32.32/0.76           --     26.48/0.82
+on3      31.43/0.78    30.16/0.79    26.48/0.82           --
+```
+
+The whole-frame numbers overlap, so they settle nothing on their own. The localised statistic does: per tile of
+a 16x9 grid, flag the tiles where the **minimum** over the four cross-condition pairs exceeds the **maximum**
+over the two within-condition pairs by more than 2x. 7 of 144 tiles qualify, and they are all in one place —
+**x 31-56%, y 66-100% of the frame**, ratios 2.7x to 7.1x. Every other tile is at the noise floor (ratio <= 1.2).
+That cluster is the view-model region, bottom centre, which is where the gripping left hand sits.
+
+Pixel counts over the arms/weapon crop (x 448-960, y 558-900, 512x342 px), percent of pixels moving >30:
+within-condition **13.3%** (off1/off2) and **6.6%** (on2/on3); cross-condition **42.6%, 46.8%, 43.1%, 42.5%**.
+All four cross pairs agree; neither within pair does.
+
+**What this does not show:** that the hand *grips the foregrip*. Pixels show the view-model pose changed when
+the IK is on, in the hand's region; they do not name the bone or prove the target. An `-SSAnimDebug` run or a
+left-hand transform log is what would name it. The R-65 engine question (which post-process AnimBP route the
+edit needs) is untouched — the producer writes that fix.
+
+**2. The decoder re-runs (this was the asked-for pair, and the earlier attempt did not actually run).**
+`python Docs/Sourced/ADFRC/rtm_rigs.py` twice back to back, on a tree that already held `Rig/` output:
+run 1 exit 0 in 15 s, run 2 exit 0 in 16 s, zero `KeyError`/`Traceback` in either log (grep counts 0 and 0),
+both ending `-> E:\SouthernSpear\Content\Sourced\ADF_Extracted\Animations\Rig`. The Session 066 fix (skip
+everything under `Rig/`) holds for a real re-run.
+
+```
+python Tools/Common/test_adfrc_reload.py   -> exit 0, 0 failure(s)
+python Tools/Common/test_rtm_rigs.py      -> exit 0, 0 failure(s)
+python Tools/Common/test_adfrc_grip.py    -> exit 0, 0 failure(s)
+```
+
+**3. No rebuilt FBX committed.** A decoder rebuild only moves `CreationTimeStamp` in the FBX header, so the
+regenerated meshes are byte-different and content-identical; committing them would be pure churn (and 7 new
+LFS objects, ~21 MB, per rebuild). The exporter bug is left unfixed on the producer's instruction.
+
+**4. Committed** `Docs/evidence/handik_ab/` and this entry only, with `git commit --only -- <paths>`.
+
+### FILES CHANGED
+
+- Created: `Docs/evidence/handik_ab/{off.png, off2.png, on.png, on3.png, on_attempt1_hitched.png,
+  diff_map.png, hand_region_crop.png, handik_ab.json}`.
+- Modified: `Docs/CHANGELOG.md`.
+- Scratch, git-ignored, not committed: `Build/make_handik_evidence.py`, `Build/probe_handik_ab.py`,
+  `Build/probe_handik_ab2.py`, `Build/handik_null/`.
+
+### TESTING
+
+- Decoder run twice in a row: exit 0 / exit 0, no `KeyError` (see above).
+- `test_adfrc_reload.py`, `test_rtm_rigs.py`, `test_adfrc_grip.py`: 0 failures each.
+- Four `-game` captures (2 per condition) plus one control pair; all five reached `up for play` and wrote
+the shot at 20.0 s (exit 124 = the expected timeout kill after the shot).
+- `git status` after the decoder double-run: no tracked file under `Content/Sourced/` modified.
+- NOT RUN: the UE build and the Automation suites — no C++ or asset changed this session.
+
+### ASSETS
+
+None committed. The evidence PNGs are captures, not content. Rebuilt FBX deliberately not committed.
+
+### RISKS
+
+- **R-65 moves from "unobserved" to observed.** The hook fires *and* the rendered pose changes. What is still
+  open is whether the change is the right one (hand on the foregrip) — and the engine-side question in
+  Session 065 is unchanged.
+- **R-79 (new, this session): a `-SSShotAt` capture has no deterministic viewpoint, so a single cross-run pair
+  cannot support an A/B.** The first ON run was requested at 22:26:37.425, the same second Niagara compiled
+  `NS_WeaponFire_MuzzleFlash_Rifle`/`ShellEject`/`Tracer`; that frame correlates 0.35 with the others, against
+  0.81 for a same-condition control. Read naively it says "enabling the hand IK changes the whole scene".
+  Kept as `on_attempt1_hitched.png`. Only the two-per-condition design above made the answer safe. (The risk
+  register in `PROJECT_AUDIT.md` still lists only up to R-66, as with R-70-R-78.)
+
+### DEFECTS FOUND
+
+- The capture pipeline, not the hand IK, was the thing most likely to produce a false answer — found by
+  running a control pair instead of trusting the first one.
+- The world half of the frame is unusable at pixel level for A/B: 82.4% of its pixels move >30 between two
+  *same-condition* runs (grass/foliage/TAA), against 77.0% across conditions. Region statistics only; eyeballing
+  a pair proves nothing here.
+- The decoder's re-run crash is confirmed gone on the real tree, not just in the unit fixtures.
+
+### NEXT ACTION
+
+Pin the capture viewpoint — a capture flag that places the pawn and holds pitch/yaw for the shot — because
+this session spent two extra runs discovering that every future A/B on this project is only as trustworthy as
+that viewpoint.
 
 ---
 

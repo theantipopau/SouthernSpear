@@ -1,0 +1,244 @@
+{
+  "what": "Does ss.HandIK 0 vs 1 visibly change the left hand?",
+  "map": "/Game/Maps/L_DryRiver_01",
+  "flags_common": "-game -windowed -ResX=1600 -ResY=900 -nosplash -nosound -FORCELOGFLUSH -SSNoClassSelect -SSShotAt=20 -SSExecAt=12 \"-SSExec=ss.HandIK 0|1\"",
+  "method": "Two runs per condition, because a single cross-run pair is not evidence: the capture has no deterministic viewpoint. Within-condition pairs give the cross-run noise floor; a real effect must beat it in EVERY cross-condition pair. Statistic: per-tile (16x9) mean |RGB delta|; flag tiles where the minimum over the four cross-condition pairs exceeds the maximum over the two within-condition pairs by more than 2x.",
+  "runs": [
+    {
+      "name": "off1",
+      "image": "off.png",
+      "ss_HandIK": "0",
+      "log": "Saved/Logs/SS_handik_off.log",
+      "bytes": 2871060,
+      "held_view_model_at_shot": "SM_A88 (rifle)"
+    },
+    {
+      "name": "off2",
+      "image": "off2.png",
+      "ss_HandIK": "0",
+      "log": "Saved/Logs/SS_handik_off2.log",
+      "bytes": 3001434,
+      "held_view_model_at_shot": "SM_A88 (rifle)"
+    },
+    {
+      "name": "on2",
+      "image": "on.png",
+      "ss_HandIK": "1",
+      "log": "Saved/Logs/SS_handik_on2.log",
+      "bytes": 2935937,
+      "held_view_model_at_shot": "SM_A88 (rifle)"
+    },
+    {
+      "name": "on3",
+      "image": "on3.png",
+      "ss_HandIK": "1",
+      "log": "Saved/Logs/SS_handik_on3.log",
+      "bytes": 3267426,
+      "held_view_model_at_shot": "SM_A88 (rifle)"
+    }
+  ],
+  "first_attempt_invalidated": {
+    "file": "on_attempt1_hitched.png",
+    "reason": "LogSSObjectives requested the shot at 22:26:37.425 while Niagara systems NS_WeaponFire_MuzzleFlash_Rifle / ShellEject / Tracer were compiling in the same second; that frame correlates 0.35 with the other captures, against 0.81 for a same-condition control pair, i.e. it is not the same view. Re-captured as on.png / on3.png."
+  },
+  "matrix_mean_abs_rgb_delta_and_coarse_correlation": {
+    "off1": {
+      "off1": null,
+      "off2": {
+        "mean_abs_rgb_delta": 31.52,
+        "coarse_structure_correlation": 0.811
+      },
+      "on2": {
+        "mean_abs_rgb_delta": 33.22,
+        "coarse_structure_correlation": 0.731
+      },
+      "on3": {
+        "mean_abs_rgb_delta": 31.43,
+        "coarse_structure_correlation": 0.776
+      }
+    },
+    "off2": {
+      "off1": {
+        "mean_abs_rgb_delta": 31.52,
+        "coarse_structure_correlation": 0.811
+      },
+      "off2": null,
+      "on2": {
+        "mean_abs_rgb_delta": 32.32,
+        "coarse_structure_correlation": 0.763
+      },
+      "on3": {
+        "mean_abs_rgb_delta": 30.16,
+        "coarse_structure_correlation": 0.792
+      }
+    },
+    "on2": {
+      "off1": {
+        "mean_abs_rgb_delta": 33.22,
+        "coarse_structure_correlation": 0.731
+      },
+      "off2": {
+        "mean_abs_rgb_delta": 32.32,
+        "coarse_structure_correlation": 0.763
+      },
+      "on2": null,
+      "on3": {
+        "mean_abs_rgb_delta": 26.48,
+        "coarse_structure_correlation": 0.821
+      }
+    },
+    "on3": {
+      "off1": {
+        "mean_abs_rgb_delta": 31.43,
+        "coarse_structure_correlation": 0.776
+      },
+      "off2": {
+        "mean_abs_rgb_delta": 30.16,
+        "coarse_structure_correlation": 0.792
+      },
+      "on2": {
+        "mean_abs_rgb_delta": 26.48,
+        "coarse_structure_correlation": 0.821
+      },
+      "on3": null
+    }
+  },
+  "within_condition": {
+    "pairs": [
+      "off1/off2",
+      "on2/on3"
+    ],
+    "tile_floor_mean": 34.4,
+    "tile_floor_max": 93.7
+  },
+  "cross_condition": {
+    "pairs": [
+      "off1/on2",
+      "off2/on2",
+      "off1/on3",
+      "off2/on3"
+    ],
+    "tile_min_of_four_mean": 25.0,
+    "tile_min_of_four_max": 93.2
+  },
+  "flagged_tiles": [
+    {
+      "x_pct": [
+        43,
+        50
+      ],
+      "y_pct": [
+        66,
+        77
+      ],
+      "within_floor": 16.5,
+      "cross_delta": 45.0,
+      "ratio": 2.7
+    },
+    {
+      "x_pct": [
+        37,
+        43
+      ],
+      "y_pct": [
+        77,
+        88
+      ],
+      "within_floor": 12.2,
+      "cross_delta": 47.5,
+      "ratio": 3.9
+    },
+    {
+      "x_pct": [
+        43,
+        50
+      ],
+      "y_pct": [
+        77,
+        88
+      ],
+      "within_floor": 14.9,
+      "cross_delta": 55.9,
+      "ratio": 3.8
+    },
+    {
+      "x_pct": [
+        50,
+        56
+      ],
+      "y_pct": [
+        77,
+        88
+      ],
+      "within_floor": 16.1,
+      "cross_delta": 92.1,
+      "ratio": 5.7
+    },
+    {
+      "x_pct": [
+        31,
+        37
+      ],
+      "y_pct": [
+        88,
+        100
+      ],
+      "within_floor": 13.9,
+      "cross_delta": 47.7,
+      "ratio": 3.4
+    },
+    {
+      "x_pct": [
+        37,
+        43
+      ],
+      "y_pct": [
+        88,
+        100
+      ],
+      "within_floor": 13.6,
+      "cross_delta": 52.2,
+      "ratio": 3.8
+    },
+    {
+      "x_pct": [
+        43,
+        50
+      ],
+      "y_pct": [
+        88,
+        100
+      ],
+      "within_floor": 13.1,
+      "cross_delta": 93.2,
+      "ratio": 7.1
+    }
+  ],
+  "view_model_region_pixels": {
+    "region": "x 448-960, y 558-900 (the arms/weapon area, x28-60% y62-100%)",
+    "metric": "percent of pixels whose max-channel |RGB delta| exceeds 30, and mean max-channel delta",
+    "within_off1_off2": {"pct_over_30": 13.32, "mean": 19.66},
+    "within_on2_on3": {"pct_over_30": 6.55, "mean": 12.21},
+    "cross_off1_on2": {"pct_over_30": 42.55, "mean": 47.19},
+    "cross_off2_on2": {"pct_over_30": 46.82, "mean": 52.28},
+    "cross_off1_on3": {"pct_over_30": 43.11, "mean": 46.72},
+    "cross_off2_on3": {"pct_over_30": 42.49, "mean": 48.51},
+    "note": "All four cross-condition pairs agree; the two within-condition pairs do not. In the world patch above (x28-60% y10-50%) the same metric is saturated and useless -- 82.4% of pixels move >30 between two same-condition runs (grass/foliage/TAA) versus 77.0% across conditions -- which is why the A/B is judged on tile means, not on eyeballing or pixel counts."
+  },
+  "flagged_tile_count": 7,
+  "flagged_bbox_pct_of_frame": {
+    "x": [
+      31,
+      56
+    ],
+    "y": [
+      66,
+      100
+    ]
+  },
+  "conclusion": "The two conditions differ, and the difference is not scene-wide: it is confined to the view-model region at the bottom centre of the frame (x 31-56%, y 66-100%), 2.7x-7.1x the noise floor, while every other tile is at the noise floor (ratio <= 1.2). That region is where the gripping left hand sits. The capture shows the pose changed; it does not by itself name the bone.",
+  "not_controlled": [
+    "the spawn/camera viewpoint is not pinned, so single-pair captures are not comparable (see on_attempt1_hitched.png)",
+    "which bone moved is not proven by pixels; -SSAnimDebug or a left-hand transform log would name it"
+  ]
+}
