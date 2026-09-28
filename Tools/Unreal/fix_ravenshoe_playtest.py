@@ -30,11 +30,15 @@ OUT = os.path.join(
 report = {"map": MAP, "bounds": None, "terrain": None, "errors": [],
           "warnings": []}
 
-# The map is 200 x 300 m with relief -18..+28 m. Cover it with margin so the
-# navmesh is not clipped at the edge of the play space, and drop the floor
-# below the creek bed at -18 m.
-NEED_X_M, NEED_Y_M = 120.0, 170.0
-Z_BOTTOM_M, Z_TOP_M = -30.0, 40.0
+# The play space, not the mesh. Every deployment is within x = +/-6 m and
+# y = +/-130 m; the objectives are on the centreline; the creek bed is at
+# -18 m and the ridges top out near +34 m. Covering the whole 200 x 300 m
+# mesh is what broke the bake: with TileSizeUU = 1000 (10 m tiles) a
+# 360 x 510 m volume needs ~2448 tiles, which is exactly the pool the
+# config provisions, and the resulting serialisation mismatch access-violates
+# inside UnrealEd when the map is saved. A tighter box stays well under it.
+NEED_X_M, NEED_Y_M = 80.0, 140.0
+Z_BOTTOM_M, Z_TOP_M = -25.0, 35.0
 
 
 def v3(v):
@@ -108,13 +112,18 @@ def fix_bounds(sub):
     lo, hi = after[0], after[1]
     need = [("ObjB y=-6200", lo.y <= -6200), ("DeployBravo y=-13000", lo.y <= -13000),
             ("DeployAlpha y=+13000", hi.y >= 13000),
+            ("DeployExtra x=+600", hi.x >= 600),
             ("creek bed z=-1800", lo.z <= -1800),
             ("ridge z=+3400", hi.z >= 3400)]
     ok = all(c for _, c in need)
     report["bounds"]["coverage"] = {n: c for n, c in need}
-    step("bounds_cover_map", ok, "{}".format(
-        "X %.0f..%.0f  Y %.0f..%.0f  Z %.0f..%.0f" % (
-            lo.x, hi.x, lo.y, hi.y, lo.z, hi.z)))
+    # tiles ~= (X/10) * (Y/10) * 1.33 at TileSizeUU=1000; keep it clear of
+    # the 2448 the config provisions or the save crashes on a pool mismatch.
+    tiles = (lo.x * -1 + hi.x) / 1000.0 * ((lo.y * -1 + hi.y) / 1000.0) * 1.33
+    report["bounds"]["approx_tiles"] = round(tiles)
+    step("bounds_cover_map", ok and tiles < 2400, "{}".format(
+        "X %.0f..%.0f  Y %.0f..%.0f  Z %.0f..%.0f  (~%d tiles)" % (
+            lo.x, hi.x, lo.y, hi.y, lo.z, hi.z, tiles)))
     for n, c in need:
         if not c:
             report["errors"].append("bounds volume does not cover " + n)
