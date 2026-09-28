@@ -322,7 +322,7 @@ void USSClassSelectWidget::BuildStage()
 		Part->RegisterComponent();
 	};
 	// The plane faces +Z; pitched -90 it faces the camera (+X), 2.6 m behind the soldier.
-	Shape(TEXT("/Engine/BasicShapes/Plane.Plane"), FVector(-260.f, 0.f, 150.f), FRotator(-90.f, 0.f, 0.f), FVector(8.f, 8.f, 1.f), FLinearColor(0.16f, 0.17f, 0.13f));
+	Shape(TEXT("/Engine/BasicShapes/Plane.Plane"), FVector(-260.f, 0.f, 150.f), FRotator(-90.f, 0.f, 0.f), FVector(14.f, 14.f, 1.f), FLinearColor(0.16f, 0.17f, 0.13f));
 	Shape(TEXT("/Engine/BasicShapes/Cylinder.Cylinder"), FVector(0.f, 0.f, -1.f), FRotator::ZeroRotator, FVector(1.6f, 1.6f, 0.02f), FLinearColor(0.035f, 0.035f, 0.028f));
 
 	// Studio lights: warm key front-left, cool fill right, rim behind. Only the stage is near them.
@@ -338,7 +338,7 @@ void USSClassSelectWidget::BuildStage()
 		Lamp->RegisterComponent();
 	};
 	Light(FVector(260.f, 160.f, 190.f), 9000.f, FLinearColor(1.f, 0.93f, 0.82f));
-	Light(FVector(220.f, -200.f, 120.f), 3000.f, FLinearColor(0.8f, 0.88f, 1.f));
+	Light(FVector(220.f, -200.f, 150.f), 7000.f, FLinearColor(0.8f, 0.88f, 1.f));
 	Light(FVector(-220.f, 0.f, 220.f), 8000.f, FLinearColor(1.f, 0.85f, 0.65f));
 
 	PreviewTarget = NewObject<UTextureRenderTarget2D>(this);
@@ -429,9 +429,10 @@ void USSClassSelectWidget::NativeTick(const FGeometry& MyGeometry, float InDelta
 		Reveal(Cards[Index], Ease(Elapsed, 0.05f + 0.05f * Index, 0.35f), 24.f);
 	}
 	Reveal(PreviewPanel, Ease(Elapsed, 0.15f, 0.45f), -24.f);
-	// Slow sway around a three-quarter view: the kit and the weapon in profile stay in sight.
-	if (Stage)
+	// Slow sway around the right-hand three-quarter view, where the rifle is carried. Only the soldier
+	// turns (the weapon is attached to it); the backdrop and lights stay put, so no edge swings into view.
+	if (StageBody)
 	{
-		Stage->SetActorRotation(FRotator(0.f, 55.f + 25.f * FMath::Sin(Elapsed * 0.45f), 0.f));
+		StageBody->SetRelativeRotation(FRotator(0.f, -90.f - 55.f + 25.f * FMath::Sin(Elapsed * 0.45f), 0.f));
 	}
 }

@@ -50,6 +50,63 @@ def gear_master():
     return m
 
 
+def fabric_master():
+    """M_SS_FabricPBR: cloth and webbing. Arma's SMDI gloss (B) and specular (G) vary the surface inside a
+    cloth-like band instead of the weapon mapping (rough = 1 - 0.85 * gloss), which rendered fabric
+    chrome-white; before this, fabric used one flat roughness (0.85) and looked like plastic."""
+    path = DEST + "/M_SS_FabricPBR"
+    E = unreal
+    if eal.does_asset_exist(path):
+        return unreal.load_asset(path)
+    m = tools.create_asset("M_SS_FabricPBR", DEST, unreal.Material, unreal.MaterialFactoryNew())
+    m.set_editor_property("used_with_skeletal_mesh", True)
+    col = mel.create_material_expression(m, E.MaterialExpressionTextureSampleParameter2D, -900, 0)
+    col.set_editor_property("parameter_name", "BaseColorMap")
+    nrm = mel.create_material_expression(m, E.MaterialExpressionTextureSampleParameter2D, -900, 300)
+    nrm.set_editor_property("parameter_name", "NormalMap")
+    nrm.set_editor_property("sampler_type", E.MaterialSamplerType.SAMPLERTYPE_NORMAL)
+    nrm.set_editor_property("texture", unreal.load_asset("/Engine/EngineMaterials/FlatNormal"))
+    smdi = mel.create_material_expression(m, E.MaterialExpressionTextureSampleParameter2D, -900, 600)
+    smdi.set_editor_property("parameter_name", "SMDIMap")
+    smdi.set_editor_property("sampler_type", E.MaterialSamplerType.SAMPLERTYPE_LINEAR_COLOR)
+    smdi.set_editor_property("texture", unreal.load_asset("/Engine/EngineResources/Black"))
+
+    def param(name, value, x, y):
+        e = mel.create_material_expression(m, E.MaterialExpressionScalarParameter, x, y)
+        e.set_editor_property("parameter_name", name)
+        e.set_editor_property("default_value", value)
+        return e
+
+    rmin, rmax = param("RoughnessMin", 0.62, -600, 800), param("RoughnessMax", 0.95, -600, 700)
+    strength, spec_scale = param("NormalStrength", 1.0, -600, 450), param("SpecularScale", 0.35, -600, 950)
+    # Roughness: glossy texels (B high) toward RoughnessMin.
+    rough = mel.create_material_expression(m, E.MaterialExpressionLinearInterpolate, -300, 700)
+    mel.connect_material_expressions(rmax, "", rough, "A")
+    mel.connect_material_expressions(rmin, "", rough, "B")
+    mel.connect_material_expressions(smdi, "B", rough, "Alpha")
+    # Specular: 0.15 + G * SpecularScale.
+    spec_mul = mel.create_material_expression(m, E.MaterialExpressionMultiply, -400, 900)
+    mel.connect_material_expressions(smdi, "G", spec_mul, "A")
+    mel.connect_material_expressions(spec_scale, "", spec_mul, "B")
+    spec = mel.create_material_expression(m, E.MaterialExpressionAdd, -250, 900)
+    spec.set_editor_property("const_b", 0.15)
+    mel.connect_material_expressions(spec_mul, "", spec, "A")
+    # Normal strength: lerp from flat.
+    flat = mel.create_material_expression(m, E.MaterialExpressionConstant3Vector, -600, 350)
+    flat.set_editor_property("constant", unreal.LinearColor(0.0, 0.0, 1.0, 1.0))
+    nlerp = mel.create_material_expression(m, E.MaterialExpressionLinearInterpolate, -300, 350)
+    mel.connect_material_expressions(flat, "", nlerp, "A")
+    mel.connect_material_expressions(nrm, "RGB", nlerp, "B")
+    mel.connect_material_expressions(strength, "", nlerp, "Alpha")
+    mel.connect_material_property(col, "RGB", E.MaterialProperty.MP_BASE_COLOR)
+    mel.connect_material_property(nlerp, "", E.MaterialProperty.MP_NORMAL)
+    mel.connect_material_property(rough, "", E.MaterialProperty.MP_ROUGHNESS)
+    mel.connect_material_property(spec, "", E.MaterialProperty.MP_SPECULAR)
+    mel.recompile_material(m)
+    eal.save_loaded_asset(m)
+    return m
+
+
 def texture(stem, normal=False, masks=False):
     src = index.get(stem.lower())
     if not src:
@@ -72,6 +129,11 @@ def texture(stem, normal=False, masks=False):
                                 unreal.TextureCompressionSettings.TC_NORMALMAP if normal else unreal.TextureCompressionSettings.TC_MASKS)
     if tex:
         tex.set_editor_property("lod_group", unreal.TextureGroup.TEXTUREGROUP_CHARACTER)
+        # Resident at up to 2048 px: script-built materials carry no texture-streaming data, so streamed
+        # textures stayed at low mips and the AMCU pattern smeared (Session 040 capture). Same fix as the
+        # weapons (upgrade_weapon_materials.py). Cap keeps the set to a few hundred MB of memory.
+        tex.set_editor_property("never_stream", True)
+        tex.set_editor_property("max_texture_size", 2048)
         eal.save_loaded_asset(tex)
     return tex
 
@@ -125,6 +187,14 @@ def material_for(slot_name, parent, prefix="MI_ADF_", maf=False):
         mel.set_material_instance_scalar_parameter_value(mi, "Metallic", 0.0)
         mel.set_material_instance_scalar_parameter_value(mi, "UseSMDI", 0.0)
         mel.set_material_instance_scalar_parameter_value(mi, "Roughness", 0.55 if hard else 0.85)
+        if not hard:
+            # Cloth: the fabric master reads the SMDI inside a cloth band (see fabric_master).
+            mi.set_editor_property("parent", fabric_master())
+            for cand in (rvstem + "_smdi", base + "_smdi"):
+                sm = texture(cand, masks=True)
+                if sm:
+                    mel.set_material_instance_texture_parameter_value(mi, "SMDIMap", sm)
+                    break
         if hard:
             for cand in (rvstem + "_smdi", base + "_smdi"):
                 sm = texture(cand, masks=True)

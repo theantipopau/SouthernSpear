@@ -19,7 +19,7 @@
 # Rebuild the 3 ACR kit (then Tools/Unreal/setup_adf_soldier.py and setup_soldiers.py):
 #   blender -b -P Tools/Blender/p3d_to_blend.py -- Build/adfrc_converted #       Art/ADFRC_MLOD/adfrc_uniforms/crye_g3_MLOD.p3d Art/ADFRC_MLOD/adfrc_helmets/opscore_MLOD.p3d #       Art/ADFRC_MLOD/adfrc_vests/TBAS_T5_PC_MLOD.p3d
 #   G=Build/adfrc_converted/crye_g3_MLOD.blend
-#   blender -b -P Tools/Blender/adfrc_gear_rig.py -- skin $G "Resolution 1" Art/Characters/ADF/SK_ADF_Uniform_G3.fbx
+#   SS_GEAR_CAP=2.5 blender -b -P Tools/Blender/adfrc_gear_rig.py -- skin $G "Resolution 1" Art/Characters/ADF/SK_ADF_Uniform_G3.fbx
 #   blender -b -P Tools/Blender/adfrc_gear_rig.py -- rigid:head Build/adfrc_converted/opscore_MLOD.blend "Resolution 1" Art/Characters/ADF/SK_ADF_Helmet_OpsCore.fbx $G
 #   blender -b -P Tools/Blender/adfrc_gear_rig.py -- skin Build/adfrc_converted/TBAS_T5_PC_MLOD.blend "Resolution 1" Art/Characters/ADF/SK_ADF_Vest_TBAS.fbx $G
 
@@ -192,6 +192,30 @@ if MODE == "skin":
     bpy.data.objects.remove(rig, do_unlink=True)
     for e in targets.values():
         bpy.data.objects.remove(e, do_unlink=True)
+
+    # 2b. Optional fit cap (SS_GEAR_CAP, cm; clothing only, not plate carriers): the re-pose leaves cloth
+    #     flaps where the Arma shoulders were (measured: ~15 cm "wings" at both shoulders, Session 040). Cloth
+    #     further than the cap from the mannequin's skin is pulled in, keeping 15% of the excess so pockets and
+    #     folds still stand proud: new offset = cap + 0.15 * (offset - cap).
+    cap_cm = float(os.environ.get("SS_GEAR_CAP", "0") or 0)
+    if cap_cm > 0:
+        from mathutils.bvhtree import BVHTree
+        bw = body.matrix_world
+        tree = BVHTree.FromPolygons([bw @ v.co for v in body.data.vertices], [list(p.vertices) for p in body.data.polygons])
+        iw = item.matrix_world
+        inv = iw.inverted()
+        cap = cap_cm / 100.0
+        moved = 0
+        worst = 0.0
+        for v in item.data.vertices:
+            p = iw @ v.co
+            hit, normal, _, dist = tree.find_nearest(p)
+            if hit is None or dist <= cap or (p - hit).dot(normal) < 0:
+                continue
+            worst = max(worst, dist)
+            v.co = inv @ (hit + (p - hit).normalized() * (cap + 0.15 * (dist - cap)))
+            moved += 1
+        report["fit_cap"] = {"cap_cm": cap_cm, "moved_verts": moved, "worst_before_cm": round(worst * 100, 1)}
 
     # 3. Skin weights from the mannequin's body mesh.
     for g in body.vertex_groups:
