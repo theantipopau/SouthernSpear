@@ -56,7 +56,20 @@ import unreal
 PROJECT = unreal.Paths.convert_relative_path_to_full(unreal.Paths.project_dir())
 MAP = "/Game/Maps/L_Ravenshoe_01"
 REPORT = os.path.join(PROJECT, "Build", "ravenshoe_nav_report.json")
-BOUNDS = unreal.Vector(115.0, 165.0, 45.0)   # half-extents, cm; 200x300 m map
+
+# The bounds volume is OWNED by expand_ravenshoe.py, which sizes it to the play space with a
+# read-back correction and asserts coverage (including the ramp feet at x = +/-98 m, the thing a
+# smaller volume silently drops). A build run only ASSERTS the coverage here - re-imposing bounds
+# from this script is exactly how the correct play-space bounds were reverted to the old
+# quarter-map positive quadrant after the play-test fix (Session: nav report 0/32 routes while
+# the deck and bed both project onto nav).
+COVER_CM = [("ObjA/ObjB on centreline", 0.0, 0.0, 100.0),
+            ("DeployAlpha y=+13000", 0.0, 13000.0, 100.0),
+            ("DeployBravo y=-13000", 0.0, -13000.0, 100.0),
+            ("ramp feet x=+/-9800", 9800.0, 0.0, 200.0),
+            ("ramp feet x=-9800", -9800.0, 0.0, 200.0),
+            ("creek bed z=-1800", 0.0, 0.0, -1800.0),
+            ("ridge crest z=+3400", 0.0, 0.0, 3400.0)]
 
 report = {"ok": False, "mode": "verify", "steps": [], "errors": [], "routes": []}
 
@@ -84,9 +97,9 @@ def main():
     if not step("load_map", world is not None, MAP):
         report["errors"].append("could not open " + MAP)
         return
-    sub = unreal.get_editor_subsystem(unreal.EditorActorSubsystem)
-
-    # 2. a RecastNavMesh must exist, or the build has nowhere to write
+    sub = unreal.get_editor_subsystem(unreal.EditorActorSubsystem)    # 2. a RecastNavMesh must exist, with a tile pool big enough for the play space. The pool is a
+    #    property of the actor; expand_ravenshoe.py raises it to 4096 (the play space needs ~1285 at
+    #    TileSizeUU 1000, over the default 1024 - which is what access-violated the save).
     recast = [a for a in unreal.GameplayStatics.get_all_actors_of_class(
         world, unreal.RecastNavMesh)]
     if not recast and BUILD:
@@ -96,28 +109,49 @@ def main():
         if spawned is not None:
             spawned.set_actor_label("SS_Raven_RecastNavMesh")
         recast = [spawned] if spawned else []
-    step("recast_navmesh", bool(recast), "{} present".format(len(recast)))
+    pool_ok = True
+    if recast:
+        pool = recast[0].get_editor_property("TilePoolSize")
+        report["recast_tile_pool"] = pool
+        pool_ok = pool >= 2048
+        if not pool_ok:
+            report["errors"].append(
+                "RecastNavMesh TilePoolSize {} is below the play-space tile count; "
+                "re-run expand_ravenshoe.py, which raises it to 4096".format(pool))
+    step("recast_navmesh", bool(recast) and pool_ok,
+         "{} present, pool {}".format(len(recast), report.get("recast_tile_pool")))
 
-    # 3. the bounds volume, from the SAVED map
+    # 3. the bounds volume, from the SAVED map - asserted, never resized here
     vols = [a for a in unreal.GameplayStatics.get_all_actors_of_class(
         world, unreal.NavMeshBoundsVolume)]
-    if BUILD:
-        for v in vols:
-            v.set_actor_scale3d(BOUNDS)
-            v.set_actor_location(unreal.Vector(0.0, 0.0, 0.0), False, False)
+    covered = False
+    if vols:
+        lo, hi = vols[0].get_actor_bounds(False)
+        report["nav_bounds_min"] = [round(lo.x), round(lo.y), round(lo.z)]
+        report["nav_bounds_max"] = [round(hi.x), round(hi.y), round(hi.z)]
+        misses = []
+        for name, px, py, pz in COVER_CM:
+            inside = (lo.x <= px <= hi.x and lo.y <= py <= hi.y and lo.z <= pz <= hi.z)
+            if not inside:
+                misses.append(name)
+        covered = not misses
+        if misses:
+            report["errors"].append("nav bounds do not cover: " + ", ".join(misses)
+                                    + " (re-run expand_ravenshoe.py)")
     report["nav_bounds_scale"] = (
         [round(v) for v in vols[0].get_actor_scale3d().to_tuple()] if vols else None)
-    step("nav_bounds_volume", bool(vols),
+    step("nav_bounds_volume", bool(vols) and covered,
          "{} volume(s) scale {}".format(
              len(vols), report["nav_bounds_scale"]))
 
-    # 4. build - only in build mode. Twice: the first pass registers the
-    #    bounds, the second fills them, which is what build_redgum_nav.py
-    #    found necessary.
+    # 4. build - only in build mode, ONCE. build_dryriver_nav.py issues a single BUILDPATHS and its
+    #    map saves; issuing it a second time rebuilds on live tile data and access-violates UnrealEd
+    #    here (measured 2026-09-29: build completes in 1.15 s, the crash lands 2.3 s later, on the
+    #    second rebuild). The bounds volume comes from the SAVED map via load_map, so its
+    #    registration - the thing Red Gum needed the second pass for - is already done.
     if BUILD:
-        for _i in (1, 2):
-            unreal.SystemLibrary.execute_console_command(world, "BUILDPATHS")
-        step("buildpaths_issued", True, "BUILDPATHS x2")
+        unreal.SystemLibrary.execute_console_command(world, "BUILDPATHS")
+        step("buildpaths_issued", True, "BUILDPATHS x1")
     else:
         report["notes"] = [
             "read-only verify run: no BUILDPATHS, nothing saved",
@@ -184,7 +218,23 @@ def main():
 
     saved = True
     if BUILD:
-        saved = unreal.EditorLoadingAndSavingUtils.save_map(world, MAP)
+        # The Dry River pipeline's save, exactly. EditorLoadingAndSavingUtils.save_map reports
+        # success here but serialises NO nav tiles (measured 2026-09-29: the map stayed 1.17 MB
+        # against Dry River's 7.6 MB, and a fresh verify run found nothing) - and it is where the
+        # earlier access-violation landed. LevelEditorSubsystem.save_current_level is what
+        # build_dryriver_nav.py uses, and Dry River carries 560 tiles.
+        sub = unreal.get_editor_subsystem(unreal.LevelEditorSubsystem)
+        saved, via = False, "no working save API"
+        for name in ("save_current_level", "save_all_dirty_levels"):
+            fn = getattr(sub, name, None)
+            if fn is None:
+                continue
+            try:
+                if fn():
+                    saved, via = True, name
+                    break
+            except Exception as exc:               # noqa: BLE001
+                report["warnings"].append("{}: {}".format(name, exc))
     step("save_map", saved, MAP if BUILD else "not saved (verify mode)")
 
     # In verify mode a missing navmesh is a FINDING, not a pass/failure: the

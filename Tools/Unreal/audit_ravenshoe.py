@@ -200,15 +200,18 @@ def main():
     starts = [a for a in actors
               if a.get_actor_label().startswith("SS_MAP_Ravenshoe_Deploy")]
     check(len(objs) == 2, "two objectives placed", len(objs))
-    check(len(starts) == 2, "two deployments placed", len(starts))
+    # fix_ravenshoe_starts.py replaced the two plain starts with LyraPlayerStart primaries plus 7
+    # extras each (Lyra only spawns from ALyraPlayerStart): 16 total, 2 of them primaries.
+    check(len(starts) == 16, "two deployments of 8 Lyra starts", len(starts))
 
     def xy(a):
         v = a.get_actor_location()
         return v.x, v.y
 
-    if len(objs) == 2 and len(starts) == 2:
+    primaries = [s for s in starts if "_Extra" not in s.get_actor_label()]
+    if len(objs) == 2 and len(primaries) == 2:
         obj_a = min(objs, key=lambda a: abs(a.get_actor_location().z - spec.DECK_Z * 100.0))
-        ds = [math_dist(xy(s), xy(obj_a)) for s in starts]
+        ds = [math_dist(xy(s), xy(obj_a)) for s in primaries]
         check(abs(ds[0] - ds[1]) <= spec.SYMMETRY_TOL * 100.0,
               "deployments are equidistant from OBJ A",
               "{:.0f} cm vs {:.0f} cm (tol {:.0f})".format(
