@@ -333,15 +333,25 @@ Before any public release:
 |---|---|---|
 | 2026-09-26 | Register created. Lyra and UE recorded. Insignia, ADF marks and prohibited sources placed on hold. No third-party assets acquired. | All |
 
-### L-0016 — Fab packs (Standard License), added 2026-09-27
+### L-0016 — Fab packs (Standard License), added 2026-09-27; **table completed 2026-09-28**
 
 | Pack | Local folder | Used for | Status |
 |---|---|---|---|
-| Rural Australia | `Content/RuralAustralia` | Base of `L_RedGum_01` (ADR-022); fence meshes changed to have no collision | In use |
+| Rural Australia | `Content/RuralAustralia` | Base of `L_RedGum_01` (ADR-022); fence meshes changed to have no collision, and since Session 041 Dry River: ground textures, scatter, trees, `SM_Horizon_01` (`Tools/Unreal/dryriver_ground.py`, `expand_dryriver.py`) | In use |
+| Namaqualand | `Content/Namaqualand` | Base of `L_Saltbush_01` (MAPS_SALTBUSH.md); Dry River scatter since Session 041: stones, rocks, boulders, bark debris, dead branches, *Didelta* shrubs. The South African wildflowers are not used (setting reads as Australian, ADR-016) | In use |
 | QuantumCharacter (military character) | `Content/QuantumCharacter` | 3 ACR soldier body | In use; insignia check pending (R-20); carries original Southern Spear materials as per-slot cosmetic overrides (L-0022) |
 | Modern_Insurgent_7 | `Content/Modern_Insurgent_7` | MAF soldier body (conventional parts only) | In use; names internal only |
 | Insurgent_2 | `Content/Insurgent_2` | — (irregular/ethnic-coded gear; ADR-016) | Not used |
 | FPS_Weapon_Bundle, AK-47, M1911 | `Content/FPS_Weapon_Bundle`, `Content/AK-47`, `Content/M1911` | Reference for A-series reshaping only | Not used |
+| **Scene Quarry Slate** | `Content/Scene_QuarrySlate` | **Rock, ledges, gravel, the best stone in the project.** Dry River scatter and road surface, tinted under `MI_SS_Ironstone_*`; Ravenshoe Crossing gorge walls and boulders (`MAPS_RAVENSHOE.md`) | In use — **row added 2026-09-28, see L-0016b** |
+| Modular Rural Cabin | `Content/Modular_Rural_Cabin` | Sparse conifer on shaded north-facing slopes (Ravenshoe). No map base | In use — **row added 2026-09-28, see L-0016b** |
+| Singapore Canal | `Content/Singapore_Canal` | — | **Not used.** Asian canal/urban architecture; wrong look and wrong culture (ADR-016). Stone *materials* must not be repurposed for Australian masonry. Row added 2026-09-28, see L-0016b |
+| Nanite Plants Sample Collection | `Content/Nanite_Plants_Sample_Collection` | — (6 sample meshes, temperate European garden species) | Installed, not used. Row added 2026-09-28, see L-0016b |
+| Military Radio | `Content/Military_Radio` | Radio/headset props | In use (props). Row added 2026-09-28, see L-0016b |
+| Realistic Starter VFX Pack Vol 2 | `Content/Realistic_Starter_VFX_Pack_Vol2` | Particle effects | In use (FX). Row added 2026-09-28, see L-0016b |
+| Sample Animation Pack | `Content/SampleAnimationPack` | — | Installed, not used. Row added 2026-09-28, see L-0016b |
+| World Flags | `Content/World_Flags` | — | Installed, not used. Row added 2026-09-28, see L-0016b |
+| FP_AKS74U Animation | `Content/FP_AKS74U_Animation` | AKS-74U animations | Installed, not used. Row added 2026-09-28, see L-0016b |
 
 | Field | Value |
 |---|---|
@@ -350,6 +360,18 @@ Before any public release:
 | **Licence** | Fab Standard License |
 | **Class** | **A** — no attribution required; source files must not be redistributed publicly (R-14) |
 | **Status** | Raw packs git-ignored; project assets reference them by path (R-19) |
+
+### L-0016b — The installed-pack register gap, found and closed 2026-09-28
+
+| Field | Value |
+|---|---|
+| **What was found** | Nine Fab packs were installed in `Content/` and in active use with **no row in this register and no row in `ASSET_REGISTER.md`**: `Scene_QuarrySlate`, `Singapore_Canal`, `Modular_Rural_Cabin`, `Nanite_Plants_Sample_Collection`, `Military_Radio`, `Realistic_Starter_VFX_Pack_Vol2`, `SampleAnimationPack`, `World_Flags`, `FP_AKS74U_Animation`. `Scene_QuarrySlate` is the significant one: Dry River is built on its rock and gravel meshes, and Ravenshoe Crossing is specified on it |
+| **How it was found** | Inventory of `Content/Downloaded/VaultCache/` (19 folders, ~36 GB) taken while scoping the Ravenshoe Crossing map. The cache is the Fab desktop staging area; all 18 of its content roots turned out to be **already installed** in `Content/`, which made the register's coverage testable in one pass |
+| **Why it went unnoticed** | L-0016's table was written when Red Gum was built (ADR-022) and listed only the packs that had a *decision* attached to them. Packs added later — Dry River's rock, the radio props, the VFX — were installed through per-feature work without a register pass, so the rule in §1 ("no third-party asset enters this repository without a row") was being met in letter for those six packs but not in substance |
+| **Class** | **A** — Fab Standard License, as for the rest of L-0016. **This is a bookkeeping correction, not a new clearance:** the same licence, publisher and source apply as the rows above, because these are the same Fab packs from the same producer library |
+| **Action taken** | L-0016's table completed with a row per pack, each marked as added 2026-09-28. **No asset was imported, modified, moved or deleted.** No licence class changed |
+| **Residual risk** | None identified. The gap was documentary, not legal: every pack is a Fab Standard Licence pack already in the producer's library. Had any of them turned out to be a different licence class, the finding would have been materially more serious, which is why the sweep was done rather than assumed |
+| **Standing action** | Any future pack import must add its L-0016 row **in the same change** that imports it, not afterwards. The CI check in §1 covers `.uasset`/`.umap` files appearing without a register entry; the failure mode found here is a pack that is *already* imported, which that check does not catch |
 
 ### L-0017 — A88 textured model (producer-supplied download)
 
@@ -392,3 +414,5 @@ Before any public release:
 | **Licence** | Class **F** — original, ours to license |
 | **Use** | Cosmetic material overrides on the L-0016 bodies. The vendor meshes are neither duplicated nor edited (ADR-004: appearance only) |
 | **Status** | In use on 7 of 14 friendly slots and 5 of 7 MAF parts; no rendered in-game view yet (see changelog Session 026) |
+| **Retune (Session 042)** | CMECU retuned from four tones to seven and MAF lifted ~15%, both measured against the producer's reference photography by `Build/audit/tune_camo.py` rather than eyeballed: reference fabric lum p10/p50/p90 = 40/129/235, median saturation 0.46, oxide-red population 8.7%; the regenerated sets score lum 43/107/205, sat 0.47, red 10.2%. Still noise-generated from the script's own fbm field — **no real-world camouflage was sampled, traced or converted, and AMCU/Auscam remain out of bounds (ADR-016)**. The four `M_SS_*` materials and the per-slot override arrays are unchanged; only the texture images differ. |
+| **Website use (Session 042)** | Studio renders using these textures on the L-0016 body and L-0021 kit were published and then **withdrawn** in the same session; see ASSET_REGISTER §4.9. The camo itself is Class F and carries no restriction; the body and kit in the same image do, and it is those two layers that made the renders unsuitable to publish. |

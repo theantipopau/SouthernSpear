@@ -3053,6 +3053,99 @@ record a decision to keep the Minimi variant in the build and label it as such.
 
 ---
 
+## Session 042 — 2026-09-28 — Player-Model Renders For Both Sides: BUILT, PUBLISHED, THEN WITHDRAWN
+
+### OUTCOME
+
+**The Soldiers section was published and then withdrawn in the same session.** The
+producer reviewed the renders on the live site and rejected them: the body's proportions read
+as a mannequin, not a soldier. The section, its nav link, its styles and its published image
+derivatives have all been removed. The renders and the tooling remain in the repository for
+internal use. This entry records what was built, what was wrong with it, and what was learned,
+because the tooling work is sound and will be reused when there is a body worth rendering.
+
+### BUILT
+
+- **`Tools/Blender/render_soldiers.py`**, producing matched studio renders of both sides: 3 ACR
+  in CMECU carrying the A88, MAF in the red-earth set carrying the A4.
+- **Camouflage retuned to the producer's reference photography** (Australian Disruptive
+  Pattern-style uniform shots). `Build/audit/tune_camo.py` measures the fabric in the reference
+  and searches the palette for the closest match instead of eyeballing it: reference lum
+  p10/p50/p90 = 40/129/235, median saturation 0.46, oxide-red population 8.7%. The old four-tone
+  set had no pale ground and no red and rendered as a khaki wash (sat 0.23, nothing above 175).
+  The new seven-tone set scores lum 43/107/205, sat 0.47, red 10.2%. Still noise-generated,
+  still original, still not AMCU/Auscam (ADR-016). **This part is kept** — it is the game's
+  own texture, not a website asset.
+- Renderer bugs found and fixed along the way, all by measuring rather than looking:
+  - Each kit FBX carries its own armature scaled 0.01 to match the body's centimetre rig;
+    deleting it stripped the scale and blew the kit up 100x, which put a 1.8 m figure inside a
+    183 m camera frame and rendered the MAF as a torso with no legs.
+  - The camera was fitted to rest-pose vertices (the A-pose) rather than the evaluated mesh.
+  - `pbr()` looked for `T_SS_<set>` where the files are `T_SS_<set>_BC`, so **no base colour
+    was ever linked** and both soldiers rendered as untextured default grey.
+  - The weapon was anchored to the midpoint of the two wrists, which put it in mid-air beside
+    the figure. It is now fitted by construction: the grip point is placed on the right wrist
+    and the bore swung at the left, bringing each wrist to within 44–59 mm of the rifle
+    (a hand's width) from several metres.
+  - `bpy.ops.object.mode_set` returns CANCELLED with no exception unless the object is *also*
+    selected, so pose-bone rotations written from OBJECT mode were silently discarded.
+
+### WHY IT WAS WITHDRAWN
+
+- **The body is the blocker.** It is the L-0016 Fab mannequin — which ASSET_REGISTER already
+  tracks as C-001, "Manny is a placeholder; original body required" — wearing L-0021 kit fitted
+  to a *different* skeleton. The proportions read as a dummy and the carrier sits on the torso as
+  flat slabs. Neither lighting nor texture work fixes a fitting and silhouette problem, and the
+  producer's read was that the body is the most obviously wrong thing in the image.
+- **The rig cannot be posed properly.** The bone chain is disconnected: the upperarm's tail sits
+  16 cm from the lowerarm's head while the mesh spans the gap, so rotating the upperarm does not
+  carry the wrist. IK is impossible on it. `Build/audit/solve_carry.py` instead searches the four
+  arm angles against carry targets and converges to a 1.4 mm residual, which is good enough to
+  put the hands on the weapon but cannot make the pose read as natural.
+- **The preview tooling failed for the whole session** ("produced no frames"), so the renders
+  were never visually checked before publishing, and two changes made while guessing at numbers
+  made the result worse rather than better (see DEFECTS).
+
+### DEFECTS FOUND
+
+- The weapon floated beside the figure instead of being held (midpoint-of-wrists anchoring).
+- No base colour was ever linked; both soldiers were untextured grey.
+- The gear rendered 100x oversized and the figure was framed out of shot.
+- The MAF render had no legs and the camera fitted the rest pose.
+- **UV tiling was the wrong fix and was reverted.** The FBX lays UVs 0..1 over the whole 1.8 m
+  figure, so the camo is genuinely coarse. Scaling the UVs 7x (camo) and 16x (fabric) was tried
+  on the reasoning that finer blobs would read better; at render resolution it turned the
+  pattern into high-frequency noise and looked worse. Reverted to 1.0, with a note that the
+  correct fix is UVs authored at the right scale in the source meshes, not a global multiplier.
+- **Flat ambient was the wrong fix and was reverted.** Raising the world background from 0.35 to
+  0.85 to open up crushed blacks removed the form-shaping entirely and made the figures read as
+  cardboard. Reverted to 0.35.
+- Both of the above were made without ever seeing the render, because the preview capture tool
+  was unavailable. **Process lesson: publish nothing visual that has not been looked at.**
+
+### ASSETS
+
+- No new third-party assets. `Docs/images/soldiers/*.png` are studio renders of existing models,
+  now internal-only. Nothing from this session is published.
+- The CMECU and MAF texture retune is kept and applies to the game, not the website.
+- ASSET_REGISTER and LICENCE_REGISTER L-0022 record the camouflage work and the withdrawal.
+
+### RISKS
+
+- **R-39 (closed).** The soldier renders were two restricted layers in one image (L-0016 body,
+  L-0021 kit) with no single material whose clearance carried the picture. Withdrawn, so the
+  exposure no longer exists.
+
+### NEXT ACTION
+
+**Do not render the player model for the website until C-001/C-002 has an original body.** The
+renders, the pose solver and the camera/lighting work in `render_soldiers.py` are ready to reuse
+the moment there is a mesh worth rendering. The gap the section was filling is better filled by a
+frozen in-engine capture, which is the site's top outstanding asset.
+
+
+---
+
 ## Open Threads
 
 | Item | Blocked on | Owner |

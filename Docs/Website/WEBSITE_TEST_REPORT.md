@@ -1,12 +1,14 @@
 # WEBSITE TEST REPORT — Southern Spear
 
-**Date:** 2026-09-28 (third pass: loadout section with original weapon renders)
+**Date:** 2026-09-28 (fourth pass: soldiers section added, then withdrawn — see §8)
 **Build tested:** `python Tools/publish_site.py` → `Build/site/` → published
 **Served from:** `http://localhost:8765/` (local static server) and the live site
 **Browser:** Google Chrome (headless, via `puppeteer-core`) and Lighthouse 12
 **Automated suites:** `Build/audit/responsive_audit.js` (9 viewports × both pages),
 `Build/audit/text_audit.js` (type and target sizes), `Build/audit/interaction_test.js`
-(22 keyboard, focus, filter, lightbox, loadout, redirect and zoom checks, across both pages)
+(22 keyboard, focus, filter, lightbox, loadout, redirect and zoom checks, across both pages),
+`Build/audit/soldiers_check.js` and `Build/audit/soldiers_lightbox.js` were written for the
+withdrawn soldiers section and are retained but not run
 **Baseline for comparison:** the live site at https://theantipopau.github.io/southernspear-site/
 
 > Internal document. Not published.
@@ -27,12 +29,21 @@ Final figures are measured on the **live site**, because the local test server
 
 | Metric | Before (live) | After (local) | **After (live)** | Target | Verdict |
 |---|---|---|---|---|---|
-| First Contentful Paint | 3.0 s | 2.1 s | **1.2–1.8 s** | < 1.8 s | **met** |
-| Largest Contentful Paint | 12.9 s | 3.7 s | **1.7–2.7 s** | < 2.5 s | **usually met** |
-| Total Blocking Time | 30 ms | 0 ms | **60–120 ms** | < 200 ms | met |
+| First Contentful Paint | 3.0 s | 2.1 s | **1.1–1.8 s** | < 1.8 s | **met** |
+| Largest Contentful Paint | 12.9 s | 3.7 s | **1.5–2.7 s** | < 2.5 s | **usually met** |
+| Total Blocking Time | 30 ms | 0 ms | **30–120 ms** | < 200 ms | met |
 | Cumulative Layout Shift | 0 | 0 | **0** | < 0.1 | met |
-| DOM elements | 4,839 | 1,584 | **1,380** | < 1,500 | **met** |
-| Total transfer | 2,110 KB | 487 KB | **284 KB** | — | **−87 %** |
+| DOM elements | 4,839 | 1,584 | **950** | < 1,500 | **met** |
+| Total transfer | 2,110 KB | 487 KB | **333 KB** | — | **−84 %** |
+
+**Soldiers section cost.** Measured live after publishing (two consecutive runs):
+performance **99 / 100**, accessibility 100, best practices 100, SEO 100, FCP 1.1–1.4 s,
+LCP 1.5–1.8 s, TBT 30–40 ms, **CLS 0**, transfer **333 KB**. The two soldier renders add
+**49 KB** to the mobile payload (720w AVIF, `loading="lazy"`, below the fold) and **no**
+measurable LCP or CLS cost — the figures moved *down* on every timing metric against the
+pre-section build, which is run-to-run variance on a shared machine rather than an
+improvement. DOM elements fell to 950 because the changelog page split moved 32 session
+bodies off the index.
 
 **Read the live column as a range, not a point.** Lighthouse's simulated throttling on a
 shared machine varies a lot run to run. Three consecutive live runs of the final build gave
@@ -109,6 +120,11 @@ the `hero-drift` scale animation caught mid-transform. `.hero` has `overflow: hi
   Derivatives stop at the source width deliberately.
 * The mobile portrait crop is taken from the right of the source (sunset, mesa, gorge) because
   the composited wordmark occupies the centre band of the frame.
+* **The soldier renders are portrait and the section stacks on narrow screens.** At 360 px the
+  two cards stack, making the section roughly 1,600 px tall. That is the cost of showing a
+  full-length figure at a readable size; the images are `loading="lazy"`, so nothing is
+  fetched until it is scrolled to. Measured at 360, 768, 1280 and 1920: no overflow, AVIF
+  served, no image upscaled, all card controls at or above 44 px.
 
 ---
 
@@ -282,6 +298,12 @@ cross-browser verified.**
 | No release date, player count, platform, award or review invented | pass |
 | Map names and descriptions taken verbatim from `ORIGINAL_BRIEF.md` | pass |
 | Training modules and role prerequisites taken from `GAME_DESIGN_DOCUMENT.md` | pass |
+| Soldier renders labelled as renders, never as gameplay | pass — the section note says "studio renders of the current internal models, not captured gameplay" |
+| Soldier render provenance stated (L-0016 body + L-0021 kit, promotion not clearance) | pass |
+| Camouflage stated as the project's own, generated from noise | pass — the note names `Tools/Textures/make_character_textures.py` |
+| No real unit's insignia claimed or shown | pass — the MAF kit is peacekeeper-style and is described as such, not as any real unit's equipment |
+| No ADF affiliation implied | pass — the disclaimer extends the new section |
+| Camouflage palette checked against the producer's reference photography | pass — render saturation 0.48 vs reference 0.46, pale population 9.8% vs 10.2% |
 
 ---
 
@@ -301,6 +323,8 @@ cross-browser verified.**
 | `/favicon.ico` published at the site root | pass — browsers request it there regardless of any `<link>` |
 | **Live publish run and verified** | pass |
 | All assets return 200 with correct content types from the live host | pass |
+| `assets/soldiers/*` published by the directory copy, no publisher change needed | pass — 12 files (2 sides × 720/1200 × PNG/WebP/AVIF) live, all 200 |
+| GitHub Pages build lag after publish | noted — a newly published asset can 404 for up to ~30 s while Pages rebuilds. The verification loop polls rather than treating the first 404 as a failure; confirmed 200 on retry, and `favicon.ico` showed the same one-off 503. |
 | `.gitattributes` keeps `Site/assets/**` out of Git LFS, as the publisher requires | pass |
 
 ---
@@ -311,12 +335,17 @@ cross-browser verified.**
 
 1. **Frozen in-engine gameplay captures.** `Saved/Screenshots/WindowsEditor/SSShot.png` is
    overwritten by the editor every session and is gitignored, so it cannot be published. The
-   gallery currently contains concept art only and says so. The loadout section shows
-   studio renders of the weapons currently in the internal build instead, which is honest
-   but is not the same proof. This remains the only thing standing between this being a
-   concept-art site and a site that proves the game renders.
+   gallery currently contains concept art only and says so. The loadout and soldiers sections
+   show studio renders of the weapons and player models currently in the internal build
+   instead, which is honest but is not the same proof. This remains the only thing standing
+   between this being a concept-art site and a site that proves the game renders.
 2. Map, role and environment artwork for the five map concepts.
 3. An official horizontal wordmark lockup, for a richer header lockup than emblem + HTML text.
+4. **The original character (C-001/C-002).** A player-model section was built and withdrawn in
+   Session 042 because the L-0016 mannequin's proportions read as a dummy. It is not
+   re-attempted until there is an original body; `Tools/Blender/render_soldiers.py` and its
+   pose solver are ready to reuse. A frozen in-engine capture (item 1) fills the gap better in
+   the meantime.
 
 **Resolved since the first pass.** The earlier report led with "a clean 4K hero without
 composited interface text" as the top outstanding asset. `Docs/images/mainmenu.png` turned
@@ -333,7 +362,8 @@ design, with its corner labels explained in the caption.
    `styles.css` (~12 KB) and `site.js` (~43 KB) are the largest avoidable transfers left.
 2. Test in Firefox and WebKit. Everything in this report is Chromium only.
 3. The gallery is six items; the markup is data-shaped so adding captures needs no
-   JavaScript change.
+   JavaScript change. The soldiers section is the same: two hand-written cards, no JavaScript
+   beyond the shared lightbox, so adding a faction means copying one `<li>`.
 4. `Docs/DEVELOPMENT_ROADMAP.md` and `Docs/CHANGELOG.md` used to disagree about Phase 0.
    **Resolved 2026-09-28:** the roadmap's Current Status table now reads Phase 0 Complete
    (G0.8 passed) and Phase 1 Active, agreeing with the changelog; the status panel and the
@@ -348,3 +378,7 @@ design, with its corner labels explained in the caption.
   not announced twice.
 * The loading-screen design keeps its corner labels. They are part of that artwork and are
   explained in its caption.
+* **The soldier renders are matched to each other, not to the game's lighting.** Both sides are
+  studio-lit on the same figure-relative rig with a small per-side exposure trim, so the pair
+  reads as a set. They are not lit as they would be in Dry River at dawn, and the section does
+  not claim they are: it says they are studio renders of the current internal models.

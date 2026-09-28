@@ -285,3 +285,14 @@ Rules:
   and in the FAQ, because "Australian" and "3 ACR" are the two most misreadable claims.
 * Status, roadmap and changelog are generated from `data/*.md`. If a fact is in those
   documents it is rendered from them, never copied into the HTML.
+* **Renders of the current internal models are labelled as renders, never as gameplay.** The
+  Loadout section says so in its `section__note`, which also states the provenance: which
+  licence layer the picture is composed of, that publication is a recorded risk acceptance and
+  not a licence clearance, and that the original parts are scheduled for reshaping.
+* **A render is only published once a person has looked at it.** Session 042 published
+  player-model renders that had never been visually reviewed — the preview tooling had failed —
+  and they had to be withdrawn the same day. Measure what can be measured (silhouette, exposure,
+  hand-to-prop distance), but never substitute a metric for looking at the image.
+* **Never claim the project is affiliated with, or endorsed by, the ADF or any military**, and
+  never show a real unit's insignia. The kit on the MAF render is a peacekeeper-style loadout, not
+  a depiction of any real unit's equipment.
