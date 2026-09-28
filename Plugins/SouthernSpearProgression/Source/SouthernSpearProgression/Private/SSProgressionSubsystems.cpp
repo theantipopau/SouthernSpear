@@ -2,6 +2,7 @@
 
 #include "SSProgressionSubsystems.h"
 
+#include "Engine/Engine.h"
 #include "Engine/GameInstance.h"
 #include "Engine/World.h"
 #include "GameFramework/GameModeBase.h"
@@ -42,6 +43,41 @@ namespace
 		}
 	}
 }
+
+// --- Console ----------------------------------------------------------------
+
+/**
+ * ss.Callsign <name>. Registered once for the process: a per-game-instance registration shared one console
+ * object between game instances (two in the network smoke test), and the second Deinitialize unregistered a
+ * pointer the first had already deleted (access violation, Session 050 test run). Applies to every local
+ * profile, which in a game is the one.
+ */
+static void SetCallsignFromConsole(const TArray<FString>& Args)
+{
+	const FString Name = FString::Join(Args, TEXT(" "));
+	int32 Applied = 0;
+	if (GEngine)
+	{
+		for (const FWorldContext& Context : GEngine->GetWorldContexts())
+		{
+			UGameInstance* GameInstance = Context.OwningGameInstance;
+			USSPlayerProfileSubsystem* Profile = GameInstance ? GameInstance->GetSubsystem<USSPlayerProfileSubsystem>() : nullptr;
+			if (Profile)
+			{
+				Applied += Profile->SetCallsign(Name) ? 1 : 0;
+			}
+		}
+	}
+	if (Applied == 0)
+	{
+		UE_LOG(LogSSProgression, Warning, TEXT("ss.Callsign: '%s' not applied (2-16 letters, digits, space, - or _; and a game must be running)."), *Name);
+	}
+}
+
+static FAutoConsoleCommand GSSCallsignCommand(
+	TEXT("ss.Callsign"),
+	TEXT("Set your callsign (2-16 letters, digits, space, - or _). Shown on the scoreboard. Example: ss.Callsign Dingo 2-1"),
+	FConsoleCommandWithArgsDelegate::CreateStatic(&SetCallsignFromConsole));
 
 // --- Relay ------------------------------------------------------------------
 
@@ -102,16 +138,20 @@ void USSProgressionServerSubsystem::Initialize(FSubsystemCollectionBase& Collect
 	if (Bus)
 	{
 		BusHandle = Bus->OnServiceEvent.AddUObject(this, &ThisClass::HandleServiceEventFromBus);
+		BoundBus = Bus;
 	}
 	ValidateSettingsOnce();
 }
 
 void USSProgressionServerSubsystem::Deinitialize()
 {
-	if (USSServiceEventSubsystem* Bus = GetWorld() ? GetWorld()->GetSubsystem<USSServiceEventSubsystem>() : nullptr)
+	// The bus it was bound to, not a fresh lookup: during world teardown the collection may already be
+	// releasing its subsystems.
+	if (USSServiceEventSubsystem* Bus = BoundBus.Get())
 	{
 		Bus->OnServiceEvent.Remove(BusHandle);
 	}
+	BoundBus.Reset();
 	Tallies.Reset();
 	Super::Deinitialize();
 }
@@ -208,29 +248,6 @@ void USSPlayerProfileSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 	Provider = MakeUnique<FSSLocalDevPersistence>(FPaths::Combine(FPaths::ProjectSavedDir(), TEXT("SouthernSpear"), TEXT("Profiles")));
 	LoadOrCreate();
 	Publish();
-
-	TWeakObjectPtr<USSPlayerProfileSubsystem> WeakThis(this);
-	CallsignCommand = IConsoleManager::Get().RegisterConsoleCommand(TEXT("ss.Callsign"),
-		TEXT("Set your callsign (2-16 letters, digits, space, - or _). Shown on the scoreboard. Example: ss.Callsign Dingo 2-1"),
-		FConsoleCommandWithArgsDelegate::CreateLambda([WeakThis](const TArray<FString>& Args)
-		{
-			USSPlayerProfileSubsystem* Self = WeakThis.Get();
-			const FString Name = FString::Join(Args, TEXT(" "));
-			if (Self && !Self->SetCallsign(Name))
-			{
-				UE_LOG(LogSSProgression, Warning, TEXT("ss.Callsign: '%s' is not a valid callsign (2-16 letters, digits, space, - or _)."), *Name);
-			}
-		}), ECVF_Default);
-}
-
-void USSPlayerProfileSubsystem::Deinitialize()
-{
-	if (CallsignCommand)
-	{
-		IConsoleManager::Get().UnregisterConsoleObject(CallsignCommand);
-		CallsignCommand = nullptr;
-	}
-	Super::Deinitialize();
 }
 
 int32 USSPlayerProfileSubsystem::GetServiceLevel() const

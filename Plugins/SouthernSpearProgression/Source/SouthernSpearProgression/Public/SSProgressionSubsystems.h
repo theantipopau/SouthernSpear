@@ -13,7 +13,6 @@
 
 class AController;
 class APlayerController;
-class IConsoleObject;
 
 /**
  * Added by the server to every player controller: delivers each service event
@@ -72,6 +71,7 @@ private:
 	USSServiceRelay* RelayFor(APlayerController* Controller);
 
 	TMap<TWeakObjectPtr<APlayerController>, FSSMatchTally> Tallies;
+	TWeakObjectPtr<USSServiceEventSubsystem> BoundBus;
 	FDelegateHandle BusHandle;
 	float Accumulator = 0.f;
 };
@@ -92,8 +92,6 @@ class SSPROG_API USSPlayerProfileSubsystem : public UGameInstanceSubsystem
 public:
 	virtual bool ShouldCreateSubsystem(UObject* Outer) const override;
 	virtual void Initialize(FSubsystemCollectionBase& Collection) override;
-
-	virtual void Deinitialize() override;
 
 	/** Record one award from the server and save. */
 	void ApplyServiceAward(ESSServiceEvent Event, int32 XpDelta);
@@ -120,9 +118,6 @@ private:
 	void LoadOrCreate();
 	void Save();
 	void Publish();
-
-	/** ss.Callsign <name>: set the callsign from the console until the front end has a field for it. */
-	IConsoleObject* CallsignCommand = nullptr;
 
 	TUniquePtr<FSSLocalDevPersistence> Provider;
 	FSSServiceRecord Record;

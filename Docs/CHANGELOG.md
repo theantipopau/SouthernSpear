@@ -3944,6 +3944,17 @@ the weapons plan's W1 is the next build task.)
 - **R-59 (open, low):** a weapon whose ammo was granted before the subsystem's first pass (0.25 s) could fire one
   magazine at Lyra's size. Items are adjusted once, on first sight.
 
+### DEFECTS FOUND
+
+- **Access violation in `USSPlayerProfileSubsystem::Deinitialize` (Session 049 code)**, found by the producer's
+  test run after this session's build (22 actions, OK). 57 tests found, 20 completed (all Success, including both
+  new `Core.Weapons.*` tests), then the run died in `SouthernSpear.Network.Gameplay.TwoPlayerAuthoritySmoke`. The
+  cause: `ss.Callsign` was registered per game instance. The smoke test runs two, which share one console object;
+  the first `Deinitialize` deleted it and the second unregistered the dangling pointer. **Fixed:** the command is
+  now registered once per process (`FAutoConsoleCommand`) and applies to every local profile, and the profile
+  subsystem no longer overrides `Deinitialize`. Also hardened: the server subsystem unbinds from the bus through a
+  weak pointer kept at `Initialize`, not a lookup during world teardown. NOT RUN here; the re-run should report 57/57.
+
 ### NEXT ACTION
 
 **Build, run the tests, and run `Tools/Unreal/probe_weapon_fire.py`.** Then send me `Build/probe_weapon_fire.json`
