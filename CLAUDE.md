@@ -48,6 +48,8 @@ Southern Spear is an original, fictional, Australian-inspired tactical multiplay
   - **Redistribution.** Use in the project is cleared; redistribution via the repository is not. `Art/ADFRC/*` and `Art/ADFRC_Player/*` stay git-ignored — only their `.md` files are tracked. Keep it that way.
   Evidence and the full terms are in `Docs/LICENCE_REGISTER.md` (L-0021) and `Docs/evidence/`.
 - Before importing any asset: check `Docs/ASSET_REGISTER.md` **and** `Docs/LICENCE_REGISTER.md`, add entries.
+- **Every Fab asset is cleared for use (ADR-028, producer).** Do not look up or confirm Fab licences, and never hold a Fab
+  asset back for a licence check: record it in the registers as "Fab, cleared under ADR-028". CC BY listings get a credit line.
 - Never invent release dates, versions, downloads, player counts or testimonials (site or docs).
 - Paid dependencies, legal-risk content and architecture changes need producer approval.
 
@@ -132,6 +134,20 @@ rifle definitions, pointed at ours). The starting loadout is data: `Config/Defau
 - Some classes aren't module attributes: use `unreal.load_class(None, "/Script/Module.Class")`.
 - `-nosound` makes Lyra weapon audio print on-screen Blueprint errors (`WeaponAudioFunctions.EarlyReflections`); not a defect.
 - Engine Toolset Python import errors in logs are unrelated noise.
+
+## VibeUE editor services (dev tool, `Plugins/VibeUE`, MIT, git-ignored clone)
+
+VibeUE's services are plain `BlueprintCallable` statics, so our `-ExecutePythonScript` commandlets call them
+directly: **no MCP server or open editor is needed.** Use them before hand-writing reflection hacks:
+`unreal.AnimGraphService` (AnimBP state machines, blend spaces, layered blend, two-bone IK, slots),
+`AnimSequenceService` (bone transforms per frame, notifies, curves, root motion), `AnimMontageService`,
+`SkeletonService` (compatible skeletons, retarget modes, blend profiles, sockets), `BlueprintService`
+(graphs, components, variables, compile), `MaterialService`/`MaterialNodeService`, `UVMappingService`,
+`FoliageService`, `LandscapeService`, `ActorService`, `AssetDiscoveryService` (unattended import/delete).
+Method list: `Build/vibeue_python_api.json` (regenerate by `dir(unreal.<Service>)`). Per-domain how-tos and
+common mistakes: `Plugins/VibeUE/Content/Skills/<domain>/SKILL.md` (read the one for the task first).
+Editor-only: never reference it from runtime modules or game content. The `.uproject` marks it `Optional`,
+so a clone without the plugin still opens. Its web tools (Fab, OpenStreetMap, DuckDuckGo) are not used.
 
 ## Git, LFS, publishing
 

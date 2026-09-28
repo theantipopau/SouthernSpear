@@ -337,7 +337,7 @@ Before any public release:
 
 | Pack | Local folder | Used for | Status |
 |---|---|---|---|
-| Rural Australia | `Content/RuralAustralia` | Base of `L_RedGum_01` (ADR-022); fence meshes changed to have no collision, and since Session 041 Dry River: ground textures, scatter, trees, `SM_Horizon_01` (`Tools/Unreal/dryriver_ground.py`, `expand_dryriver.py`) | In use |
+| Rural Australia | `Content/RuralAustralia` | Base of `L_RedGum_01` (ADR-022); fence meshes changed to have no collision, and since Session 041 Dry River: ground material `MI_Ground_Dirt_01` (terrain and skirt), rocks, logs, trees (`Tools/Unreal/expand_dryriver.py`; `dryriver_ground.py` removed in Session 044) | In use |
 | Namaqualand | `Content/Namaqualand` | Base of `L_Saltbush_01` (MAPS_SALTBUSH.md); Dry River scatter since Session 041: stones, rocks, boulders, bark debris, dead branches, *Didelta* shrubs. The South African wildflowers are not used (setting reads as Australian, ADR-016) | In use |
 | QuantumCharacter (military character) | `Content/QuantumCharacter` | 3 ACR soldier body | In use; insignia check pending (R-20); carries original Southern Spear materials as per-slot cosmetic overrides (L-0022) |
 | Modern_Insurgent_7 | `Content/Modern_Insurgent_7` | MAF soldier body (conventional parts only) | In use; names internal only |
@@ -345,7 +345,7 @@ Before any public release:
 | FPS_Weapon_Bundle, AK-47, M1911 | `Content/FPS_Weapon_Bundle`, `Content/AK-47`, `Content/M1911` | Reference for A-series reshaping only | Not used |
 | **Scene Quarry Slate** | `Content/Scene_QuarrySlate` | **Rock, ledges, gravel, the best stone in the project.** Dry River scatter and road surface, tinted under `MI_SS_Ironstone_*`; Ravenshoe Crossing gorge walls and boulders (`MAPS_RAVENSHOE.md`) | In use — **row added 2026-09-28, see L-0016b** |
 | Modular Rural Cabin | `Content/Modular_Rural_Cabin` | Sparse conifer on shaded north-facing slopes (Ravenshoe). No map base | In use — **row added 2026-09-28, see L-0016b** |
-| Singapore Canal | `Content/Singapore_Canal` | — | **Not used.** Asian canal/urban architecture; wrong look and wrong culture (ADR-016). Stone *materials* must not be repurposed for Australian masonry. Row added 2026-09-28, see L-0016b |
+| Singapore Canal | `Content/Singapore_Canal` | Dry River generic props only (Session 044): crates, barrels, tubs, carts, packed sacks, planks and plain wood materials | **Generic props in use; architecture not used.** Asian canal/urban architecture and ornamented metal (`MI_MetalParts_01`) stay out (ADR-016). Stone *materials* must not be repurposed for Australian masonry. Row added 2026-09-28, see L-0016b; corrected Session 044 |
 | Nanite Plants Sample Collection | `Content/Nanite_Plants_Sample_Collection` | — (6 sample meshes, temperate European garden species) | Installed, not used. Row added 2026-09-28, see L-0016b |
 | Military Radio | `Content/Military_Radio` | Radio/headset props | In use (props). Row added 2026-09-28, see L-0016b |
 | Realistic Starter VFX Pack Vol 2 | `Content/Realistic_Starter_VFX_Pack_Vol2` | Particle effects | In use (FX). Row added 2026-09-28, see L-0016b |
@@ -416,3 +416,13 @@ Before any public release:
 | **Status** | In use on 7 of 14 friendly slots and 5 of 7 MAF parts; no rendered in-game view yet (see changelog Session 026) |
 | **Retune (Session 042)** | CMECU retuned from four tones to seven and MAF lifted ~15%, both measured against the producer's reference photography by `Build/audit/tune_camo.py` rather than eyeballed: reference fabric lum p10/p50/p90 = 40/129/235, median saturation 0.46, oxide-red population 8.7%; the regenerated sets score lum 43/107/205, sat 0.47, red 10.2%. Still noise-generated from the script's own fbm field — **no real-world camouflage was sampled, traced or converted, and AMCU/Auscam remain out of bounds (ADR-016)**. The four `M_SS_*` materials and the per-slot override arrays are unchanged; only the texture images differ. |
 | **Website use (Session 042)** | Studio renders using these textures on the L-0016 body and L-0021 kit were published and then **withdrawn** in the same session; see ASSET_REGISTER §4.9. The camo itself is Class F and carries no restriction; the body and kit in the same image do, and it is those two layers that made the renders unsuitable to publish. |
+
+### L-0023 — Session 044 additions (Fab, cleared under ADR-028; tooling)
+
+| Component | Source | Use | Status |
+|---|---|---|---|
+| M4 and G17 FPS Weapon Animations packs (BarcodeGames) | Fab `38da8f1e…`, `5b920af4…`, Standard License | First-person arms and clips (`SSExp_ObjectiveAssault/FirstPerson`); the packs' real-weapon models are dropped in `fp_arms.py` | In use |
+| African Slate Quarry (Scene_QuarrySlate) | Fab (Megascans) | Base of `L_Bluestone_01` (ADR-028 map-base note); Dry River stones | In use; git-ignored pack (R-41) |
+| Military Trenches Wall Metal Corrugated 04 | Fab (Megascans) | `MI_SS_CorrugatedIron` texture set | In use |
+| Gloves for fps game (Bobeer) | Fab, CC BY 4.0 | — | Not used; credit "Bobeer" if used |
+| VibeUE (Kevin Buckley) | github.com/kevinpbuckley/VibeUE, MIT | Editor-only dev tooling, git-ignored clone | Not shipped |

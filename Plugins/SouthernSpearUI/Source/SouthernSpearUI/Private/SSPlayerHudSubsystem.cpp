@@ -10,6 +10,8 @@
 #include "SSMenuWidget.h"
 #include "SSPlayerHudWidget.h"
 #include "SSScoreboardWidget.h"
+#include "SSKillFeedWidget.h"
+#include "UObject/UObjectIterator.h"
 
 IMPLEMENT_MODULE(FDefaultModuleImpl, SouthernSpearUI)
 
@@ -55,6 +57,11 @@ void USSPlayerHudSubsystem::Tick(float DeltaTime)
 			Player->SetInputMode(FInputModeGameOnly());
 			Player->SetShowMouseCursor(false);
 			Hud->AddToViewport(5);
+			KillFeed = CreateWidget<USSKillFeedWidget>(Player, USSKillFeedWidget::StaticClass());
+			if (KillFeed)
+			{
+				KillFeed->AddToViewport(6);
+			}
 			UE_LOG(LogTemp, Log, TEXT("Southern Spear player HUD shown for %s."), *Player->GetName());
 		}
 		ClassSelect = CreateWidget<USSClassSelectWidget>(Player, USSClassSelectWidget::StaticClass());
@@ -104,6 +111,20 @@ void USSPlayerHudSubsystem::Tick(float DeltaTime)
 		static const bool bForce = FParse::Param(FCommandLine::Get(), TEXT("SSShowScoreboard"));
 		const bool bShow = bForce || Player->IsInputKeyDown(EKeys::Tab);
 		Scoreboard->SetVisibility(bShow ? ESlateVisibility::HitTestInvisible : ESlateVisibility::Collapsed);
+		if (bShow)
+		{
+			// ShooterCore's input pushes Lyra's own red/blue scoreboard on the same key, drawn under ours.
+			// Matched by class name so this module keeps no Lyra dependency; vendored content stays unmodified.
+			for (TObjectIterator<UUserWidget> It; It; ++It)
+			{
+				UUserWidget* Widget = *It;
+				if (Widget && Widget != Scoreboard && Widget->GetWorld() == World && Widget->GetClass()->GetName().Contains(TEXT("ScoreBoard"))
+					&& Widget->GetVisibility() != ESlateVisibility::Collapsed)
+				{
+					Widget->SetVisibility(ESlateVisibility::Collapsed);
+				}
+			}
+		}
 	}
 
 	if (Player->WasInputKeyJustPressed(EKeys::Escape))

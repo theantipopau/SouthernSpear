@@ -24,4 +24,5 @@ public:
 
 private:
 	float DebugAccumulator = 0.f;
+	float CleanupAccumulator = 0.f;
 };

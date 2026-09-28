@@ -217,6 +217,7 @@ Content/Military_Radio/
 Content/Nanite_Plants_Sample_Collection/
 Content/Realistic_Starter_VFX_Pack_Vol2/
 Content/Singapore_Canal/
+Content/Scene_QuarrySlate/
 Content/World_Flags/
 Content/SampleAnimationPack/
 Content/Vis/
@@ -241,3 +242,6 @@ Art/Weapons/C4A1/
 Art/Weapons/PKM/
 Art/Weapons/_Optics/
 Content/SouthernSpear/Vendor/
+
+# VibeUE editor MCP toolset (MIT, third-party dev tool; own git clone, not shipped)
+Plugins/VibeUE/

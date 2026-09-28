@@ -10,6 +10,7 @@ class USSClassSelectWidget;
 class USSMenuWidget;
 class USSPlayerHudWidget;
 class USSScoreboardWidget;
+class USSKillFeedWidget;
 
 /**
  * Client: adds the Southern Spear player HUD once the local player has a pawn,
@@ -33,5 +34,6 @@ private:
 	UPROPERTY(Transient) TObjectPtr<USSMenuWidget> PauseMenu;
 	UPROPERTY(Transient) TObjectPtr<USSClassSelectWidget> ClassSelect;
 	UPROPERTY(Transient) TObjectPtr<USSScoreboardWidget> Scoreboard;
+	UPROPERTY(Transient) TObjectPtr<USSKillFeedWidget> KillFeed;
 	bool bHadPawn = false;
 };

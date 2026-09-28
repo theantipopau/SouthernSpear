@@ -3146,6 +3146,128 @@ frozen in-engine capture, which is the site's top outstanding asset.
 
 ---
 
+## Session 044 — 2026-09-28 — Dry River Expanded And Dressed From Packs, Kill Feed, Lyra Pops Removed, Bluestone Quarry, Gloved First-Person Arms
+
+### COMPLETED
+
+- **Dry River ground and size** (producer screenshots: grey checker, "red dirt slightly off"). The Rural Australia
+  `_NA` textures are packed masks; sampled as normals they failed the material and Unreal drew its checker. Terrain
+  and outer skirt now both use the pack's `MI_Ground_Dirt_01` (world-space UVs), so there is no seam; Nanite is off on
+  the terrain mesh (it showed flat low-mip texture). Playable area 340 x 240 m (`dryriver_world.PLAY_HALF_X/Y`), with
+  boundary volumes and a matching nav volume.
+- **Dry River dressing from packs, not blocks** ("assets added are very poor quality, just a block"):
+  - textured corrugated shelters built in Blender (`dryriver_shelters.py`: lean-to, three-bay shed, tank);
+  - Megascans corrugated iron (`setup_fab_materials.py`: `M_SS_ScanPBR`, `MI_SS_CorrugatedIron`), replacing Singapore
+    Canal metal that carried Asian ornament;
+  - yard clutter, sandbag sangars and supply dumps from Singapore Canal *generic* props;
+  - Rural Australia rocks, logs and trees, with hidden trunk colliders;
+  - tinted quarry ledges, rock clusters and 560 creek stones from the Scene Quarry pack.
+  Old blockout crates, barrels and scrub were swapped in place; puddles and pale ground patches were removed.
+- **Red Gum homestead textured** from pack materials (edits to the other agent's `import_redgum_homestead.py` and
+  `redgum_homestead.py`; those files and the map stay uncommitted with that agent's work).
+- **Kill feed** (producer): top-right "killer · WEAPON · victim" in viewer-relative colours, plus "ELIMINATED <name>"
+  below the crosshair for the viewer's own kills. Server binds each pawn's `ULyraHealthSet::OnOutOfHealth` and sends
+  per-viewer entries through `USSKillFeedRelay` (a client RPC on each PlayerController). Rules (`FSSKillFeedRules`) are
+  in Core, with a new test. Lyra's message path could not be used: `FLyraVerbMessage` is not exported, and the game
+  state multicast only broadcasts on clients.
+- **Lyra presentation removed** (producer: "weird lyra blocks when damaged", "hit points above the enemy"): the bridge
+  destroys Lyra number-pop and nameplate components client-side; the log showed 11 removed in a live match. Lyra's
+  red/blue Tab scoreboard is collapsed while ours shows.
+- **Bluestone Quarry** (`L_Bluestone_01`, producer: "activate that african map"). The African Slate Quarry is a
+  studio-lit ~70 x 80 m diorama, not a level, so the generic builder (`build_objective_map.py`, key `quarry`) now
+  does the following:
+  - strips the showroom and the light bars above the pit;
+  - gives the pack meshes complex collision;
+  - adds outdoor daylight and fog;
+  - rings the pit with a rim at each side's measured edge height, dressed with the pack's own rocks and bushes and
+    textured with a new world-aligned material (`M_SS_WorldGroundVT`);
+  - adds boundary walls and three objectives.
+  All legs connect. It is on the operations menu. Paused for fine-tuning on the producer's instruction.
+- **First person: gloved arms view model** (producer decision on ADR-024 S2: "arms view model", recorded here). The
+  Fab M4 and G17 FPS packs, with their real-weapon models removed (`Tools/Blender/fp_arms.py`), give draw, fire,
+  reload, empty reload and holster. The A-series weapon rides the pack's weapon bone at a grip measured from the idle
+  pose. Pistols switch to the G17 arms automatically (held mesh shorter than 35 cm). Reloads are time-scaled to
+  Lyra's montage; walk bob, sway, sprint lowering and fire kick are procedural. Sleeves use the soldiers' AMCU G3 shirt
+  fabric and the hands a coyote glove, via a per-polygon UV mask (`make_fp_arms_texture.py`). Weapons moved forward
+  twice on producer feedback (`ss.FP.ArmsOffset 17 0 -2`, `ss.FP.WeaponOffset 9 0 -3`).
+- **Own-body shadow** ("da Vinci shadow"): hidden meshes stopped refreshing bones, so the shadow stayed in the bind
+  pose. The local body and gear now keep posing while hidden.
+- **VibeUE** (MIT, git-ignored clone in `Plugins/VibeUE`) builds and loads. Its services are Python-callable from our
+  commandlets, verified: 800+ functions including AnimGraph, AnimSequence and Skeleton; CLAUDE.md section added.
+  The Unreal MCP and EditorToolset plugins are enabled in the `.uproject`, with VibeUE marked `Optional`. Auto-starting
+  the editor MCP server was **not** configured (blocked by the permission classifier; the producer's call).
+- **ADR-028** (producer): every Fab asset is cleared for our use; no per-asset licence lookups.
+- Asset review for the producer: the Animation Starter Pack (deaths, prone, hit reacts) is the next animation source;
+  Vibe3D (scripted collision, LODs, UVs) and Universal PCG Scatter are useful. See NEXT ACTION.
+
+### FILES CHANGED
+
+- **Code:**
+  - `Plugins/SouthernSpearCore`: `SSKillFeedState.h/.cpp`, `Tests/SSKillFeedTests.cpp`;
+  - `SouthernSpearLyraBridge`: `SSKillFeedSubsystem.h/.cpp`, `SSLyraReflection.h`, `SSHudStateSubsystem.h/.cpp`,
+    `SSFirstPersonSubsystem.h/.cpp`;
+  - `SouthernSpearUI`: `SSKillFeedWidget.h/.cpp`, `SSPlayerHudSubsystem.h/.cpp`, `SSMenuWidget.h/.cpp`.
+- **Tools:** `Tools/Unreal/expand_dryriver.py`, `setup_fab_materials.py`, `setup_fp_arms.py`, `build_objective_map.py`;
+  `Tools/Blender/dryriver_shelters.py`, `dryriver_skirt.py`, `fp_arms.py`; `Tools/Common/dryriver_world.py`;
+  `Tools/Textures/make_fp_arms_texture.py`.
+- **Content:** `Content/Maps/L_DryRiver_01.umap`, `L_Bluestone_01.umap`; `Content/Art/Blockout/SS_MAP_DryRiver_01`,
+  `SS_MAP_DryRiver_Skirt`; `Content/Art/Environment/DryRiver/*`, `Fab/*`; `SSExp_ObjectiveAssault/Content/FirstPerson/*`.
+- **Config and docs:** `SouthernSpear.uproject`, `.gitignore`, `CLAUDE.md`; `Docs/DECISION_LOG.md` (ADR-028);
+  `Docs/LICENCE_REGISTER.md`; this file; `Docs/evidence/S044_*.jpg`.
+
+### TESTING
+
+| Test | Command | Exit | Result | Evidence |
+|---|---|---|---|---|
+| Guard | `python Tools/validate_architecture.py` | 0 | PASS | console |
+| Build | `Build.bat SouthernSpearEditor Win64 Development` | 0 | Succeeded (after every C++ change) | console |
+| Automation | as in CLAUDE.md | 0 | 37/37 `Result={Success}` | `Build/tests_044.log` (not retained) |
+| Kill feed live | bot match, `-FORCELOGFLUSH` | 0 | kill lines with weapons and "(you)"; producer: "kill feed looks good" | `Docs/evidence/S044_kill_feed.jpg` |
+| Bluestone passes | `SS_MAP=quarry SS_PASS=level|nav ... build_objective_map.py` | 0 | ok true; legs [T,T,T,T]; deployments 120 m apart, 158 m walk | `Build/objective_map_quarry_*.json`, `Docs/evidence/S044_bluestone_quarry.jpg` |
+| First person | `-game -SSShotAt ... -SSExec="ss.FP.DebugSlot 0/1"` | killed after shot | rifle and pistol held in gloved hands, AMCU sleeves | `Docs/evidence/S044_fp_arms_rifle_pistol.jpg` |
+| Dry River | `expand_dryriver.py` | 0 | ok true, nav 3 path points; the two known dressing checks fail as before | `Docs/evidence/S044_dryriver_*.jpg` |
+
+NOT RUN:
+- the own-body shadow is not visually confirmed (no capture caught it in frame);
+- the Lyra Tab scoreboard hide was not seen in play (no scripted Tab);
+- a damage hit was not captured after the number-pop removal;
+- ADS with the new arms was not tuned;
+- `verify_dressing.py` was not re-run after expansion;
+- nav was not rebuilt for Red Gum.
+
+### ASSETS
+
+- **Fab, cleared under ADR-028:** M4 and G17 FPS animation packs (arms and clips only; weapon models dropped); African
+  Slate Quarry (the Bluestone base, as ADR-022 did for Red Gum, on producer direction); Megascans Military Trenches
+  Corrugated Wall (texture set).
+- **Other packs:** Singapore Canal generic props and wood materials on Dry River (no architecture or ornament);
+  Rural Australia ground, rocks, logs and trees.
+- **Not used:** the gloves pack (CC BY 4.0, "Bobeer"; credit if used).
+- **Tooling:** VibeUE (MIT).
+- **Original:** `M_SS_WorldGroundVT`; the arms sleeve/glove textures are derived from the pack's shading and the ADFRC
+  G3 fabric (L-0021).
+
+### RISKS
+
+- **R-40:** first-person arms reuse Fab pack skeletons that differ from the body; third-person and first-person
+  reloads are two separate animations kept in step by time scaling, not by shared data.
+- **R-41:** `L_Bluestone_01` references the git-ignored Scene Quarry pack, so a clone needs the pack from Fab (as R-19).
+
+### DEFECTS FOUND
+
+- Checker ground from packed mask textures sampled as normals (producer screenshot).
+- Studio lights, showroom and void edges in the quarry scene (probe and captures).
+- Arms texture UV split wrong twice: forearms and hands overlap in U, so a per-polygon mask was needed (in-game capture).
+- Pistol arms culled after a mesh swap (bounds; capture).
+- The asset-rename step double-prefixed clips on re-import (import report).
+
+### NEXT ACTION
+
+**Deaths and hit reactions:** retarget the Animation Starter Pack deaths and hit reacts to the UE5 mannequin, play them
+on death, then blend into ragdoll.
+
+---
+
 ## Open Threads
 
 | Item | Blocked on | Owner |

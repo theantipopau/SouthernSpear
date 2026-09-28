@@ -618,3 +618,22 @@ pattern, which the pipeline keeps as a material swap. Tracked as R-27.
 alternatives (copying Lyra's hero and weapon chain) were tried for the hero and failed.
 
 **Consequences.** Lyra updates need the two departures re-applied (script for D-08; code patch for D-09).
+
+## ADR-028 — Every Fab asset is cleared for Southern Spear; no per-asset licence lookups
+
+**Status:** Accepted (producer, 2026-09-28: "EVERY asset added via FAB is free for our use case ... no need to
+keep looking it up"). Extends ADR-021.
+**Date:** 2026-09-28
+
+**Decision.** Any asset the producer adds from Fab (to the project, the engine or the Fab library cache) is
+cleared for use in Southern Spear: a free-to-play game under the producer's revenue threshold. Agents do not
+look up or confirm Fab licences per asset, and do not hold an asset back pending a licence check. The
+licence register records each Fab asset by name as "Fab, cleared under ADR-028".
+
+**Still applies (not licence questions):** the fiction rules (ADR-016: no real insignia, manufacturer
+marks or real weapon names in game), a one-line credit for listings marked CC BY (collected in the
+credits, not a blocker), raw packs stay git-ignored until adapted (ADR-021, R-14), and the public
+website never carries asset files.
+
+**Map base.** On the same direction ("activate that african map"), `L_Bluestone_01` uses the Fab African Slate
+Quarry scene as its base, as ADR-022 did for Red Gum; ADR-013's original-layout rule is superseded for that map only.

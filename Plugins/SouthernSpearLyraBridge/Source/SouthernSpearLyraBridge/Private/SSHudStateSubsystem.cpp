@@ -18,26 +18,12 @@
 #include "Misc/CommandLine.h"
 #include "Misc/Parse.h"
 
+#include "SSLyraReflection.h"
+
+using namespace SSLyraReflection;
+
 namespace
 {
-	// Lyra's inventory and quick-bar classes are not exported from LyraGame:
-	// find them by path and call their UFUNCTIONs through reflection.
-	UClass* LyraClass(const TCHAR* Path) { return FindObject<UClass>(nullptr, Path); }
-
-	UObject* ActiveSlotItem(AController* Controller)
-	{
-		static UClass* QuickBarClass = LyraClass(TEXT("/Script/LyraGame.LyraQuickBarComponent"));
-		UActorComponent* QuickBar = QuickBarClass && Controller ? Controller->GetComponentByClass(QuickBarClass) : nullptr;
-		UFunction* Fn = QuickBar ? QuickBar->FindFunction(TEXT("GetActiveSlotItem")) : nullptr;
-		if (!Fn)
-		{
-			return nullptr;
-		}
-		struct { UObject* ReturnValue = nullptr; } Params;
-		QuickBar->ProcessEvent(Fn, &Params);
-		return Params.ReturnValue;
-	}
-
 	int32 StatCount(UObject* Item, const FGameplayTag& Tag)
 	{
 		UFunction* Fn = Item && Tag.IsValid() ? Item->FindFunction(TEXT("GetStatTagStackCount")) : nullptr;
@@ -50,13 +36,39 @@ namespace
 		return Params.ReturnValue;
 	}
 
-	FText ItemName(UObject* Item)
+	// Lyra presentation Southern Spear replaces (producer, Session 041): the damage-number pops, which drew as
+	// blocks over hit players, and the nameplate health bars above other players. Lyra's standard component
+	// action set adds them; they are removed on the client by class name so vendored content stays unmodified.
+	bool IsReplacedLyraPresentation(const UActorComponent* Component)
 	{
-		const FClassProperty* DefProp = Item ? CastField<FClassProperty>(Item->GetClass()->FindPropertyByName(TEXT("ItemDef"))) : nullptr;
-		const UClass* Def = DefProp ? Cast<UClass>(DefProp->GetObjectPropertyValue_InContainer(Item)) : nullptr;
-		const UObject* Cdo = Def ? Def->GetDefaultObject() : nullptr;
-		const FTextProperty* NameProp = Cdo ? CastField<FTextProperty>(Cdo->GetClass()->FindPropertyByName(TEXT("DisplayName"))) : nullptr;
-		return NameProp ? NameProp->GetPropertyValue_InContainer(Cdo) : FText::GetEmpty();
+		const FString Name = Component->GetClass()->GetName();
+		return Name.Contains(TEXT("NumberPop")) || Name.Contains(TEXT("Nameplate"));
+	}
+
+	int32 RemoveLyraPresentation(UWorld* World, APlayerController* Player)
+	{
+		TArray<UActorComponent*> Doomed;
+		auto Collect = [&Doomed](AActor* Actor)
+		{
+			TInlineComponentArray<UActorComponent*> Components(Actor);
+			for (UActorComponent* Component : Components)
+			{
+				if (Component && IsReplacedLyraPresentation(Component))
+				{
+					Doomed.Add(Component);
+				}
+			}
+		};
+		Collect(Player);
+		for (TActorIterator<APawn> It(World); It; ++It)
+		{
+			Collect(*It);
+		}
+		for (UActorComponent* Component : Doomed)
+		{
+			Component->DestroyComponent();
+		}
+		return Doomed.Num();
 	}
 }
 
@@ -102,6 +114,16 @@ void USSHudStateSubsystem::Tick(float DeltaTime)
 	State->Reserve = StatCount(Item, SpareTag);
 	State->MagazineSize = StatCount(Item, SizeTag);
 	State->WeaponName = ItemName(Item);
+
+	CleanupAccumulator += DeltaTime;
+	if (Player && CleanupAccumulator >= 0.5f)
+	{
+		CleanupAccumulator = 0.f;
+		if (const int32 Removed = RemoveLyraPresentation(World, Player))
+		{
+			UE_LOG(LogTemp, Log, TEXT("Southern Spear: removed %d Lyra number-pop / nameplate component(s)."), Removed);
+		}
+	}
 
 	// Dev diagnostic (-SSAnimDebug): every 3 s, each pawn's speed, running anim
 	// classes (main + linked layers), montage, and ammunition.

@@ -241,6 +241,9 @@ void USSMenuWidget::Setup(ESSMenuMode InMode)
 			{ NSLOCTEXT("SSMenu", "SelatCanal", "Selat Canal"),
 			  NSLOCTEXT("SSMenu", "SelatCanalDesc", "A Murasian canal district: the footbridge, market row, the pump house."),
 			  NSLOCTEXT("SSMenu", "SelatCanalMeta", "SPECIAL FORCES  ·  CLOSE QUARTERS"), GET_FUNCTION_NAME_CHECKED(USSMenuWidget, OnSelatCanal) },
+			{ NSLOCTEXT("SSMenu", "Bluestone", "Bluestone Quarry"),
+			  NSLOCTEXT("SSMenu", "BluestoneDesc", "A flooded slate pit: the loading bay, the cutting face, the spoil heaps."),
+			  NSLOCTEXT("SSMenu", "BluestoneMeta", "3 OBJECTIVES  ·  CLOSE QUARTERS"), GET_FUNCTION_NAME_CHECKED(USSMenuWidget, OnBluestone) },
 		};
 		for (int32 Index = 0; Index < UE_ARRAY_COUNT(Ops); ++Index)
 		{
@@ -412,6 +415,7 @@ void USSMenuWidget::OnRedGum()   { PlayMap(this, TEXT("/Game/Maps/L_RedGum_01"))
 void USSMenuWidget::OnDryRiver() { PlayMap(this, TEXT("/Game/Maps/L_DryRiver_01")); }
 void USSMenuWidget::OnSaltbush()  { PlayMap(this, TEXT("/Game/Maps/L_Saltbush_01")); }
 void USSMenuWidget::OnSelatCanal() { PlayMap(this, TEXT("/Game/Maps/L_SelatCanal_01")); }
+void USSMenuWidget::OnBluestone()  { PlayMap(this, TEXT("/Game/Maps/L_Bluestone_01")); }
 void USSMenuWidget::OnBots4()    { SetBots(4); }
 void USSMenuWidget::OnBots8()    { SetBots(8); }
 void USSMenuWidget::OnBots12()   { SetBots(12); }
