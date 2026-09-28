@@ -1,0 +1,41 @@
+{
+ "ok": true,
+ "classes": {
+  "IKRetargeter": true,
+  "IKRetargeterFactory": false,
+  "IKRetargetChain": false,
+  "RetargetChainMapping": true,
+  "RetargetChainSettings": true,
+  "RetargetPose": false,
+  "BatchRetargetSettings": true,
+  "ChainMap": false,
+  "AnimNode_RetargetPoseFromMesh": true,
+  "FAnimNode_RetargetPoseFromMesh": false,
+  "AnimBlueprint": true,
+  "AnimBlueprintFactory": true,
+  "AnimBlueprintGeneratedClass": true,
+  "AnimGraphNode_RetargetPose": false,
+  "SkeletalMeshComponentPostProcessAnimInstance": false,
+  "loads:manny": "Skeleton",
+  "loads:quantum_skeleton": "Skeleton",
+  "loads:quantum_shirt": "SkeletalMesh"
+ },
+ "factory": {
+  "instantiated": "no IKRetargeterFactory"
+ },
+ "chains": {
+  "chain_class": null
+ },
+ "anim_blueprint": {
+  "factory_instantiated": true,
+  "factory_props": [],
+  "graph_api": []
+ },
+ "cpp_route": {
+  "postprocess_class_exposed": false,
+  "eap_exposed": true,
+  "bridge_exists": true,
+  "note": "C++ needs no Python API: UAnimInstance::NativeUpdateAnimation and FAnimationPose are engine C++ the bridge module can call directly."
+ },
+ "errors": []
+}

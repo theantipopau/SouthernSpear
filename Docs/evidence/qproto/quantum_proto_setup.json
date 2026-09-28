@@ -1,0 +1,81 @@
+{
+ "ok": true,
+ "steps": [
+  {
+   "step": "camo_texture",
+   "ok": true,
+   "detail": "/Game/Art/Characters/ADF/T_ADFRC_DPC_camo"
+  },
+  {
+   "step": "camo_material",
+   "ok": true,
+   "detail": "/SSExp_ObjectiveAssault/Characters/QuantumProto/M_SS_ADFRC_Camo"
+  },
+  {
+   "step": "instance:MI_SS_ADFRC_Camo_Shirt",
+   "ok": true,
+   "detail": "tiling 3.0"
+  },
+  {
+   "step": "instance:MI_SS_ADFRC_Camo_Jeans",
+   "ok": true,
+   "detail": "tiling 4.0"
+  },
+  {
+   "step": "duplicate:SKM_Shirt_RolledUp_Blue",
+   "ok": true,
+   "detail": "/SSExp_ObjectiveAssault/Characters/QuantumProto/SKM_Shirt_RolledUp_Blue"
+  },
+  {
+   "step": "duplicate:SKM_Jeans",
+   "ok": true,
+   "detail": "/SSExp_ObjectiveAssault/Characters/QuantumProto/SKM_Jeans"
+  },
+  {
+   "step": "duplicate:SKM_Head",
+   "ok": true,
+   "detail": "/SSExp_ObjectiveAssault/Characters/QuantumProto/SKM_Head"
+  },
+  {
+   "step": "duplicate:SKM_Arms",
+   "ok": true,
+   "detail": "/SSExp_ObjectiveAssault/Characters/QuantumProto/SKM_Arms"
+  },
+  {
+   "step": "camo_slots:SKM_Shirt_RolledUp_Blue",
+   "ok": true,
+   "detail": "1 slots -> /SSExp_ObjectiveAssault/Characters/QuantumProto/MI_SS_ADFRC_Camo_Shirt.MI_SS_ADFRC_Camo_Shirt"
+  },
+  {
+   "step": "camo_slots:SKM_Jeans",
+   "ok": true,
+   "detail": "1 slots -> /SSExp_ObjectiveAssault/Characters/QuantumProto/MI_SS_ADFRC_Camo_Jeans.MI_SS_ADFRC_Camo_Jeans"
+  },
+  {
+   "step": "as_authored:SKM_Head",
+   "ok": true,
+   "detail": "M_Eyelashesh=/Game/QuantumCharacter/Materials/M_Eyelashesh.M_Eyelashesh; M_Head=/Game/QuantumCharacter/Materials/M_Head.M_Head; M_Eyeball=/Game/QuantumCharacter/Materials/M_Eyeball.M_Eyeball; M_Sclera=/Game/QuantumCharacter/Materials/Eye/MI_EyeRefractive_Inst.MI_EyeRefractive_Inst; M_Teeth=/Game/Qua"
+  },
+  {
+   "step": "as_authored:SKM_Arms",
+   "ok": true,
+   "detail": "M_Arms=/Game/QuantumCharacter/Materials/M_Arms.M_Arms"
+  },
+  {
+   "step": "new_level",
+   "ok": true,
+   "detail": "/Game/Maps/L_SS_QuantumProto"
+  },
+  {
+   "step": "spawn_stage",
+   "ok": true,
+   "detail": "/Game/Maps/L_SS_QuantumProto"
+  },
+  {
+   "step": "save_map",
+   "ok": true,
+   "detail": "/Game/Maps/L_SS_QuantumProto"
+  }
+ ],
+ "errors": []
+}

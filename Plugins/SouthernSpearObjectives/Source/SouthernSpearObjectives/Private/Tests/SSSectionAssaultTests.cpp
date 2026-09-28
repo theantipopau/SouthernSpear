@@ -6,6 +6,8 @@
 
 #include "Tests/SSObjectiveTestPawn.h"
 
+#include <limits>
+
 #include "AIController.h"
 #include "Engine/Engine.h"
 #include "Engine/World.h"
@@ -131,7 +133,11 @@ bool FSSSectionCaptureAttackersOnly::RunTest(const FString& Parameters)
 		RunAttack(Fresh, ESSTeamId::TeamOne, 5, 0, 4.f, R).Progress, RunAttack(Fresh, ESSTeamId::TeamOne, 1, 0, 4.f, R).Progress);
 	TestEqual(TEXT("no attacker: nothing happens"),
 		FSSSectionAssaultRules::StepAttackCapture(Fresh, ESSTeamId::None, 3, 0, 1.f, R).Progress, 0.f);
-	TestEqual(TEXT("NaN step ignored"), FSSSectionAssaultRules::StepAttackCapture(Fresh, ESSTeamId::TeamOne, 1, 0, NAN, R).Progress, 0.f);
+	// Runtime NaN, not the NAN macro - see SSObjectiveTests.cpp. A compile-time constant here
+	// breaks the game target build with C4756.
+	TestEqual(TEXT("NaN step ignored"),
+		FSSSectionAssaultRules::StepAttackCapture(Fresh, ESSTeamId::TeamOne, 1, 0,
+			std::numeric_limits<float>::quiet_NaN(), R).Progress, 0.f);
 	return true;
 }
 

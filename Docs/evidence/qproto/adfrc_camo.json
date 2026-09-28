@@ -1,0 +1,134 @@
+{
+ "ok": true,
+ "source_palette_measured_from": "Art\\ADFRC\\Textures\\adfrc_uniforms\\data\\Crye_G3_Shirt_DPC_co.png",
+ "measured_tones": [
+  {
+   "srgb": [
+    107,
+    99,
+    86
+   ],
+   "area": 0.186
+  },
+  {
+   "srgb": [
+    91,
+    86,
+    73
+   ],
+   "area": 0.1155
+  },
+  {
+   "srgb": [
+    99,
+    91,
+    78
+   ],
+   "area": 0.094
+  },
+  {
+   "srgb": [
+    102,
+    94,
+    83
+   ],
+   "area": 0.0796
+  },
+  {
+   "srgb": [
+    72,
+    72,
+    55
+   ],
+   "area": 0.0767
+  },
+  {
+   "srgb": [
+    88,
+    71,
+    54
+   ],
+   "area": 0.0645
+  },
+  {
+   "srgb": [
+    120,
+    110,
+    98
+   ],
+   "area": 0.047
+  },
+  {
+   "srgb": [
+    115,
+    105,
+    91
+   ],
+   "area": 0.0455
+  },
+  {
+   "srgb": [
+    41,
+    40,
+    40
+   ],
+   "area": 0.0392
+  },
+  {
+   "srgb": [
+    71,
+    56,
+    42
+   ],
+   "area": 0.0329
+  }
+ ],
+ "chosen_tones": {
+  "olive": [
+   72,
+   72,
+   55
+  ],
+  "brown": [
+   88,
+   71,
+   54
+  ],
+  "tan": [
+   120,
+   110,
+   98
+  ],
+  "shadow": [
+   41,
+   40,
+   40
+  ]
+ },
+ "requested_areas": {
+  "olive": 0.44,
+  "brown": 0.24,
+  "tan": 0.21,
+  "shadow": 0.11
+ },
+ "actual_areas": {
+  "olive": 0.44,
+  "brown": 0.24,
+  "tan": 0.21,
+  "shadow": 0.11
+ },
+ "size": [
+  2048,
+  2048
+ ],
+ "tileable": true,
+ "seam": {
+  "interior_step_x": 1.5897,
+  "interior_step_y": 1.5944,
+  "seam_step_x": 1.3582,
+  "seam_step_y": 1.3021,
+  "seam_ratio_x": 0.8544,
+  "seam_ratio_y": 0.8167
+ },
+ "output": "Art\\Characters\\ADF\\T_ADFRC_DPC_camo.png"
+}

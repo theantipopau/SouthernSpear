@@ -7,6 +7,15 @@
 # the process is killed. It captures the viewport buffer directly, so it does not
 # need window focus and does not disturb an editor session that is already open.
 #
+# Follows Docs/PLAYTEST_COMMANDS.md §3 exactly. Two of its rules exist because this
+# script once broke by ignoring them:
+#   - use UnrealEditor.exe, NOT UnrealEditor-Cmd.exe: the -Cmd binary takes a
+#     different startup path in -game mode and never reaches module load here;
+#   - always pass -abslog with our own file and -FORCELOGFLUSH: the default
+#     Saved/Logs/SouthernSpear.log is clobbered by other agents' commandlets, and
+#     a timeout kill without -FORCELOGFLUSH loses the log tail (which read as a
+#     mysterious "stall at 32 lines" for a whole session).
+#
 #   Tools/run_map_capture.sh [map] [seconds] [timeout_seconds]
 #
 #   map    package path, default /Game/Maps/L_DryRiver_01
@@ -28,7 +37,7 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 # The engine wants a drive-letter path; the shell gives us /e/SouthernSpear.
 ROOT_WIN="$(cygpath -m "$ROOT" 2>/dev/null || echo "$ROOT")"
 UPROJECT="$ROOT_WIN/SouthernSpear.uproject"
-EDITOR="${SS_UNREAL_EDITOR:-E:/Unreal/UE_5.8/Engine/Binaries/Win64/UnrealEditor-Cmd.exe}"
+EDITOR="${SS_UNREAL_EDITOR:-E:/Unreal/UE_5.8/Engine/Binaries/Win64/UnrealEditor.exe}"
 SHOTS="$ROOT/Saved/Screenshots"
 RESULT="$SHOTS/WindowsEditor/SSShot.png"
 LOG="$ROOT/Saved/Logs/SouthernSpear.log"
@@ -57,18 +66,20 @@ echo "== timeout    ${TIMEOUT}s"
 # convert normally. It must be exported, not set as a prefix assignment: the
 # path-conversion step runs with the shell's own environment and never sees a
 # variable that only exists in the child's.
-export MSYS2_ARG_CONV_EXCL="/Game/*"
-timeout "$TIMEOUT" "$EDITOR" "$UPROJECT" "$MAP" \
+RUNLOG="$ROOT/Saved/Logs/SS_capture_$(date +%Y%m%d_%H%M%S).log"
+MSYS_NO_PATHCONV=1 timeout "$TIMEOUT" "$EDITOR" "$UPROJECT" "$MAP" \
     -game -windowed -ResX=1600 -ResY=900 \
-    -nosplash -nosound -stdout \
+    -nosplash -nosound -FORCELOGFLUSH \
+    -abslog="$(cygpath -m "$RUNLOG")" \
     -SSShotAt="$SHOT_AT" > /tmp/ss_capture.log 2>&1
 STATUS=$?
-unset MSYS2_ARG_CONV_EXCL
 cp /tmp/ss_capture.log "$LOG.capture" 2>/dev/null
 
-LOADED=$(grep -c "up for play" /tmp/ss_capture.log 2>/dev/null || echo 0)
-LOADED_NAME=$(grep -o "LoadMap: [^?]*" /tmp/ss_capture.log 2>/dev/null | tail -1)
-SHOT_LINE=$(grep -o "Requested viewport screenshot at [0-9.]* s" /tmp/ss_capture.log 2>/dev/null | tail -1)
+# Read progress from the -abslog file, not stdout: the engine buffers stdout and
+# a killed run loses its tail (the misdiagnosed "stall").
+LOADED=$(grep -c "up for play" "$RUNLOG" 2>/dev/null || echo 0)
+LOADED_NAME=$(grep -o "LoadMap: [^?]*" "$RUNLOG" 2>/dev/null | tail -1)
+SHOT_LINE=$(grep -o "Requested viewport screenshot at [0-9.]* s" "$RUNLOG" 2>/dev/null | tail -1)
 # A run that never loaded the map still writes a screenshot of the empty frame,
 # so a plausible-looking file is not evidence. Require the map line too.
 if [ "$LOADED" -lt 1 ]; then
@@ -76,7 +87,7 @@ if [ "$LOADED" -lt 1 ]; then
 fi
 
 echo "== exit       $STATUS"
-echo "== log        /tmp/ss_capture.log (kept at $LOG.capture)"
+echo "== log        $RUNLOG"
 echo "== map loads  $LOADED   ${LOADED_NAME}"
 echo "== capture    ${SHOT_LINE:-<none>}"
 
@@ -92,6 +103,6 @@ if [ -f "$RESULT" ]; then
 fi
 
 echo "FAIL: no screenshot at $RESULT" >&2
-echo "---- last 30 log lines ----" >&2
-tail -30 /tmp/ss_capture.log >&2
+echo "---- last 30 log lines ($RUNLOG) ----" >&2
+tail -30 "$RUNLOG" 2>/dev/null || tail -30 /tmp/ss_capture.log >&2
 exit 1

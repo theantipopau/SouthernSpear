@@ -5,6 +5,8 @@
 
 #include "Tests/SSObjectiveTestPawn.h"
 
+#include <limits>
+
 #include "AIController.h"
 #include "Components/SphereComponent.h"
 #include "Engine/Engine.h"
@@ -111,8 +113,16 @@ bool FSSObjCaptureDecayAndInvalid::RunTest(const FString& Parameters)
 
 	const FSSObjectiveState Before = Run(Active(), 1, 0, 2.f, R);
 	TestEqual(TEXT("negative dt ignored"), FSSObjectiveRules::StepCapture(Before, 1, 0, -1.f, R).Progress, Before.Progress);
-	TestEqual(TEXT("NaN dt ignored"), FSSObjectiveRules::StepCapture(Before, 1, 0, NAN, R).Progress, Before.Progress);
-	TestEqual(TEXT("inf dt ignored"), FSSObjectiveRules::StepCapture(Before, 1, 0, INFINITY, R).Progress, Before.Progress);
+	// A RUNTIME NaN, not the NAN macro. The macro is a compile-time constant, and a game-target
+	// build folds it in constant arithmetic: MSVC C4756 "overflow in constant arithmetic", which
+	// is why the game target - and therefore every -game run - stopped compiling. The test wants
+	// a value the compiler cannot know, so it has to be produced at run time.
+	TestEqual(TEXT("NaN dt ignored"),
+		FSSObjectiveRules::StepCapture(Before, 1, 0, std::numeric_limits<float>::quiet_NaN(), R).Progress,
+		Before.Progress);
+	TestEqual(TEXT("inf dt ignored"),
+		FSSObjectiveRules::StepCapture(Before, 1, 0, std::numeric_limits<float>::infinity(), R).Progress,
+		Before.Progress);
 
 	const FSSObjectiveState Inactive = FSSObjectiveRules::ResetObjective(false);
 	TestEqual(TEXT("inactive objective never changes"), Run(Inactive, 1, 0, 30.f, R).Progress, 0.f);

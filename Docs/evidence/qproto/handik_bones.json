@@ -1,0 +1,98 @@
+{
+ "ok": true,
+ "meshes": {
+  "body_mannequin": {
+   "path": "/Game/Characters/Heroes/Mannequin/Meshes/SKM_Manny",
+   "loaded": true,
+   "bones": 164,
+   "upper": {
+    "matched": "upperarm_l",
+    "index": 11
+   },
+   "lower": {
+    "matched": "lowerarm_l",
+    "index": 12
+   },
+   "hand": {
+    "matched": "hand_l",
+    "index": 20
+   },
+   "all_names_found": true,
+   "chain_ordered": true,
+   "chain_note": "indices 11 < 12 < 20, topologically ordered (proxy for FSSHandIK::IsAncestor, not the real thing)",
+   "would_log": "upperarm_l > lowerarm_l > hand_l",
+   "ok": true
+  },
+  "fp_arms_rifle": {
+   "path": "/SSExp_ObjectiveAssault/FirstPerson/Rifle/SK_FP_Arms_Rifle",
+   "loaded": true,
+   "bones": 55,
+   "upper": {
+    "matched": "LeftArm",
+    "index": 26
+   },
+   "lower": {
+    "matched": "LeftForeArm",
+    "index": 27
+   },
+   "hand": {
+    "matched": "LeftHand",
+    "index": 28
+   },
+   "all_names_found": true,
+   "chain_ordered": true,
+   "chain_note": "indices 26 < 27 < 28, topologically ordered (proxy for FSSHandIK::IsAncestor, not the real thing)",
+   "would_log": "LeftArm > LeftForeArm > LeftHand",
+   "ok": true
+  },
+  "fp_arms_pistol": {
+   "path": "/SSExp_ObjectiveAssault/FirstPerson/Pistol/SK_FP_Arms_Pistol",
+   "loaded": true,
+   "bones": 61,
+   "upper": {
+    "matched": "LeftArm",
+    "index": 26
+   },
+   "lower": {
+    "matched": "LeftForeArm",
+    "index": 27
+   },
+   "hand": {
+    "matched": "LeftHand",
+    "index": 28
+   },
+   "all_names_found": true,
+   "chain_ordered": true,
+   "chain_note": "indices 26 < 27 < 28, topologically ordered (proxy for FSSHandIK::IsAncestor, not the real thing)",
+   "would_log": "LeftArm > LeftForeArm > LeftHand",
+   "ok": true
+  },
+  "quantum_jeans": {
+   "path": "/SSExp_ObjectiveAssault/Characters/QuantumProto/SKM_Jeans",
+   "loaded": true,
+   "bones": 351,
+   "upper": {
+    "matched": "upperarm_l",
+    "index": 11
+   },
+   "lower": {
+    "matched": "lowerarm_l",
+    "index": 12
+   },
+   "hand": {
+    "matched": "hand_l",
+    "index": 15
+   },
+   "all_names_found": true,
+   "chain_ordered": true,
+   "chain_note": "indices 11 < 12 < 15, topologically ordered (proxy for FSSHandIK::IsAncestor, not the real thing)",
+   "would_log": "upperarm_l > lowerarm_l > hand_l",
+   "ok": true
+  }
+ },
+ "errors": [],
+ "quantum_arms": {
+  "note": "Quantum is not wired up yet; its names are not in the candidate lists.",
+  "upper_in_quantum": null
+ }
+}

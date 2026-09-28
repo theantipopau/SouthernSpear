@@ -1238,3 +1238,109 @@ cheaper to solve than any of the three new packs' problems.
 
 **Not decided.** The recommendation stands: prototype Quantum on the retargeter, in camo, next to the
 current soldier, and switch only if it is clearly better on screen.
+
+## ADR-039: Quantum retarget is buildable headlessly, but not by the route ADR-037 assumed
+
+**Status:** accepted. Amends ADR-037; leaves ADR-036 standing.
+
+**The recommended route does not exist in UE 5.8.** `Build/probe_retargeter.json` records it:
+`unreal.IKRetargeterFactory` is not exposed to Python, so an IKRetargeter asset cannot be created;
+`unreal.AnimBlueprint` exposes no graph API, so `AnimNode_RetargetPoseFromMesh` cannot be placed; and
+`USkeletalMeshComponentPostProcessAnimInstance` together with `UAnimInstance::NativeEvaluateAnimation`
+- the historic C++ route to rewriting a pose - **have both been removed from the engine**. The
+`PostProcessAnimInstance` property still exists on the component; its base class does not.
+"FAnimInstanceProxy::Evaluate" survives but has no caller in the engine.
+
+**What works headlessly** is `UPoseableMeshComponent`, which keeps a writable per-bone local pose and
+composes it to component space itself. `ASSQuantumProtoStage` (SouthernSpearCore) uses it to retarget
+the Quantum modules from the mannequin every frame, carrying the source bone's local **rotation** onto
+the target bone's own local **translation** so Quantum keeps its own bone lengths.
+
+**Leader pose remains the better mechanism where it applies.** Engine source
+(`USkinnedMeshComponent::UpdateLeaderBoneMap`) confirms leader pose matches follower bones by name
+across *different* skeletons, with bones missing from the leader falling back to the follower's own
+reference pose. The G3 half of the stage therefore uses leader pose exactly as
+`ASSCharacterPartActor` sets it.
+
+**Two real bugs, caught by invariants rather than by eye.** `ProveRetarget` runs the same
+`BuildBoneMap` and `EvaluateRetarget` the runtime runs, and checks that rest is a fixed point, that
+motion propagates relatively, and that bone lengths survive. It found (1) that the first version copied
+the source's *translation*, silently replacing the target's bone lengths, and (2) that deriving "motion
+relative to the source's parent" from rest transforms treated a rest pose as a world transform and put
+the hand **290 cm** from the body. A local transform already *is* the motion relative to the parent.
+
+**The rigs differ, and the number matters.** Over the 159 bones the skeletons share by name, rest
+positions agree to a median of 0.00 cm but rest *orientations* differ by up to **2.18 degrees**, which
+compounds down six arm joints to **5.15 cm** of drift on `upperarm_tricep_r` and `upperarm_bicep_r`.
+Excluding twist and IK helper bones from the chain map - what UE's own IK Retargeter does, because
+those bones carry a deformation weighting rather than a joint - removes it. **37 bones excluded, 122
+drive the body.** That is the concrete reason a chain map cannot be generated from bone names, and why
+ADR-037 was right in substance if wrong in its stated reason. 214 bones under `hand_l`/`hand_r` take a
+procedural grip curl, the flexion axis derived from each bone's own direction.
+
+**Criterion 3, answered: the plate carrier fits.** Reference-pose bounds in centimetres - Quantum body
+`SKM_QuantumCharacter` 55.4 x 22.3 x 91.7 against mannequin `SKM_Manny` 56.6 x 22.5 x 93.3. Within
+**1.6 cm** on every axis and slightly smaller, so `SK_ADF_Vest_TBAS`, the helmet and the webbing all
+still fit. **The plate carrier is not a cost of switching to Quantum.**
+
+**Criterion 2, delivered.** `Tools/Textures/make_adfrc_camo.py` generates a tileable ADFRC disruptive
+pattern whose palette is *measured* from `Crye_G3_Shirt_DPC_co` rather than invented - the failure that
+rejected `make_g3_shirt_camo.py`. Chosen tones olive (72,72,55), brown (88,71,54), tan (120,110,98),
+shadow (41,40,40). Two first-run bugs, both fixed: a renormalisation stretched the measured tones into
+a saturated yellow-green and an orange, and the "greenest" and "darkest" cluster picks collided so a
+four-tone pattern shipped as two. The vendor UV layout is untouched and the sheet is periodic, so it
+cannot seam. Applied to shirt and trousers; head and arms keep their authored materials.
+
+**Criterion 1, corrected twice.** The "capture stall" of Session 059 was never a stall: the capture
+script violated two rules of `Docs/PLAYTEST_COMMANDS.md` (it used `UnrealEditor-Cmd.exe`, and passed
+neither `-abslog` nor `-FORCELOGFLUSH`), so a killed run lost its log tail and the diagnosis was read
+from the wrong file. The "stalls before any SS module loads" reasoning below was therefore built on
+truncated evidence - though its conclusion was accidentally right that the prototype was not the cause.
+With the documented recipe the capture works end to end. The first successful frame was black-but-for-
+the-HUD because the map had been saved while the stage class still lived in Core (class failed to
+resolve on load, so the authored camera and lights were dropped); re-saving the map against the Bridge
+class fixed it. **There is now a screenshot** (`Docs/evidence/qproto/quantum_vs_g3_captured.png`,
+Session 059c): both bodies on the plinth, same pose source, G3 left and Quantum right. The producer's
+critique of it (no camo on the Quantum shirt, no hands, no vest/helmet, glossy plinth, waist-up framing,
+FP glove mid-frame) stands as the definition of what the comparison still needs; four of those five
+fixes are built into the stage, and the run that would show them crashes on a leader-pose ensure at
+`SkinnedMeshSceneProxyDesc.cpp:455` when the soldier pawn spawns into the stage map. That crash is the
+current boundary, not a fixed one.
+
+**The composition order was wrong, and the proof could not have caught it.** Session 059 corrected
+this. Unreal composes child component space as `Local * ParentComponentSpace` -
+`UPoseableMeshComponent::FillComponentSpaceTransforms` says so in a comment and in the call
+`FTransform::Multiply(Dest, Local, ParentCS)`. The prototype had it the other way round, which produced
+the 144.4 cm "shoulder to hand" (a correct upperarm-plus-forearm span is **51.87 cm**) and the 0.0
+shoulder and hip spans. `GetRefBonePose()` was always returning parent-relative transforms; only the
+multiply order was wrong.
+
+Worse, invariants A, B and C all compared the retarget against reference poses composed by the *same*
+function that produced them, so **none of them could detect a wrong composition** - they were
+self-referential, and "rest drift 0.0001 cm" was an artifact. A guard has been added for that class of
+error: the proof now checks the composed reference pose against absolute human proportions (a forearm
+20-35 cm, a head 55-80 cm above the pelvis) and fails the report outright if they are not. That check
+immediately earned its keep by rejecting my own first band for the forearm, which I had wrongly assumed
+was a wrist offset. After the fix, on all four modules: sanity passes, A drift 0.0001 cm, B 30.0 of
+30.0 degrees applied, and C **27.2511 -> 27.2511 cm** - the bone length preserved exactly rather than
+to within a tolerance. `Tools/validate_architecture.py` cannot catch this kind of error, and neither
+could an eyeball; the lesson for the next proof is that a check must not share a function with what it
+is checking.
+
+**Placement.** `ASSQuantumProtoStage` was first written in `SouthernSpearCore` and has moved to
+`SouthernSpearLyraBridge`. Core is the root of the SS dependency graph and holds the shared types every
+other module uses; a capture harness that names specific Quantum and mannequin assets does not belong
+there, even though it reaches no gameplay state. `Tools/validate_architecture.py` passed it in Core
+because the guard inspects module dependencies, not what the code does.
+
+**A real build break found on the way.** The **game target had never been built on this machine** and
+did not compile: `SSObjectiveTests.cpp` and `SSSectionAssaultTests.cpp` passed `NAN` and `INFINITY` -
+compile-time constants - into tests that are about non-finite values, which a game-target build folds
+into constant arithmetic (MSVC C4756). Replaced with `std::numeric_limits<float>::quiet_NaN()` and
+`infinity()`, which is also what those tests actually mean: a value the compiler cannot know.
+`SouthernSpear Win64 Development` now builds and `SouthernSpear.exe` links.
+
+**Consequences.** ADR-036 stands - nothing here displaces it, and the carrier-fit result removes the
+main financial argument for switching. ADR-037 moves from "blocked" to "buildable, not via an asset,
+not yet proven". ADR-038 is unaffected. Left-hand IK is the other agent's work and is untouched: this
+ADR adds the pose lever it needs and does not claim it.

@@ -5069,6 +5069,161 @@ artifacts match its code. Then build and run `Automation RunTests SouthernSpear`
 
 ---
 
+## Session 063 — 2026-09-28 — Quantum prototype: the gate is answered, and it is mostly no; and W2 hand IK does not compile-block, but will not run
+
+(The Quantum work is ADR-039. The hand IK finding is the important part of this entry.)
+
+**W2 hand IK, first real compile: passes.** `3a6364e8` builds clean. Automation is **58 found, 58
+Success, 0 Fail**, exit 0, including the new `SouthernSpear.Bridge.HandIK.Solve`. Architecture guard
+passes. The maths is fine; the wiring is not, and it fails silently.
+
+**R-65 is worse than "might lag a frame": the IK will never run.** `USSHandIKMeshComponent` overrides
+`FinalizeBoneTransform()`. Searching the whole engine, that method is called from
+`USkeletalMeshComponent::TickAnimation` only in the `TickFunction == nullptr && ShouldBlendPhysicsBones()`
+branch - a manual/editor refresh - and from editor tools (Sequencer, FBX export), physics, MovieScene
+and the new Animation Constraints system. `PostAnimEvaluation` does not call it; it calls
+`DoInstanceFinalizeAnimation` -> `UAnimInstance::FinalizeAnimation`. **Nothing in the normal game
+animation frame calls it.** The override will not be entered in a match, so the left hand will not
+move, and the component logs nothing on the way - it reports the bones it found and then does nothing,
+which is the most expensive failure shape in this project.
+
+The fallback the producer named - a small Animation Blueprint on a copy of the mannequin - is the right
+shape of answer, and the C++ can stay: `UPoseableMeshComponent` is already proven in this session
+(ADR-039) as the per-bone lever that 5.8 keeps, so an Anim BP that drives the pose, or a component that
+overrides `RefreshBoneTransforms` and edits the editable component-space buffer before calling Super,
+both reach the same place. I have not changed the component: it is the other agent's code and the
+choice between those is theirs. **This is the one thing to fix before anyone looks for the hand in a
+match.**
+
+**Hand IK bone names resolve on every mesh it is wired to** (`Tools/Unreal/check_handik_bones.py`,
+`Build/handik_bones.json`). Body `SKM_Manny` -> `upperarm_l > lowerarm_l > hand_l` (164 bones,
+indices 11/12/20); first-person Rifle and Pistol arms -> `LeftArm > LeftForeArm > LeftHand` (55 and 61
+bones, indices 26/27/28). So the `LogSSHandIK` line the producer asked me to look for will read
+correctly for both - it just will not print, because the component never ticks into `ResolveBones` in a
+match. The ancestry half of the check is a topological-order proxy, not `FSSHandIK::IsAncestor`, and
+is labelled as such in the report.
+
+**Free finding: the Quantum body needs no new arm bone names.** Quantum's `SKM_Jeans` resolves
+`upperarm_l > lowerarm_l > hand_l` on the component's *existing* body-side list (351 bones, indices
+11/12/15), because Quantum uses the UE mannequin names. If the prototype is ever adopted, the
+third-person hand IK works on it unchanged; only the first-person arms, being a separate mesh, would
+need their own candidates.
+
+**R-66 stands unmeasured.** Nothing here needed the palm-depth constant, because the IK never ran.
+
+**Screenshots, again.** The in-match checks the producer asked for - A88 with `ss.HandIK 1` and `0`, both
+views, one reload - cannot be run: `Tools/run_map_capture.sh` still stalls at 32 log lines before
+`LoadMap` on every map, with and without `-nullrhi`, with `-RenderOffscreen`, with `-NoLoadingScreen`
+(ADR-039). That check stays open until both the capture path and R-65 are fixed.
+
+**Housekeeping, and a mistake of mine.** My Session 058 / ADR-039 text was lost partway through this
+session: I wrote a backup to a Git Bash `/tmp` path that Windows Python cannot see, and the `open()`
+failed, but the `git checkout` that reverted the docs had already run. Recovered by rewriting it - this
+entry is renumbered to **059** because the other agent's hand IK took 058. The lesson for the next
+session: do not revert tracked files until the backup has been read back and verified, and on this
+machine use a project-relative path rather than `/tmp` for anything Windows tooling has to open.
+
+**Traps added.** `SK_Mannequin` is the Skeleton and `SKM_Manny` is the mesh, and they share a name, so
+`LoadObject<USkeletalMesh>` on the former returns a `USkeleton` and every cast fails silently. A UFUNCTION
+with a `bool` return **and** a `FString&` out-param is uncallable from 5.8 Python - the bool becomes
+`None` and the out-param is dropped - so return the string. And overriding `FinalizeBoneTransform()` on
+a `USkeletalMeshComponent` looks like the documented post-animation hook and is not, because 5.8 never
+calls it during a game frame.
+
+## Session 063b — 2026-09-28 — Producer review: three of four points were right, and the fourth exposed a vacuous proof
+
+The producer reviewed the Quantum report and raised four corrections. Three were correct and one was
+based on a stale read. All four are answered here; ADR-039 has been rewritten to match.
+
+**1. The reference-pose question is settled, and I was wrong about the order.** Unreal composes child
+component space as `Local * ParentComponentSpace` - `UPoseableMeshComponent::FillComponentSpaceTransforms`
+says it in a comment and calls `FTransform::Multiply(Dest, Local, ParentCS)`. I had it the other way
+round. `GetRefBonePose()` always returned parent-relative transforms; the multiply order was the bug.
+After the fix, `upperarm_l` to `hand_l` reads **51.87 cm** in both skeletons, which is a correct
+upperarm-plus-forearm span, against the 144.4 cm it reported before.
+
+**The producer's real point was better than the one they made.** A, B and C all compared the retarget
+against reference poses composed by *the same function* that produced them, so **none of them could
+detect a wrong composition** - they were self-referential, and "rest drift 0.0001 cm" was an artifact
+rather than a result. A check that shares a function with what it is checking proves nothing. There is
+now a guard for the class: the proof composes the reference pose and checks it against absolute human
+proportions - a forearm 20-35 cm, a head 55-80 cm above the pelvis - and fails the report outright
+otherwise. It earned its keep immediately, by rejecting my own first band, written on the assumption
+that `lowerarm_l` sat at the wrist. It does not: it sits at the elbow, so the span is the forearm, 27.25 cm.
+
+After the fix, all four modules: sanity passes, A drift 0.0001 cm, B 30.0 of 30.0 degrees, and C
+**27.2511 -> 27.2511 cm** - the bone length preserved exactly, not within a tolerance.
+
+**2. The stall is not the prototype, and not a stray process - proven, not asserted.** The producer was
+right to challenge "pre-existing". A working commandlet log goes from the ini loads directly to
+`LogPluginManager: Found matching target receipt`; every `-game` log stops before printing that line.
+So the `-game` process stalls **before any Southern Spear module loads**, which means my prototype and
+the hand IK are both incapable of causing it - neither can run before the point it stops at.
+`tasklist` shows zero Unreal processes. I then tested the game-target hypothesis, and it is *not* the
+cause: building the target changed nothing about the stall.
+
+**But the detour found a real break.** The **game target had never been built on this machine and did
+not compile**: `SSObjectiveTests.cpp` and `SSSectionAssaultTests.cpp` pass `NAN` and `INFINITY` -
+compile-time constants - into tests that are about non-finite values, and a game-target build folds them
+into constant arithmetic (MSVC C4756). Replaced with `std::numeric_limits<float>::quiet_NaN()` and
+`infinity()`, which is also what those tests mean. `SouthernSpear Win64 Development` now builds and
+`SouthernSpear.exe` links. The screenshot is still outstanding and I still cannot produce it.
+
+**3. Moved out of Core.** `ASSQuantumProtoStage` is now in `SouthernSpearLyraBridge`. The producer's
+argument is right and mine was thin: Core is the root of the SS dependency graph and holds the shared
+types every other module uses, and a capture harness naming specific Quantum and mannequin assets does
+not belong there even though it touches no gameplay state. `validate_architecture.py` passed it in Core
+because the guard reads module dependencies, not what the code does - which is itself worth recording.
+
+**4. The hand IK was compiled, and the finding stands.** The 57 of 57 was from before the pull; after
+`3a6364e8` the suite is **58 found, 58 Success, 0 Fail**, including `SouthernSpear.Bridge.HandIK.Solve`,
+re-confirmed after this session's changes. The producer's belief that the IK "hooks the step where the
+body mesh publishes each frame's pose" is the part that does not hold: `FinalizeBoneTransform()` is
+called nowhere in the game animation frame - `PostAnimEvaluation` calls
+`DoInstanceFinalizeAnimation` -> `UAnimInstance::FinalizeAnimation` instead. That finding is unchanged
+and is the one thing to fix before looking for the hand in a match.
+
+**State.** Build succeeds, architecture guard passes, 58/58. Nothing committed.
+
+## Session 063c — 2026-09-29 — The capture works, the comparison is shot, and the critique's five fixes are in
+
+**The capture stall was never a stall.** Two compounding misdiagnoses, both mine. First, `run_map_capture.sh`
+violated two rules of `Docs/PLAYTEST_COMMANDS.md`: it launched `UnrealEditor-Cmd.exe` instead of
+`UnrealEditor.exe`, and it passed neither `-abslog` nor `-FORCELOGFLUSH`, so a killed run lost its log tail
+and the default log was being shared with other agents' commandlets. The "stall at 32 lines" was a lost
+tail plus the wrong log file. Second, the first "successful" capture rendered a black frame with the HUD
+on it, because the map had been saved while `ASSQuantumProtoStage` still lived in SouthernSpearCore: on
+load the class failed to resolve (`CreateExport: Failed to load Outer` for Camera, Sun, Fill, Platform),
+so nothing took the view and nothing lit the scene. Re-running `setup_quantum_proto.py` re-saved the map
+against `/Script/SouthernSpearLyraBridge.SSQuantumProtoStage` (verified in the umap) and the same recipe
+then produced a full frame. The script now follows §3 of the doc exactly.
+
+**The producer's critique of the first real frame was right on every point**, and the scratch probe
+(`Build/probe_camo_chain.py` -> `Build/probe_camo_chain.json`) found the cause of the white shirt: the
+camo master and both instances were created and assigned in commandlet memory but **never saved** -
+`main()` saved only the four meshes, so the process exit deleted the material out from under the slots.
+`M_SS_ADFRC_Camo`, `MI_SS_ADFRC_Camo_Shirt` and `MI_SS_ADFRC_Camo_Jeans` now persist in
+`/SSExp_ObjectiveAssault/Characters/QuantumProto/` and are re-assigned on every run. Also fixed in the
+stage: the `SKM_Arms` module (the hands - the shirt is rolled-up sleeves ending at the forearm), the
+ADFRC vest and helmet leader-posed onto the Quantum body (the same-kit test), a matte floor and matte
+plinth (WorldGridMaterial read as a wet mirror), stronger fill, a full-length camera pull-back, and a
+per-tick view takeover because Lyra's pawn takes the view back after BeginPlay (the producer's window
+showed their own first-person glove mid-frame).
+
+**The next run crashed on an engine ensure** (`SkinnedMeshSceneProxyDesc.cpp:455`: a leader-pose
+component whose bone map does not cover the follower's whole ref skeleton) while spawning the soldier
+into the stage map - the hand-IK component attaching to the camera is now reaching the stage map through
+the game feature's pawn. That crash is the boundary of this session, not a fix in it. The producer's
+window of the same build shows both bodies standing on the plinth, and the frame the producer took is
+saved as `Docs/evidence/qproto/quantum_vs_g3_captured.png`.
+
+**Still open, honestly:** the vest/helmet on Quantum, camo-on-body and hands-on-Quantum are all built
+into the stage but not yet *seen* in a saved capture, because of that ensure. The mic-boom-in-nose defect
+and the FP/third-person camo mismatch belong to the other agent. The recommendation stands: keep G3
+(ADR-036) unless the fixed shot shows Quantum in the same kit clearly beating it.
+
+---
+
 ## Open Threads
 
 | Item | Blocked on | Owner |

@@ -8,9 +8,11 @@ file-scope `static` - are fine when compiled separately and a redefinition error
 together.  This project has been caught by that three times (the last one, `IsValidStep` in
 `SSObjectiveRules.cpp` and `SSSectionAssaultRules.cpp`, is recorded in the Session 048 changelog).
 
-It also flags the cheap half of the same class of problem: a local variable whose name is already a
-function or a member function defined in the same file (the Session 048 `Settings` case, which MSVC
-reports as C4459, an error under Unreal's shadow-variable policy).
+It also flags the cheap half of the same class of problem: a local variable that hides a name which is
+actually visible where it is declared - a file-scope name declared in the same file (the Session 048
+`Settings` case, MSVC C4459) or a member of the class the local is defined in (MSVC C4458). Both are
+errors under Unreal's shadow-variable policy. A member of some *other* class is not a shadow: the local
+cannot hide it, and a qualified call names it anyway.
 
     python Tools/check_unity_names.py            # exit 1 on a clash
     python Tools/check_unity_names.py --json     # machine-readable report
@@ -37,8 +39,8 @@ STATEMENT_KEYWORDS = {
     "co_return", "co_yield", "UE_LOG", "check", "checkf", "ensure", "ensureMsgf", "verify",
     "TRACE_CPUPROFILER_EVENT_SCOPE", "SCOPE_CYCLE_COUNTER", "CSV_SCOPED_TIMING_STAT",
 }
-# Member function definitions: `Type Class::Method(`.
-MEMBER_FUNCTION = re.compile(r"\b[A-Za-z_]\w*(?:\s*<[^;{}()]*>)?\s*::\s*([A-Za-z_]\w*)\s*\(")
+# Member function definitions: `Type Class::Method(` - group 1 is the class, group 2 the method.
+MEMBER_FUNCTION = re.compile(r"\b([A-Za-z_]\w*)(?:\s*<[^;{}()]*>)?\s*::\s*([A-Za-z_]\w*)\s*\(")
 ANONYMOUS_NAMESPACE = re.compile(r"^namespace\s*(\{)?\s*$")
 
 
@@ -127,6 +129,36 @@ def anonymous_blocks(rows):
     return blocks
 
 
+def enclosing_classes(rows):
+    """Per line, the class whose member function defines it, or None.
+
+    A local hides a member only when the member belongs to the class it is defined in (C4458).  A local
+    in another class's method, or in a free function, hides nothing: `FSSCasingMotion::Step` is not
+    visible to `USSShellEjectSubsystem::Tick`, which names it qualified.
+    """
+    out = [None] * len(rows)
+    stack = []
+    pending = None
+    for index, (depth, line) in enumerate(rows):
+        found = MEMBER_FUNCTION.search(line)
+        if depth == 0 and found and not line.rstrip().endswith(";"):
+            pending = found.group(1)
+        out[index] = stack[-1] if stack else None
+        for char in line:
+            if char == "{":
+                if pending is not None and not stack:
+                    stack.append(pending)
+                    pending = None
+                else:
+                    stack.append(out[index])
+            elif char == "}":
+                if stack:
+                    stack.pop()
+                if not stack:
+                    pending = None
+    return out
+
+
 def declared_name(line, allow_function=True):
     """The identifier a declaration declares, or None.  Cheap by design: one line, one name.
 
@@ -176,7 +208,7 @@ def scan_file(text):
                 if name:
                     names.append(name)
 
-    members = set()
+    members = {}
     for index, (depth, line) in enumerate(rows):
         if depth != 0 or continued[index]:
             continue
@@ -186,8 +218,9 @@ def scan_file(text):
                 names.append(name)
         found = MEMBER_FUNCTION.search(line)
         if found:
-            members.add(found.group(1))
+            members.setdefault(found.group(1), set()).add(found.group(2))
 
+    enclosing = enclosing_classes(rows)
     locals_found = []
     for index, (depth, line) in enumerate(rows):
         if depth < 1 or index in namespace_lines or continued[index]:
@@ -197,7 +230,7 @@ def scan_file(text):
             continue
         name = declared_name(line, allow_function=False)
         if name:
-            locals_found.append((index + 1, name))
+            locals_found.append((index + 1, name, enclosing[index]))
     return names, members, locals_found
 
 
@@ -239,19 +272,27 @@ def check_tree(root):
             names, members, locals_found = scan_file(text)
             for name in set(names):
                 owners.setdefault(name, set()).add(path)
-            known = set(names) | members
-            for line, name in locals_found:
+            known = set(names)
+            relative = os.path.relpath(path, root).replace("\\", "/")
+            for line, name, owner in locals_found:
                 if name in known:
-                    findings.append({
-                        "kind": "shadow",
-                        "module": module,
-                        "name": name,
-                        "file": os.path.relpath(path, root).replace("\\", "/"),
-                        "line": line,
-                        "detail": "local '{0}' in {1} hides a function or member in the same file "
-                                  "(MSVC C4459 is an error under Unreal's shadow-variable policy)"
-                                  .format(name, os.path.relpath(path, root).replace("\\", "/")),
-                    })
+                    detail = ("local '{0}' in {1} hides the file-scope name '{0}' declared in the same "
+                              "file (MSVC C4459, an error under Unreal's shadow-variable policy)")
+                    arguments = (name, relative)
+                elif owner and name in members.get(owner, ()):
+                    detail = ("local '{0}' in {1} hides member '{0}' of {2}, the class it is defined in "
+                              "(MSVC C4458, an error under Unreal's shadow-variable policy)")
+                    arguments = (name, relative, owner)
+                else:
+                    continue
+                findings.append({
+                    "kind": "shadow",
+                    "module": module,
+                    "name": name,
+                    "file": relative,
+                    "line": line,
+                    "detail": detail.format(*arguments),
+                })
         for name, paths in sorted(owners.items()):
             if len(paths) > 1:
                 findings.append({
