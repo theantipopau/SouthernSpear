@@ -4534,10 +4534,57 @@ None.
 2. Run `python Tools/build_adfrc_weapons.py` and check each `manifest.json → grip.fit`. Expect `true` for A88,
    A88G, A4, A416, A25 and A89.
 3. Run `Tools/Unreal/setup_weapons.py`, confirm `SOCKET_LeftHandGrip`/`SOCKET_RightHandGrip` exist on each
-   `SM_*` mesh, then build and test.
+   `SM_*` mesh, then build and test.### ADDENDUM — grip fit confirmed 6 of 6 on real data; A25 semi-auto was working all along; ADR-038 corrects ADR-037
+
+**Grip fit, real data: 6 of 6 `fit: true`.** A88 0.2418 · A88G 0.2929 · A4 0.3113 · A416 0.3381 ·
+A25 0.3486 · A89 0.3013 m hand span — matching the published table. `Tools/Common/test_adfrc_grip.py`:
+**0 failures** (24 checks). `setup_weapons.py`: **ok true**, 36 steps, 0 errors, each weapon mesh carries
+its left- and right-hand grip points.
+
+**`A25:semi_auto` was reported failing but was already correct.** The step said "0 set(s) now fire
+..._Pistol_C". Reading the granted abilities directly: the A25's equipment definition grants
+`GA_Weapon_Fire_Pistol_C` through its own `AbilitySet_SS_A25_Semi` — the semi-auto fire ability **is**
+in place. The step could never report success twice: it only acts on sets that still contain
+`GA_Weapon_Fire_Rifle_Auto`, so after the first successful swap there is nothing left to replace,
+`swapped` stays 0, and `ok = swapped > 0` is false on every subsequent run. **Fixed** to accept the end
+state ("already correct") as success, and the report now distinguishes swapped-this-run from
+already-correct. `setup_weapons.py` is **ok: true, 36 steps, 0 errors** after the fix.
+
+**Build and tests on `41348693`:** `Result: Succeeded`. Automation: **57 found, 57 Success, 0 Fail,
+exit 0, no crash.**
+
+**ADR-038 — I was wrong about leader pose, and the producer was right.** ADR-037 recorded the Quantum
+modules as "not leader-pose compatible" and the pivot as blocked. `SetLeaderPoseComponent` matches bones
+**by name**; child bones with no counterpart in the leader are simply not driven and hold their
+reference pose. My probe asked "does the child have bones the leader lacks" (192 of 351) and treated the
+answer as "unusable", which is not the test. Leader pose would drive the **159 shared bones and leave
+192 static**, and the mesh renders fine. The genuine cost is the one identified independently: straight
+fingers on a rifle. The `IKRetargeter` route also needs no export. **Neither route has been run.**
+
+**The three new candidate bodies, measured in Blender (`Build/probe_candidate_bodies.json`):** all three
+are in the Fab library cache as **source files** (FBX/GLB), which is the one thing better than Quantum.
+None is better or easier than what we have:
+
+| | Rig | Bones | Verts | Slots | Textures | Manny-compatible |
+|---|---|---|---|---|---|---|
+| Free Pack – Male Base Mesh (FBX) | **none** | 0 | 4,395 | 1 | **none** | n/a |
+| FSB Operator (GLB) | Mixamo | 52 | 108,616 | 41 | yes | **0/52** |
+| SWAT Operator (GLB) | Mixamo | 51 | 57,761 | 34 | yes | **0/51** |
+
+The Male Base Mesh is the **worst** of the three, not the easiest: no armature and no textures, so a rig
+would have to be built from nothing. FSB is the heaviest. SWAT is the best of the three and still not
+good enough — 34 slots, no modularity, the same straight-finger problem, and its materials reference
+**KSVR**, a real Russian camouflage brand, which is an accuracy problem for the main player model as well
+as a trademark one under R-57.
+
+### NEXT ACTION (Session 057 addendum)
+
+**Prototype the Quantum modules on the leader (fast, straight fingers) or on an IKRetargeter (slower,
+articulated hands), in camo, beside the current soldier** — that is the one comparison that settles
+ADR-036, and the producer's own recommendation is not to switch on paper. The new packs are assessed
+and none of them displaces Quantum.
 
 ---
-
 
 ## Open Threads
 

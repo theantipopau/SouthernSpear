@@ -368,11 +368,23 @@ def semi_auto(wid):
             eal.save_loaded_asset(copy)
             new_sets_text = new_sets_text.replace(set_path, copy.get_path_name())
             swapped += 1
-    ok = swapped > 0 and lib.set_property_from_text(cdo, "AbilitySetsToGrant", new_sets_text)
-    if ok:
-        eal.save_loaded_asset(wid)
-    report.setdefault("semi_auto", {})[W] = {"fire_ability": semi_path, "ability_sets": lib.get_property_as_text(cdo, "AbilitySetsToGrant")}
-    return step("semi_auto", ok, "{} set(s) now fire {}".format(swapped, semi_path))
+    if swapped:
+        ok = lib.set_property_from_text(cdo, "AbilitySetsToGrant", new_sets_text)
+        if ok:
+            eal.save_loaded_asset(wid)
+    else:
+        # Already swapped on an earlier run: the A25's own AbilitySet_SS_A25_Semi no longer holds the
+        # rifle auto ability, so the loop above has nothing to replace and swapped stays 0. Reporting
+        # that as a failure made every re-run of a working weapon read ok: false (Session 057). Accept
+        # the end state instead: does the weapon now grant the semi-auto fire ability?
+        final = lib.get_property_as_text(cdo, "AbilitySetsToGrant")
+        ok = any(class_path_in(lib.get_property_as_text(ability_set, "GrantedGameplayAbilities")
+                               if ability_set else "", "GA_Weapon_Fire_Pistol")
+                 for ability_set in (unreal.load_asset(p) for p in re.findall(r"(/[\w/]+\.[\w]+)", final)))
+    report.setdefault("semi_auto", {})[W] = {"fire_ability": semi_path, "swapped": swapped, "already_correct": not swapped and ok, "ability_sets": lib.get_property_as_text(cdo, "AbilitySetsToGrant")}
+    return step("semi_auto", ok, "{} set(s) fire {} ({})".format(
+        swapped or "all", semi_path.split("/")[-1] if semi_path else "-",
+        "already correct" if not swapped else "swapped this run"))
 
 
 def build_one():

@@ -1183,3 +1183,58 @@ what would finally give the W2 hand-grip work something to grip *with*.
 Quantum modules are a live option, held open, that becomes actionable either when a reparameterise or
 export route exists, or if the producer chooses the skeleton move. **Not decided:** whether to re-scope
 to the 351-bone skeleton now that it is the only working path.
+
+---
+
+## ADR-038 — Leader pose does work for the Quantum modules; ADR-037's "not usable" is withdrawn, and three new candidate bodies assessed
+
+**Status:** Accepted (producer, 2026-09-28). Corrects ADR-037 point 2. **Nothing about the body is
+decided here**; ADR-036 (ADFRC G3) stands until a prototype says otherwise.
+**Date:** 2026-09-28
+
+### Correction to ADR-037
+
+ADR-037 recorded the Quantum modules as "not leader-pose compatible" and the pivot as "blocked". **The
+first half is wrong.** `SetLeaderPoseComponent` matches bones **by name**; bones the child has and the
+leader does not are simply not driven, and hold their reference pose. The mesh renders and animates
+correctly. The probe behind that claim tested "does the child have any bone the leader lacks" — 192 of
+351 — and equated the answer with "unusable", which is not the test. On the real numbers, leader pose
+would drive the **159 shared bones and leave 192 static**.
+
+So the modules can be put on the pawn today with no export, no Blender work and no retargeter. The
+real cost is the one both agents named: the **fingers stay straight**, which reads wrong on a rifle.
+The retargeter route (an `IKRetargeter` asset plus a pose-copying Anim Blueprint, buildable headlessly)
+is still the way to get articulated hands, and it needs no export either. **Neither route has been run.**
+
+### The three candidate bodies (measured, `Build/probe_candidate_bodies.json`)
+
+All three are in the Fab library cache as **source files**, which is the one thing better than Quantum:
+
+| | Rig | Bones | Verts | Slots | Textures | Manny-compatible |
+|---|---|---|---|---|---|---|
+| **Free Pack – Male Base Mesh** (FBX, 496 KB) | **none** | 0 | 4,395 | 1 | **none** | n/a |
+| **FSB Operator** (GLB, 86 MB) | Mixamo | 52 | 108,616 | 41 | yes | **0/52** |
+| **SWAT Operator** (GLB, 106 MB) | Mixamo | 51 | 57,761 | 34 | yes | **0/51** |
+
+Reading: **none of the three is better than what we have, and none is easier.**
+
+- **Male Base Mesh is the worst of the three**, not the easiest: it has **no armature and no textures at
+  all**. It would need a rig built from nothing, which is more work than renaming an existing one.
+- **FSB Operator is the heaviest**: 108,616 verts for one soldier, 41 material slots to tame.
+- **SWAT Operator is the best of the three** and still not good enough: 57,761 verts, 51 Mixamo bones
+  with finger chains, 34 slots. Its mixamo naming means a scripted rename to Manny names — cheap, but
+  the fingers would still not animate on a 164-bone leader, so it buys the same straight-finger problem
+  as Quantum, with a worse texture and no modularity.
+- **Faction and accuracy**: a SWAT operator and an FSB operator are both not an Australian Army soldier,
+  and the SWAT pack's materials reference **KSVR**, a real Russian camouflage brand. ADR-035 keeps real
+  names legal, but R-57 (accepted risk) covers trademarks — putting another nation's service camouflage
+  on the *main player model* is an accuracy problem as well as a legal one.
+
+**What a candidate would actually need to beat the G3:** a source rig already named to Manny (or
+renameable), **articulated fingers**, a small number of clean material slots, neutral clothing to camo,
+and proportions the fitted ADFRC gear still fits. Quantum is the only one of the four that has the
+fingers, the modularity and clean slots; it fails on source files and bone names, and both of those are
+cheaper to solve than any of the three new packs' problems.
+
+**Not decided.** The recommendation stands: prototype Quantum on the retargeter, in camo, next to the
+current soldier, and switch only if it is clearly better on screen.

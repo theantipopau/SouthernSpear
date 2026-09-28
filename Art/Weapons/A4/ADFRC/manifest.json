@@ -135,7 +135,37 @@
   "rule": "ahead of rear sight"
  },
  "grip": {
+  "fit": true,
+  "rest_to_mlod": [
+   [
+    -0.0,
+    1.0,
+    0.0
+   ],
+   [
+    -1.0,
+    -0.0,
+    0.0
+   ],
+   [
+    0.0,
+    -0.0,
+    1.0
+   ]
+  ],
+  "hand_span_m": 0.3113,
+  "barrel_m": 0.5079,
+  "left_hand_to_bore_m": 0.1054,
+  "left_hand_forward_m": 0.2929,
+  "left_hand_along_barrel": 0.577,
+  "right_hand": "anchored at trigger_axis",
   "clip": "ar15_8in_cgrip_static",
+  "weapon_parent": "spine1",
+  "left_minus_right_rest": [
+   0.0911,
+   -0.2884,
+   0.0737
+  ],
   "trigger_mlod": [
    0.0817,
    -0.0018,
@@ -146,85 +176,15 @@
    0.0,
    0.0549
   ],
-  "attempts": {
-   "arma": {
-    "fit": false,
-    "reason": "no axis map puts the left hand on the barrel ahead of the trigger",
-    "hand_span_m": 0.6468,
-    "barrel_m": 0.5079,
-    "nearest": {
-     "axis_map": [
-      [
-       0,
-       1,
-       0
-      ],
-      [
-       0,
-       0,
-       1
-      ],
-      [
-       -1,
-       0,
-       0
-      ]
-     ],
-     "right_hand_to_trigger_m": 1.0334,
-     "left_hand_to_bore_m": 1.4171,
-     "left_hand_along_barrel": 0.14
-    },
-    "left_weapon_space": [
-     -1.4325,
-     0.1208,
-     0.0614
-    ],
-    "right_weapon_space": [
-     -0.9481,
-     0.5136,
-     -0.1101
-    ]
-   },
-   "decoded": {
-    "fit": false,
-    "reason": "no axis map puts the left hand on the barrel ahead of the trigger",
-    "hand_span_m": 0.6468,
-    "barrel_m": 0.5079,
-    "nearest": {
-     "axis_map": [
-      [
-       0,
-       -1,
-       0
-      ],
-      [
-       0,
-       0,
-       1
-      ],
-      [
-       1,
-       0,
-       0
-      ]
-     ],
-     "right_hand_to_trigger_m": 1.1147,
-     "left_hand_to_bore_m": 1.5717,
-     "left_hand_along_barrel": 1.273
-    },
-    "left_weapon_space": [
-     -1.3277,
-     0.674,
-     -0.7182
-    ],
-    "right_weapon_space": [
-     -0.9651,
-     0.2163,
-     -0.44
-    ]
-   }
-  },
-  "fit": false,
-  "reason": "no hierarchy fits: arma: no axis map puts the left hand on the barrel ahead of the trigger; decoded: no axis map puts the left hand on the barrel ahead of the trigger"
+  "left_m": [
+   0.2884,
+   0.0911,
+   0.0737
+  ],
+  "right_m": [
+   0.0,
+   0.0,
+   0.0
+  ]
  }
 }
