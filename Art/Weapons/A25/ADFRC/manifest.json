@@ -123,5 +123,10 @@
   "direction_from": "optic eye point",
   "axis_z_m": 0.11279835924506187,
   "rule": "ahead of rear sight"
+ },
+ "grip": {
+  "fit": false,
+  "reason": "no axis map puts the left hand on the barrel ahead of the trigger",
+  "clip": "ar15_10in_cgrip_static"
  }
 }

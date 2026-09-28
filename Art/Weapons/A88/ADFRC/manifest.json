@@ -100,5 +100,10 @@
   "direction_from": "optic eye point",
   "axis_z_m": 0.12664968520402908,
   "rule": "optic proxy"
+ },
+ "grip": {
+  "fit": false,
+  "reason": "no axis map puts the left hand on the barrel ahead of the trigger",
+  "clip": "EF88_Vg_static"
  }
 }

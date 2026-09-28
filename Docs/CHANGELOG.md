@@ -4225,10 +4225,55 @@ warning on a first run. That is harmless.
 
 Unchanged from Session 052. **On the producer's machine:** run `python Tools/build_adfrc_weapons.py`, then
 `Tools/Unreal/setup_weapons.py`, then build and test. Send each `Art/Weapons/<NAME>/ADFRC/manifest.json → grip`,
-and check in game: A89 200/200, A25 one shot per press, and the `LogSSWeaponStats` rpm lines.
+and check in game: A89 200/200, A25 one shot per press, and the `LogSSWeaponStats` rpm lines.### ADDENDUM — weapons pipeline run: the grip fit produced nothing, and setup_weapons.py has its own blocker
+
+**Ran `python Tools/build_adfrc_weapons.py`. All seven weapons built, but the grip fit failed on
+every one of them**, so there are no grip numbers to send:
+
+| Weapon | `fit` | `reason` | clip |
+|---|---|---|---|
+| A88, A4, A416, A25, A89 | `false` | no axis map puts the left hand on the barrel ahead of the trigger | per-weapon |
+| A88G | `false` | pose has no bone(s): lefthand, righthand | `AUG_GL` |
+| A9 | *(no grip key at all)* | — | — |
+
+The same reason on five different rifles means the axis-map heuristic never produces a mapping, not
+that five weapons are awkward. A88G's pose clip has no hand bones at all. The A9 was not attempted.
+**W2 is blocked at its first step: the manifests carry no grip data.** `fit` and `right_hand_to_trigger_m`
+cannot be sent because they do not exist.
+
+**Ran `Tools/Unreal/setup_weapons.py`: it fails on the first weapon**, before any grip code, and this is
+independent of the above. `visual_blueprint()` deletes `B_SS_A88_Weapon` and immediately recreates it;
+`eal.delete_asset()` does **not** remove the blueprint in this commandlet — the file is still on disk
+after the delete — so `create_asset()` returns `None` for a name that is still taken. The `None` then
+reached `k2_gather_subobject_data_for_blueprint()`, which returned an empty array, and `handles[0]` died
+with an opaque `IndexError`.
+
+Ruled out by direct probe (`Build/probe_weapon_bp_parent.json`), so the next attempt need not repeat them:
+it is **not** the game-feature plugin being unmounted (a blueprint created in the plugin path and one in
+`/Game` both report 2 subobjects), **not** delete-then-recreate (2 subobjects after), and **not** the
+parent class (it resolves: `/ShooterCore/Weapons/Rifle/B_Rifle.B_Rifle_C`, 2 subobjects from a fresh
+blueprint). The one difference is that the real run deletes an asset that is genuinely there.
+
+Fix applied here, minimally: compile the blueprint before gathering subobjects, check the delete actually
+took, check `create_asset` returned something, and never index `handles[0]` unchecked. **The script still
+cannot complete** — the delete behaviour needs a real fix (build in place, or delete through a route that
+works headlessly). The half-finished weapon assets were restored with `git checkout`; only the intended
+FBX and manifest output of `build_adfrc_weapons.py` is left modified.
+
+**Build and tests on `a99a8692`:** `Target is up to date`. `validate_architecture.py` → PASS, no
+violations. `Automation RunTests SouthernSpear` → **57 found, 57 Success, 0 Fail, exit code 0, no crash.**
+
+**Body decided — ADR-036.** The ADFRC G3 is the body: head, arms, torso and gear from one pack, Fab
+`Modern_Insurgent_7/SK_Head` off the friendly soldier, `SKM_QuantumCharacter` retired as a candidate. This
+unblocks P2. NOT DONE: the head swap itself, which needs an ADFRC head in `Art/Characters/ADF/` first.
+
+### NEXT ACTION (Session 054 addendum)
+
+**On the other agent: the grip fit.** The axis map never fits on any rifle, so that is a code fix, not a
+data problem. **Still needs a human: the live match** (A89 shows 200/200, the A25 fires one shot per
+press with 20 rounds, `LogSSWeaponStats` prints the rpm lines) — none of that can be checked headlessly.
 
 ---
-
 
 ## Open Threads
 

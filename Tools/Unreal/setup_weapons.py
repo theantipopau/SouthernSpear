@@ -232,12 +232,30 @@ def visual_blueprint(mesh):
     path = DEST + "/" + name
     if asset_exists(path):
         eal.delete_asset(path)
+        # delete_asset does not actually remove the blueprint here: the file is still on disk and the
+        # next create_asset returns None for the name that is taken. That None is what the empty
+        # subobject gather was reporting, on the first weapon, every run (Session 054).
+        if asset_exists(path):
+            raise RuntimeError(
+                "could not delete the existing " + path + "; create_asset would return None for a "
+                "name still in use. Delete it in the editor, or build into the asset in place.")
+    parent_path = base_of(W)[2]
+    parent = unreal.load_class(None, parent_path)
+    if parent is None:
+        raise RuntimeError("parent class " + parent_path + " did not load for " + W)
     factory = unreal.BlueprintFactory()
-    factory.set_editor_property("parent_class", unreal.load_class(None, base_of(W)[2]))
+    factory.set_editor_property("parent_class", parent)
     bp = tools.create_asset(name, DEST, unreal.Blueprint, factory)
+    if bp is None:
+        raise RuntimeError("could not create " + path)
     sub = unreal.get_engine_subsystem(unreal.SubobjectDataSubsystem)
     lib_sd = unreal.SubobjectDataBlueprintFunctionLibrary
+    # A blueprint straight out of the factory has an empty construction script until it has been
+    # compiled; gather afterwards, and never index handles[0] without checking it (Session 054).
+    unreal.BlueprintEditorLibrary.compile_blueprint(bp)
     handles = sub.k2_gather_subobject_data_for_blueprint(bp)
+    if not handles:
+        raise RuntimeError("no components on the new blueprint " + path)
     skeletal = None
     for h in handles:
         data = lib_sd.get_data(h)

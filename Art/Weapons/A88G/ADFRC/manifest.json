@@ -121,5 +121,10 @@
   "direction_from": "optic eye point",
   "axis_z_m": 0.12664968520402908,
   "rule": "optic proxy"
+ },
+ "grip": {
+  "clip": "AUG_GL",
+  "fit": false,
+  "reason": "pose has no bone(s): lefthand, righthand"
  }
 }

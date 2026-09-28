@@ -1,5 +1,5 @@
 {
- "source": "Art/ADFRC_BLEND/adfrc_g19/G19_MLOD.blend",
+ "source": "E:\\SouthernSpear\\Art\\ADFRC_BLEND\\adfrc_g19/G19_MLOD.blend",
  "fbx": "E:\\SouthernSpear\\Art\\Weapons\\A9\\ADFRC\\SM_A9.fbx",
  "dimensions_m": [
   0.19682879745960236,
@@ -60,5 +60,6 @@
   "trigger_safety_axis"
  ],
  "origin": "trigger_axis",
- "optic": null
+ "optic": null,
+ "grip": null
 }

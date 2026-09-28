@@ -178,19 +178,15 @@ Promote the ad-hoc `Build/soldier_check.html` into a turntable capture script an
 this class of defect is caught by a run rather than by a producer noticing it in a screenshot. Every
 finding in §2 came from a hand-cropped screenshot; none of it was caught by a check.
 
-## 5. The decision only the producer can make
+## 5. The body — decided (ADR-036)
 
-**What is the body?** Right now the "player model" is a Fab head on an ADFRC body, under ADFRC gear,
-with the uniform's arms belonging to neither the head nor the vest. There is no single source of truth
-for the body, and that is why it reads as assembled.
+**The ADFRC G3 is the body.** Head, arms, torso and gear all come from the ADF Re-Cut pack; the Fab
+`Modern_Insurgent_7` head comes off the friendly soldier. `SKM_QuantumCharacter` is retired as a
+candidate body. Rationale, and the MAF's unchanged position, are in `Docs/DECISION_LOG.md` ADR-036.
 
-- **Keep the ADFRC G3 as the body.** Take the head from ADFRC too, so head, arms, torso and gear are
-  one source and one set of proportions. Costs a head swap; fixes the "assembled" read immediately.
-- **Switch to a Fab body** (e.g. `SKM_QuantumCharacter`, 3 ACR) and dress it in the ADFRC gear. Gives
-  a better-animated body, costs the 14 vendor material slots to tame.
-
-My recommendation is the first: the ADFRC gear is already fitted to the G3, and one source of truth
-is worth more than the better base mesh.
+The "assembled rather than worn" read was never a texture fault — it is three sources of proportions,
+skin and material response — and it is now fixed at the source rather than painted over. P2 below
+unblocks as a direct result.
 
 ## 6. Things that fail silently on this build
 
