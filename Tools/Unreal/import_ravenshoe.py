@@ -297,7 +297,7 @@ def import_mesh(label, filename, materials, slot_map):
         # The terrain is the map's floor and must block; the bridge and the
         # gatehouse are cover and must block. Everything here is solid, so
         # collision is generated for all three.
-        smi.set_editor_property("auto_generate_collision", True)
+        smi.set_editor_property("auto_generate_collision", False)
         smi.set_editor_property("generate_lightmap_u_vs", False)
     except Exception as exc:  # noqa: BLE001
         warn("static_mesh_import_data: {}".format(exc))
@@ -315,16 +315,16 @@ def import_mesh(label, filename, materials, slot_map):
         report["errors"].append("no StaticMesh at " + path)
         return None
 
-    # CTF_USE_DEFAULT, written and read back. If this does not take, the mesh
-    # will not block, and the map is unplayable in a way nothing else reports.
-    flag, applied = unreal.CollisionTraceFlag.CTF_USE_DEFAULT, ""
+    # Complex-as-simple, written and read back. CTF_USE_COMPLEX_AS_SIMPLE collides with the auto-generated convex hull, which
+    # lids the gorge and boxes the bridge: the first play test ran 50 m above the ground (fix_ravenshoe_collision.py).
+    flag, applied = unreal.CollisionTraceFlag.CTF_USE_COMPLEX_AS_SIMPLE, ""
     try:
         body = mesh.get_editor_property("body_setup")
         body.set_editor_property("collision_trace_flag", flag)
         applied = str(body.get_editor_property("collision_trace_flag"))
     except Exception as exc:  # noqa: BLE001
         report["errors"].append("{}: collision_trace_flag: {}".format(label, exc))
-    if "CTF_USE_DEFAULT" not in applied:
+    if "CTF_USE_COMPLEX_AS_SIMPLE" not in applied:
         report["errors"].append("{}: trace flag is {!r}".format(label, applied))
 
     # Slot override BY NAME. StaticMesh.Materials is protected on 5.8 and
@@ -566,7 +566,7 @@ def place_gameplay(world, rows):
             gz = SPEC.ground_z(x, y) if SPEC is not None else z
             loc, _ = to_ue(x, y, gz)
             ps = actor_sub.spawn_actor_from_class(
-                unreal.PlayerStart, loc, unreal.Rotator(roll=0.0, pitch=0.0, yaw=0.0))
+                getattr(unreal, "LyraPlayerStart", unreal.PlayerStart), loc, unreal.Rotator(roll=0.0, pitch=0.0, yaw=0.0))
             if ps:
                 ps.set_actor_label(name)
                 placed["deployment"] += 1

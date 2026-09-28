@@ -20,6 +20,41 @@ is to skip to the bottom and hand that over.
 
 ---
 
+## 0. First play test — 2026-09-28 (supersedes parts of §1, §2 and §5)
+
+The map was launched and played for the first time (windowed `-game`, 6 bots; producer screenshots; logs
+`Saved/Logs/SS_probe_ravplay{,2,3}.log`). Found and fixed, all scripted and re-runnable:
+
+| # | Defect (how found) | Fix |
+|---|---|---|
+| 1 | **Navigation *can* be baked headless.** §2's "needs an editor" was wrong: the missing piece was the ini flag Dry River's nav pass uses. | `SS_RAVENSHOE_NAV_BUILD=1 UnrealEditor-Cmd ... -nullrhi "-ini:Engine:[/Script/NavigationSystem.NavigationSystemV1]:bWaitForAsyncLoadingBeforeBuildingNavigationAutomatically=False" -ExecutePythonScript=.../build_ravenshoe_nav.py` → `nav_baked: true`, deck and creek bed project onto nav. |
+| 2 | **Everyone spawned at the world origin** (in the gorge under the deck; black void on screen; 270 `SpawnActor failed ... [X=0 Y=0 Z=0]`). `import_ravenshoe.py` placed plain `PlayerStart`s; Lyra only uses `ALyraPlayerStart`. | New `Tools/Unreal/fix_ravenshoe_starts.py`: 2 × 8 `LyraPlayerStart` (primary + 7 extras, 150 cm apart) on each ridge at `y = ±13000`, ground + 1 m, facing the bridge (`Build/ravenshoe_starts.json`). `import_ravenshoe.py` now spawns `LyraPlayerStart`. Retest: 0 failed spawns. |
+| 3 | **Players and bots ran ~50 m above the ground.** Terrain, bridge and gate house were imported with an auto-generated convex hull and `CTF_USE_DEFAULT`, so the game collided with the hull (a lid over the gorge, a solid box for the bridge). | New `Tools/Unreal/fix_ravenshoe_collision.py`: `CTF_USE_COMPLEX_AS_SIMPLE`, hulls removed, on all three meshes (`Build/ravenshoe_collision.json`). `import_ravenshoe.py` now imports with `auto_generate_collision=False` and complex-as-simple. Retest: player stands on the ground. |
+| 4 | Terrain rendered flat white: its slot held the FBX importer's `FBXLegacyPhongSurfaceMaterial` (0.8 grey). | Same script sets the terrain actor's material to `MI_SS_Raven_Road` (gravel). **Still renders near-white in play — open, see below.** |
+
+Order after any rebuild: `import_ravenshoe` → … → `wire_ravenshoe_experience` → `fix_ravenshoe_starts` →
+`fix_ravenshoe_collision` → `build_ravenshoe_nav` (build mode, with the ini flag above).
+
+**Still open (observed in the third launch, not yet fixed):**
+
+- **Ground reads white/snow-like** even with the gravel material. The terrain has world-planar UVs (4 m per tile,
+  `ravenshoe_blockout.py` `export_fbx(planar=True)`). Next check: the gravel base-colour texture's mean value
+  and the MI's tint/UV-scale parameters, then exposure. The minimap (scene capture) is also white.
+- **Bots do not advance.** They spawn and stand with weapons raised; the director logs `Steered 0 idle bot(s)
+  to objective 0` (worth comparing with a Dry River log). `build_ravenshoe_nav.py` still reports **0 / 32**
+  routes reachable (it now counts every start); the path check itself is unverified — confirm with a runtime
+  path query or by watching a bot, rather than trusting either number.
+- **Black band on the horizon:** the terrain stops at the 200 × 300 m edge with nothing beyond. Needs a skirt
+  or distant backdrop terrain.
+- **Gate house reads as grey checkerboard** (`MI_SS_Raven_Stone`, granite set). Probably the generated
+  granite block pattern; confirm against the texture before changing it.
+- Not yet looked at: fog, the deck at close range, the creek bed.
+
+None of this is committed. Ravenshoe files remain uncommitted per §8, plus the new `fix_ravenshoe_starts.py`,
+`fix_ravenshoe_collision.py` and the `import_ravenshoe.py` edits. The map `.umap` and three mesh `.uasset`s were re-saved.
+
+---
+
 ## 1. State in one paragraph
 
 `/Game/Maps/L_Ravenshoe_01` is **complete and verified at 665 actors with 35/35 audit checks

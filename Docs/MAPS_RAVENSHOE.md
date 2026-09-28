@@ -2,7 +2,7 @@
 
 **Document ID:** `Docs/MAPS_RAVENSHOE.md`
 **Status:** **In Unreal, dressed, surfaced, lit and wired. Navigation not baked.** `/Game/Maps/L_Ravenshoe_01` — **665 actors**, **35/35 audit checks pass**.
-Navigation is **not baked**; the map is not yet AI-playable.
+**2026-09-28 first play test:** spawns, collision and the nav bake fixed; ground still renders white, bots do not advance, horizon edge shows — see `Docs/HANDOVER_RAVENSHOE.md` §0.
 **Last updated:** 2026-09-28
 **Authoring:** `Tools/Common/ravenshoe_spec.py` (shared spec) → `Tools/Blender/ravenshoe_blockout.py` → FBX
 **Import/dress:** `Tools/Unreal/import_ravenshoe.py` · **Audit:** `Tools/Unreal/audit_ravenshoe.py` (read-only)
