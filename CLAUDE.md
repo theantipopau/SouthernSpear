@@ -175,4 +175,4 @@ dedicated-server support while R-09 is open. Then commit, push, and publish the 
 
 R-09 no Server target (engine distribution) · R-12 nav tile count unmeasured · R-14 GitHub holds LFS
 pointers only · R-15 level pass-1 self-check reports failure · R-16 win streaks / spawn proximity to OBJ B ·
-R-50 Session 048 C++ (Section Assault, Progression) written without a compiler: first build/test unverified.
+R-56 Session 049 C++ (ranks, insignia, kill XP) unverified by build (R-50, Session 048, closed: 52/52) · R-55 release gate: Army insignia, crown, Coat of Arms.
