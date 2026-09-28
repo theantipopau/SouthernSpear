@@ -125,8 +125,96 @@
   "rule": "ahead of rear sight"
  },
  "grip": {
+  "clip": "ar15_10in_cgrip_static",
+  "trigger_mlod": [
+   0.0859,
+   -0.0018,
+   0.0149
+  ],
+  "muzzle_mlod": [
+   -0.5983,
+   0.0,
+   0.0574
+  ],
+  "attempts": {
+   "arma": {
+    "fit": false,
+    "reason": "no axis map puts the left hand on the barrel ahead of the trigger",
+    "hand_span_m": 0.7363,
+    "barrel_m": 0.6855,
+    "nearest": {
+     "axis_map": [
+      [
+       0,
+       1,
+       0
+      ],
+      [
+       0,
+       0,
+       1
+      ],
+      [
+       -1,
+       0,
+       0
+      ]
+     ],
+     "right_hand_to_trigger_m": 1.0322,
+     "left_hand_to_bore_m": 1.4836,
+     "left_hand_along_barrel": 0.192
+    },
+    "left_weapon_space": [
+     -1.5038,
+     0.0463,
+     0.0123
+    ],
+    "right_weapon_space": [
+     -0.9481,
+     0.5136,
+     -0.1101
+    ]
+   },
+   "decoded": {
+    "fit": false,
+    "reason": "no axis map puts the left hand on the barrel ahead of the trigger",
+    "hand_span_m": 0.7363,
+    "barrel_m": 0.6855,
+    "nearest": {
+     "axis_map": [
+      [
+       0,
+       -1,
+       0
+      ],
+      [
+       0,
+       0,
+       1
+      ],
+      [
+       1,
+       0,
+       0
+      ]
+     ],
+     "right_hand_to_trigger_m": 1.1153,
+     "left_hand_to_bore_m": 1.6601,
+     "left_hand_along_barrel": 1.025
+    },
+    "left_weapon_space": [
+     -1.4359,
+     0.7103,
+     -0.7165
+    ],
+    "right_weapon_space": [
+     -0.9651,
+     0.2163,
+     -0.44
+    ]
+   }
+  },
   "fit": false,
-  "reason": "no axis map puts the left hand on the barrel ahead of the trigger",
-  "clip": "ar15_10in_cgrip_static"
+  "reason": "no hierarchy fits: arma: no axis map puts the left hand on the barrel ahead of the trigger; decoded: no axis map puts the left hand on the barrel ahead of the trigger"
  }
 }

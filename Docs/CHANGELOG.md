@@ -4385,10 +4385,49 @@ removed and the tree is clean.
 **Producer decision: re-scope the Quantum pivot to the 351-bone skeleton, or leave it held open.** It is
 the only path that works with today's toolchain. If held open, the fallback is a UE bug report for
 `SkeletalMeshExporterFBX` on high-bone-count meshes, since a working export is what unblocks the cheap
-Manny prototype.
+Manny prototype.### ADDENDUM — weapons pipeline run on `63bd2089`: setup_weapons now completes, but the grip fit is still 0 of 7 — and the exported clips disprove the Spine1 theory
+
+**`Tools/Unreal/setup_weapons.py`: `ok: true`, 36 steps, 0 errors.** The in-place blueprint fix works;
+the delete that could never take is gone. (The first attempt reported `could not create
+B_SS_A88_Weapon` — that was my own fault, a 30-second timeout killing the commandlet mid-run. Re-run
+properly, it completes.)
+
+**Grip fit: still 0 of 7.** The improved diagnostics are what make this useful, and the eight exported
+clips (`Docs/evidence/w2_grip_clips/`, committed) settle the cause:
+
+1. **The `arma`/`Spine1` hierarchy is contradicted by the clips themselves.** Every one of the eight
+   exported clips carries a `parents` array, and in **all eight** `weapon`'s parent is the right hand
+   (`righthand`, or `RightHand` in the two AUG clips). `spine1` is index 2. The attachment does not need
+   recalling from memory — each file states it. The "arma" attempt parents the weapon to a bone these
+   files say it is not on.
+2. **The right hand carries no per-weapon information, which is why the search rejects everything.**
+   The `decoded` right hand is byte-identical across all five rifles at `[-0.9651, 0.2163, -0.44]`. In
+   the raw clip data the cause is visible: `righthand`'s frame is identical across the five clips that
+   share a stance — `ar15_10in`, `ar15_8in`, `hk416`, `hk417` all carry
+   `q = [-0.179498, -0.05286, -0.018…]`, and the root is identical too. Only `lefthand` varies per
+   weapon. Arma's rifle clips share one authored stance and vary only the support hand, so any test
+   leaning on the right hand accepts or rejects all weapons identically — and parenting the weapon to
+   that same hand makes its weapon-space position degenerate by construction.
+3. **The left hand, the only per-weapon signal, is ~1.3–1.5 m forward of the weapon origin** in every
+   clip — beyond the muzzle on weapons 0.4–0.7 m long (`barrel_m` 0.399–0.6855). Whatever the
+   attachment question, the pose frame or its units are wrong independently of it.
+4. `A88G` is a different rig: hand span **1.13 m**, and a distinct right hand. It is not a two-handed
+   rifle hold in the same sense as the others.
+
+**Build and tests on `7a086366`:** `Result: Succeeded`. `Automation RunTests SouthernSpear` → **57 found,
+57 Success, 0 Fail, exit 0, no crash.** `python Tools/Common/test_adfrc_grip.py` → **exit 0, 23/23 PASS.**
+
+**NOT DONE, still needs a person playing:** the live match — A89 shows 200/200, the A25 fires one shot
+per press with 20 rounds, `LogSSWeaponStats` prints the rpm lines.
+
+### NEXT ACTION (Session 056 addendum)
+
+**On the other agent: the grip maths, from the committed clips.** The Spine1 hierarchy is refuted by
+`parents[weapon]` in every file; drop it or re-derive it from the data. And key the fit off the **left**
+hand and the weapon transform, because the right hand is identical across clips sharing a stance and
+cannot discriminate. The left hand's ~1.4 m forward offset is the next thing to explain.
 
 ---
-
 
 ## Open Threads
 
