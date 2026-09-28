@@ -3975,6 +3975,94 @@ so I can wire rate of fire and semi/full-auto (the rest of W1) before W2.
 ---
 
 
+## Session 051 — 2026-09-28 — The Player Model Diagnosed, And The Work That Actually Matters Written Down
+
+### COMPLETED
+
+**Pulled** `f2c8870b` (the other agent's `ss.Callsign` fix) — clean fast-forward from `62f37cc6`.
+
+**Diagnosed the producer's model complaint** ("the shoulders look weird, the patch between the webbing
+and the waist is just a weird green") from the assets, the source scripts and the render. It is **not**
+a material-binding fault. `Crye_G3_Shirt_AMC_co.png` paints the G3 as a camo jacket over a plain olive
+under-shirt, and that under-shirt owns the whole torso, both forearms and the shoulder caps:
+
+- 53% of the sheet has no local detail, and the flat fill occupies luminance 73–86 where the real camo
+  on the same sheet spans 14–124.
+- The band in the capture (`Build/zoom_torso.png`) measures `rgb(60,57,35)` with a local std of **1.7** —
+  flat, not dark. Not a missing texture, not the 64×64 fallback, not the mannequin, not lighting.
+- The green patch, the smooth forearms and the shoulder seam are **the same pixels**: one cause, three
+  symptoms. No shirt variant avoids it; AMP/DPC/DPD are the same Arma base mesh.
+- The bones are **fine**: all 28 uniform arm bones and 18 vest arm bones resolve against Manny's
+  164-bone skeleton. Leader pose is not the fault. The real structural issue is that every part is
+  parented onto Lyra's mannequin, so the soldier can never own a bone.
+
+**Published `Docs/PLAYER_MODEL_PLAN.md`** — what the model is, the evidence for both complaints, the
+skeleton findings, an ordered plan (texture pipeline → own the skeleton → physics asset and LODs → the
+under-shirt decision), the producer decision on the body, six silent-failure traps, and the W1
+hand-off with the exact `FireDelayTimeSecs` values the other agent needs (A88 0.088, A89 0.080,
+A4/A416 0.070, A417 0.100; A25 needs a different ability, not a delay).
+
+**Cheapest certain win identified:** `max_texture_size = 2048` in `setup_adf_soldier.py:texture()` is
+halving every 4096² ADFRC sheet. That is most of "the textures look bad" on its own.
+
+### FILES CHANGED
+
+Created (all committed): `Docs/PLAYER_MODEL_PLAN.md`, `Tools/Textures/make_g3_shirt_camo.py`,
+`Tools/Unreal/probe_manny_bones.py`, `Tools/Unreal/probe_soldier_render.py`, this entry.
+Modified: `Docs/CHANGELOG.md` only.
+**Deliberately not committed:** `Art/Characters/Textures/T_SS_ADF_G3_Shirt_co.png` (13.8 MB) — the camo
+tool's output, wrong colours, bound to no material, regenerated in ~4 s. The project's other generated
+textures are committed because they are in use; this one is not.
+
+### TESTING
+
+`git pull --ff-only origin main` — clean fast-forward, no conflicts.
+`Tools/Unreal/probe_manny_bones.py` — run headless, 164 bones read from
+`Skeleton.get_reference_pose().get_bone_names()`. Confirmed all 28 uniform and 18 vest arm bones
+present. `Build/probe_manny_bones.json`.
+`python Tools/Textures/make_g3_shirt_camo.py` — run, panel mask correct (36.6% of the sheet isolated),
+**pattern generator output rejected by the producer** on colour. Output not bound, no game change.
+**Build and `Automation RunTests SouthernSpear`: NOT RUN** — `f2c8870b` is pulled but not yet compiled
+on this machine.
+
+### ASSETS
+
+No new licensed material. The camo tool samples its palette from the ADFRC sheet already held under
+L-0021 and invents no new pattern (ADR-033). Nothing added to the asset register.
+
+### DEFECTS FOUND
+
+- `unreal.load_asset("/SSExp_ObjectiveAssault/…")` returns **None** in a `-run=pythonscript`
+  commandlet — the game-feature plugin is unmounted, so probes over the ADF parts read nothing and
+  still report success. A skeleton probe built on this reported 26 "bones" that were the characters of
+  an error string. Removed rather than left in the tree.
+- `Skeleton.get_reference_skeleton()` returns a **`str`** in UE 5.8 Python, not a bone-name array.
+  Working route recorded in `Docs/PLAYER_MODEL_PLAN.md` §6.
+- `verify_character_materials.py` calls `get_material_property_input_expression`, which does not exist
+  in 5.8, and reads textures with `get_material_default_texture_parameter_value`, which cannot see
+  graph-wired textures. It cannot gate anything. **NOT FIXED** — queued as P1.3 of the plan.
+
+### RISKS
+
+- **R-58 (new):** the soldier is welded to Lyra's mannequin skeleton. Every ADF part is imported onto
+  `/Game/Characters/Heroes/Mannequin/Meshes/SK_Mannequin`, so replacing Lyra's mannequin breaks all
+  five parts, and the soldier cannot take its own clavicle/pec/corrective bones. Not a present fault —
+  every bone resolves today — but it is the reason the model is hard to improve.
+- **R-59 (new):** the five soldier parts total 89,996 verts (23,187 uniform + 42,311 vest + 24,498
+  helmet) with **no LODs** and `create_physics_asset = False` on every import. The largest character
+  cost in the game, and invisible in a single front-end screenshot.
+
+### NEXT ACTION
+
+**Producer decision: what is the body?** The soldier is a Fab `Modern_Insurgent_7` head on an ADFRC G3
+body under ADFRC gear, with the arms belonging to neither — there is no single source of truth, which is
+why it reads as assembled rather than worn. Recommended: take the head from ADFRC too, so head, arms,
+torso and gear are one source. Then P1 of `Docs/PLAYER_MODEL_PLAN.md` (the 2048 texture cap, the 64×64
+fallback, and the broken material verifier).
+
+---
+
+
 ## Open Threads
 
 | Item | Blocked on | Owner |
