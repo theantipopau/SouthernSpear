@@ -1,18 +1,15 @@
 """
-Tests for Tools/Common/adfrc_grip.py on a synthetic rig (no Blender, no ADFRC files needed).
+Tests for Tools/Common/adfrc_grip.py: a synthetic rig built the way the decoded clips are (each bone a
+rotation about its own rest joint, relative to its parent, quaternions stored as (-x, -y, z, w)), then
+the committed real clips (Docs/evidence/w2_grip_clips) and weapon manifests as a regression.
 
     python Tools/Common/test_adfrc_grip.py      # exit 0 when every check passes
-
-The synthetic soldier holds a rifle whose weapon bone is rotated and offset away from the pelvis, in
-the A3OB (x, z, y) convention, so a pass shows the maths recovers hand positions in weapon space,
-calibrates the axis map from the trigger and muzzle alone, and rejects a pose that does not fit.
 """
 
 import json
 import math
 import os
 import sys
-import tempfile
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import adfrc_grip as g  # noqa: E402
@@ -26,120 +23,107 @@ def check(name, condition, detail=""):
         FAILURES.append(name)
 
 
-def quat_about_y(angle):
-    return [0.0, math.sin(angle / 2), 0.0, math.cos(angle / 2)]
-
-
-def sub3(a, b):
-    return tuple(x - y for x, y in zip(a, b))
-
-
 def close(a, b, tol=1e-6):
     return all(abs(x - y) <= tol for x, y in zip(a, b))
 
 
-def main():
-    # Weapon-local truth (Arma space: y up, z forward along the barrel): right wrist at the grip,
-    # left wrist on the handguard 0.30 m forward and a little lower.
-    right_local = (0.0, -0.02, 0.0)
-    left_local = (0.01, -0.04, 0.30)
+def quat(axis, angle):
+    n = math.sqrt(sum(c * c for c in axis))
+    s = math.sin(angle / 2)
+    return [axis[0] / n * s, axis[1] / n * s, axis[2] / n * s, math.cos(angle / 2)]
 
-    # A rig: pelvis -> spine -> weapon, and hands hung off the spine. The weapon is turned 35 degrees
-    # about Y and offset, so a wrong inverse would show.
-    bones = ["pelvis", "spine", "weapon", "lefthand", "righthand"]
-    parents = [None, 0, 1, 1, 1]
-    wr = g.quat_to_mat(quat_about_y(math.radians(35)))
-    wp = (0.2, 1.3, 0.4)  # weapon bone, in spine space (spine is at the origin with no rotation)
-    left_world = tuple(a + b for a, b in zip(g.mat_vec(wr, left_local), wp))
-    right_world = tuple(a + b for a, b in zip(g.mat_vec(wr, right_local), wp))
+
+def stored(q):
+    """What the decoded clips store for the standard quaternion q."""
+    return [-q[0], -q[1], q[2], q[3]]
+
+
+def about(pivot, q):
+    """A clip entry rotating by q about pivot: p = pivot - R pivot."""
+    r = g.clip_rotation(stored(q))
+    return {"q": stored(q), "p": list(g.sub(pivot, g.mat_vec(r, pivot)))}
+
+
+def det(m):
+    return (m[0][0] * (m[1][1] * m[2][2] - m[1][2] * m[2][1]) - m[0][1] * (m[1][0] * m[2][2] - m[1][2] * m[2][0])
+            + m[0][2] * (m[1][0] * m[2][1] - m[1][1] * m[2][0]))
+
+
+def synthetic(left_angle, axis=(0, 0, 1)):
+    """Pelvis, Spine1, RightHand, LeftHand, weapon. Decoded parents put weapon under RightHand."""
+    bones = ["Pelvis", "Spine1", "RightHand", "LeftHand", "weapon"]
+    parents = [None, 0, 1, 1, 2]
+    rest = {"righthand": (-0.58, 0.07, 0.07), "lefthand": (0.58, 0.07, 0.07)}
     frame = [
-        {"q": [0, 0, 0, 1], "p": [0, 0, 0]},
-        {"q": [0, 0, 0, 1], "p": [0, 0, 0]},
-        {"q": quat_about_y(math.radians(35)), "p": list(wp)},
-        {"q": [0, 0, 0, 1], "p": list(left_world)},
-        {"q": [0, 0, 0, 1], "p": list(right_world)},
+        {"q": stored([0, 0, 0, 1]), "p": [0.0, 0.0, 0.9]},              # pelvis raised to hip height
+        about((0.0, 0.0, 0.14), quat((1, 0, 0), math.radians(-8))),    # spine1 leans
+        about(rest["righthand"], quat(axis, math.radians(40))),
+        about(rest["lefthand"], quat(axis, math.radians(left_angle))),
+        {"q": stored(quat((0, 0, 1), math.radians(5))), "p": [0.9, 0.03, 0.48]},  # weapon, fixed
     ]
+    return bones, parents, frame, rest
 
-    left, right = g.hands_in_weapon_space(bones, parents, frame)
-    check("left hand recovered in weapon space", close(left, left_local), str(left))
-    check("right hand recovered in weapon space", close(right, right_local), str(right))
 
-    # The MLOD in Blender is A3OB's (x, z, y): trigger at the grip, muzzle 0.7 m forward.
-    trigger = g.mat_vec(g.A3OB, (0.0, -0.01, 0.02))
-    muzzle = g.mat_vec(g.A3OB, (0.0, 0.03, 0.70))
-    m, report = g.choose_axis_map(left, right, trigger, muzzle)
-    check("an axis map fits", m is not None, json.dumps(report))
-    check("the A3OB convention is chosen", report.get("a3ob_convention") is True)
-    check("right hand within tolerance", report.get("right_hand_to_trigger_m", 1) < g.RIGHT_HAND_TOLERANCE_M)
+def main():
+    # Rest joints are the fixed points of each bone's own transform, recovered over several poses.
+    clips = []
+    for angle, axis in ((-30, (0, 0, 1)), (-45, (1, 0, 0)), (-60, (0, 1, 1))):
+        bones, parents, frame, rest = synthetic(angle, axis)
+        clips.append((bones, [frame]))
+    solved = g.solve_rest_joints(clips)
+    check("rest joints recovered as fixed points",
+          close(solved["lefthand"][0], rest["lefthand"], 1e-6) and close(solved["righthand"][0], rest["righthand"], 1e-6),
+          str(solved))
 
-    # A pose that does not fit this weapon (hands 1 m away) is refused, not placed.
-    far = tuple(c + 1.0 for c in right)
-    m2, report2 = g.choose_axis_map(left, far, trigger, muzzle)
-    check("an unfitting pose is refused", m2 is None, report2.get("reason", ""))
+    # Hands in weapon space: weapon re-parented to Spine1 (the rig file says RightHand).
+    bones, parents, frame, rest = synthetic(-45)
+    left, right = g.hands_in_weapon_space(bones, parents, frame, rest)
+    posed = g.compose(bones, parents, frame)
+    wr, wp = posed["weapon"]
+    lj = g.add(g.mat_vec(posed["lefthand"][0], rest["lefthand"]), posed["lefthand"][1])
+    check("weapon composes under Spine1, not the hand",
+          close(g.add(g.mat_vec(wr, left), wp), lj, 1e-9)
+          and close(sum(wr, ()), sum(g.compose(bones, [None, 0, 1, 1, 1], frame, None)["weapon"][0], ()), 1e-9))
+    left_rh, _ = g.hands_in_weapon_space(bones, parents, frame, rest, weapon_parent=None)
+    check("the decoder's hierarchy gives a different answer", not close(left, left_rh, 1e-3))
+    check("case-insensitive bone names", "lefthand" in posed and "weapon" in posed)
 
-    check("48 axis maps, A3OB first", len(g.signed_permutations()) == 48 and g.signed_permutations()[0] == g.A3OB)
+    # The rest-to-MLOD rotation is proper and puts rest forward (-y) down the barrel.
+    for muzzle in ((-0.5, 0.0, 0.05), (0.5, 0.0, 0.05), (0.0, 0.6, 0.05)):
+        m = g.rest_to_mlod((0.0, 0.0, 0.0), muzzle)
+        fwd = g.mat_vec(m, (0, -1, 0))
+        check("rest_to_mlod proper, forward along barrel {}".format(muzzle),
+              abs(det(m) - 1) < 1e-9 and g.dot(fwd, muzzle) > 0 and close(g.mat_vec(m, (0, 0, 1)), (0, 0, 1)))
 
-    # load_clip / grip_points through the manifest layout (Rig/<rig>.json + Rig/<rig>/<clip>.json).
-    with tempfile.TemporaryDirectory() as tmp:
-        os.makedirs(os.path.join(tmp, "Rig", "r"))
-        with open(os.path.join(tmp, "Rig", "r.json"), "w") as fh:
-            json.dump({"bones": bones, "parents": parents}, fh)
-        with open(os.path.join(tmp, "Rig", "r", "Test_static__1.json"), "w") as fh:
-            json.dump({"frames": [frame, frame]}, fh)
-        manifest = os.path.join(tmp, "manifest.json")
-        with open(manifest, "w") as fh:
-            json.dump({"clips": {"Workshop/x/Test_static.json": {"rig_file": "Rig/r.json",
-                                                                 "local_anim": "Rig/r/Test_static__1.json"}}}, fh)
-        gl, gr, rep = g.grip_points("Test_static", trigger, muzzle, manifest, [tmp])
-        check("grip_points through files", gl is not None and close(gr, g.mat_vec(g.A3OB, right_local)), json.dumps(rep))
-        try:
-            g.load_clip("Missing_static", manifest, [tmp])
-            check("missing clip raises", False)
-        except FileNotFoundError:
-            check("missing clip raises", True)
+    # A left wrist behind the trigger is refused, with numbers.
+    l2, r2, rep = g.place_hands((0.0, 0.3, 0.0), (0.0, 0.0, 0.0), (0.08, 0.0, 0.02), (-0.4, 0.0, 0.06))
+    check("a left hand behind the trigger is refused", l2 is None and "reason" in rep, rep.get("reason", ""))
 
-    # Arma hierarchy: the clip stores `weapon` relative to Spine1 (Arma's parent), but the decoder's rig
-    # file says righthand. Capitalised names, as in AUG_GL's rig. grip_points must pick "arma".
-    abones = ["Pelvis", "Spine", "Spine1", "weapon", "RightHand", "LeftHand"]
-    decoded_parents = [None, 0, 1, 4, 2, 2]  # weapon under RightHand, as rtm_rigs.py writes it
-    spine1_p = (0.0, 0.3, 0.0)
-    wp_arma = (0.2, 1.0, 0.4)               # weapon, relative to Spine1
-    hand_off = tuple(a + b for a, b in zip(spine1_p, wp_arma))
-    aframe = [
-        {"q": [0, 0, 0, 1], "p": [0, 0, 0]},
-        {"q": [0, 0, 0, 1], "p": [0, 0, 0]},
-        {"q": [0, 0, 0, 1], "p": list(spine1_p)},
-        {"q": quat_about_y(math.radians(35)), "p": list(wp_arma)},
-        # hands relative to Spine1, placed where the weapon-local truth says
-        {"q": [0, 0, 0, 1], "p": list(sub3(tuple(a + b for a, b in zip(g.mat_vec(wr, right_local), hand_off)), spine1_p))},
-        {"q": [0, 0, 0, 1], "p": list(sub3(tuple(a + b for a, b in zip(g.mat_vec(wr, left_local), hand_off)), spine1_p))},
-    ]
-    check("arma hierarchy re-parents weapon to Spine1", g.parents_for(abones, decoded_parents, "arma")[3] == 2)
-    l_a, r_a = g.hands_in_weapon_space(abones, g.parents_for(abones, decoded_parents, "arma"), aframe)
-    check("capitalised bone names are found", close(l_a, left_local) and close(r_a, right_local), str((l_a, r_a)))
-    with tempfile.TemporaryDirectory() as tmp:
-        os.makedirs(os.path.join(tmp, "Rig", "a"))
-        with open(os.path.join(tmp, "Rig", "a.json"), "w") as fh:
-            json.dump({"bones": abones, "parents": decoded_parents}, fh)
-        with open(os.path.join(tmp, "Rig", "a", "AUG_GL__1.json"), "w") as fh:
-            json.dump({"frames": [aframe]}, fh)
-        manifest = os.path.join(tmp, "manifest.json")
-        with open(manifest, "w") as fh:
-            json.dump({"clips": {"x/AUG_GL.json": {"rig_file": "Rig/a.json", "local_anim": "Rig/a/AUG_GL__1.json"}}}, fh)
-        gl, gr, rep = g.grip_points("AUG_GL", trigger, muzzle, manifest, [tmp])
-        check("grip_points picks the arma hierarchy", rep.get("hierarchy") == "arma" and gl is not None, json.dumps(rep)[:300])
-        check("the failed hierarchy is reported with numbers",
-              "decoded" in rep["attempts"] and "left_weapon_space" in rep["attempts"]["decoded"])
-
-    # A refused fit carries its nearest miss, so a failure on real data comes back with numbers.
-    _, miss = g.choose_axis_map(left, tuple(c + 5.0 for c in left), trigger, trigger)
-    check("a refusal reports hand span and barrel length", "hand_span_m" in miss and "barrel_m" in miss, json.dumps(miss))
+    # Real data: the committed clips reproduce the rest joints, and every weapon fits.
+    real = g.solve_rest_joints(g.evidence_clips())
+    for name in ("lefthand", "righthand"):
+        x, rms = real[name]
+        check("real rest joint {} reproduced (rms {:.5f} m)".format(name, rms),
+              close(x, g.REST_JOINTS[name], 1e-3) and rms < 0.002)
+    check("the real rest skeleton is mirror-symmetric",
+          abs(real["lefthand"][0][0] + real["righthand"][0][0]) < 0.005)
+    pose_of = {"A88": "EF88_Vg_static", "A88G": "AUG_GL", "A4": "ar15_8in_cgrip_static", "A416": "hk416_cgrip_static",
+               "A25": "ar15_10in_cgrip_static", "A89": "Minimi_Standard"}
+    spans = {}
+    for weapon, clip in pose_of.items():
+        path = os.path.join(g.ROOT, "Art", "Weapons", weapon, "ADFRC", "manifest.json")
+        with open(path, encoding="utf-8") as fh:
+            grip = json.load(fh)["grip"]
+        l3, r3, rep = g.grip_points(clip, grip["trigger_mlod"], grip["muzzle_mlod"])
+        spans[weapon] = rep["hand_span_m"]
+        check("{} fits ({})".format(weapon, clip), l3 is not None, json.dumps(
+            {k: rep[k] for k in ("left_hand_forward_m", "left_hand_to_bore_m", "left_hand_along_barrel")}))
+    check("an 8-inch handguard puts the hands closer than a 10-inch", spans["A4"] < spans["A25"], str(spans))
 
     # The shipped manifest names every grip clip the weapon build uses.
     with open(g.MANIFEST, encoding="utf-8") as fh:
         names = {k.replace("\\", "/").split("/")[-1] for k in json.load(fh)["clips"]}
-    for stem in ("EF88_Vg_static", "AUG_GL", "ar15_8in_cgrip_static", "hk416_cgrip_static",
-                 "ar15_10in_cgrip_static", "Minimi_Standard", "hk417_static"):
+    for stem in pose_of.values():
         check("manifest has " + stem, stem + ".json" in names)
 
     print("{} failure(s)".format(len(FAILURES)))

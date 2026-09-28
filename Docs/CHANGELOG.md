@@ -4427,7 +4427,117 @@ per press with 20 rounds, `LogSSWeaponStats` prints the rpm lines.
 hand and the weapon transform, because the right hand is identical across clips sharing a stance and
 cannot discriminate. The left hand's ~1.4 m forward offset is the next thing to explain.
 
+## Session 057 — 2026-09-28 — W2 Grip Fit: 6 Of 6, Once The Pose Data Is Read The Way It Was Written
+
+### COMPLETED
+
+- **The committed clips (`Docs/evidence/w2_grip_clips`, Session 056 addendum) showed what the decoded
+  pose data holds.** Neither my Spine1 theory nor the addendum's "constant right hand" reading was the
+  root cause:
+  1. **The stored transforms are not bone offsets.** In a parent-relative skeleton a child's offset is its
+     bone length, pose-independent. `lefthand`'s ranges 0.08–0.42 m across clips of one rig.
+  2. **Each bone's transform is a rotation about its own rest joint, relative to its parent.** Every arm
+     bone's transform has one fixed point, the same in every clip: its rest joint. Solving
+     `(I − R)·x = p` over the eight clips gives:
+     - wrists at x = ±0.587 m, mirror-symmetric;
+     - elbows at ±0.37 m and shoulders at ±0.064 m;
+     - feet about 0.9 m below the origin.
+
+     The residual is under 1 mm. That's Arma's rest skeleton, recovered from the animation data.
+  3. **The quaternion handedness is wrong in the decoded files.** Rotations must be read as `(−x, −y, z, w)`.
+     A search over all 96 sign and order variants found this as the only reading that makes the fixed
+     points consistent. The summed residual over ten arm joints falls from 1.04 m as stored to under
+     0.001 m.
+  4. **`weapon` hangs off the body.** Its transform is identical in every rifle clip, because the arms move
+     to it. Under the body, the right wrist lands at the same place in weapon space in every clip (1–4 cm)
+     and the left wrist moves forward along one axis. The addendum's point 1 (the file's `parents` array says
+     `righthand`) reads the decoder's own naming rule back (`rtm_rigs.py` `link("weapon", "righthand")`),
+     so it isn't Arma's data.
+- **The posed skeleton now looks right.** Shoulders are at 1.35 m and the neck at 1.40 m, with both wrists
+  in front at chest height. Wrist-to-wrist spans run from the EF88 bullpup at 0.24 m to the AR-15 10-inch at
+  0.35 m. The 8-inch and 10-inch rails differ by 3.7 cm, and the rails differ by 2 inches (5 cm).
+- **`Tools/Common/adfrc_grip.py` rewritten on that model.**
+  - Rotations are read as `(−x, −y, z, w)`.
+  - Transforms are composed down the hierarchy with `weapon` under `Spine1`.
+  - Each wrist is placed as its rest joint (`REST_JOINTS`, reproducible with `--solve-rest`) carried by its
+    posed transform.
+  - The hands are expressed in the weapon's frame and mapped to the MLOD by the one proper rotation between
+    rest space (x left, −y forward, z up) and the model (barrel axis, z up). The 48-map search, which could
+    choose reflections, is gone.
+  - The weapon's rest placement (its proxy) is not in the clips. So the right wrist is anchored at
+    `trigger_axis` and the left wrist placed relative to it. The fit test is that the left wrist lands on
+    the barrel: ahead of the trigger, short of the muzzle, within 0.15 m of the bore.
+  - `load_clip` falls back to the committed evidence when the Animations/ tree isn't present.
+
+**Result on the real clips and manifests:**
+
+| Weapon | Pose | Span | Left wrist forward | To bore |
+|---|---|---|---|---|
+| A88 | EF88_Vg | 0.242 | 0.219 m | 0.103 |
+| A88G | AUG_GL | 0.293 | 0.277 m | 0.095 |
+| A4 | ar15_8in | 0.311 | 0.293 m | 0.105 |
+| A416 | hk416 | 0.338 | 0.319 m | 0.113 |
+| A25 | ar15_10in | 0.349 | 0.332 m | 0.106 |
+| A89 | Minimi | 0.301 | 0.293 m | 0.070 |
+
+The left wrist sits 6–9 cm to the left of the bore, which is where a left wrist sits beside a handguard.
+
+### FILES CHANGED
+
+`Tools/Common/adfrc_grip.py`, `Tools/Common/test_adfrc_grip.py`, `Docs/WEAPONS_ANIMATION_PLAN.md`,
+`Docs/PROJECT_AUDIT.md` (R-32 note), `Docs/CHANGELOG.md`.
+
+### TESTING
+
+- `python Tools/Common/test_adfrc_grip.py`: **exit 0, 24/24 PASS.**
+  - Synthetic: rest joints recovered exactly; the weapon composes under Spine1; the decoder's hierarchy gives
+    a different answer; the rest-to-MLOD rotation is proper (det +1) with forward down the barrel on three
+    axis layouts; a left wrist behind the trigger is refused.
+  - Real data: rest joints reproduced from the committed clips (rms 0.8 mm and 0.25 mm), mirror symmetry,
+    **all six weapons fit** on their committed `trigger_mlod`/`muzzle_mlod`, the 8-inch span is shorter than
+    the 10-inch, and every clip is in the manifest.
+- `python Tools/Common/adfrc_grip.py --solve-rest`: lefthand [0.5872, 0.0743, 0.0665] rms 0.00081 m, righthand
+  [−0.5858, 0.0744, 0.0659] rms 0.00025 m.
+- **NOT RUN (the producer's machine):** `build_adfrc_weapons.py` with the new module (sockets written into the
+  FBX), `setup_weapons.py`, the build, and left-hand IK in game. The sockets' absolute position in the hand
+  (the trigger anchor) is unverified; their spacing is what the pose measures.
+
+### ASSETS
+
+None.
+
+### RISKS
+
+- **R-64 (open, high):** the decoded animation tree (`Animations/Rig/*`) and anything built from it inherit
+  two errors: the quaternion handedness, and the claim that BMTR transforms are parent-relative bone offsets.
+  This includes the `Animations_UE` FBX clips and any retarget (W5 `GestureReloadAUG`, R-32). Fix it in
+  `rtm_rigs.py` / `anim_to_fbx.py` before any Arma clip is retargeted, and check it with the same fixed-point
+  test.
+- **R-32 (update):** the Arma rest joint *positions* are recoverable from the clips themselves (fixed points,
+  under 1 mm), so `SkeletonPivots.p3d` may not be needed for positions. Rest *orientations* are still
+  unmeasured. Left OPEN.
+- **R-62 (resolved by design):** W2 no longer assumes the model's origin is on the `weapon` bone. It anchors
+  the right wrist at `trigger_axis` instead.
+
+### DEFECTS FOUND
+
+- The quaternion handedness in the decoded clips, and the parent-relative interpretation in `rtm_rigs.py`.
+  Found by the fixed-point consistency test on the committed evidence.
+- My Session 055 fix (the Spine1 re-parenting) was right about the parent but insufficient: it still read
+  the transforms as bone offsets with the wrong handedness. Found by the producer's run (0 of 7 again) and
+  the evidence it committed.
+
+### NEXT ACTION
+
+**On the producer's machine:**
+1. Pull.
+2. Run `python Tools/build_adfrc_weapons.py` and check each `manifest.json → grip.fit`. Expect `true` for A88,
+   A88G, A4, A416, A25 and A89.
+3. Run `Tools/Unreal/setup_weapons.py`, confirm `SOCKET_LeftHandGrip`/`SOCKET_RightHandGrip` exist on each
+   `SM_*` mesh, then build and test.
+
 ---
+
 
 ## Open Threads
 
