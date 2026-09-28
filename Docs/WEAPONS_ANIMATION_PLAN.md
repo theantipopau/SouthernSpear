@@ -37,8 +37,9 @@ Each step is one commit with evidence, like the rest of the project.
 
 **Session 050: built (uncompiled).** The table is `[/Script/SouthernSpearCore.SSWeaponStatsSettings]`. The Lyra
 bridge's `USSWeaponStatsSubsystem` applies magazine size, a full magazine and spare rounds (server) and scales
-spread (every machine) as each weapon spawns. **Rate of fire and semi/full-auto are pending**:
-`Tools/Unreal/probe_weapon_fire.py` finds the fire ability's variable, and the next step wires it.
+spread (every machine) as each weapon spawns. **Rate of fire** is set per weapon, on that weapon's own fire-ability
+instance (`FireDelayTimeSecs` = 60 / rpm, the variable the producer's probe run found). **Semi-auto is still pending**
+for the A25 and A9: it needs the item to grant Lyra's semi-automatic fire ability instead of the rifle's.
 - A committed table `Config/DefaultGame.ini [SSWeaponStats]` (or a DataTable), seeded from
   `WEAPON_SOURCE_DATA.json`: rpm, spread, magazine, fire modes, and ADS/sway factors from inertia and dexterity.
   A88 and its MAF counterpart still share one row (ADR-016).

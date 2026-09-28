@@ -19,7 +19,7 @@ struct FSSWeaponStats
 	UPROPERTY(Config, EditAnywhere, BlueprintReadOnly, Category = "Weapon")
 	FName Weapon;
 
-	/** Cyclic rate. Applied once the fire ability exposes its interval (Tools/Unreal/probe_weapon_fire.py). */
+	/** Cyclic rate: the bridge sets the weapon's fire ability FireDelayTimeSecs to 60 / RoundsPerMinute. */
 	UPROPERTY(Config, EditAnywhere, BlueprintReadOnly, Category = "Weapon", meta = (ClampMin = "1"))
 	int32 RoundsPerMinute = 600;
 

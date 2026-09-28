@@ -3955,6 +3955,18 @@ the weapons plan's W1 is the next build task.)
   subsystem no longer overrides `Deinitialize`. Also hardened: the server subsystem unbinds from the bus through a
   weak pointer kept at `Initialize`, not a lookup during world teardown. NOT RUN here; the re-run should report 57/57.
 
+### ADDENDUM — rate of fire wired from the probe
+
+- The producer's local agent ran `probe_weapon_fire.py`. Lyra's fire ability keeps its interval in the Blueprint
+  variable **`FireDelayTimeSecs`**; the A25 (semi-auto) needs a different ability, not a delay. Its report and
+  `Docs/PLAYER_MODEL_PLAN.md` are on the producer's machine, not yet pushed.
+- `USSWeaponStatsSubsystem::ApplyFireRate`: for each pawn, the ability specs whose `SourceObject` is a ranged
+  weapon instance (Lyra grants a weapon's abilities with the weapon as source, `LyraAbilitySet.cpp:117`) have each
+  ability instance's `FireDelayTimeSecs` (double or float) set to 60 / rpm, once. It runs on every machine,
+  because firing is predicted: A88 0.088 s, A89 0.080, A4/A416 0.070, A417/A25/A9 0.100.
+- Still pending: semi-auto for the A25 and A9 (grant the semi-automatic fire ability). NOT RUN: build, and a live
+  check of the `LogSSWeaponStats` "rpm" lines.
+
 ### NEXT ACTION
 
 **Build, run the tests, and run `Tools/Unreal/probe_weapon_fire.py`.** Then send me `Build/probe_weapon_fire.json`

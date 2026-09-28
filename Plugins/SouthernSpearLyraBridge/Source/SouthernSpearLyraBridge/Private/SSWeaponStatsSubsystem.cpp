@@ -2,6 +2,9 @@
 
 #include "SSWeaponStatsSubsystem.h"
 
+#include "Abilities/GameplayAbility.h"
+#include "AbilitySystemComponent.h"
+#include "AbilitySystemGlobals.h"
 #include "Curves/CurveFloat.h"
 #include "Engine/World.h"
 #include "EngineUtils.h"
@@ -91,6 +94,7 @@ void USSWeaponStatsSubsystem::Tick(float DeltaTime)
 		ApplyAmmo(World);
 	}
 	ApplySpread(World);
+	ApplyFireRate(World);
 }
 
 void USSWeaponStatsSubsystem::ApplyAmmo(UWorld* World)
@@ -184,6 +188,64 @@ void USSWeaponStatsSubsystem::ApplySpread(UWorld* World)
 			}
 			UE_LOG(LogSSWeaponStats, Log, TEXT("%s: spread x%.2f on %s."), *Stats->Weapon.ToString(), Stats->SpreadScale,
 				*It->GetName());
+		}
+	}
+}
+
+void USSWeaponStatsSubsystem::ApplyFireRate(UWorld* World)
+{
+	static UClass* RangedClass = LyraClass(TEXT("/Script/LyraGame.LyraRangedWeaponInstance"));
+	static const FName DelayName(TEXT("FireDelayTimeSecs"));
+	if (!RangedClass)
+	{
+		return;
+	}
+	for (TActorIterator<APawn> It(World); It; ++It)
+	{
+		UAbilitySystemComponent* Asc = UAbilitySystemGlobals::GetAbilitySystemComponentFromActor(*It);
+		if (!Asc)
+		{
+			continue;
+		}
+		for (FGameplayAbilitySpec& Spec : Asc->GetActivatableAbilities())
+		{
+			// Abilities a weapon grants carry that weapon's instance as their source (LyraAbilitySet.cpp).
+			UObject* Source = Spec.SourceObject.Get();
+			if (!Source || !Source->IsA(RangedClass))
+			{
+				continue;
+			}
+			// IsA above guarantees the type; ULyraEquipmentInstance is not exported, so no Cast<>.
+			UObject* Item = static_cast<ULyraEquipmentInstance*>(Source)->GetInstigator();
+			const FSSWeaponStats* Stats = Item ? StatsForItem(Item) : nullptr;
+			if (!Stats)
+			{
+				continue;
+			}
+			const double Interval = FSSWeaponStatsRules::FireIntervalSeconds(*Stats);
+			for (UGameplayAbility* Ability : Spec.GetAbilityInstances())
+			{
+				if (!Ability || DoneAbilities.Contains(Ability))
+				{
+					continue;
+				}
+				DoneAbilities.Add(Ability);
+				FProperty* Delay = Ability->GetClass()->FindPropertyByName(DelayName);
+				if (FDoubleProperty* AsDouble = CastField<FDoubleProperty>(Delay))
+				{
+					AsDouble->SetPropertyValue_InContainer(Ability, Interval);
+				}
+				else if (FFloatProperty* AsFloat = CastField<FFloatProperty>(Delay))
+				{
+					AsFloat->SetPropertyValue_InContainer(Ability, float(Interval));
+				}
+				else
+				{
+					continue; // reload, ADS and other weapon abilities have no fire delay
+				}
+				UE_LOG(LogSSWeaponStats, Log, TEXT("%s: %d rpm (%s.FireDelayTimeSecs = %.3f s) on %s."), *Stats->Weapon.ToString(),
+					Stats->RoundsPerMinute, *Ability->GetClass()->GetName(), Interval, *It->GetName());
+			}
 		}
 	}
 }
