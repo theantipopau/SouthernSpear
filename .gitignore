@@ -205,9 +205,11 @@ Content/RuralAustralia/
 Content/Collections/
 Content/Developers/
 
-# Relocated ADFRC third-party source (L-0021, personal authorisation).
-# Kept out of version control: the grant is personal and non-commercial, and
-# these are third-party source files, not Southern Spear originals.
+# Relocated ADFRC third-party source (L-0021).
+# Kept out of version control: these are third-party source files redistributed
+# from someone else's distribution, not Southern Spear originals, so they must
+# not travel via this repository. Authorised for use in the game (ADR-033,
+# L-0021); that is a different question from redistributing the source.
 # Tracked exception: Art/ADFRC/LICENSE.md and Art/ADFRC/MANIFEST.md only.
 Art/ADFRC/*
 !Art/ADFRC/LICENSE.md

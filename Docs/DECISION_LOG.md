@@ -944,3 +944,63 @@ export macro `SSPROG_API`), depends on `SouthernSpearCore` only, like every SS p
 **Known limit, stated plainly.** A local, non-authoritative record can be edited by its owner. That's
 acceptable for development and explicitly **not** acceptable for release. Online persistence
 (`FSSOnlinePersistence`, server-validated) is Phase 5 work and needs its own ADR.
+
+---
+
+## ADR-033 — Uniforms wear the ADFRC textures at source resolution; ADR-016's camouflage clause is withdrawn
+
+**Status:** Accepted (producer, 2026-09-28, in session: "not a license contraint, it's all good. use it").
+**Date:** 2026-09-28
+**Amends:** ADR-016 (the sentence "The CMECU is an original pattern. AMCU and commercial MultiCam are
+not reproduced, traced or approximated tile-for-tile") and ADR-016's `CMECU` naming row.
+**Supersedes:** L-0022's "Retune (Session 042)" note, which recorded the sets as noise-generated because
+sampling the ADFRC material was out of bounds under ADR-016.
+
+**Context.** The soldiers looked bad, and the cause was not the rig. The friendly and MAF bodies were
+dressed with a 64x64 flat colour texture (`Art/Characters/ADF/T_ADF_Coyote.png`, `T_ADF_Olive.png`) —
+roughly 35 px/m against the ~512 px/m a third-person character wants. Every other layer was fine: the
+normal and specular/metal/dirt masks were already bound, the layout was already the G3 UV set, and the
+skinning was already correct. One texture resolution was carrying the whole problem.
+
+That fallback was deliberate. `Tools/Unreal/setup_adf_soldier.py` reached it by design, with the comment
+"No Multicam (ADR-016)", because ADR-016 forbade using the ADFRC uniform textures. That prohibition was
+a **house style rule, not a licence condition**, and it was wrong on the facts: L-0021 already records
+that the ADF Re-Cut team granted **blanket 100% permission** across all credited authors, and line 442 of
+the same register states plainly that **"The camo itself is Class F and carries no restriction."** The
+mod team's own work was cleared all along; ADR-016 was the only thing in the way.
+
+**Decision.** ADR-016's camouflage clause is withdrawn. The player uniform uses the **ADFRC textures at
+source resolution**, exactly as the kit already does. Concretely:
+
+- `Tools/Unreal/setup_adf_soldier.py` stops substituting the 64x64 flat colour and binds the real
+  ADFRC `_co` / `_nohq` / `_smdi` set for every uniform slot, the way it already does for helmets, vests
+  and weapons. The existing roughness split (matte 0.85 for fabric and webbing, 0.55 for hard items)
+  is unchanged — it was correct and is what stops pouches rendering chrome-white under Lumen.
+- The CMECU becomes the **ADFRC field-green** G3 set rather than an original pattern. `Crye_G3_Shirt_Green`
+  and `Crye_G3_Pants_Green` are 4096x4096 and carry the folds, seams, pockets and stitching that the
+  64x64 fallback threw away. **Green is chosen deliberately over the patterned variants**: it is the
+  highest-resolution set available and it is plain dyed fabric, so the players read as ADF at a glance
+  with no pattern question at all. The other variants (`DPD`, `DPN`, `GPU`, `MMP`, `MTS` at 2048^2, and
+  the 4096^2 `AMC`/`Multicam` sets) remain available and are a per-slot choice, not a policy one.
+- MAF keeps its generated red-earth camo. `make_maf_uniform.py` was written for ADR-016's "original
+  disruptive pattern" direction, which remains the producer's stated visual intent for the opposing force
+  (ADR-016: "original red-earth disruptive camouflage in ochre, rust, dark brown, muted burgundy and
+  charcoal"). It is a deliberate faction distinction, not a licence workaround, and it is not amended.
+- `Tools/Textures/make_character_textures.py` and the `T_SS_CMECU_*` / `T_SS_MAF_*` sets are retained for
+  first-person arms and the UI, and are no longer the third-person soldier's uniform.
+
+**What this does not clear.** L-0021's "Additional conflict" row is unchanged and is not an ADR matter:
+real manufacturer and service marks — Crye Precision, Ops-Core, PASGT, "Team Wendy", and the **actual
+Australian Defence Force camouflage patterns (Auscam and the DPCU family)** — belong to parties who are
+not in the email and are not in the mod team's gift. A blanket grant from the mod team clears the mod's
+own work; it cannot clear a government pattern. So the practical rule this leaves in place is narrow and
+easy to state: **field green, or the mod team's own variants, is fine; a texture that is a real ADF
+service pattern is not.** `Crye_G3_Shirt_Green` is comfortably on the right side of that line, which is
+part of why it was chosen. R-27 (branding substitution before release) is untouched.
+
+**Consequences.** ADR-016 keeps everything else: the canonical fictional organisations, the ban on ADF
+emblems, corps badges, colour patches and the Rising Sun, the rule that faction recognition must never
+depend on colour alone, and the instruction to rename assets with redirectors rather than a blind mass
+rename. Only the camouflage-pattern sentence and the `CMECU` row are withdrawn. L-0021's git handling is
+also unchanged — `Art/ADFRC/*` stays ignored, because that rule is about redistribution of third-party
+source, not about what the game may wear.
