@@ -4909,6 +4909,166 @@ views in a match), and in that same run capture the first in-engine screenshots 
 
 ---
 
+## Session 062 — 2026-09-29 — The animation decoder is fixed (R-64), and the guards that missed it
+
+Four workstreams were requested together and run in one session. Their file sets do not overlap, and
+their ID ranges were reserved rather than guessed: the decoder takes **R-70–R-74** (ADR-040 stays free —
+no decoder decision needed one), the two guard checkers take **R-75 onward**. The standing rules stand:
+one branch per workstream, merged to `main` only when that workstream's own tests pass. This session ran
+on `main` in a shared checkout; its work is one commit, rebased onto the W3 and site commits
+before pushing - which is why this entry is 062 and not the 060 it was written as.
+
+### COMPLETED
+
+**1. R-64 — the ADFRC animation decoder, fixed and tested (pure Python; no Unreal, no Blender).**
+
+`Docs/Sourced/ADFRC/rtm_rigs.py` carried the two errors Session 057 found in the decoded data. Both are
+fixed, and the fix is the same model `Tools/Common/adfrc_grip.py` already uses:
+
+- **The quaternion reading.** `rotation_from_stored(q)` now returns `mat_from_quat((-x, -y, z, w))`, and
+  `world_from_local` uses it. Reading the components as stored leaves every bone's transform without a
+  consistent fixed point (0.007–0.17 m per arm joint on the committed clips).
+- **The transform model.** A stored transform is a rotation of the bone **about its own rest joint**,
+  relative to its parent, so `p = J - R J` and the bone's joint is `R·J + p`. `solve_rest_joints` recovers
+  `J` as the least-squares fixed point of `(I - R) J = p` over every frame of every clip on the rig; a new
+  `posed_joint` helper states the model directly. `solve3` gained a **relative conditioning guard**, because
+  the residual alone does not catch an under-determined joint: the AUG shoulder solved to −21 m with a
+  0.16 mm residual, which would have been written into the armature as a bone head.
+- **The rig JSON** is now `adfrc-rig/2`: `rest_world` is the solved rest joints (falling back to the mean
+  world position only for a bone the clip set never rotates — an identity rotation pins no joint down),
+  with `rest_joints`, `rest_joint_rms_m` and `rest_joints_solved` alongside. 
+- `rtm2json.py`'s `notes` no longer tell a reader the transforms are parent-relative bone offsets.
+  `anim_to_fbx.py` holds no pose maths (it consumes the rig JSON), so it needed only a docstring note
+  that the decoder applies the correction once.
+
+**Measured on the committed evidence (`Docs/evidence/w2_grip_clips`).** The eight clips are two rigs:
+six share a bone list, the two AUG-family clips order theirs differently. Per rig:
+
+| Rig | Arm joints solved | Worst arm-joint rms | Wrists mirror | Stored (x,y,z,w) reading |
+|---|---|---|---|---|
+| 6 clips (EF88/A4/A416/A25/A89/Minimi) | 9 | **0.062 mm** | 0.3 mm | 0.007–0.159 m |
+| 2 clips (AUG, AUG_GL) | 8 | **0.956 mm** | — | 0.007–0.166 m |
+
+`lefthand`'s stored translation ranges 0.081–0.416 m across the reference rig's poses — a bone offset
+could not vary; its *joint* is one point to 0.03 mm. The recovered wrists are at x = ±0.586 m, and the
+decoder and `adfrc_grip.py` agree on them to 1e-6 m. The AUG family is a different skeleton: its left
+elbow fixed point differs by ~15 mm and its right arm is not mirror-symmetric (R-71).
+
+**2. Architecture guard — new rule SS010: Core holds shared types, not content.**
+
+`Tools/validate_architecture.py` now scans `Plugins/SouthernSpearCore/Source` and fails any line that
+names a content path (`/Game/`, `/SSExp_`, `/ShooterCore/`, `/SouthernSpearUI/`) or loads an asset
+(`LoadObject`, `ConstructorHelpers`, `FSoftObjectPath`, `FSoftClassPath`, `StaticLoadObject`). A module
+that reaches content must be the module that owns it — the structural version of the Session 059b call
+that moved a capture harness out of Core.
+
+One existing hit is **accepted and reported as a NOTE, not a failure**: `Public/SSFonts.h` loads the UI
+font faces from `/SouthernSpearUI/Fonts`. It predates the rule, every UI module already depends on Core,
+and moving it is a separate change — tracked as **R-75**. Every *new* hit is a violation. `Finding`
+gained an `allowed` flag, `--json` gained `notes` and an `SS010` count, and the human report prints notes
+after the verdict. `Tools/test_architecture_guard.py` is the CLAUDE.md negative test done properly: a
+scratch copy of `Tools/` and the SS plugins, a Core asset load injected (exit 1), a Core content path
+injected (exit 1), the accepted SSFonts.h still a NOTE, and removing the injection back to exit 0.
+`CLAUDE.md`'s architecture section documents the rule and the exception.
+
+**3. A unity-build name clash checker.** `Tools/check_unity_names.py` walks every module under
+`Plugins/SouthernSpear*`, collects the names defined inside anonymous namespaces and as file-scope
+`static`s in `.cpp` files, and flags any name defined in **more than one file of the same module** — the
+thing that is fine when files compile separately and a redefinition when Unreal merges them. It also
+flags, best-effort, a local variable that shadows a function or member defined in the same file (the
+Session 048 `Settings`/C4459 case). Exit 1 on a finding; `--json` for the report.
+
+It found a real one on its first clean run: `StatCount` is an anonymous-namespace helper in **both**
+`SSHudStateSubsystem.cpp` and `SSScoreboardSubsystem.cpp` (module `SouthernSpearLyraBridge`). They have
+different signatures, so a unity build would have accepted them as overloads — but the two names mean
+different things and the rule is name-based, so they are now `ItemStatCount` and `PlayerStatCount`. The
+checker is **0 findings across 8 modules** afterwards. `Tools/test_check_unity_names.py` covers the
+fixture cases (duplicate helper, duplicate file-static, shadow, unique name, exit codes). `CLAUDE.md`'s
+build-and-test list gains this command and both negative tests.
+
+**4. Risk register reconciled.** `Docs/PROJECT_AUDIT.md` now carries **R-50–R-66** from Sessions 048–058:
+R-50 (Session 048 uncompiled) and R-56 (Session 049 uncompiled) closed by the later builds; R-62 closed
+by design (Session 057); R-64 closed here; the rest OPEN, each with the changelog's own wording. No
+status was invented — where the changelog did not state one, the row is OPEN. `CLAUDE.md`'s "Open risks"
+line was rewritten to match, and no longer lists R-56 as unverified.
+
+### FILES CHANGED
+
+- Decoder: `Docs/Sourced/ADFRC/rtm_rigs.py`, `rtm2json.py`, `anim_to_fbx.py`; new
+  `Tools/Common/test_rtm_rigs.py`.
+- Guards: `Tools/validate_architecture.py` (SS010 + `allowed` findings), new
+  `Tools/test_architecture_guard.py`; new `Tools/check_unity_names.py`, new
+  `Tools/test_check_unity_names.py`; `Plugins/SouthernSpearLyraBridge/Source/.../SSHudStateSubsystem.cpp`
+  and `SSScoreboardSubsystem.cpp` (`StatCount` renamed).
+- Docs: `CLAUDE.md` (architecture SS010, build/test list, Open risks line), `Docs/PROJECT_AUDIT.md`
+  (R-50–R-66, date), `Docs/CHANGELOG.md`.
+
+### TESTING
+
+- `python Tools/Common/test_rtm_rigs.py` — **exit 0, 18/18 PASS**: the stored reading leaves the arm
+  chain without a fixed point; the (−x,−y,z,w) reading resolves it; every solved arm joint is under
+  1 mm; `R·J + p = J`; the wrists and upper arms mirror; the decoder and `adfrc_grip` agree; and the
+  writer round-trips a rig JSON through `main()` in a temp tree.
+- `python Tools/Common/test_adfrc_grip.py` — **exit 0, 24/24 PASS** (unchanged, as R-64 required).
+- `python Tools/validate_architecture.py` — **exit 0**, one SS010 NOTE (SSFonts.h).
+- `python Tools/test_architecture_guard.py` — **exit 0, 6/6 PASS**.
+- `python Tools/check_unity_names.py` — **exit 0**, 8 modules, 0 findings (was 1 real clash before the rename).
+- `python Tools/test_check_unity_names.py` — **exit 0, 9/9 PASS**.
+- `python -m py_compile` on `rtm_rigs.py`, `rtm2json.py`, `anim_to_fbx.py`, `validate_architecture.py`,
+  `check_unity_names.py` — **exit 0**.
+- **NOT RUN — needs the producer's machine or Blender:** the full decode over the 165 clips (it needs a
+  clean `Animations/Rig/` output; `main()` was exercised only on a temp tree), the Blender FBX export,
+  the editor build (including the `StatCount` rename), `Automation RunTests SouthernSpear`, and the
+  in-game checks. R-64's code is fixed and tested; **its output artifacts are not regenerated yet**.
+
+### ASSETS
+
+None. No asset imported, created or modified.
+
+### RISKS
+
+- **R-70 (open, medium):** the rest-joint solve only pins a bone the clip set actually rotates. On the
+  grip clips 25–38 of 67 bones solve; the rest fall back to the mean world position, so a rig re-decoded
+  from a small or static clip set has an approximate skeleton for bones that never move. A full
+  locomotion set is what pins them.
+- **R-71 (open, medium):** the AUG-family clips (`AUG`, `AUG_GL`) are a **separate rig** — a different
+  bone order, a left elbow fixed point ~15 mm from the other six, and a right arm that is not
+  mirror-symmetric. Consistent with Session 055's "A88G is a different rig" (1.13 m hand span). Treat
+  the AUG handAnim poses as their own skeleton until proven otherwise.
+- **R-72 (open, low):** the rig JSON schema moved to `adfrc-rig/2` and `rest_world` changed meaning
+  (solved joints, not accumulated translations). The decoded tree and any FBX already built from it must
+  be regenerated; stale `adfrc-rig/1` output should be discarded.
+- **R-73 (open, low):** the decoder was fixed and unit-tested, but the full 165-clip decode and the
+  Blender FBX export were not run here. The first producer run is the integration test.
+- **R-75 (open, low):** `Public/SSFonts.h` is a Core header that loads `/SouthernSpearUI/Fonts` assets.
+  Accepted by SS010 and reported as a NOTE; move it to a UI module (which may then depend on it) when
+  convenient.
+- **R-76 (open, low):** the unity-name checker is a line-based heuristic. It does not see a name that a
+  macro introduces, a generated file, or a name defined only inside a class in the `.cpp`; and it flags
+  same-name overloads that a unity build would in fact accept. It is a tripwire, not a proof.
+- No risk number was guessed: the decoder used R-70–R-74, the guards R-75 onward.
+
+### DEFECTS FOUND
+
+- **The decoder's two errors (R-64), fixed.** Found by Session 057's fixed-point test and carried into
+  code here; the AUG shoulder's −21 m "solution" showed that a residual check alone is not enough.
+- **A real unity-name clash,** `StatCount` in two files of `SouthernSpearLyraBridge`, found by
+  `check_unity_names.py` on its first clean run. Renamed.
+- **The first run of the checker had two false-positive classes** (multi-line declarations read as two
+  declarations; anonymous-namespace constants read as locals), found by running it against the real,
+  already-building tree and requiring zero findings. Both are fixed; the fixture test locks them in.
+
+### NEXT ACTION
+
+**On the producer's machine:** pull, then run `python Tools/check_unity_names.py`,
+`python Tools/validate_architecture.py`, `python Tools/test_architecture_guard.py` and
+`python Tools/Common/test_rtm_rigs.py`, and regenerate the ADFRC decoded tree and FBXs off the fixed
+`rtm_rigs.py` (`python Docs/Sourced/ADFRC/rtm_rigs.py`, then the Blender export) so R-64's output
+artifacts match its code. Then build and run `Automation RunTests SouthernSpear` to confirm the
+`StatCount` rename compiles.
+
+---
+
 ## Open Threads
 
 | Item | Blocked on | Owner |

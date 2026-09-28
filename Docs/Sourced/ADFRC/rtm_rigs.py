@@ -14,14 +14,29 @@ to nearest-neighbour *in rest-pose space*, guarded by an acyclicity check so the
 result is always a tree.
 
 Two on-disk frame shapes are handled:
-  BMTR v3/4/5   parent-relative  {"q":[x,y,z,w], "p":[x,y,z]}
+  BMTR v3/4/5   local transforms {"q":[x,y,z,w], "p":[x,y,z]}
   RTM_0101      absolute 3x4     {"bone": name, "m":[12 floats]}
 
-Both are normalised to world space, the hierarchy is solved, then converted back
-to parent-relative locals - which is what Blender bones and UE tracks store.
+A BMTR transform is read with two corrections that Session 057 established from
+the clips themselves (see Tools/Common/adfrc_grip.py), because reading it the
+naive way produces a plausible-looking but wrong skeleton:
+
+  * the quaternion is stored with x and y conjugated relative to the standard
+    convention, so the rotation it means is quaternion (-x, -y, z, w);
+  * the transform is a rotation of the bone **about its own rest joint**,
+    relative to its parent, not a parent-relative bone offset.  So the stored
+    translation is p = J - R J for the bone's rest joint J, and J is recovered
+    as the fixed point of that transform - (I - R) J = p, least squares over
+    every frame of every clip.  The residual is the check that the reading is
+    right: under a millimetre for a joint whose transforms actually rotate,
+    metres for the wrong quaternion convention.
+
+Both shapes are normalised to world space, the hierarchy is solved, then
+converted back to parent-relative locals - which is what Blender bones and UE
+tracks store.
 
 Writes:
-  Animations/Rig/<rig>.json        skeleton + rest world poses
+  Animations/Rig/<rig>.json        skeleton + rest joints + rest world poses
   Animations/Rig/_rig_index.json   clip -> rig mapping
   Animations/Rig/<rig>/<clip>.json local-space animation, ready for Blender
 """
@@ -57,6 +72,17 @@ def mat_from_quat(q):
     )
 
 
+def rotation_from_stored(q):
+    """The rotation a decoded BMTR quaternion [x, y, z, w] actually means.
+
+    Arma stores x and y conjugated relative to the standard convention, so the
+    rotation is quaternion (-x, -y, z, w).  Reading the components as stored is
+    the first of Session 057's two errors: no bone's transform then has a
+    consistent fixed point.
+    """
+    return mat_from_quat((-q[0], -q[1], q[2], q[3]))
+
+
 def mat_mul(a, b):
     return tuple(tuple(sum(a[i][k] * b[k][j] for k in range(3)) for j in range(3))
                  for i in range(3))
@@ -68,6 +94,29 @@ def mat_apply(m, v):
 
 def mat_transpose(m):
     return tuple(tuple(m[j][i] for j in range(3)) for i in range(3))
+
+
+def solve3(a, b, tol=1e-9):
+    """Solve the 3x3 system a x = b (Gaussian elimination with scaled partial pivoting).
+
+    Returns None when the system is singular *or* too ill-conditioned to pin the point down.  A
+    bone that barely rotates gives a near-singular normal matrix whose least-squares "solution"
+    can be enormous yet still fit to a fraction of a millimetre, so the residual alone will not
+    catch it (the AUG shoulder solves to -21 m).  The pivot threshold is relative to the matrix
+    scale, so it is unit-free.
+    """
+    m = [list(a[r]) + [b[r]] for r in range(3)]
+    scale = max((abs(v) for row in m for v in row[:3]), default=0.0) or 1.0
+    for c in range(3):
+        p = max(range(c, 3), key=lambda r: abs(m[r][c]))
+        if abs(m[p][c]) <= tol * scale:
+            return None
+        m[c], m[p] = m[p], m[c]
+        for r in range(3):
+            if r != c:
+                f = m[r][c] / m[c][c]
+                m[r] = [m[r][k] - f * m[c][k] for k in range(4)]
+    return tuple(m[r][3] / m[r][r] for r in range(3))
 
 
 def quat_from_mat(m):
@@ -110,7 +159,7 @@ def world_from_local(frame, parent):
     wm, wp = [None] * n, [None] * n
     order = topo_order(parent)
     for i in order:
-        lm = mat_from_quat(frame[i]["q"])
+        lm = rotation_from_stored(frame[i]["q"])
         lp = tuple(frame[i]["p"])
         p = parent[i]
         if p is None or wm[p] is None:
@@ -151,6 +200,51 @@ def local_from_world(wm, wp, parent):
             lm[i] = mat_mul(inv, wm[i])
             lp[i] = mat_apply(inv, tuple(wp[i][r] - wp[p][r] for r in range(3)))
     return lm, lp
+
+
+def posed_joint(world_rot, world_pos, joint):
+    """Where a bone's rest joint sits in the pose: its world transform applied to the joint.
+
+    The stored transform rotates the bone about its rest joint, so R J + p = J per bone and the
+    joint in the pose is the *parent's* world transform applied to J (equivalently this bone's,
+    because this bone's own transform fixes it).  This is the position the old decoder mistook for
+    the accumulated translation `p` alone.
+    """
+    return tuple(
+        world_rot[r][0] * joint[0] + world_rot[r][1] * joint[1] + world_rot[r][2] * joint[2]
+        + world_pos[r] for r in range(3))
+
+
+def solve_rest_joints(frames, n):
+    """Each bone's rest joint as the fixed point of its own stored transform.
+
+    The transform is a rotation about the bone's rest joint, so (I - R) J = p; least squares over
+    every frame of every clip on the rig.  Returns (joints, rms): joint is None for a bone whose
+    stored transforms never rotate it (an identity rotation fixes every point, so nothing pins the
+    joint down - the clip set must move the bone before it can be solved).
+    """
+    joints, rms = [None] * n, [None] * n
+    for i in range(n):
+        ata = [[0.0] * 3 for _ in range(3)]
+        aty = [0.0] * 3
+        rows = []
+        for frame in frames:
+            entry = frame[i]
+            r = rotation_from_stored(entry["q"])
+            a = tuple(tuple((1.0 if r2 == c else 0.0) - r[r2][c] for c in range(3)) for r2 in range(3))
+            y = tuple(entry["p"])
+            rows.append((a, y))
+            for r2 in range(3):
+                for c in range(3):
+                    ata[r2][c] += sum(a[k][r2] * a[k][c] for k in range(3))
+                aty[r2] += sum(a[k][r2] * y[k] for k in range(3))
+        x = solve3(ata, aty) if rows else None
+        if x is None:
+            continue
+        err = [mat_apply(a, x)[k] - y[k] for a, y in rows for k in range(3)]
+        joints[i] = x
+        rms[i] = math.sqrt(sum(e * e for e in err) / len(err))
+    return joints, rms
 
 
 # ------------------------------------------------- BME hierarchy rules
@@ -425,7 +519,14 @@ def main():
             seed = [None] + [i - 1 for i in range(1, n)]
             wm0, wp0 = world_from_local(frame0, seed)
 
-        parent, root, children = solve_parents(bones, wp0)
+        # Each bone's rest joint is the fixed point of its own stored transform, over every frame
+        # of every clip on the rig (Session 057). It is a property of the skeleton and needs no
+        # hierarchy, but the hierarchy's nearest-neighbour fallback needs it.
+        local_frames = [fr for _p, d in clips for fr in d["frames"] if not frame_is_absolute(fr)]
+        rest_joints, rest_rms = solve_rest_joints(local_frames, n)
+        fallback = [j if j is not None else wp0[i] for i, j in enumerate(rest_joints)]
+
+        parent, root, children = solve_parents(bones, fallback)
 
         # Frame 0 of an arbitrary clip is a *pose*, not a rest pose - a raised
         # arm reads as a 1.3 m "shoulder link". Average the world position of
@@ -462,6 +563,10 @@ def main():
             wp0 = [tuple(c / max(cnt, 1) for c in v) for v in acc]
             rot0 = [orthonormalise([c / max(cnt, 1) for c in v]) for v in racc]
 
+        # The armature's bone heads are the rest joints; the averaged world position is the fallback
+        # for a bone the clip set never rotates (an identity rotation pins no joint down).
+        rest_world = [j if j is not None else wp0[i] for i, j in enumerate(rest_joints)]
+
         depth = [0] * n
         for i in range(n):
             d, p, g = 0, parent[i], 0
@@ -470,24 +575,27 @@ def main():
                 p = parent[p]
                 g += 1
             depth[i] = d
-        links = [math.dist(wp0[i], wp0[parent[i]])
+        links = [math.dist(rest_world[i], rest_world[parent[i]])
                  for i in range(n) if parent[i] is not None]
         long_links = [(bones[i], bones[parent[i]], round(d, 3))
                       for i in range(n) if parent[i] is not None
-                      and (d := math.dist(wp0[i], wp0[parent[i]])) > MAX_LINK]
+                      and (d := math.dist(rest_world[i], rest_world[parent[i]])) > MAX_LINK]
 
         key_ = rig_key(bones)
         os.makedirs(os.path.join(RIG_DIR, key_), exist_ok=True)
         with open(os.path.join(RIG_DIR, key_ + ".json"), "w", encoding="utf-8") as fh:
             json.dump({
-                "schema": "adfrc-rig/1",
+                "schema": "adfrc-rig/2",
                 "rig": key_,
                 "bone_count": n,
                 "root": bones[root],
                 "bones": list(bones),
                 "parents": parent,
                 "children": {bones[k]: [bones[c] for c in v] for k, v in children.items()},
-                "rest_world": [[round(c, 5) for c in p] for p in wp0],
+                "rest_world": [[round(c, 5) for c in p] for p in rest_world],
+                "rest_joints": [[round(c, 5) for c in j] if j is not None else None for j in rest_joints],
+                "rest_joint_rms_m": [round(v, 6) if v is not None else None for v in rest_rms],
+                "rest_joints_solved": sum(1 for j in rest_joints if j is not None),
                 "rest_rot": [[round(c, 6) for row in r for c in row] for r in rot0],
                 "reference_clip": os.path.relpath(ref_path, EX).replace("\\", "/"),
                 "clip_count": len(clips),

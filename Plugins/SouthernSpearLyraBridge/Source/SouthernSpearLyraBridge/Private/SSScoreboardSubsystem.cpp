@@ -15,7 +15,7 @@ DEFINE_LOG_CATEGORY_STATIC(LogSSScoreboard, Log, All);
 
 namespace
 {
-	int32 StatCount(APlayerState* PlayerState, const FGameplayTag& Tag)
+	int32 PlayerStatCount(APlayerState* PlayerState, const FGameplayTag& Tag)
 	{
 		struct FParams { FGameplayTag Tag; int32 ReturnValue = 0; } Params { Tag };
 		UFunction* Function = PlayerState ? PlayerState->FindFunction(TEXT("GetStatTagStackCount")) : nullptr;
@@ -78,9 +78,9 @@ void USSScoreboardSubsystem::Tick(float DeltaTime)
 		FSSScoreRow& Row = State->Rows.AddDefaulted_GetRef();
 		Row.Name = PlayerState->GetPlayerName();
 		Row.Team = ScoreboardTeamOf(PlayerState);
-		Row.Kills = StatCount(PlayerState, Kills);
-		Row.Deaths = StatCount(PlayerState, Deaths);
-		Row.Assists = StatCount(PlayerState, Assists);
+		Row.Kills = PlayerStatCount(PlayerState, Kills);
+		Row.Deaths = PlayerStatCount(PlayerState, Deaths);
+		Row.Assists = PlayerStatCount(PlayerState, Assists);
 		Row.bBot = PlayerState->IsABot();
 		Row.bLocal = PlayerState == LocalState;
 		Row.PingMs = Row.bBot ? -1 : FMath::RoundToInt(PlayerState->GetPingInMilliseconds());

@@ -25,7 +25,7 @@ using namespace SSLyraReflection;
 
 namespace
 {
-	int32 StatCount(UObject* Item, const FGameplayTag& Tag)
+	int32 ItemStatCount(UObject* Item, const FGameplayTag& Tag)
 	{
 		UFunction* Fn = Item && Tag.IsValid() ? Item->FindFunction(TEXT("GetStatTagStackCount")) : nullptr;
 		if (!Fn)
@@ -119,9 +119,9 @@ void USSHudStateSubsystem::Tick(float DeltaTime)
 	static const FGameplayTag SizeTag = FGameplayTag::RequestGameplayTag(TEXT("Lyra.ShooterGame.Weapon.MagazineSize"), false);
 	static const FGameplayTag SpareTag = FGameplayTag::RequestGameplayTag(TEXT("Lyra.ShooterGame.Weapon.SpareAmmo"), false);
 	UObject* Item = Pawn ? ActiveSlotItem(Player) : nullptr;
-	State->Magazine = StatCount(Item, MagazineTag);
-	State->Reserve = StatCount(Item, SpareTag);
-	State->MagazineSize = StatCount(Item, SizeTag);
+	State->Magazine = ItemStatCount(Item, MagazineTag);
+	State->Reserve = ItemStatCount(Item, SpareTag);
+	State->MagazineSize = ItemStatCount(Item, SizeTag);
 	State->WeaponName = ItemName(Item);
 	State->OpticMagnification = USSLocalHudState::OpticMagnificationFor(State->WeaponName.ToString());
 
@@ -175,7 +175,7 @@ void USSHudStateSubsystem::Tick(float DeltaTime)
 				Move ? Move->GetMaxSpeed() : -1.f, It->GetVelocity().Size2D(), *GetNameSafe(Mesh ? Mesh->GetSkeletalMeshAsset() : nullptr),
 				*GetNameSafe(Anim ? Anim->GetClass() : nullptr), *Linked,
 				*GetNameSafe(Anim ? Anim->GetCurrentActiveMontage() : nullptr), Mesh ? (int32)Mesh->VisibilityBasedAnimTickOption : -1,
-				StatCount(PawnItem, MagazineTag), StatCount(PawnItem, SpareTag), StatCount(PawnItem, SizeTag));
+				ItemStatCount(PawnItem, MagazineTag), ItemStatCount(PawnItem, SpareTag), ItemStatCount(PawnItem, SizeTag));
 		}
 	}
 }

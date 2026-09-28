@@ -287,10 +287,12 @@ def convert(path):
         raise ValueError("unknown signature %r" % sig)
     result["source"] = os.path.basename(path)
     result["notes"] = [
-        "BMTR transforms are PARENT-RELATIVE (multiply up the hierarchy for "
-        "world-space), plain RTM matrices are absolute.",
-        "q = quaternion [x,y,z,w] (component order remapped from file storage), "
-        "p = local position (A3OB axis convention).",
+        "BMTR transforms are LOCAL: each bone is a rotation about its own rest joint, relative to "
+        "its parent - not a parent-relative bone offset, so p = J - R J for that bone's rest joint J "
+        "(Session 057). Multiply up the hierarchy for world-space; plain RTM matrices are absolute.",
+        "q = quaternion [x,y,z,w] (component order remapped from file storage) and stored with x and "
+        "y conjugated, so the rotation it means is (-x, -y, z, w). p = local position (A3OB axis "
+        "convention).",
         "raw_q = signed int16 as stored (divide by 16384), raw_p = half floats as stored.",
         "phases[] = normalised frame times (0..1), frames[i] maps bone -> transform.",
     ]

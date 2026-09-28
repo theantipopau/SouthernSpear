@@ -15,6 +15,15 @@
 #   5. No gameplay module depends on a UI module.
 #   6. ESSTeamId / ESSLocality are never given a "Friendly"/"Opposing" team
 #      value, and ESSLocality is never used as a replicated team identifier.
+#   7. SouthernSpearCore source names no content path and loads no asset. Core
+#      holds the shared types every other module builds on; the module that
+#      owns the content is the one that may reach it. Session 059b moved a
+#      capture harness out of Core for exactly this reason, and this rule is
+#      the structural version of that call.
+#
+# A pre-existing hit that is accepted rather than fixed is listed in
+# CORE_CONTENT_EXCEPTIONS and reported as a NOTE instead of failing; every
+# other hit is a violation. Negative test: Tools/test_architecture_guard.py.
 #
 # Pure stdlib, no third-party packages, so CI can run it anywhere.
 #
@@ -62,6 +71,29 @@ UI_MODULES = {
     "CommonUI", "UIExtension", "GameSettings", "GameSubtitles", "UMG",
 }
 
+# Rule SS010: the module whose source must not reach content, and what reaching content looks like.
+CORE_MODULE = "SouthernSpearCore"
+# A content path is a package path into a mounted content folder, never "/Script/" (a class path).
+CONTENT_PATH_PATTERNS = (
+    r'"\/Game\/',        # the project's own content
+    r'"\/SSExp_',        # a game-feature plugin's content
+    r'"\/ShooterCore\/',  # Lyra's
+    r'"\/SouthernSpearUI\/',
+)
+# Loading an asset by path.  FSoftObjectPath is the reference type; a literal of it names content.
+ASSET_LOAD_MARKERS = (
+    "LoadObject", "ConstructorHelpers", "FSoftObjectPath", "FSoftClassPath", "StaticLoadObject",
+)
+# Pre-existing hits that are accepted, not fixed here.  Reported as NOTES, never fatal, each with
+# the reason it is allowed.  Keys are project-relative paths with forward slashes.
+CORE_CONTENT_EXCEPTIONS = {
+    "Plugins/SouthernSpearCore/Source/SouthernSpearCore/Public/SSFonts.h":
+        "Header-only UI font loader (/SouthernSpearUI/Fonts, LoadObject<UFontFace>). It was written "
+        "before this rule and every UI module already depends on Core, so moving it is a separate "
+        "change; tracked as R-75. Core is not the right owner of a font: it should move to a UI "
+        "module, which may then depend on it. Any *new* content reference in Core fails SS010.",
+}
+
 # Modules considered "presentation" for the purposes of rule 3. A header under
 # any of these directories is held to the cosmetic-only rule.
 PRESENTATION_DIR_MARKERS = (
@@ -71,13 +103,14 @@ PRESENTATION_DIR_MARKERS = (
 
 
 class Finding(object):
-    def __init__(self, rule, path, detail):
+    def __init__(self, rule, path, detail, allowed=False):
         self.rule = rule
         self.path = path
         self.detail = detail
+        self.allowed = allowed
 
     def as_dict(self):
-        return {"rule": self.rule, "path": self.path, "detail": self.detail}
+        return {"rule": self.rule, "path": self.path, "detail": self.detail, "allowed": self.allowed}
 
     def __str__(self):
         return "{0}: {1}\n    {2}".format(self.rule, self.path, self.detail)
@@ -150,6 +183,20 @@ def iter_ss_headers():
 def is_presentation_header(path):
     normalised = path.replace("\\", "/")
     return any(marker in normalised for marker in PRESENTATION_DIR_MARKERS)
+
+
+def iter_core_sources():
+    """Yield (path, text) for every C++ source file of the SouthernSpearCore module."""
+    source = os.path.join(PROJECT_ROOT, "Plugins", CORE_MODULE, "Source", CORE_MODULE)
+    if not os.path.isdir(source):
+        return
+    for dirpath, dirnames, filenames in os.walk(source):
+        # Intermediate/ holds generated files, never authored source.
+        dirnames[:] = [d for d in dirnames if d not in ("Intermediate", "Binaries")]
+        for name in sorted(filenames):
+            if name.endswith((".h", ".hpp", ".cpp", ".inl")):
+                path = os.path.join(dirpath, name)
+                yield path, read(path)
 
 
 def check(f):
@@ -293,6 +340,33 @@ def check(f):
                             "enum is defined by exactly these two values.".format(enum_name, value),
                         ))
 
+    # --- Rule 7 / SS010: Core holds shared types, never content ------------
+    for path, text in iter_core_sources():
+        rel = os.path.relpath(path, PROJECT_ROOT).replace("\\", "/")
+        exception = CORE_CONTENT_EXCEPTIONS.get(rel)
+        if exception:
+            findings.append(Finding(
+                "SS010", rel,
+                "ACCEPTED (reported, not fixed): " + exception,
+                allowed=True,
+            ))
+            continue
+        for number, line in enumerate(text.splitlines(), 1):
+            stripped = line.strip()
+            if not stripped or stripped.startswith("//"):
+                continue
+            hit = next(("loads an asset ('{0}')".format(m) for m in ASSET_LOAD_MARKERS if m in line), None)
+            if hit is None and any(re.search(p, line) for p in CONTENT_PATH_PATTERNS):
+                hit = "names a content path"
+            if hit is None:
+                continue
+            findings.append(Finding(
+                "SS010", rel,
+                "{0} at line {1}: {2}. SouthernSpearCore holds the shared types every other module "
+                "builds on; a module that names content, or loads an asset by path, must be the "
+                "module that owns that content (Session 059b).".format(hit, number, stripped[:160]),
+            ))
+
     # Rule 9 (no kill event, ADR-032) was retired by ADR-034: kills of the other
     # side now earn capped service XP. The caps are asserted by
     # SouthernSpear.Progression.ShippedTablesAreValid.
@@ -310,11 +384,14 @@ def main():
         return 2
 
     findings = check(Finding)
+    blocking = [x for x in findings if not x.allowed]
+    notes = [x for x in findings if x.allowed]
 
     if args.json:
         report = {
-            "ok": not findings,
-            "findings": [x.as_dict() for x in findings],
+            "ok": not blocking,
+            "findings": [x.as_dict() for x in blocking],
+            "notes": [x.as_dict() for x in notes],
             "counts": {
                 "SS001_sibling_dependency": sum(1 for x in findings if x.rule == "SS001"),
                 "SS002_core_lyra_dependency": sum(1 for x in findings if x.rule == "SS002"),
@@ -323,7 +400,8 @@ def main():
                 "SS005_gameplay_depends_on_ui": sum(1 for x in findings if x.rule == "SS005"),
                 "SS006_locality_as_team_value": sum(1 for x in findings if x.rule == "SS006"),
                 "SS007_team_enum_missing_none": sum(1 for x in findings if x.rule == "SS007"),
-                "SS008_locality_missing_value": sum(1 for x in findings if x.rule == "SS008"),
+                "SS008_locality_missing_value": sum(1 for x in findings if x.rule == "SS008" and not x.allowed),
+                "SS010_core_content_reference": sum(1 for x in blocking if x.rule == "SS010"),
             },
         }
         print(json.dumps(report, indent=2, sort_keys=True))
@@ -331,15 +409,18 @@ def main():
         print("=" * 70)
         print("SOUTHERN SPEAR - ARCHITECTURE GUARD")
         print("=" * 70)
-        if not findings:
+        if not blocking:
             print("PASS - no architecture violations found.")
         else:
-            print("FAIL - {0} violation(s):\n".format(len(findings)))
-            for finding in findings:
+            print("FAIL - {0} violation(s):\n".format(len(blocking)))
+            for finding in blocking:
                 print("  " + str(finding).replace("\n", "\n  "))
                 print()
+        for note in notes:
+            print("  NOTE - " + str(note).replace("\n", "\n  "))
+            print()
 
-    return 1 if findings else 0
+    return 1 if blocking else 0
 
 
 if __name__ == "__main__":

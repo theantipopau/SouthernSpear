@@ -73,14 +73,25 @@ Rules: ADR-004 — presentation may never expose/modify damage, health, ammo, re
 hitboxes, abilities, authority, roles or objectives. ADR-017 — resolution fails loudly, never defaults to a
 side; spectators/replays need an explicit authorised vantage. Gameplay logic is C++; Blueprints configure.
 Export macros: `SSCORE_API`, `SSTEAM_API`, `SSOBJ_API`, `SSOBJUI_API`, `SSPROG_API` (aliased in each `Build.cs`).
-Extend the guard when adding a module (SS001 sibling deps — a `<Module>UI` may depend on `<Module>`; SS002 no-Lyra list; SS003 presentation includes; SS005 only `*UI` modules may use UMG/CommonUI; SS009 was retired by ADR-034).
+Extend the guard when adding a module (SS001 sibling deps — a `<Module>UI` may depend on `<Module>`; SS002 no-Lyra list; SS003 presentation includes; SS005 only `*UI` modules may use UMG/CommonUI; SS009 was retired by ADR-034; SS010 no content access in Core — see below).
+**SS010 — Core holds shared types only.** `Plugins/SouthernSpearCore` source may not name a content path
+(`/Game/`, `/SSExp_`, `/ShooterCore/`, `/SouthernSpearUI/`) or load an asset (`LoadObject`,
+`ConstructorHelpers`, `FSoftObjectPath`). A module that names content, or loads an asset by path, must be the
+module that owns it (Session 059b moved a capture harness out of Core on the same reasoning). One pre-existing
+hit is accepted and reported as a NOTE, not a failure: `Public/SSFonts.h` loads the UI font faces from
+`/SouthernSpearUI/Fonts`; it predates the rule, every UI module already depends on Core, and moving it to a UI
+module is tracked as **R-75**. Every *new* hit fails. Negative test: `python Tools/test_architecture_guard.py`.
 Cross-module traffic goes through Core subsystems: `USSRespawnGate` (single-life roster, director ↔ bridge), `USSServiceEventSubsystem` (service events → progression), `USSLocalProfileState` (profile → UI), `USSServiceRankComponent` (replicated service level on the player state → scoreboard).
 Ranks (ADR-034): Australian Army PTE→GEN as service levels 1–100 in `[/Script/SouthernSpearCore.SSRankSettings]`; insignia drawn by engine-free `SSInsigniaRaster.h`. Preview and check without Unreal: `python Tools/Progression/rank_preview.py` (g++).
 
 ## Build and test (run from repo root; Git Bash)
 
 ```bash
-python Tools/validate_architecture.py
+python Tools/validate_architecture.py           # boundaries; SS010 excludes Core content access
+python Tools/check_unity_names.py               # names a unity build would merge into one TU
+python Tools/test_architecture_guard.py         # guard negative test (scratch copy, injected violation)
+python Tools/Common/test_rtm_rigs.py            # ADFRC decoder pose model, against the committed clips
+python Tools/Common/test_adfrc_grip.py         # W2 grip maths
 "/e/Unreal/UE_5.8/Engine/Build/BatchFiles/Build.bat" SouthernSpearEditor Win64 Development "-Project=E:/SouthernSpear/SouthernSpear.uproject" -WaitMutex
 "/e/Unreal/UE_5.8/Engine/Binaries/Win64/UnrealEditor-Cmd.exe" "E:/SouthernSpear/SouthernSpear.uproject" -nullrhi -unattended -nosplash -nosound -NoLoadingScreen -stdout "-ExecCmds=Automation RunTests SouthernSpear;Quit" -TestExit="Automation Test Queue Empty"
 python Tools/verify_dressing.py
@@ -91,7 +102,8 @@ python Tools/verify_dressing.py
   `Result={Success}` in the log; declare intentionally-logged errors with `AddExpectedError`.
 - Bare test worlds: use `World->GetWorldSettings()->NotifyBeginPlay()` (no GameMode → `World->BeginPlay()` does nothing).
 - Guard negative test: copy `Tools/` + SS plugins to the scratchpad, inject violations, expect exit 1. Never leave
-  real source in a deliberately broken state.
+  real source in a deliberately broken state. `Tools/test_architecture_guard.py` does this for SS010;
+  `Tools/test_check_unity_names.py` does the same for the unity-name checker with fixture files.
 - `-game` runs print only Display+ to stdout; read `Saved/Logs/SouthernSpear.log` for `LogSSObjectives`.
 - In Git Bash prefix map-path args with `MSYS_NO_PATHCONV=1` (e.g. `/Game/Maps/L_DryRiver_01`).
 - Rendered check without touching the desktop: add `-SSShotAt=45` to a windowed `-game` run → `Saved/Screenshots/WindowsEditor/SSShot.png`.
@@ -176,4 +188,9 @@ dedicated-server support while R-09 is open. Then commit, push, and publish the 
 
 R-09 no Server target (engine distribution) · R-12 nav tile count unmeasured · R-14 GitHub holds LFS
 pointers only · R-15 level pass-1 self-check reports failure · R-16 win streaks / spawn proximity to OBJ B ·
-R-56 Session 049 C++ (ranks, insignia, kill XP) unverified by build (R-50, Session 048, closed: 52/52) · R-57 accepted: third-party marks and emblems (ADR-035).
+R-51–R-54 held-out pawn, 0.5 s elimination scan, dev-only profile, Objective Assault never ends ·
+R-55 insignia release clearance · R-58/R-59 soldier welded to the Manny skeleton, ~90k verts with no LODs ·
+R-60 Lyra reflection · R-61 first-pass ammo · R-63 pistol montage on the A25 · R-65 hand IK never runs ·
+R-66 palm-depth estimate · R-57 accepted: third-party marks and emblems (ADR-035).
+Closed since Session 048: R-50 (build, 52/52), R-56 (build, Session 051), R-62 (design, Session 057),
+R-64 (decoder, Session 062).

@@ -6,9 +6,12 @@ and each clip into an animated FBX:
   Animations_UE/<rig>/<rig>_skeleton.fbx   armature only (reference skeleton)
   Animations_UE/<rig>/<clip>.fbx          armature + one baked action
 
-Rig and clip data come from Animations/Rig/*.json (see rtm_rigs.py), already
-normalised to parent-relative locals, which is exactly what Blender pose bones
-and UE animation tracks store.
+Rig and clip data come from Animations/Rig/*.json (see rtm_rigs.py).  The rig's
+`rest_world` is already the solved rest joints, and a clip's frames are
+already parent-relative locals in the standard quaternion convention - the
+decoder applies Session 057's (-x, -y, z, w) correction once, when it reads the
+BMTR data, so nothing here re-reads or re-interprets a pose.  This script is a
+consumer only; it holds no pose maths.
 
 Run:
   blender --background --python anim_to_fbx.py -- <anim_root> <dst_root> <listfile>
