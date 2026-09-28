@@ -2972,6 +2972,87 @@ and set the import flag accordingly for soldier and weapon textures.
 
 ---
 
+## Session 041 — 2026-09-28 — Weapon Optics Re-Placed Onto The Sight Line; Loadout Renders Rebuilt
+
+### COMPLETED
+
+- **Optics moved off the buffer tubes.** `Tools/Blender/adfrc_weapon.py` placed a mounted
+  optic at `eye.x / 2` — the midpoint of the trigger (the mesh origin) and the REAR sight — so
+  every scope on the A4, A416 and A25 sat over the buffer tube or the stock, and the EF88's
+  Spectr sat off the back of its rail. The rule now uses the model's own memory points:
+  the midpoint of `front_sight_axis` and `rear_sight_axis` at eye height, falling back to the
+  bullpup `op_axis` proxy when a weapon has no iron sights.
+- **The four exported meshes corrected** by `Tools/Blender/fix_weapon_optics.py` (the optic
+  source blends under `Art/ADFRC_BLEND/adfrc_optics_ss/` are no longer on disk, so the meshes
+  were edited rather than re-exported; the FBX settings match the exporter's exactly and every
+  non-optic part is byte-identical afterwards):
+  - A88 Spectr +0.131 m · A4 TA31 +0.305 m · A416 TA31 +0.245 m · A25 TA648 +0.309 m
+  - `manifest.json` for each weapon records the new `optic.centre_m` and a `placement` note.
+- **Loadout renders rebuilt** (`Tools/Blender/render_weapons.py`). The previous pipeline guessed
+  textures by filename across the whole ADFRC tree, which picked up other weapons' maps, and it
+  wired Arma's transparent `_CA` overlay maps to Base Color — that is why the scopes came out as
+  black holes and white reticle blobs. Materials now come from each weapon's export manifest
+  (colour + NOHQ normal + SMDI gloss/grime), with lens and reticle slots built as what they are.
+- **Lighting and framing fixed**: the area lights were placed with hand-written Euler angles that
+  aimed them away from the weapon; they are now derived from the offset like the camera. Power is
+  scaled to each model's size, exposure is set per material, and the camera fits the real
+  silhouette (mesh vertices, iterated) instead of the bounding box, which was clipping muzzle and
+  stock.
+- **AKM textures found.** The AKM's maps are packed in its .blend, so `has_data` was False and the
+  lookup silently returned nothing — the rifle rendered as default white plastic. The AKM now
+  renders with its packed base colour, normal, roughness, metallic and AO.
+- **A89 shown as the ADFRC F89** (producer decision). The in-build A89 mesh came from
+  `ADFRC_F89_Minimi_MLOD`, which is assembled from Minimi parts plus Maximi (M249) and Mag58
+  parts and reads as an M249. The site now renders `ADFRC_F89_Minimi_Mod_MLOD` — F89_Base_01/02,
+  F89_MK3_01, MK3_Handguard, with their own textures — and the card, alt text and
+  ASSET_REGISTER all say so.
+- Website rebuilt and published; `Docs/Website/*` updated.
+
+### TESTING
+
+| Check | Command | Result |
+|---|---|---|
+| Renders | `blender --background --factory-startup -P Tools/Blender/render_weapons.py` | 6/6 rendered; texture report shows every slot resolved to a real map |
+| Render statistics | `python Build/audit/render_check.py` | opaque-pixel means 102–150, crushed blacks ≤ 2.1%, blown highlights ≤ 0.2% (AKM 0.7%) |
+| Optic placement | `blender -P Build/audit/probe_slots_geom.py` | scopes now between the sights; every other slot's bounds unchanged |
+| Sight derivation | `blender -P Build/audit/sight_points.py` | centres from the Arma memory points, not hand-tuned |
+| Optic-only renders | `blender -P Build/audit/scope_check.py` | lenses and reticles render as glass, no black holes or white blobs |
+| Website (local) | `node interaction_test.js`, `node responsive_audit.js`, `node text_audit.js` | all checks passed; 9 viewports × 2 pages clean |
+| Website (live) | `node live_verify.js` | sections incl. `loadout`; no console errors, no failed requests |
+
+### ASSETS
+
+- No new third-party assets. `Docs/images/weapons/*.png` re-rendered (studio renders of existing
+  models). The A89 render changes provenance from `SM_A89.fbx` to `ADFRC_F89_Minimi_Mod_MLOD`,
+  both L-0021 material under the recorded website promotion exception.
+- ASSET_REGISTER website-promotion exception updated to name the ADFRC F89 stand-in.
+
+### RISKS
+
+- **R-38 — the game FBX files were edited in place.** The optics were moved without re-running
+  the exporter (its optic sources are gone), so `adfrc_weapon.py`'s corrected rule and the
+  meshes agree only because `fix_weapon_optics.py` applied the same deltas. Re-exporting a
+  weapon from source in future will overwrite the mesh; check the optic position afterwards.
+- The A89 shown on the site is not the mesh in the build. The build still carries the
+  Minimi/Maximi variant; swapping it to the F89 is a separate change to `SM_A89.fbx`.
+
+### DEFECTS FOUND
+
+- Optic mounted over the stock on all three scoped rifles (producer review of the renders; root
+  cause found in `adfrc_weapon.py`).
+- Renders showed no texture: filename-guessed texture lookup, overlay maps wired as diffuse.
+- Lights aimed away from the subject; bounding-box framing clipping the weapons.
+- Packed-texture lookup keyed on `has_data` (AKM rendered untextured).
+- ADFRC blend collector left the six-triangle LOD proxy boxes in the scene, so they rendered
+  as multi-metre grey planes around the A89.
+
+### NEXT ACTION
+
+**Swap the build's A89 mesh to the ADFRC F89** so the game and the site show the same weapon, or
+record a decision to keep the Minimi variant in the build and label it as such.
+
+---
+
 ## Open Threads
 
 | Item | Blocked on | Owner |

@@ -3,7 +3,7 @@
  "fbx": "E:\\SouthernSpear\\Art\\Weapons\\A4\\ADFRC\\SM_A4.fbx",
  "dimensions_m": [
   0.7804136276245117,
-  0.07278785109519958,
+  0.0727878212928772,
   0.24771323800086975
  ],
  "triangles": 111470,
@@ -120,7 +120,7 @@
  "optic": {
   "source": "E:\\SouthernSpear\\Art\\ADFRC_BLEND\\adfrc_optics_ss\\ADFRC_TA31_BLK_MLOD.blend",
   "centre_m": [
-   -0.10894254595041275,
+   0.19645745404958725,
    0.0,
    0.10183264315128326
   ],
@@ -128,6 +128,7 @@
    0.1514441967010498,
    0.057302966713905334,
    0.07672258466482162
-  ]
+  ],
+  "placement": "TA31 between the M4's front and rear sights"
  }
 }

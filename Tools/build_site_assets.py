@@ -245,13 +245,13 @@ def build_weapons():
     """Loadout renders of the current internal weapon models.
 
     Sources are the renders produced by Tools/Blender/render_weapons.py: the
-    sourced EF88 model as the A88, the ADFRC-derived A4, A416, A25 and A89,
-    and the sourced AKM as an explicitly labelled reference render. Per the
-    producer decision of 2026-09-28 (LICENCE_REGISTER L-0017/L-0021, and the
-    ASSET_REGISTER intake-rule exception) these are published on the site as
-    promotion; that decision is a recorded risk acceptance, not a licence
-    clearance, and none of this changes the blocked release status of the
-    underlying assets.
+    ADFRC-derived A88, A4, A416 and A25, the ADFRC F89 shown as the A89
+    stand-in, and the sourced AKM as an explicitly labelled reference render.
+    Per the producer decision of 2026-09-28 (LICENCE_REGISTER L-0017/L-0021,
+    and the ASSET_REGISTER intake-rule exception) these are published on the
+    site as promotion; that decision is a recorded risk acceptance, not a
+    licence clearance, and none of this changes the blocked release status of
+    the underlying assets.
 
     Each render is transparent, so the transparent margin is cropped away
     before the derivatives are written: a long thin rifle in a 4:3 frame wastes

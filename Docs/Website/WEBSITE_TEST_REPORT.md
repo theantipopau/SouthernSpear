@@ -204,6 +204,9 @@ duplicated into the HTML.
 | No invented percentages, dates or counts | pass |
 | Loadout renders follow the 2026-09-28 producer decision (L-0017/L-0021) | pass — ADFRC-derived and sourced models published as labelled current stand-ins; AKM only as a "not a game weapon" reference card |
 | Loadout section: all six renders load, are described, and open full-size in the lightbox | pass |
+| Weapon renders carry their real textures | pass — every material slot resolved to the map named in the weapon's export manifest; opaque-pixel means 102–150, crushed blacks ≤ 2.1%, blown highlights ≤ 0.7% (`Build/audit/render_check.py`) |
+| Scope lenses and reticles render as glass, not as flat black or white | pass — optics rendered in isolation (`Build/audit/scope_check.py`): A88 Spectr, A4/A416 TA31, A25 TA648 all show lens, body and reticle detail |
+| Optics sit on the sight line | pass — scopes between the front and rear sights on all four scoped weapons; the EF88's Spectr on the bullpup rail (`Build/audit/probe_slots_geom.py`) |
 | Header and menu type enlarged (nav 0.80 → 0.92rem, brand 1.02 → 1.2rem) | pass — desktop nav switches to the panel at 1100px; no overflow at any of the nine viewports |
 
 ### Data defects found and fixed during this pass
@@ -309,9 +312,9 @@ cross-browser verified.**
 1. **Frozen in-engine gameplay captures.** `Saved/Screenshots/WindowsEditor/SSShot.png` is
    overwritten by the editor every session and is gitignored, so it cannot be published. The
    gallery currently contains concept art only and says so. The loadout section shows
-   renders of the project's own original weapon models instead, which is honest but is not
-   the same proof. This remains the only thing standing between this being a concept-art
-   site and a site that proves the game renders.
+   studio renders of the weapons currently in the internal build instead, which is honest
+   but is not the same proof. This remains the only thing standing between this being a
+   concept-art site and a site that proves the game renders.
 2. Map, role and environment artwork for the five map concepts.
 3. An official horizontal wordmark lockup, for a richer header lockup than emblem + HTML text.
 
