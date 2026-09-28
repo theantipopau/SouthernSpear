@@ -9,6 +9,7 @@
 #include "GenericTeamAgentInterface.h"
 #include "Net/UnrealNetwork.h"
 #include "SSObjectiveRules.h"
+#include "SSSectionAssaultRules.h"
 #include "SSTeamIdentityLibrary.h"
 
 namespace
@@ -64,13 +65,8 @@ float ASSObjectiveActor::GetCaptureRadius() const
 	return CaptureVolume ? CaptureVolume->GetScaledSphereRadius() : 0.f;
 }
 
-void ASSObjectiveActor::ServerStepCapture(float DeltaSeconds, int32 TeamOneGenericId, int32 TeamTwoGenericId)
+void ASSObjectiveActor::CountPresence(int32 TeamOneGenericId, int32 TeamTwoGenericId)
 {
-	if (!HasAuthority())
-	{
-		return;
-	}
-
 	int32 TeamOne = 0;
 	int32 TeamTwo = 0;
 	TArray<AActor*> Overlapping;
@@ -95,14 +91,61 @@ void ASSObjectiveActor::ServerStepCapture(float DeltaSeconds, int32 TeamOneGener
 	}
 	LastTeamOneCount = TeamOne;
 	LastTeamTwoCount = TeamTwo;
+}
+
+void ASSObjectiveActor::ServerStepCapture(float DeltaSeconds, int32 TeamOneGenericId, int32 TeamTwoGenericId)
+{
+	if (!HasAuthority())
+	{
+		return;
+	}
+
+	CountPresence(TeamOneGenericId, TeamTwoGenericId);
 
 	const FSSObjectiveState Previous = State;
-	State = FSSObjectiveRules::StepCapture(State, TeamOne, TeamTwo, DeltaSeconds, CaptureRules);
+	State = FSSObjectiveRules::StepCapture(State, LastTeamOneCount, LastTeamTwoCount, DeltaSeconds, CaptureRules);
 
 	if (!Previous.IsCaptured() && State.IsCaptured())
 	{
 		UE_LOG(LogSSObjectives, Log, TEXT("Objective %d '%s' captured by %s."),
 			SequenceIndex, *ObjectiveName.ToString(), *FSSTeamIdentity::ToDebugString(State.OwnerTeam));
+	}
+}
+
+void ASSObjectiveActor::ServerStepAttackCapture(float DeltaSeconds, int32 TeamOneGenericId, int32 TeamTwoGenericId, ESSTeamId Attacker)
+{
+	if (!HasAuthority())
+	{
+		return;
+	}
+
+	CountPresence(TeamOneGenericId, TeamTwoGenericId);
+	const bool bOneAttacks = Attacker == ESSTeamId::TeamOne;
+	const int32 Attackers = bOneAttacks ? LastTeamOneCount : LastTeamTwoCount;
+	const int32 Defenders = bOneAttacks ? LastTeamTwoCount : LastTeamOneCount;
+
+	const FSSObjectiveState Previous = State;
+	State = FSSSectionAssaultRules::StepAttackCapture(State, Attacker, Attackers, Defenders, DeltaSeconds, CaptureRules);
+
+	if (!Previous.IsCaptured() && State.IsCaptured())
+	{
+		UE_LOG(LogSSObjectives, Log, TEXT("Objective %d '%s' taken by the attackers (%s)."),
+			SequenceIndex, *ObjectiveName.ToString(), *FSSTeamIdentity::ToDebugString(State.OwnerTeam));
+	}
+}
+
+void ASSObjectiveActor::GetPresentControllers(int32 TeamGenericId, TArray<AController*>& OutControllers) const
+{
+	TArray<AActor*> Overlapping;
+	CaptureVolume->GetOverlappingActors(Overlapping, APawn::StaticClass());
+	for (AActor* Actor : Overlapping)
+	{
+		const APawn* Pawn = CastChecked<APawn>(Actor);
+		AController* Controller = Pawn->GetController();
+		if (Controller && GenericTeamOf(Pawn).GetId() == TeamGenericId)
+		{
+			OutControllers.AddUnique(Controller);
+		}
 	}
 }
 

@@ -107,4 +107,52 @@ bool FSSHudChips::RunTest(const FString& Parameters)
 	return true;
 }
 
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FSSHudSectionAssault, "SouthernSpear.Objectives.Hud.SectionAssault", SSHudTestFlags)
+bool FSSHudSectionAssault::RunTest(const FString& Parameters)
+{
+	// ADR-031: rounds won replace captures, the role is the viewer's, and the
+	// alive counts read own side first. Both viewers see the mirror image.
+	FSSMatchState Match;
+	Match.TeamOneRounds = 3;
+	Match.TeamTwoRounds = 1;
+	Match.RoundsPlayed = 4;
+	Match.Half = 2;
+	Match.AttackingTeam = ESSTeamId::TeamTwo;
+	Match.TeamOneAlive = 4;
+	Match.TeamTwoAlive = 2;
+	const FSSObjectiveState Obj = FSSObjectiveRules::ResetObjective(true);
+	const FText Name = FText::FromString(TEXT("Farmstead"));
+
+	FSSObjectiveHudModel One = FSSObjectiveHudModel::Build(InProgressRound(), &Obj, Name, ESSTeamId::TeamOne);
+	One.ApplySectionAssault(InProgressRound(), Match, ESSTeamId::TeamOne);
+	TestEqual(TEXT("own rounds first"), One.FirstScore, 3);
+	TestEqual(TEXT("opposing rounds second"), One.SecondScore, 1);
+	TestFalse(TEXT("Team One defends"), One.bViewerAttacking);
+	TestEqual(TEXT("defend, own alive first"), One.PhaseLabel.ToString(), FString(TEXT("Defend  4 v 2")));
+	TestEqual(TEXT("round in match"), One.RoundLabel.ToString(), FString(TEXT("Round 5  ·  Half 2")));
+
+	FSSObjectiveHudModel Two = FSSObjectiveHudModel::Build(InProgressRound(), &Obj, Name, ESSTeamId::TeamTwo);
+	Two.ApplySectionAssault(InProgressRound(), Match, ESSTeamId::TeamTwo);
+	TestEqual(TEXT("mirror: own rounds first"), Two.FirstScore, 1);
+	TestTrue(TEXT("Team Two attacks"), Two.bViewerAttacking);
+	TestEqual(TEXT("attack, own alive first"), Two.PhaseLabel.ToString(), FString(TEXT("Attack  2 v 4")));
+
+	FSSObjectiveHudModel Spectator = FSSObjectiveHudModel::Build(InProgressRound(), &Obj, Name, ESSTeamId::None);
+	Spectator.ApplySectionAssault(InProgressRound(), Match, ESSTeamId::None);
+	TestTrue(TEXT("no team: no role guessed"), Spectator.Role.IsEmpty());
+	TestEqual(TEXT("neutral vantage"), Spectator.PhaseLabel.ToString(), FString(TEXT("Team Two attacking  4 v 2")));
+
+	FSSRoundState Over = InProgressRound();
+	Over.Phase = ESSRoundPhase::PostRound;
+	Over.Outcome = ESSRoundOutcome::TeamOneWon;
+	Match.bMatchOver = true;
+	Match.MatchWinner = ESSTeamId::TeamOne;
+	Match.LastRoundReason = ESSRoundEndReason::TimeExpired;
+	FSSObjectiveHudModel End = FSSObjectiveHudModel::Build(Over, nullptr, FText::GetEmpty(), ESSTeamId::TeamTwo);
+	End.ApplySectionAssault(Over, Match, ESSTeamId::TeamTwo);
+	TestEqual(TEXT("match result from the viewer"), End.PhaseLabel.ToString(), FString(TEXT("Match: Opposing win")));
+	TestTrue(TEXT("reason in the header"), End.Header.ToString().Contains(TEXT("time expired")));
+	return true;
+}
+
 #endif // WITH_DEV_AUTOMATION_TESTS

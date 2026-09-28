@@ -829,3 +829,118 @@ map**, which is the only place that failure can be caught rather than shipped.
 ray-cast the built bridge and count members off its vertices; spec-only mode still runs in CI with no
 Blender. `audit_ravenshoe.py` **35/35** on the re-opened `.umap`, 468 actors, and the import is
 idempotent at 467–468 actors across repeated runs.
+
+---
+
+## ADR-031 — Section Assault: one life per round, attack and defend, first to five
+
+**Status:** Accepted (producer, 2026-09-28, in session: "yep, sounds good" to the proposal of a
+single-life, attack/defend round mode modelled on the *design philosophy* of America's Army 2's
+main mode). Completes the item ADR-018 deferred ("respawn limits, elimination rules and
+attacker/defender asymmetry ... need their own ADR").
+**Date:** 2026-09-28
+
+**Context.** Objective Assault (ADR-018) is symmetric and has unlimited respawns: both teams contest
+neutral objectives, and a round lasts up to 15 minutes. The game this project takes its design
+philosophy from was round-based: one team attacks and one defends, every player has one life per
+round, and the dead watch until the round ends. That rule is what makes information worth more than
+reflexes (GDD §1), and the current mode can't express it.
+
+**Decision.** A second rule set, **Section Assault**, runs on the same director, objectives and maps.
+It is chosen per match (`ASSObjectiveAssaultDirector::RulesMode`, or `?Rules=Section` on the map URL),
+so every existing map can run it without asset changes.
+
+| Rule | Value (data, `FSSSectionRules`) |
+|---|---|
+| Lives | **One per round.** A player eliminated mid-round is held out until the next round. A player who joins mid-round waits for the next one. |
+| Sides | One team **attacks** and the other **defends**. Team One attacks in the first half and Team Two in the second, so the mode is symmetric **over a match** (ADR-017), not within a round. |
+| Objectives | Taken in sequence, as in ADR-018, but **only the attackers capture**. Defenders on the point freeze it (contested). Defenders alone on it clear the attackers' progress at the capture rate. |
+| Attackers win | Taking the final objective, or eliminating every defender. |
+| Defenders win | Eliminating every attacker, or **the clock running out** (the "fails" case is now a defender win, not a draw). |
+| Draw | Both teams eliminated in the same step. |
+| Match | `RoundsPerHalf` = 4 by default: halves of four rounds, **first to five** wins. 4–4 after eight rounds is a drawn match. |
+| Round clock | 300 s by default (`?RoundSeconds=` still overrides). Pre-round and post-round holds come from `FSSRoundRules`. |
+
+Resolution order within one step: capture of the final objective, then mutual elimination, then
+attacker elimination, then defender elimination, then time. A capture on the frame time runs out
+counts, as in ADR-018. A side with nobody on its round roster can't be "eliminated" (a lone player
+testing against an empty team isn't declared the loser).
+
+**Ownership.**
+- Pure rules: `FSSSectionAssaultRules` (`SouthernSpearObjectives`). No world, deterministic, tested.
+- Server round loop: `ASSObjectiveAssaultDirector` (the same actor, branching on `RulesMode`), with
+  replicated `FSSMatchState` (round score, attacking team, half, alive counts, last round's reason).
+- Who is alive: `USSRespawnGate` (`SouthernSpearCore`, server). The director locks it with the round
+  roster when play starts and unlocks it at the reset. The Lyra bridge reports each elimination to it.
+- Holding the dead out: Lyra's own restart gate (`ULyraPlayerSpawningManagerComponent::ControllerCanRestart`)
+  is private and non-virtual, and changing it would modify Lyra (ADR-002). The bridge's
+  `USSDeploymentSpawningComponent` overrides the supported virtual `OnFinishRestartPlayer` instead:
+  when the gate says a controller must stay out, the pawn Lyra just spawned is unpossessed and
+  destroyed in the same server frame, before it can replicate. RE-DEPLOY is refused while the gate is locked.
+- At the round reset the director restarts **every** pawnless controller, bots included, because
+  Lyra's own respawn for them was suppressed during the round.
+
+**Alternatives.**
+- *Replace `B_LyraGameMode` with a C++ subclass that overrides `ControllerCanRestart`* — rejected for
+  now. It changes `GlobalDefaultGameMode` for every map and discards whatever the Blueprint configures,
+  which can't be checked without the editor. Revisit if the same-frame destroy shows any artefact.
+- *Remove `GA_AutoRespawn` from the experience's ability set* — rejected: that's asset data, and it
+  would fix the respawn model per experience instead of per match.
+- *Ticket-limited respawns* — that's Secure and Hold (GDD §4.6), a separate mode.
+
+**Consequences.**
+- The existing Objective Assault behaviour is unchanged when `RulesMode` is `ObjectiveAssault` (the default).
+- **Not in this decision:** spectating a living teammate after death (the dead player's view stays
+  where they fell, under KILLED IN ACTION), a freeze on movement during pre-round, bomb/plant-style
+  objectives, and map rotation at match end (the match restarts on the same map). Each is follow-up work.
+- The objective HUD doesn't show attack/defend, the round score or alive counts yet. `FSSMatchState`
+  replicates everything it needs.
+- No *America's Army 2* content is used: this is a rule set, not a map, mission name, UI or asset (L-0008).
+
+---
+
+## ADR-032 — SouthernSpearProgression: service record, ranks and capped XP, server-awarded
+
+**Status:** Accepted (producer, 2026-09-28, in session: "start wiring up the ranking system, and
+player profile system"). Implements TDD §6.2–6.4 and decision D-04, with the deviations listed below.
+**Date:** 2026-09-28
+
+**Decision.** A new plugin, `Plugins/SouthernSpearProgression` (module `SouthernSpearProgression`,
+export macro `SSPROG_API`), depends on `SouthernSpearCore` only, like every SS plugin (SS001, SS002).
+
+- **Service record, schema v1** (`FSSServiceRecord`): schema version, player id, callsign, service XP,
+  statistics, qualifications (earned, permanent) and commendations. Loading runs a migration step.
+  A record from a *newer* schema is refused, not silently mis-read.
+- **Persistence behind an interface** (`ISSPersistenceProvider`). The only implementation is
+  `FSSLocalDevPersistence`: one human-readable JSON file per player under
+  `Saved/SouthernSpear/Profiles/`, written to a temporary file and then moved over the original.
+  It says `IsAuthoritative() == false`. It's **dev-only** (TDD §6.3 point 4). A corrupt file is kept as a
+  `.corrupt` backup and the player starts a new record, with an error in the log.
+- **Ranks and awards are data** (`USSProgressionSettings`, `Config/DefaultGame.ini`): the nine
+  enlisted ranks from GDD §6.2 with their thresholds, and one award rule per service event.
+- **Service events** (`ESSServiceEvent`, `USSServiceEventSubsystem`, in Core): objective captured,
+  round won, round won and survived, match completed, match won, friendly kill. **There is no kill
+  event and there can't be one** (GDD §6.4). Guard rule **SS009** fails the build if a `*Kill*` member
+  other than `FriendlyKill` is added.
+- **Caps.** Every positive award has a per-match cap (`MaxPerMatch` ≥ 1). A test fails if a rule has
+  no cap. Penalties (negative awards, currently friendly kill) are **never** capped: the tenth team kill
+  costs as much as the first. Service XP never goes below zero.
+- **Server-awarded.** The server tallies events per player per match, applies the caps and sends each
+  granted award to the owning client (`USSServiceRelay::ClientServiceAward`). The client applies it to
+  its local record and saves. Bots earn nothing.
+- **Profile display** goes through Core (`USSLocalProfileState`), because the UI modules may depend on
+  Core only. The front end and HUD read callsign, rank, XP and the next threshold from it.
+
+**Deviations from the TDD, and why.**
+- *Config instead of `DT_SS_ProgressionCurve` / `UFSSRankDefinition` assets.* A config file is data
+  and editable without recompiling, which is the requirement. It can be authored and reviewed as text
+  (asset creation isn't possible in every working environment). The loadout (`SSLoadoutSettings`)
+  already set this precedent. A DataTable can replace it behind the same settings class later.
+- *One XP track, not account level plus service rank.* Rank is driven by service XP. Account level
+  and cosmetics are deferred until there is something to unlock.
+- *`ISSPersistenceProvider` is a plain C++ interface, not a `UINTERFACE`.* Nothing needs it in Blueprint,
+  and this keeps it testable without UObjects.
+
+**Known limit, stated plainly.** A local, non-authoritative record can be edited by its owner. That's
+acceptable for development and explicitly **not** acceptable for release. Online persistence
+(`FSSOnlinePersistence`, server-validated) is Phase 5 work and needs its own ADR.

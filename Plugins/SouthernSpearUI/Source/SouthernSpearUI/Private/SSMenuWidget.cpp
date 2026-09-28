@@ -9,8 +9,10 @@
 #include "Engine/Texture2D.h"
 #include "GameFramework/PlayerController.h"
 #include "Kismet/GameplayStatics.h"
+#include "Engine/GameInstance.h"
 #include "Kismet/KismetSystemLibrary.h"
 #include "SSLocalHudState.h"
+#include "SSLocalProfileState.h"
 #include "SSSettingsWidget.h"
 #include "SSUIAssets.h"
 #include "SSWidgetKit.h"
@@ -19,6 +21,7 @@ using namespace SSWidgetKit;
 
 const TCHAR* USSMenuWidget::FrontEndMap = TEXT("/Game/Maps/L_SS_FrontEnd");
 int32 USSMenuWidget::SelectedBots = 8;
+bool USSMenuWidget::bSelectedSectionRules = false;
 
 namespace
 {
@@ -192,6 +195,27 @@ void USSMenuWidget::Setup(ESSMenuMode InMode)
 		AddV(Wordmark, Phase);
 		AddH(TopRow, Wordmark);
 		AddH(TopRow, T->ConstructWidget<USpacer>(), true);
+
+		// Service profile (ADR-032): callsign, rank and service XP from the local record.
+		const UGameInstance* GameInstance = GetGameInstance();
+		const USSLocalProfileState* Profile = GameInstance ? GameInstance->GetSubsystem<USSLocalProfileState>() : nullptr;
+		if (Profile && Profile->bLoaded)
+		{
+			UVerticalBox* ProfileBox = T->ConstructWidget<UVerticalBox>();
+			UTextBlock* Who = Text(T, 13, true, SSPalette::Sand100(), 160);
+			Who->SetText(FText::Format(NSLOCTEXT("SSMenu", "ProfileWho", "{0}  ·  {1}"),
+				Profile->RankAbbreviation, FText::FromString(Profile->Callsign.ToUpper())));
+			Who->SetJustification(ETextJustify::Right);
+			AddV(ProfileBox, Who);
+			UTextBlock* Xp = Text(T, 10, true, SSPalette::Brass500(), 200);
+			Xp->SetText(Profile->NextRankXp < 0
+				? FText::Format(NSLOCTEXT("SSMenu", "ProfileXpTop", "{0}  ·  {1} XP"), Profile->RankName, FText::AsNumber(Profile->ServiceXp))
+				: FText::Format(NSLOCTEXT("SSMenu", "ProfileXp", "{0}  ·  {1} / {2} XP"), Profile->RankName,
+					FText::AsNumber(Profile->ServiceXp), FText::AsNumber(Profile->NextRankXp)));
+			Xp->SetJustification(ETextJustify::Right);
+			AddV(ProfileBox, Xp);
+			AddH(TopRow, ProfileBox)->SetPadding(FMargin(0.f, 0.f, 24.f, 0.f));
+		}
 		const TPair<FText, FName> Nav[] = {
 			{ NSLOCTEXT("SSMenu", "NavSettings", "SETTINGS"), GET_FUNCTION_NAME_CHECKED(USSMenuWidget, OnSettings) },
 			{ NSLOCTEXT("SSMenu", "NavQuit", "QUIT"), GET_FUNCTION_NAME_CHECKED(USSMenuWidget, OnQuit) } };
@@ -224,7 +248,7 @@ void USSMenuWidget::Setup(ESSMenuMode InMode)
 		Lede->SetText(NSLOCTEXT("SSMenu", "Lede", "Teamwork, communication and objective-focused infantry combat.\nChoose an operation and deploy with 3rd Battalion."));
 		AddV(Col, Stagger(Lede), 10.f);
 
-		AddV(Col, Stagger(Caption(T, NSLOCTEXT("SSMenu", "Operations", "OPERATIONS  ·  OBJECTIVE ASSAULT"))), 26.f);
+		AddV(Col, Stagger(Caption(T, NSLOCTEXT("SSMenu", "Operations", "OPERATIONS"))), 26.f);
 		UUniformGridPanel* Grid = T->ConstructWidget<UUniformGridPanel>();
 		Grid->SetSlotPadding(FMargin(4.f));
 		AddV(Col, Stagger(Grid), 8.f, HAlign_Left);
@@ -274,6 +298,25 @@ void USSMenuWidget::Setup(ESSMenuMode InMode)
 			BotButtons.Add(Button);
 		}
 		SetBots(SelectedBots);
+
+		// Rules: the same maps, two rule sets (ADR-018, ADR-031).
+		AddV(Col, Stagger(Caption(T, NSLOCTEXT("SSMenu", "Rules", "RULES"))), 22.f);
+		UHorizontalBox* RulesRow = T->ConstructWidget<UHorizontalBox>();
+		AddV(Col, Stagger(RulesRow), 10.f, HAlign_Left);
+		const TPair<FText, FName> RuleChoices[] = {
+			{ NSLOCTEXT("SSMenu", "RulesObjective", "OBJECTIVE ASSAULT  ·  RESPAWNS"), GET_FUNCTION_NAME_CHECKED(USSMenuWidget, OnRulesObjective) },
+			{ NSLOCTEXT("SSMenu", "RulesSection", "SECTION ASSAULT  ·  ONE LIFE"), GET_FUNCTION_NAME_CHECKED(USSMenuWidget, OnRulesSection) } };
+		for (const TPair<FText, FName>& Choice : RuleChoices)
+		{
+			UButton* Button = T->ConstructWidget<UButton>();
+			UTextBlock* Label = Text(T, 12, true, SSPalette::Sand100(), 120);
+			Label->SetText(Choice.Key);
+			Label->SetJustification(ETextJustify::Center);
+			Button->AddChild(Label);
+			AddH(RulesRow, AddHandler(Button, Choice.Value))->SetPadding(FMargin(0.f, 0.f, 6.f, 0.f));
+			RulesButtons.Add(Button);
+		}
+		SetSectionRules(bSelectedSectionRules);
 
 		UTextBlock* Footer = Text(T, 11, false, SSPalette::Sage400(), 40);
 		Footer->SetText(NSLOCTEXT("SSMenu", "Footer", "A fictional setting. Not affiliated with any real defence force."));
@@ -411,7 +454,19 @@ void USSMenuWidget::PlayMap(const UObject* Context, const TCHAR* Map)
 		Player->SetInputMode(FInputModeGameOnly());
 		Player->SetShowMouseCursor(false);
 	}
-	UGameplayStatics::OpenLevel(Context, FName(Map), /*bAbsolute=*/ true, FString::Printf(TEXT("NumBots=%d"), SelectedBots));
+	UGameplayStatics::OpenLevel(Context, FName(Map), /*bAbsolute=*/ true,
+		FString::Printf(TEXT("NumBots=%d%s"), SelectedBots, bSelectedSectionRules ? TEXT("?Rules=Section") : TEXT("")));
+}
+
+void USSMenuWidget::SetSectionRules(bool bSection)
+{
+	bSelectedSectionRules = bSection;
+	for (int32 Index = 0; Index < RulesButtons.Num(); ++Index)
+	{
+		const bool bOn = (Index == 1) == bSection;
+		StyleButton(RulesButtons[Index], bOn ? SSPalette::Brass500(0.95f) : SSPalette::Field800(0.9f),
+			bOn ? SSPalette::Brass300() : SSPalette::Field700(0.98f), FMargin(12.f, 8.f));
+	}
 }
 
 void USSMenuWidget::OnRedGum()   { PlayMap(this, TEXT("/Game/Maps/L_RedGum_01")); }
@@ -422,6 +477,8 @@ void USSMenuWidget::OnBluestone()  { PlayMap(this, TEXT("/Game/Maps/L_Bluestone_
 void USSMenuWidget::OnBots4()    { SetBots(4); }
 void USSMenuWidget::OnBots8()    { SetBots(8); }
 void USSMenuWidget::OnBots12()   { SetBots(12); }
+void USSMenuWidget::OnRulesObjective() { SetSectionRules(false); }
+void USSMenuWidget::OnRulesSection()   { SetSectionRules(true); }
 
 void USSMenuWidget::OnSettings()
 {

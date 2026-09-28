@@ -59,19 +59,21 @@ Southern Spear is an original, fictional, Australian-inspired tactical multiplay
 |---|---|---|
 | `Plugins/SouthernSpearCore` | `ESSTeamId {None,TeamOne,TeamTwo}` (authoritative, replicated), `ESSLocality {Friendly,Opposing}` (local only, **never replicated**), `FSSViewerContext`, `FSSTeamIdentity::ResolveLocality`, stable ids, tags, settings | engine only — **no SS plugin, no Lyra** |
 | `Plugins/SouthernSpearTeam` | Cosmetic-only faction presentation; stateless `FSSFactionPresentationResolver` (viewer sees own team as 3 ACR, other as MAF) | Core only |
-| `Plugins/SouthernSpearObjectives` | ADR-018 Objective Assault: pure `FSSObjectiveRules`, replicated `ASSObjectiveActor`, `ASSObjectiveAssaultDirector` (server round loop, idle-bot steering); team via `IGenericTeamAgentInterface` (Lyra ids 1/2 → TeamOne/TeamTwo) | Core, AIModule — **no Team, no Lyra** |
+| `Plugins/SouthernSpearObjectives` | ADR-018 Objective Assault: pure `FSSObjectiveRules`, replicated `ASSObjectiveActor`, `ASSObjectiveAssaultDirector` (server round loop, idle-bot steering); team via `IGenericTeamAgentInterface` (Lyra ids 1/2 → TeamOne/TeamTwo). ADR-031 Section Assault on the same director (`RulesMode`, `?Rules=Section`): pure `FSSSectionAssaultRules`, replicated `FSSMatchState` | Core, AIModule — **no Team, no Lyra** |
+| `Plugins/SouthernSpearProgression` | ADR-032: `FSSServiceRecord` (schema v1), `ISSPersistenceProvider` + dev-only `FSSLocalDevPersistence` (JSON, `Saved/SouthernSpear/Profiles`), pure `FSSProgressionRules` (ranks, capped awards, migration), `USSProgressionSettings` (ranks/awards in `DefaultGame.ini`), server `USSProgressionServerSubsystem` → `USSServiceRelay` → client `USSPlayerProfileSubsystem` | Core only — **no Lyra, no UI** |
 | `SouthernSpearObjectivesUI` | Objective HUD: pure `FSSObjectiveHudModel` (viewer-relative text/tone, neutral Team One/Two vantage without a team), C++-built `USSObjectiveStatusWidget`, `USSObjectiveHudSubsystem` (adds it for the local player) | Objectives, Core, UMG — **no Lyra**; gameplay never depends on it (SS005) |
 | `SouthernSpearObjectivesEditor` (editor module) | Python-callable authoring helpers (`SetGameFeatureComponentGrants`, `SetPropertyFromText`) | GameFeatures, Core |
 | `Plugins/GameFeatures/SSExp_ObjectiveAssault` | Content-only Game Feature + experience `B_SS_ObjectiveAssault` | ShooterCore, Objectives |
-| `Plugins/SouthernSpearUI` | ADR-023 player HUD, match menu (Esc), front end (`L_SS_FrontEnd`), loading screen; reads `USSLocalHudState` (Core), which the bridge fills | Core, UMG — **no Lyra** |
+| `Plugins/SouthernSpearUI` | ADR-023 player HUD, match menu (Esc), front end (`L_SS_FrontEnd`, RULES choice, profile line), loading screen; reads `USSLocalHudState` / `USSLocalProfileState` (Core), which the bridge / Progression fill | Core, UMG — **no Lyra** |
 | `Plugins/SouthernSpearLyraBridge` | ADR-019: the **only** SS module allowed to depend on Lyra. Client `USSViewerTeamTintSubsystem` (own team sage, other OPFOR clay, via `ResolveLocality`); future SS health/ammo HUD | Core, LyraGame — **nothing may depend on it** |
 | `Source/`, other `Plugins/` | Vendored Lyra — **do not modify**; any departure needs an ADR + `Docs/LYRA_ADOPTION.md` entry | — |
 
 Rules: ADR-004 — presentation may never expose/modify damage, health, ammo, recoil, movement, collision,
 hitboxes, abilities, authority, roles or objectives. ADR-017 — resolution fails loudly, never defaults to a
 side; spectators/replays need an explicit authorised vantage. Gameplay logic is C++; Blueprints configure.
-Export macros: `SSCORE_API`, `SSTEAM_API`, `SSOBJ_API`, `SSOBJUI_API` (aliased in each `Build.cs`).
-Extend the guard when adding a module (SS001 sibling deps — a `<Module>UI` may depend on `<Module>`; SS002 no-Lyra list; SS003 presentation includes; SS005 only `*UI` modules may use UMG/CommonUI).
+Export macros: `SSCORE_API`, `SSTEAM_API`, `SSOBJ_API`, `SSOBJUI_API`, `SSPROG_API` (aliased in each `Build.cs`).
+Extend the guard when adding a module (SS001 sibling deps — a `<Module>UI` may depend on `<Module>`; SS002 no-Lyra list; SS003 presentation includes; SS005 only `*UI` modules may use UMG/CommonUI; SS009 no kill event in `ESSServiceEvent`).
+Cross-module traffic goes through Core subsystems: `USSRespawnGate` (single-life roster, director ↔ bridge), `USSServiceEventSubsystem` (service events → progression), `USSLocalProfileState` (profile → UI).
 
 ## Build and test (run from repo root; Git Bash)
 
@@ -83,7 +85,7 @@ python Tools/verify_dressing.py
 ```
 
 - `-NoLoadingScreen` keeps Lyra's loading screen off headless test viewports (its ensure failed the network smoke test).
-- Tests: `SouthernSpear.Core.*` (9), `SouthernSpear.Presentation.*` (6), `SouthernSpear.Objectives.*` (14, incl. `.Hud.*`). Count
+- Tests: `SouthernSpear.Core.*` (9), `SouthernSpear.Presentation.*` (6), `SouthernSpear.Objectives.*` (14, incl. `.Hud.*`; Session 048 adds `.Section.*` ×8 and `.Hud.SectionAssault`), `SouthernSpear.Progression.*` (6, Session 048). Count
   `Result={Success}` in the log; declare intentionally-logged errors with `AddExpectedError`.
 - Bare test worlds: use `World->GetWorldSettings()->NotifyBeginPlay()` (no GameMode → `World->BeginPlay()` does nothing).
 - Guard negative test: copy `Tools/` + SS plugins to the scratchpad, inject violations, expect exit 1. Never leave
@@ -171,4 +173,5 @@ dedicated-server support while R-09 is open. Then commit, push, and publish the 
 ## Open risks (check PROJECT_AUDIT for current state)
 
 R-09 no Server target (engine distribution) · R-12 nav tile count unmeasured · R-14 GitHub holds LFS
-pointers only · R-15 level pass-1 self-check reports failure · R-16 win streaks / spawn proximity to OBJ B.
+pointers only · R-15 level pass-1 self-check reports failure · R-16 win streaks / spawn proximity to OBJ B ·
+R-43 Session 048 C++ (Section Assault, Progression) written without a compiler: first build/test unverified.

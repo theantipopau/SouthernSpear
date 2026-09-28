@@ -126,6 +126,66 @@ FSSObjectiveHudModel FSSObjectiveHudModel::Build(const FSSRoundState& Round, con
 	return Model;
 }
 
+void FSSObjectiveHudModel::ApplySectionAssault(const FSSRoundState& Round, const FSSMatchState& Match, ESSTeamId ViewerTeam)
+{
+	const ESSTeamId First = HasViewer(ViewerTeam) ? ViewerTeam : ESSTeamId::TeamOne;
+	const ESSTeamId Second = FSSTeamIdentity::GetOpposingTeam(First);
+	auto RoundsOf = [&Match](ESSTeamId Team) { return Team == ESSTeamId::TeamOne ? Match.TeamOneRounds : Match.TeamTwoRounds; };
+	auto AliveOf = [&Match](ESSTeamId Team) { return Team == ESSTeamId::TeamOne ? Match.TeamOneAlive : Match.TeamTwoAlive; };
+	FirstScore = RoundsOf(First);
+	SecondScore = RoundsOf(Second);
+	Score = FText::Format(LOCTEXT("SectionScore", "{0} {1} : {2} {3}"),
+		FirstSide, FText::AsNumber(FirstScore), FText::AsNumber(SecondScore), SecondSide);
+
+	// Rounds finished already include this one once it is over.
+	const int32 RoundInMatch = Round.Phase == ESSRoundPhase::PostRound ? Match.RoundsPlayed : Match.RoundsPlayed + 1;
+	RoundLabel = FText::Format(LOCTEXT("SectionRound", "Round {0}  ·  Half {1}"), FText::AsNumber(RoundInMatch), FText::AsNumber(Match.Half));
+
+	bViewerAttacking = HasViewer(ViewerTeam) && Match.AttackingTeam == ViewerTeam;
+	Role = !HasViewer(ViewerTeam) ? FText::GetEmpty() : bViewerAttacking ? LOCTEXT("Attack", "Attack") : LOCTEXT("Defend", "Defend");
+	const FText Alive = FText::Format(LOCTEXT("Alive", "{0} v {1}"), FText::AsNumber(AliveOf(First)), FText::AsNumber(AliveOf(Second)));
+
+	switch (Round.Phase)
+	{
+	case ESSRoundPhase::PreRound:
+		PhaseLabel = Role.IsEmpty()
+			? FText::Format(LOCTEXT("AttacksNext", "{0} attacks"), TeamWord(Match.AttackingTeam, ViewerTeam))
+			: FText::Format(LOCTEXT("RoleNext", "{0} in"), Role);
+		break;
+	case ESSRoundPhase::InProgress:
+		PhaseLabel = Role.IsEmpty()
+			? FText::Format(LOCTEXT("Attacking", "{0} attacking  {1}"), TeamWord(Match.AttackingTeam, ViewerTeam), Alive)
+			: FText::Format(LOCTEXT("RoleAlive", "{0}  {1}"), Role, Alive);
+		break;
+	case ESSRoundPhase::PostRound:
+	{
+		FText Why;
+		switch (Match.LastRoundReason)
+		{
+		case ESSRoundEndReason::ObjectiveTaken:			Why = LOCTEXT("WhyTaken", "objective taken"); break;
+		case ESSRoundEndReason::AttackersEliminated:	Why = LOCTEXT("WhyAttackers", "attackers eliminated"); break;
+		case ESSRoundEndReason::DefendersEliminated:	Why = LOCTEXT("WhyDefenders", "defenders eliminated"); break;
+		case ESSRoundEndReason::MutualElimination:		Why = LOCTEXT("WhyBoth", "both sides eliminated"); break;
+		case ESSRoundEndReason::TimeExpired:			Why = LOCTEXT("WhyTime", "time expired, objective held"); break;
+		default:										break;
+		}
+		if (!Why.IsEmpty())
+		{
+			Header = FText::Format(LOCTEXT("WhyHeader", "{0}  ({1})"), Header, Why);
+		}
+		if (Match.bMatchOver)
+		{
+			PhaseLabel = FSSTeamIdentity::IsPlayableTeam(Match.MatchWinner)
+				? FText::Format(LOCTEXT("MatchWin", "Match: {0} win"), TeamWord(Match.MatchWinner, ViewerTeam))
+				: LOCTEXT("MatchDraw", "Match drawn");
+		}
+		break;
+	}
+	default:
+		break;
+	}
+}
+
 void FSSObjectiveHudModel::BuildChips(TConstArrayView<FSSObjectiveState> Objectives, int32 ActiveIndex, ESSTeamId ViewerTeam)
 {
 	Chips.Reset();

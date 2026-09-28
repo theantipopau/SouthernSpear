@@ -403,6 +403,10 @@
 			"Enabled": true
 		},
 		{
+			"Name": "SouthernSpearProgression",
+			"Enabled": true
+		},
+		{
 			"Name": "SSExp_ObjectiveAssault",
 			"Enabled": true
 		},

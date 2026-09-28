@@ -2,7 +2,7 @@
 
 **Document ID:** `Docs/CHANGELOG.md`
 **Purpose:** Rolling record of what was actually done, what was actually tested, and what is still open. Appended to at the end of every work session.
-**Last updated:** 2026-09-27
+**Last updated:** 2026-09-28
 
 > **This file records evidence, not narrative.** A line here means a command was run and its result observed. If something was not done, it is not claimed. Anything marked `NOT RUN` is genuinely outstanding, not quietly skipped.
 
@@ -3626,7 +3626,153 @@ about it. That closes R-41 and the R-40 class of defect from the same mechanism.
 
 ---
 
+## Session 048 — 2026-09-28 — Section Assault (One Life, Attack And Defend), Service Record And Ranks
 
+### OUTCOME
+
+**Two producer requests, both code, written in a cloud container without Unreal Engine.** The producer
+asked for (1) a main game mode modelled on the design philosophy of *America's Army 2*'s round-based
+mode ("single spawn", Counter-Strike-like), and (2) the ranking and player profile systems wired up.
+Both are written, reviewed and tested as far as this environment allows. **Nothing in this session has
+been compiled or run in the engine.** The container is Linux with no UE 5.8 install, so every C++ and
+automation-test result below is **NOT RUN** and the first Windows build is the real test (R-43).
+
+Research (public sources: Wikipedia, GameFAQs/Neoseeker guides, AA2Reborn) on AA2's main mode: rounds
+where one team attacks and one defends; **one life per round**, and the dead watch until the round ends;
+win on the objective or by eliminating the other team; honour lost for friendly fire; points for your
+fireteam surviving. Only the *rules* were taken. No map, mission name, UI, audio or asset (L-0008,
+ADR-013).
+
+### COMPLETED
+
+**ADR-031 — Section Assault** (`Docs/DECISION_LOG.md`). A second rule set on the existing director, maps
+and objectives, chosen per match (`RulesMode`, map URL `?Rules=Section`, or the new **RULES** choice on the
+front end). One life per round. Team One attacks the first half and Team Two the second (symmetric over the
+match, ADR-017). Only attackers capture, and defenders on the point contest or clear it. Attackers win on
+the final objective or by wiping the defenders. Defenders win by wiping the attackers or **on time**.
+Halves of 4, first to 5, 4–4 is a drawn match. 300 s rounds.
+
+- `FSSSectionAssaultRules` (pure): `StepAttackCapture`, `ResolveRound`, `ApplyRoundResult`, `StepRound`, `NewMatch`.
+- `FSSMatchState` replicated on `ASSObjectiveAssaultDirector` (round score, attacker, half, alive counts,
+  last round's reason). The director branches on `RulesMode`, and Objective Assault is unchanged by default.
+- **Core `USSRespawnGate`** (new): the round roster and who is eliminated. The director locks it when play
+  starts and unlocks it at the reset. The bridge reports eliminations from Lyra's `OnOutOfHealth`.
+- **Holding the dead out without modifying Lyra:** Lyra's `ControllerCanRestart` is private and
+  non-virtual. `USSDeploymentSpawningComponent` overrides the supported virtual `OnFinishRestartPlayer` and
+  unpossesses and destroys the pawn Lyra just spawned for a held-out controller, in the same server frame.
+  RE-DEPLOY is refused while the gate is locked. At the reset the director restarts every pawnless
+  controller, bots included.
+- HUD: `FSSObjectiveHudModel::ApplySectionAssault`. Round score replaces captures, and the label reads
+  "Attack  4 v 3" / "Defend  4 v 3" from the viewer's side (neutral vantage without a team). The post-round
+  header gives the reason. The round banner says "Take/Hold objective A · one life".
+
+**ADR-032 — `Plugins/SouthernSpearProgression`** (new plugin, Core-only dependency). This is the TDD §6.2–6.4 design:
+- `FSSServiceRecord` schema v1 (XP, statistics, qualifications, commendations, callsign) with a migration
+  step. A newer-schema record is refused and left untouched.
+- `ISSPersistenceProvider` plus a **dev-only** `FSSLocalDevPersistence`: JSON in
+  `Saved/SouthernSpear/Profiles/`, written to a temporary file then moved over the record. A corrupt file is
+  quarantined as `.corrupt-<utc>.json`. `IsAuthoritative() == false`.
+- Ranks and awards are **data** (`Config/DefaultGame.ini` `[/Script/SouthernSpearProgression.SSProgressionSettings]`):
+  the nine GDD §6.2 enlisted ranks (Recruit 0 … WO1 80 000) and six award rules.
+- **Core `USSServiceEventSubsystem`** (new) carries service events from the director and bridge to
+  progression: objective captured, round won, round won alive, match completed, match won, friendly kill.
+  **No kill event**, enforced by new guard rule **SS009**.
+- Server `USSProgressionServerSubsystem` keeps per-player match tallies and applies caps. Positive awards are
+  capped per match and the friendly-kill penalty (−150) never is. It sends results through the `USSServiceRelay`
+  client RPC, and the client `USSPlayerProfileSubsystem` applies them, saves and publishes to **Core
+  `USSLocalProfileState`** (new). Bots earn nothing.
+- Front end: a profile line (rank abbreviation · callsign, rank · XP / next) and the RULES choice.
+
+**Docs:** ADR-031 and ADR-032. GDD §4.6 "as built" note. Roadmap §13 status ("written, not yet compiled").
+CLAUDE.md module table, export macro `SSPROG_API`, SS009, and the Core cross-module subsystems.
+
+### FILES CHANGED
+
+- New plugin `Plugins/SouthernSpearProgression/` (`.uplugin`, `Build.cs`, `SSServiceRecord.h`,
+  `SSProgressionSettings.h`, `SSProgressionRules.h/.cpp`, `SSPersistence.h/.cpp`,
+  `SSProgressionSubsystems.h/.cpp`, `Private/Tests/SSProgressionTests.cpp`). Registered in `SouthernSpear.uproject`.
+- Core: `SSServiceEvents.h/.cpp`, `SSRespawnGate.h/.cpp`, `SSLocalProfileState.h` (new).
+- Objectives: `SSObjectiveTypes.h` (rules/reason enums, `FSSSectionRules`, `FSSMatchState`, `FSSSectionInputs`,
+  `FSSRoundEvents::bMatchEnded`), `SSSectionAssaultRules.h/.cpp` (new), `SSObjectiveActor.h/.cpp`
+  (attacker-only step, presence list), `SSObjectiveAssaultDirector.h/.cpp`, `Tests/SSSectionAssaultTests.cpp` (new).
+- ObjectivesUI: `SSObjectiveHudModel.h/.cpp`, `SSObjectiveStatusWidget.cpp`, `SSRoundBannerWidget.cpp`,
+  `Tests/SSObjectiveHudTests.cpp`.
+- LyraBridge: `SSDeploymentSpawningComponent.h/.cpp`, `SSKillFeedSubsystem.cpp`.
+- UI: `SSMenuWidget.h/.cpp`.
+- `Config/DefaultGame.ini`, `Tools/validate_architecture.py` (SS009), `CLAUDE.md`, `Docs/DECISION_LOG.md`,
+  `Docs/GAME_DESIGN_DOCUMENT.md`, `Docs/DEVELOPMENT_ROADMAP.md`, `Docs/CHANGELOG.md`.
+- Evidence: `Docs/evidence/G059_guard_positive.txt`, `Docs/evidence/G059_guard_negative.txt`.
+
+### TESTING
+
+- `python Tools/validate_architecture.py` (real tree): **exit 0**, "PASS - no architecture violations found".
+  Evidence `Docs/evidence/G059_guard_positive.txt`.
+- Guard negative test on a scratchpad copy of `Tools/` + SS plugins. SouthernSpearProgression → LyraGame
+  **and** an `EnemyKilled` service event: **exit 1**, SS002 + SS009 reported
+  (`Docs/evidence/G059_guard_negative.txt`). A separate run with Progression → SouthernSpearObjectives:
+  **exit 1**, SS001. Real source was never left broken.
+- `SouthernSpear.uproject` re-parsed as JSON after the edit: valid.
+- **NOT RUN — no Unreal Engine in this environment:**
+  - `Build.bat SouthernSpearEditor Win64 Development`: the first compile of every file above.
+  - Automation: new `SouthernSpear.Objectives.Section.*` (8: CaptureAttackersOnly, CaptureMirrored,
+    ResolveRound, MatchScoringAndSwap, RoundLoop, ReplicationContract, RespawnGate,
+    World.EliminationAndEvents), `SouthernSpear.Objectives.Hud.SectionAssault`, and
+    `SouthernSpear.Progression.*` (6: ShippedTablesAreValid, NoKillReward, ValidationCatchesBadTables,
+    RanksAndCaps, IdsAndCallsigns, PersistenceRoundTrip), plus every existing suite for regressions.
+  - Live Section Assault: `L_DryRiver_01?NumBots=8?Rules=Section?RoundSeconds=90`. Held-out players stay
+    out, bots come back at the reset, sides swap after round 4, and the match ends at 5.
+  - Front end RULES row and profile line, rendered. `Saved/SouthernSpear/Profiles/ServiceRecord_local.json`
+    created and growing across two matches.
+  - `python Tools/publish_site.py`: not run. The public site repository is outside this session's access,
+    and nothing here is ready to publish while it is uncompiled.
+
+### ASSETS
+
+None. No asset imported, created or modified. The rank names are GDD §6.2's structure. Insignia remain
+unmade placeholders (L-0003).
+
+### RISKS
+
+- **R-43 (open, high until built).** All Session 048 C++ was written without a compiler or the engine. Care
+  was taken over UE 5.8 specifics (unity-build name collisions, shadowing-as-error, the Lyra private restart
+  path), but expect first-build fixes. Nothing here is claimed to work until the Windows build and the
+  automation run pass.
+- **R-44 (open, medium).** Holding a player out destroys the pawn Lyra just spawned, in the same server
+  frame. It should never replicate, but the client still receives `ClientRestart` for a pawn that no longer
+  exists. Watch for camera or input glitches on the held-out client. The fallback is a C++ game mode
+  overriding `ControllerCanRestart` (ADR-031 alternative 1).
+- **R-45 (open, low).** Eliminations come from `USSKillFeedSubsystem`, which binds each pawn's health set on
+  a 0.5 s scan. A pawn killed within 0.5 s of spawning is never reported, so its team can't be eliminated
+  that round and the round runs to time.
+- **R-46 (open, low, dev-only).** The local service record is editable by its owner. PIE clients on one
+  machine share one file. Acceptable for development only; online persistence needs its own ADR (Phase 5).
+- **R-47 (open, low).** Objective Assault never ends a match, so its per-match award caps span the whole
+  map session. Section Assault closes a tally on `MatchCompleted`.
+- **Design gaps (not defects):** a dead player's view stays where they fell (no spectating a teammate yet),
+  there's no movement freeze in pre-round, no HUD toast for awards (`USSLocalProfileState::LastAward` is filled
+  but not drawn), and no callsign entry UI (`SetCallsign` exists).
+
+### DEFECTS FOUND
+
+- **Unity-build name collisions caught in review, before any build.** `IsValidStep` existed in both
+  `SSObjectiveRules.cpp` and the new `SSSectionAssaultRules.cpp` anonymous namespaces, and would collide when
+  UBT merges the module into one translation unit. Renamed. A progression helper `Settings()` would have been
+  shadowed by a test local `Settings` (C4459, an error under UE's shadow-variable policy). Renamed.
+- **Award-order bug caught in review.** The director first posted `MatchCompleted` before `MatchWon`. The
+  progression tally closes on `MatchCompleted`, so `MatchWon` would have opened the next match's tally and
+  used up its cap. The order is now fixed, with a comment.
+- **Client HUD wouldn't know the rule set, caught in review.** `RulesMode` is set from the URL on the server
+  only. Unreplicated, a remote client's HUD would have shown Objective Assault during a Section Assault match.
+  It now replicates, and `Section.ReplicationContract` asserts it.
+
+### NEXT ACTION
+
+**Build `SouthernSpearEditor` on the Windows machine and run `Automation RunTests SouthernSpear`.** Fix
+whatever the first compile of Session 048 reports, until all suites pass (including the 15 new tests).
+Then run one live Section Assault match on Dry River with 8 bots and `?RoundSeconds=90`, and record the
+round/match log lines as evidence. That closes R-43, or turns it into specific defects.
+
+---
 
 
 ## Open Threads
