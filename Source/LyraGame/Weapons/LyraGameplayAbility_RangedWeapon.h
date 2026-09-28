@@ -43,6 +43,16 @@ enum class ELyraAbilityTargetingSource : uint8
  *
  * An ability granted by and associated with a ranged weapon instance
  */
+// SS ADR-026 (D-09): bullet penetration hook, set by a game module (Lyra stays free of its types).
+// Given the blocking hit and the bullet direction, return true if the bullet passes through, with the
+// point to resume the trace from and the fraction of damage lost (0..1).
+namespace LyraBulletPenetration
+{
+	using FHook = TFunction<bool(const FHitResult& Blocker, const FVector& Direction, FVector& OutResumeAt, float& OutDamageLost)>;
+	LYRAGAME_API void SetHook(FHook InHook);
+	LYRAGAME_API FHook& GetHook();
+}
+
 UCLASS()
 class ULyraGameplayAbility_RangedWeapon : public ULyraGameplayAbility_FromEquipment
 {

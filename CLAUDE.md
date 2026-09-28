@@ -39,9 +39,17 @@ Southern Spear is an original, fictional, Australian-inspired tactical multiplay
 - **Weapons are A-series:** A88 (+C/G/M/T), A89, A4, A416, A417, A9. Real names (EF88, F89, M4, AK,
   Minimi…) only in internal research notes — never in code identifiers, data, UI or public docs.
 - No ADF/Army branding, insignia, Rising Sun, mottos, colour patches; no Multicam or Auscam/Musorian copies
-  (Multicam is a Crye Precision trademark). No America's Army content. No manufacturer logos/CAD/ripped assets.
+  (Multicam is a Crye Precision trademark). **Exception (ADR-025, producer, 2026-09-27):** the friendly
+  soldiers wear ADFRC uniforms, gear and AMCU textures (L-0021). Strip patches and flags. Release needs
+  Defence permission or the CMECU swap (R-27). No America's Army content. No manufacturer logos/CAD/ripped assets.
 - A88 and its MAF counterpart share **one** gameplay definition; only cosmetics differ.
+- **ADFRC assets are cleared for use (R-24 lifted, L-0021).** The ADF Re-Cut / ADFRC pack is **authorised for free use in Southern Spear** — models, textures, animations, audio, configs and scripts, in any form including converted and derived work. The producer holds a blanket 100% permission from the mod team, which lifts the earlier item-by-item hold and the multi-author gap (the original grant came from one author who was not among those credited in the pack). Use them as game art and as direct visual/design references. Two limits remain, neither of which the mod team can lift:
+  - **Third-party and service marks.** Crye Precision (G3), Ops-Core, PASGT, "Team Wendy", and ADF camouflage/insignia belong to those companies and to the ADF, not to the mod team. Strip or replace them before release (ADR-016, R-27) — this is a build requirement, not a pending approval.
+  - **Redistribution.** Use in the project is cleared; redistribution via the repository is not. `Art/ADFRC/*` and `Art/ADFRC_Player/*` stay git-ignored — only their `.md` files are tracked. Keep it that way.
+  Evidence and the full terms are in `Docs/LICENCE_REGISTER.md` (L-0021) and `Docs/evidence/`.
 - Before importing any asset: check `Docs/ASSET_REGISTER.md` **and** `Docs/LICENCE_REGISTER.md`, add entries.
+- **Every Fab asset is cleared for use (ADR-028, producer).** Do not look up or confirm Fab licences, and never hold a Fab
+  asset back for a licence check: record it in the registers as "Fab, cleared under ADR-028". CC BY listings get a credit line.
 - Never invent release dates, versions, downloads, player counts or testimonials (site or docs).
 - Paid dependencies, legal-risk content and architecture changes need producer approval.
 
@@ -70,10 +78,11 @@ Extend the guard when adding a module (SS001 sibling deps — a `<Module>UI` may
 ```bash
 python Tools/validate_architecture.py
 "/e/Unreal/UE_5.8/Engine/Build/BatchFiles/Build.bat" SouthernSpearEditor Win64 Development "-Project=E:/SouthernSpear/SouthernSpear.uproject" -WaitMutex
-"/e/Unreal/UE_5.8/Engine/Binaries/Win64/UnrealEditor-Cmd.exe" "E:/SouthernSpear/SouthernSpear.uproject" -nullrhi -unattended -nosplash -nosound -stdout "-ExecCmds=Automation RunTests SouthernSpear;Quit" -TestExit="Automation Test Queue Empty"
+"/e/Unreal/UE_5.8/Engine/Binaries/Win64/UnrealEditor-Cmd.exe" "E:/SouthernSpear/SouthernSpear.uproject" -nullrhi -unattended -nosplash -nosound -NoLoadingScreen -stdout "-ExecCmds=Automation RunTests SouthernSpear;Quit" -TestExit="Automation Test Queue Empty"
 python Tools/verify_dressing.py
 ```
 
+- `-NoLoadingScreen` keeps Lyra's loading screen off headless test viewports (its ensure failed the network smoke test).
 - Tests: `SouthernSpear.Core.*` (9), `SouthernSpear.Presentation.*` (6), `SouthernSpear.Objectives.*` (14, incl. `.Hud.*`). Count
   `Result={Success}` in the log; declare intentionally-logged errors with `AddExpectedError`.
 - Bare test worlds: use `World->GetWorldSettings()->NotifyBeginPlay()` (no GameMode → `World->BeginPlay()` does nothing).
@@ -83,6 +92,7 @@ python Tools/verify_dressing.py
 - In Git Bash prefix map-path args with `MSYS_NO_PATHCONV=1` (e.g. `/Game/Maps/L_DryRiver_01`).
 - Rendered check without touching the desktop: add `-SSShotAt=45` to a windowed `-game` run → `Saved/Screenshots/WindowsEditor/SSShot.png`.
   Never screen-capture the desktop (it can grab the user's other windows).
+- Scripted console commands after the pawn exists: `-SSExecAt=14 "-SSExec=EnableCheats|DamageSelf 20"` (`-ExecCmds` runs at startup, too early).
 - Live check: `UnrealEditor-Cmd ... "/Game/Maps/L_DryRiver_01?NumBots=8?RoundSeconds=60" -game -nullrhi ... -FORCELOGFLUSH`
   (without `-FORCELOGFLUSH` a timeout kill loses the log tail; URL also takes `PreRoundSeconds`/`PostRoundSeconds`).
 - Source files are CRLF: Python `str.replace` edits must preserve `
@@ -108,7 +118,7 @@ Blender source: `Tools/Blender/dryriver_blockout.py`, `dryriver_dressing.py`; sh
 `UnrealEditor-Cmd ... -ExecutePythonScript=E:/SouthernSpear/Tools/Unreal/setup_weapons.py` → mesh, `MI_A88_*`, `B_SS_A88`
 (`ASSHeldItemVisualActor`, +90° yaw offset cancels Lyra's -90° attach), `WID_SS_A88`/`ID_SS_A88` (copies of Lyra's
 rifle definitions, pointed at ours). The starting loadout is data: `Config/DefaultGame.ini` `[/Script/SouthernSpearLyraBridge.SSLoadoutSettings]`.
-`Content/Sourced/` is an **unlicensed drop — reference only, git-ignored** (`Docs/SOURCED_ASSET_REVIEW.md`, R-17).
+`Content/Sourced/` is git-ignored and not automatically usable (`Docs/SOURCED_ASSET_REVIEW.md`, R-17). The ADFRC extraction at `Content/Sourced/ADF_Extracted/` is the one exception: it is now **cleared for free use** under L-0021 (see the ADFRC rule above), including conversion, derived work and visual reference. It stays git-ignored, and third-party branding must be replaced before release.
 
 ## Unreal Python gotchas (all learned the hard way)
 
@@ -124,6 +134,20 @@ rifle definitions, pointed at ours). The starting loadout is data: `Config/Defau
 - Some classes aren't module attributes: use `unreal.load_class(None, "/Script/Module.Class")`.
 - `-nosound` makes Lyra weapon audio print on-screen Blueprint errors (`WeaponAudioFunctions.EarlyReflections`); not a defect.
 - Engine Toolset Python import errors in logs are unrelated noise.
+
+## VibeUE editor services (dev tool, `Plugins/VibeUE`, MIT, git-ignored clone)
+
+VibeUE's services are plain `BlueprintCallable` statics, so our `-ExecutePythonScript` commandlets call them
+directly: **no MCP server or open editor is needed.** Use them before hand-writing reflection hacks:
+`unreal.AnimGraphService` (AnimBP state machines, blend spaces, layered blend, two-bone IK, slots),
+`AnimSequenceService` (bone transforms per frame, notifies, curves, root motion), `AnimMontageService`,
+`SkeletonService` (compatible skeletons, retarget modes, blend profiles, sockets), `BlueprintService`
+(graphs, components, variables, compile), `MaterialService`/`MaterialNodeService`, `UVMappingService`,
+`FoliageService`, `LandscapeService`, `ActorService`, `AssetDiscoveryService` (unattended import/delete).
+Method list: `Build/vibeue_python_api.json` (regenerate by `dir(unreal.<Service>)`). Per-domain how-tos and
+common mistakes: `Plugins/VibeUE/Content/Skills/<domain>/SKILL.md` (read the one for the task first).
+Editor-only: never reference it from runtime modules or game content. The `.uproject` marks it `Optional`,
+so a clone without the plugin still opens. Its web tools (Fab, OpenStreetMap, DuckDuckGo) are not used.
 
 ## Git, LFS, publishing
 

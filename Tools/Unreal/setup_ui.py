@@ -75,6 +75,7 @@ def drop_lyra_hud():
 try:
     import_key_art()
     import_key_art(os.path.join(PROJECT_DIR, "Docs", "images", "mainmenu.png"), "T_SS_MainMenu")
+    import_key_art(os.path.join(PROJECT_DIR, "Docs", "images", "logo.png"), "T_SS_Logo")
     drop_lyra_hud()
     front_end_map()
     report["ok"] = all(s["ok"] for s in report["steps"])

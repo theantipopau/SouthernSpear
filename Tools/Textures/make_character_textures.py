@@ -150,25 +150,40 @@ def orm_map(size, seed, roughness=0.86, variance=0.10, ao=0.06):
 
 # ------------------------------------------------------------------ palettes
 
-# CMECU: sun-bleached dry-country ochre, pale dust, eucalypt grey-green,
-# ironbark red-brown. Deliberately not AMCU or any commercial pattern.
+# CMECU: dry-country disruptive - a bright sun-bleached ground over khaki,
+# eucalypt olive, dark ironbark, near-black and an oxide-red accent.
+# Deliberately not AMCU, Auscam or any commercial pattern: the bands are cut by
+# the fbm field above, so the shape is ours, but the vocabulary (pale ground +
+# oxide red + olive) is the ordinary dry-country camo grammar every nation uses.
+#
+# The tones and thresholds are not eyeballed. Build/audit/tune_camo.py measures
+# the fabric pixels in the producer's reference photography (lum p10/p50/p90 =
+# 40/129/235, median saturation 0.46, oxide-red population 8.7%) and searches the
+# palette for the closest match; these are that result, scoring lum 43/107/205,
+# sat 0.47, red 10.2%. The earlier four-tone set had no pale ground and no red
+# and rendered as a uniform khaki wash (sat 0.23, no highlight above 175).
 CMECU_TONES = [
-    (0.451, 0.376, 0.243),   # khaki base
-    (0.588, 0.522, 0.376),   # pale dust
-    (0.353, 0.373, 0.298),   # eucalypt grey-green
-    (0.404, 0.286, 0.212),   # ironbark red-brown
+    (0.970, 0.926, 0.829),   # sun-bleached ground
+    (0.620, 0.494, 0.322),   # khaki mid
+    (0.420, 0.353, 0.196),   # dry olive
+    (0.267, 0.212, 0.145),   # dark ironbark
+    (0.145, 0.106, 0.086),   # near-black
+    (0.612, 0.239, 0.180),   # oxide red
+    (0.435, 0.235, 0.145),   # rust red
 ]
-CMECU_THRESH = [0.30, 0.52, 0.74]
+CMECU_THRESH = [0.46, 0.60, 0.71, 0.80, 0.87, 0.92]
 
 # MAF: red-earth disruptive - ochre, rust, dark brown, muted burgundy, charcoal.
+# Lifted about 15% from the first pass, which rendered near-black in the studio
+# rig: red-earth uniforms photograph much lighter than the swatch.
 MAF_TONES = [
-    (0.529, 0.388, 0.243),   # ochre
-    (0.463, 0.259, 0.169),   # rust
-    (0.318, 0.235, 0.180),   # dark brown
-    (0.400, 0.220, 0.251),   # muted burgundy
-    (0.259, 0.239, 0.220),   # charcoal
+    (0.678, 0.510, 0.322),   # ochre
+    (0.592, 0.325, 0.208),   # rust
+    (0.412, 0.298, 0.224),   # dark brown
+    (0.510, 0.271, 0.302),   # muted burgundy
+    (0.353, 0.322, 0.290),   # charcoal
 ]
-MAF_THRESH = [0.28, 0.46, 0.64, 0.80]
+MAF_THRESH = [0.30, 0.48, 0.66, 0.82]
 
 GEAR_TONE = (0.404, 0.357, 0.259)  # coyote / tan nylon
 GEAR_DARK = (0.243, 0.227, 0.180)   # dark webbing for MAF kit

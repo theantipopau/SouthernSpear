@@ -3,8 +3,14 @@
 #include "SSPlayerHudWidget.h"
 
 #include "Engine/World.h"
+#include "Camera/PlayerCameraManager.h"
+#include "Components/CanvasPanelSlot.h"
 #include "GameFramework/Pawn.h"
+#include "GameFramework/PlayerController.h"
+#include "Components/Image.h"
+#include "SSGlyphTextures.h"
 #include "SSLocalHudState.h"
+#include "SSUserPrefs.h"
 #include "SSWidgetKit.h"
 
 using namespace SSWidgetKit;
@@ -27,6 +33,50 @@ bool USSPlayerHudWidget::Initialize()
 	DamageFlash = Plate(T, SSPalette::Opfor500(0.f), FMargin(0.f));
 	DamageFlash->SetVisibility(ESlateVisibility::HitTestInvisible);
 	Fill(Root, DamageFlash);
+
+	// Scope view: black either side of a square eyepiece (sized to the screen height in NativeTick), the mask
+	// darkening the tube edge, and a fine black reticle: horizontal stadia with a centre gap, a post from below,
+	// a small brass aim point. Shown only while aiming a magnified optic (USSLocalHudState::OpticMagnification).
+	{
+		UHorizontalBox* Row = T->ConstructWidget<UHorizontalBox>();
+		ScopeOverlay = Row;
+		Fill(Root, Row);
+		AddH(Row, Plate(T, FLinearColor::Black, FMargin(0.f)), true, VAlign_Fill);
+		ScopeEyepiece = T->ConstructWidget<USizeBox>();
+		AddH(Row, ScopeEyepiece, false, VAlign_Center);
+		AddH(Row, Plate(T, FLinearColor::Black, FMargin(0.f)), true, VAlign_Fill);
+		UCanvasPanel* Eye = T->ConstructWidget<UCanvasPanel>();
+		ScopeEyepiece->AddChild(Eye);
+		UImage* Mask = T->ConstructWidget<UImage>();
+		Mask->SetBrushFromTexture(SSGlyphTextures::ScopeMask(), /*bMatchSize=*/ false);
+		UCanvasPanelSlot* MaskSlot = Eye->AddChildToCanvas(Mask);
+		MaskSlot->SetAnchors(FAnchors(0.f, 0.f, 1.f, 1.f));
+		MaskSlot->SetOffsets(FMargin(0.f));
+		auto Line = [&](const FAnchors& Anchors, const FMargin& Offsets, const FLinearColor& Colour)
+		{
+			UBorder* B = Plate(T, Colour, FMargin(0.f));
+			UCanvasPanelSlot* S = Eye->AddChildToCanvas(B);
+			S->SetAnchors(Anchors);
+			S->SetOffsets(Offsets);
+		};
+		const FLinearColor Ink(0.02f, 0.02f, 0.02f, 0.95f);
+		Line(FAnchors(0.06f, 0.5f, 0.44f, 0.5f), FMargin(0.f, -1.f, 0.f, 1.f), Ink); // left stadia
+		Line(FAnchors(0.56f, 0.5f, 0.94f, 0.5f), FMargin(0.f, -1.f, 0.f, 1.f), Ink); // right stadia
+		Line(FAnchors(0.5f, 0.54f, 0.5f, 0.94f), FMargin(-1.5f, 0.f, 1.5f, 0.f), Ink); // post from below
+		Line(FAnchors(0.5f, 0.5f), FMargin(-2.f, -2.f, 4.f, 4.f), SSPalette::Brass300()); // aim point
+		Row->SetVisibility(ESlateVisibility::Collapsed);
+	}
+
+	// Hit direction: a clay arrow on a ring around the crosshair, pointing at the shooter.
+	HitArrow = T->ConstructWidget<UImage>();
+	HitArrow->SetBrushFromTexture(SSGlyphTextures::Triangle(), /*bMatchSize=*/ false);
+	HitArrow->SetColorAndOpacity(SSPalette::Opfor500());
+	HitArrow->SetVisibility(ESlateVisibility::Collapsed);
+	HitArrow->SetRenderTransformPivot(FVector2D(0.5f, 0.5f));
+	UCanvasPanelSlot* ArrowSlot = Root->AddChildToCanvas(HitArrow);
+	ArrowSlot->SetAnchors(FAnchors(0.5f, 0.5f));
+	ArrowSlot->SetAlignment(FVector2D(0.5f, 0.5f));
+	ArrowSlot->SetSize(FVector2D(30.f, 22.f));
 
 	// Health, bottom left: label, number, two-segment bar.
 	UVerticalBox* Health = T->ConstructWidget<UVerticalBox>();
@@ -82,6 +132,14 @@ bool USSPlayerHudWidget::Initialize()
 	HintSlot->SetAutoSize(true);
 	ReloadHint->SetVisibility(ESlateVisibility::Collapsed);
 
+	// Frame rate counter (Settings > Interface), top left, mono-style digits.
+	FpsText = Text(T, 12, true, SSPalette::Sage200(), 120);
+	UCanvasPanelSlot* FpsSlot = Root->AddChildToCanvas(FpsText);
+	FpsSlot->SetAnchors(FAnchors(0.f, 0.f));
+	FpsSlot->SetPosition(FVector2D(16.f, 12.f));
+	FpsSlot->SetAutoSize(true);
+	FpsText->SetVisibility(ESlateVisibility::Collapsed);
+
 	// Crosshair: four ticks and a centre dot on a fixed 80 px canvas.
 	UCanvasPanel* Cross = T->ConstructWidget<UCanvasPanel>();
 	Crosshair = Cross;
@@ -109,12 +167,35 @@ bool USSPlayerHudWidget::Initialize()
 void USSPlayerHudWidget::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
 {
 	Super::NativeTick(MyGeometry, InDeltaTime);
+	if (FpsText)
+	{
+		// Smoothed over ~0.5 s; the preference is re-read twice a second.
+		FpsAverage = FMath::Lerp(FpsAverage, InDeltaTime, FMath::Min(1.f, InDeltaTime * 4.f));
+		FpsRefresh -= InDeltaTime;
+		if (FpsRefresh <= 0.f)
+		{
+			FpsRefresh = 0.5f;
+			const bool bShow = FSSUserPrefs::GetInt(FSSUserPrefs::ShowFps(), 0) != 0;
+			FpsText->SetVisibility(bShow ? ESlateVisibility::HitTestInvisible : ESlateVisibility::Collapsed);
+			FpsText->SetText(FText::FromString(FString::Printf(TEXT("%d FPS  ·  %.1f MS"),
+				FMath::RoundToInt(1.f / FMath::Max(FpsAverage, 0.0001f)), FpsAverage * 1000.f)));
+		}
+	}
 	const USSLocalHudState* State = GetWorld() ? GetWorld()->GetSubsystem<USSLocalHudState>() : nullptr;
 	if (!State || !HealthText)
 	{
 		return;
 	}
 	HealthPanel->SetVisibility(State->bHasPawn ? ESlateVisibility::HitTestInvisible : ESlateVisibility::Collapsed);
+	const bool bScoped = State->bHasPawn && State->bAiming && State->OpticMagnification > 1.f;
+	ScopeOverlay->SetVisibility(bScoped ? ESlateVisibility::HitTestInvisible : ESlateVisibility::Collapsed);
+	if (bScoped)
+	{
+		// A round eyepiece as tall as the screen (the widget's local units, so DPI scaling is already applied).
+		const float Height = MyGeometry.GetLocalSize().Y;
+		ScopeEyepiece->SetWidthOverride(Height);
+		ScopeEyepiece->SetHeightOverride(Height);
+	}
 	Crosshair->SetVisibility(State->bHasPawn && !State->bAiming ? ESlateVisibility::HitTestInvisible : ESlateVisibility::Collapsed);
 	AmmoPanel->SetVisibility(State->bHasPawn && State->Magazine >= 0 ? ESlateVisibility::HitTestInvisible : ESlateVisibility::Collapsed);
 
@@ -137,6 +218,24 @@ void USSPlayerHudWidget::NativeTick(const FGeometry& MyGeometry, float InDeltaTi
 	LastHealth = State->bHasPawn ? State->Health : -1.f;
 	FlashAlpha = FMath::FInterpConstantTo(FlashAlpha, 0.f, InDeltaTime, 0.9f);
 	DamageFlash->SetBrushColor(SSPalette::Opfor500(FlashAlpha));
+
+	// Hit direction arrow: 1.5 s after a hit, placed by the shooter's bearing relative to the camera.
+	const double Age = GetWorld() && State->LastHitTime >= 0.0 ? GetWorld()->GetTimeSeconds() - State->LastHitTime : 999.0;
+	const APlayerController* PC = GetOwningPlayer();
+	if (HitArrow && State->bHasPawn && Age < 1.5 && PC && PC->PlayerCameraManager)
+	{
+		const float Bearing = USSLocalHudState::HitBearing(PC->PlayerCameraManager->GetCameraLocation(),
+			PC->PlayerCameraManager->GetCameraRotation().Yaw, State->LastHitFrom);
+		const float Rad = FMath::DegreesToRadians(Bearing);
+		Cast<UCanvasPanelSlot>(HitArrow->Slot)->SetPosition(FVector2D(FMath::Sin(Rad), -FMath::Cos(Rad)) * 150.f);
+		HitArrow->SetRenderTransformAngle(Bearing);
+		HitArrow->SetRenderOpacity(FMath::Clamp(1.f - static_cast<float>(Age) / 1.5f, 0.f, 1.f));
+		HitArrow->SetVisibility(ESlateVisibility::HitTestInvisible);
+	}
+	else if (HitArrow)
+	{
+		HitArrow->SetVisibility(ESlateVisibility::Collapsed);
+	}
 
 	MagazineText->SetText(FText::AsNumber(FMath::Max(State->Magazine, 0)));
 	const bool bLowAmmo = State->MagazineSize > 0 && State->Magazine * 4 <= State->MagazineSize;

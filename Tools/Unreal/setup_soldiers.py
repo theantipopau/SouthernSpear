@@ -18,10 +18,15 @@ import unreal
 PROJECT_DIR = unreal.Paths.convert_relative_path_to_full(unreal.Paths.project_dir())
 REPORT = os.path.join(PROJECT_DIR, "Build", "soldiers_setup.json")
 DEST = "/SSExp_ObjectiveAssault/Characters"
-FRIENDLY = ["/Game/QuantumCharacter/Mesh/SKM_QuantumCharacter"]
+# 3 ACR (ADR-025): ADF gear from the ADFRC set on the mannequin skeleton (setup_adf_soldier.py),
+# with the conventional head from the MAF pack's separate parts.
+FRIENDLY = ["/Game/Modern_Insurgent_7/Mesh/Separate_Parts/SK_Head"] + [
+    "/SSExp_ObjectiveAssault/Characters/ADF/" + n for n in ("SK_ADF_Uniform_G3", "SK_ADF_Vest_TBAS", "SK_ADF_Helmet_OpsCore")]
 MAF = "/Game/Modern_Insurgent_7/Mesh/Separate_Parts/"
-OPPOSING = [MAF + n for n in ("SK_Head", "SK_Hands", "SK_Sweater", "SK_Pants_Military", "SK_Shoes",
-                              "SK_Armor_Small", "SK_Beret")]
+# MAF (ADR-016: a conventional force): the same fitted uniform in a green palette, a PASGT helmet and a
+# Peacekeeper plate vest (setup_adf_soldier.py), with the conventional head.
+ADF = "/SSExp_ObjectiveAssault/Characters/ADF/"
+OPPOSING = [MAF + "SK_Head", ADF + "SK_ADF_Uniform_G3", ADF + "SK_MAF_Vest_Peacekeeper", ADF + "SK_MAF_Helmet_PASGT"]
 
 eal = unreal.EditorAssetLibrary
 tools = unreal.AssetToolsHelpers.get_asset_tools()
@@ -52,6 +57,13 @@ def main():
     cdo = unreal.get_default_object(soldier.generated_class())
     cdo.set_editor_property("friendly_parts", [m for m in friendly if m])
     cdo.set_editor_property("opposing_parts", [m for m in opposing if m])
+    # The CMECU overrides targeted the old friendly body's slots; the ADF gear carries its own materials.
+    cdo.set_editor_property("friendly_material_overrides", [])
+    # MAF: the uniform (part 1) in the green palette, from setup_adf_soldier.py's report.
+    adf = json.load(open(os.path.join(PROJECT_DIR, "Build", "adf_soldier_setup.json")))
+    green = unreal.SSPartMaterialOverride()
+    green.set_editor_property("slots", [unreal.load_asset(p) for p in adf["maf_uniform_slots"]])
+    cdo.set_editor_property("opposing_material_overrides", [unreal.SSPartMaterialOverride(), green])
     unreal.BlueprintEditorLibrary.compile_blueprint(soldier)
     step("soldier", eal.save_loaded_asset(soldier), soldier.generated_class().get_path_name())
 

@@ -6,6 +6,8 @@
 #include "Components/StaticMeshComponent.h"
 #include "HAL/IConsoleManager.h"
 #include "GameFramework/Character.h"
+#include "SSCharacter.h"
+#include "SSLocalHudState.h"
 #include "SSUserPrefs.h"
 
 USSFirstPersonCameraMode::USSFirstPersonCameraMode()
@@ -27,6 +29,15 @@ USSFirstPersonADSCameraMode::USSFirstPersonADSCameraMode()
 void USSFirstPersonCameraMode::UpdateView(float DeltaTime)
 {
 	FieldOfView = FSSUserPrefs::GetFieldOfView() * FovScale; // settings menu preference
+	// Aiming through a magnified optic: the view narrows by its power (the HUD draws the eyepiece and reticle,
+	// and the view model is hidden; producer: "scopes don't work at all").
+	const UWorld* ViewWorld = GetTargetActor() ? GetTargetActor()->GetWorld() : nullptr;
+	const USSLocalHudState* Hud = ViewWorld ? ViewWorld->GetSubsystem<USSLocalHudState>() : nullptr;
+	if (bSightEye && Hud && Hud->OpticMagnification > 1.f)
+	{
+		const float Base = FMath::DegreesToRadians(FSSUserPrefs::GetFieldOfView());
+		FieldOfView = FMath::RadiansToDegrees(2.f * FMath::Atan(FMath::Tan(Base * 0.5f) / Hud->OpticMagnification));
+	}
 	Super::UpdateView(DeltaTime); // pivot location/rotation, pitch clamp, FOV
 
 	const ACharacter* Character = Cast<ACharacter>(GetTargetActor());
@@ -41,6 +52,16 @@ void USSFirstPersonCameraMode::UpdateView(float DeltaTime)
 			+ FVector::UpVector * EyeOffset.Z;
 	}
 	View.Rotation = View.ControlRotation;
+
+	// Lean (ADR-024): the replicated lean slides the eye ~30 cm sideways, a little lower,
+	// and rolls the view, eased so it reads as a body movement rather than a snap.
+	if (const ASSCharacter* Soldier = Cast<ASSCharacter>(GetTargetActor()))
+	{
+		LeanAlpha = FMath::FInterpTo(LeanAlpha, static_cast<float>(Soldier->GetLean()), DeltaTime, 7.f);
+		const FRotationMatrix Frame(View.Rotation);
+		View.Location += Frame.GetUnitAxis(EAxis::Y) * (LeanAlpha * 30.f) + FVector::UpVector * (-6.f * FMath::Abs(LeanAlpha));
+		View.Rotation.Roll += LeanAlpha * 10.f;
+	}
 
 	// Aiming with an optic: the eye sits behind the held weapon's Sight socket
 	// (Tools/Unreal/add_sight_sockets.py) on the line of sight.

@@ -102,7 +102,7 @@
  "optic": {
   "source": "E:\\SouthernSpear\\Art\\ADFRC_BLEND\\adfrc_optics_ss\\ADFRC_TA31_BLK_MLOD.blend",
   "centre_m": [
-   -0.11025584489107132,
+   0.1343441551089287,
    0.0,
    0.107328400015831
   ],
@@ -110,6 +110,7 @@
    0.1514441967010498,
    0.057302966713905334,
    0.07672258466482162
-  ]
+  ],
+  "placement": "TA31 between the HK416's front and rear sights"
  }
 }

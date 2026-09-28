@@ -36,7 +36,14 @@ private:
 	UPROPERTY(Transient) TObjectPtr<UWidget> Crosshair;
 	UPROPERTY(Transient) TArray<TObjectPtr<UWidget>> CrosshairTicks;
 	UPROPERTY(Transient) TObjectPtr<UBorder> DamageFlash;
+	UPROPERTY(Transient) TObjectPtr<class UImage> HitArrow;
 	UPROPERTY(Transient) TObjectPtr<UTextBlock> ReloadHint;
+	UPROPERTY(Transient) TObjectPtr<UTextBlock> FpsText;
+	/** Scope view (aiming a magnified optic): eyepiece mask, black sides, reticle. */
+	UPROPERTY(Transient) TObjectPtr<UWidget> ScopeOverlay;
+	UPROPERTY(Transient) TObjectPtr<class USizeBox> ScopeEyepiece;
+	float FpsAverage = 1.f / 60.f;
+	float FpsRefresh = 0.f;
 	float Elapsed = 0.f;
 
 	UHorizontalBoxSlot* HealthFillSlot = nullptr;

@@ -2098,43 +2098,74 @@ No new assets imported. No licence-register change: the animation clips are cove
 
 ---
 
-## Session 027 — 2026-09-27 — Camera-Held Weapon View, Full Weapon Materials, Sky and Beret Fixes, Objective Flags, Exe Icon
+## Session 032b — AUG weapon audio imported; the VaultCache inventory
 
 ### COMPLETED
 
-- **First-person weapon rebuilt** (producer: "can't see the weapon", "animations no good"):
-  - tried true first person (body view; Lyra hip pose holds the weapon below the camera, aiming put the
-    eye in the arm) and kept it behind `ss.FP.BodyView`;
-  - default is now a camera-held view model: the whole weapon in view at the hip (`ss.FP.Hip`), aim
-    placed from the weapon's `Sight` socket (`ss.FP.EyeRelief` 13 cm), procedural bob, recoil on
-    magazine drop and a reload dip that follows Lyra's reload montage;
-  - the Fab AKS74U arms are off (`ss.FP.Arms`); their poses do not fit our weapons.
-- **"Can't aim upwards" / "no sky box"**: the local soldier's beret (owner-no-see did not hold) drew a
-  dome over the view when looking up. Local body parts are now hidden in game with shadows kept.
-  Red Gum and Selat Canal also get a SkyAtmosphere and volumetric clouds; the demo sky spheres and Red
-  Gum's painted horizon ring are hidden in game (`fix_sky.py`). Nanite no longer touches sky, horizon or
-  unlit meshes (`revert_sky_nanite.py`, guard in `optimize_nanite.py`).
-- **Weapon materials** (producer: "textures don't look good"): `M_SS_WeaponPBR` with the ADFRC colour,
-  normal (`_nohq`) and specular/gloss (`_smdi`) maps; weapon textures resident (no streaming);
-  reticle cards see-through (`upgrade_weapon_materials.py`, `fix_visual_regressions.py`).
-- **Objective flags**: `USSObjectiveFlagSubsystem` (ObjectivesUI, client presentation) puts a pole on each
-  objective; the viewer's own side flies the Australian flag (Fab World Flags, L-0016), the other side a
-  fictional MAF flag (`Tools/Textures/maf_flag.py`, original design); the flag rises with capture and
-  lowers as the holder loses it (`setup_flags.py`).
-- **Exe icon** from `Docs/images/logo.png`: `Tools/build_game_icon.py` writes
-  `Build/Windows/Application.ico` (full badge at 64–256 px, the spear and map at 16–48 px). `Build/` is
-  git-ignored: run the script before packaging.
-- Logs checked on request: only Lyra's weapon-audio Blueprint warnings (Tap ID); no asset or render errors.
+- **Imported the 28 ADFRC AUG weapon WAVs** as SoundWave assets into `/Game/AUG/Sound/AUG/Wavs`, with `/Game/AUG/Sound/Attenuation/WeaponShot_att` and `WeaponHandling_att` copied from the AK-47's attenuation so the AUG matches the only weapon in the project that has a complete chain. **28/28 imported, 0 errors**, each verified after import: 2ch/44.1 kHz for the shots, 1ch/44.1 kHz for the mechanical `AUG_closure_*` pair. Report `Build/aug_audio_import.json`.
+- **Established that SoundCue graphs cannot be authored headlessly in UE 5.8.** There is no `SoundCueFactory` (`unreal.SoundFactory` is `/Script/AudioEditor.SoundFactory`, whose `supported_class` is `SoundWave`), `create_asset` for a `SoundCue` returns `None`, and `SoundCue` exposes no `add_node` or node enumeration. The existing AK-47 cues are `SoundNodeModulator` graphs whose properties are not reflected to Python. **Cue wiring is editor work and was not done.**
+- **Inventoried `Content/Downloaded/VaultCache/`**: **34,662 MB**, 18 packs, ~3,700 assets and **25 maps**, of which `git ls-files Content/Downloaded` returns **0** — none of it is tracked and none of it is referenced by the game.
 
 ### FILES CHANGED
 
-- `SSFirstPersonSubsystem.{h,cpp}`, `SSFirstPersonCameraMode.{h,cpp}`, `SSObjectiveFlagSubsystem.{h,cpp}` (new);
-- `Tools/Unreal/fix_sky.py`, `revert_sky_nanite.py`, `upgrade_weapon_materials.py`, `setup_flags.py` (new);
-  `add_sight_sockets.py`, `optimize_nanite.py`, `fix_visual_regressions.py`;
-  `Tools/build_game_icon.py`, `Tools/Textures/maf_flag.py` (new);
-- `Config/DefaultGame.ini` (cook the flag paths);
-- maps `L_RedGum_01`, `L_SelatCanal_01`; weapon materials and textures; `M_SS_WeaponPBR`; flag assets;
-  `Art/Flags/T_SS_Flag_MAF.png`.
+Created: `Tools/Unreal/import_aug_audio.py` (import + verify + attenuation copy).
+Generated (untracked, `Build/`): `aug_audio_import.json`, `weapon_audio_probe.json`.
+
+### TESTING
+
+- `UnrealEditor-Cmd.exe ... -ExecutePythonScript=Tools/Unreal/import_aug_audio.py` — **PASS**, `imported 28/28`, 0 errors, 2 attenuation assets created and saved.
+- **NOT RUN**: no cue was authored and nothing was played or mixed, so the AUG audio is **not audible in game** until the cues are built in the editor.
+
+### ASSETS
+
+28 new SoundWave assets + 2 SoundAttenuation assets. All 28 are covered by the existing **L-0021** ADFRC entry; the audio licence position is unchanged. No new licence entry is required.
+
+### RISKS
+
+- The AUG sounds exist as assets but are **not wired to anything**, so this work is not yet player-visible. Treating "imported" as "working" is exactly the R-31 pattern.
+
+### DEFECTS FOUND
+
+- **34.6 GB of already-downloaded Fab content is untracked in git.** The packs include a complete first-person AKS-74U weapon set (`A_FP_AKS74U_Reload`, `_Reload_Aimed`, `_Reload_Empty`, `_Reload_Empty_Aimed`, Fire, Aim, Idle, Run, Walk, Equipe, plus `A_WBP_AKS74U_Reload` and `A_WBP_AKS74U_Reload_UnEmpty` blend spaces) and four map packs (Namaqualand 2, Rural Australian 4, Singapore Canal 5, Flags 1). The AKS-74U reload set **answers the R-33 reload gap without any retargeting at all**, which is a materially better route than the blocked ADFRC path.
+
+### NEXT ACTION
+
+**Decide whether the VaultCache packs get promoted into the game** — the AKS-74U FP reload set closes R-33 today; everything else in that 34.6 GB is a scoping decision for the producer.
+
+---
+
+## Session 028 — 2026-09-27 — Website Typography and Front End, Tabbed Settings with Ray Tracing, Developer Messages Off
+
+### COMPLETED
+
+- **Website typefaces in game**: Barlow Condensed (display) and Inter (body) from `Site/fonts` (SIL OFL 1.1),
+  converted to TTF with fontTools (`Art/Fonts`), imported as font faces (`setup_fonts.py`), assembled at
+  runtime by `SSFonts.h` (Core, header-only) and used by every HUD, menu, compass, minimap and banner widget.
+- **Front end matches the website**: header bar with the badge (`T_SS_Logo`) and stacked wordmark, nav
+  (Settings, Quit) and a brass Discord button (opens discord.gg/GHNCFQrDND); status chip; sentence-case
+  headline and lede; operations as a 2x2 grid of framed cards; smooth left gradient; primary brass
+  buttons for Apply and Resume.
+- **Settings** rebuilt with five tabs and a scrolling page each:
+  - Display: window, resolution, VSync, frame limit (30–240, unlimited), field of view, brightness;
+  - Graphics: preset plus ten scalability categories, render resolution 50–100%, anti-aliasing
+    (TSR/TAA/FXAA/off), hardware ray tracing, ray-traced shadows, motion blur;
+  - Audio: master, effects, music; Controls: mouse sensitivity, invert look (applied to Lyra's own
+    settings by the new bridge `USSSettingsSyncSubsystem`, reflection);
+  - Interface: frame rate counter (new HUD readout), developer messages.
+- **On-screen errors**: the messages were the editor AI toolsets' Python tracebacks, Lyra weapon-audio
+  Blueprint warnings and the VSM marking-queue diagnostic (a fixed shader queue size; classic
+  vegetation). Engine developer messages are now off for players (`USSUserPrefsSubsystem`, Core;
+  Settings > Interface turns them back on); editor and PIE sessions are untouched.
+- **Ray tracing**: already enabled at project level (DX12 SM6, Lumen hardware ray tracing); the log
+  confirms it is active on the producer's GPU (D3D12 ray tracing tier 1.1). Now switchable in Settings.
+
+### FILES CHANGED
+
+- Core: `SSUserPrefs.h` (keys, `USSUserPrefsSubsystem`), `SSUserPrefs.cpp` (new), `SSFonts.h` (new);
+- UI: `SSSettingsWidget.{h,cpp}`, `SSMenuWidget.{h,cpp}`, `SSPlayerHudWidget.{h,cpp}`, `SSWidgetKit.h`,
+  `SSUIAssets.h`; ObjectivesUI widgets (fonts);
+- Bridge: `SSSettingsSyncSubsystem.{h,cpp}` (new);
+- `Tools/Unreal/setup_fonts.py` (new), `setup_ui.py` (logo); `Art/Fonts/*.ttf`; UI font and logo assets.
 
 ### TESTING
 
@@ -2143,32 +2174,1230 @@ No new assets imported. No licence-register change: the animation clips are cove
 | Guard | `python Tools/validate_architecture.py` | 0 | PASS | — |
 | Build | `Build.bat SouthernSpearEditor ...` | 0 | Succeeded | — |
 | Automation | `Automation RunTests SouthernSpear` | 255 | 30 Success; 1 Fail (parallel session's `TwoPlayerAuthoritySmoke`) | `Build/tests.log` |
-| View model | Red Gum `-SSShotAt`, `ss.FP.DebugPitch` -5 / 35 / aim | 124 | Whole weapon at hip; optic centred when aiming; sky clear looking up | screenshots (scratch) |
-| Flags | Dry River, `-game -nullrhi`, 8 bots, 120 s | 124 | Pole shows friendly / MAF / bare as objective A changes hands | log |
-| Icon | `python Tools/build_game_icon.py` | 0 | 7 sizes, 16–256 | `Build/Windows/Application.ico` |
-| Flag appearance in render | — | — | **NOT RUN** (MAF flag UV on the pack material unverified) | — |
-| Push | `GIT_LFS_SKIP_PUSH=1 git push` | 1 | **Rejected**: GitHub GH008, 217 unknown LFS objects | — |
+| Front end, Settings, HUD | `-game -windowed -SSShotAt`, `-SSOpenSettings=1` | 124 | Website fonts and layout; tabs; FPS counter; no developer messages on screen | screenshots (scratch) |
+| Ray tracing active | game log | — | "Ray tracing is enabled"; D3D12 RT tier 1.1 | log |
+| Sensitivity / volume reach Lyra | — | — | **NOT RUN** (needs play) | — |
 
 ### ASSETS
 
-L-0016 World Flags (Australian national flag tile, cloth mesh, pole); MAF flag original. ADFRC texture maps
-(L-0021). The producer reports more ADFRC assets (sounds, textures): not yet reviewed.
+Barlow Condensed, Inter, IBM Plex Mono (SIL OFL 1.1, already used by the website). The producer reports
+ADFRC weapon sounds (EF88/AUG shots with tails, reloads, dry fire): catalogued, not imported yet.
 
 ### RISKS
 
-- R-24 (new): GitHub now rejects pointer-only pushes (GH008); commits since `0336691b` are local only.
-  Uploading LFS objects conflicts with R-14 and has storage cost: producer decision.
-- Weapon view model has no hands until hand IK is fitted.
+- R-24 (GitHub LFS push) still open: commits are local only.
+- The captured frame rate (30) is Lyra's background cap; real frame rate needs a focused run.
 
 ### DEFECTS FOUND
 
-1. Own beret drew over the view when looking up (producer; component log and captures).
-2. True first person hid the weapon at the hip (capture).
-3. Weapon materials used colour only (producer).
+1. On-screen developer messages shown to players (producer).
 
 ### NEXT ACTION
 
-**Producer decides** the GitHub LFS push (R-24); then plays Red Gum for the view model and flags.
+**Weapon audio**: play the ADFRC EF88 shot/tail/reload sounds for the A-series weapons in place of
+Lyra's rifle cue.
+
+---
+
+## Session 032c — Blanket ADFRC permission recorded; map documentation written
+
+### COMPLETED
+
+- **Recorded the producer's blanket 100% permission from the ADFRC mod team** in all three places that
+  gate asset use, so they cannot disagree:
+  - `CLAUDE.md` — the ADFRC rule is no longer a hold. It now states that ADFRC models, textures,
+    animations, audio, configs and scripts are **cleared for free use in Southern Spear**, including
+    converted and derived work and as visual/design reference, and that using them as game art is the
+    expected case rather than the exception.
+  - `Docs/LICENCE_REGISTER.md` (L-0021) — the **multi-author scope limit is resolved**. It previously
+    held that "Tonnie" was not among the authors credited in the pack (Brucey, Exer, Growlor, Louetta,
+    Quiggs, ADFU Team, ADF Re-Cut Team), so his grant could only ever have covered his own components
+    and per-component confirmation was required. A blanket permission from the team as a whole closes it.
+  - `Docs/PROJECT_AUDIT.md` (R-24) — **CLOSED** (branding tracked separately as R-27), from
+    "OPEN (partially cleared)".
+- **Two limits are recorded as still standing**, because the mod team cannot lift them: **third-party and
+  service marks** (Crye Precision G3, Ops-Core, PASGT, "Team Wendy", ADF camouflage and insignia belong
+  to those companies and to the ADF), and **redistribution** (use in the project is cleared; pushing the
+  assets through the repository is not, which is why `Art/ADFRC/*` stays git-ignored). APL-SA (Bohemia)
+  is also untouched.
+- **Wrote the two missing map design documents** to the Dry River standard: `Docs/MAPS_SALTBUSH.md` and
+  `Docs/MAPS_SELATCANAL.md`. Both are recorded honestly as **documented but not signed off**, because the
+  evidence does not support signing them off — see DEFECTS FOUND.
+- **Diagnosed the in-game verification blocker.** The recorded claim that "windowed `-game` runs stall
+  during module load" is **no longer true**: `Saved/Logs/SouthernSpear.log` holds a successful windowed
+  `-game` run that loaded `/Game/Maps/L_SS_FrontEnd` in 0.42 s and wrote a 1600x900 screenshot. Added
+  `Tools/run_map_capture.sh` to make that repeatable, and found two causes of silent failure along the
+  way (see DEFECTS FOUND).
+
+### FILES CHANGED
+
+Created: `Docs/MAPS_SALTBUSH.md`, `Docs/MAPS_SELATCANAL.md`, `Tools/run_map_capture.sh`.
+
+Modified: `CLAUDE.md`, `Docs/LICENCE_REGISTER.md` (L-0021), `Docs/PROJECT_AUDIT.md` (R-24),
+`Docs/CHANGELOG.md` (this entry).
+
+### TESTING
+
+- **`bash Tools/run_map_capture.sh /Game/Maps/L_DryRiver_01` — NOT RUN to a passing result.** The script
+  is written and two real bugs are fixed in it, but the run was interrupted before it completed.
+  **No gameplay map has been captured and no in-game verification is claimed.**
+- `python Tools/Unreal/adfrc_animation_survey.py`, the VaultCache inventory and the `armis_f_data.pbo`
+  header analysis — PASS (recorded in Sessions 032 / 032b).
+- All map figures in the two new documents are read from tool reports (`Build/objective_map_*`,
+  `Build/deployment_tags.json`) and `Config/DefaultGame.ini`. None are estimated.
+
+### ASSETS
+
+No new assets. No redistribution implication: the licence change authorises **use**, and `Art/ADFRC/*`
+and `Art/ADFRC_Player/*` remain git-ignored with only their `.md` files tracked. The two new documents
+are documentation and are safe to track.
+
+### RISKS
+
+- **R-27 is now the only thing between the ADFRC material and release.** With R-24 closed, the branding
+  substitution (Crye / Ops-Core / PASGT / Team Wendy / ADF camo) is the single remaining gate, and it is
+  a build task rather than a pending approval. It must not be lost now that the surrounding block has lifted.
+- The captured map docs describe two maps that **should not be played as balanced content yet** (below).
+  Documenting them is not endorsing them.
+
+### DEFECTS FOUND
+
+- **Selat Canal has a 7/8 deployment split.** `Build/deployment_tags.json` records TeamOne 7, TeamTwo 8,
+  against 8/8 on Dry River, Red Gum and Saltbush. Where a dead team rotates back to a start, the team
+  with the extra start has a compounding advantage. Needs a producer decision: add a start, or record
+  the acceptance.
+- **Selat Canal is the worst map in the set for navigation: 35 of 154 sampled grid points reachable
+  (23%)**, against Saltbush's 37% and Dry River's verified full rebuild. All four round legs are walkable
+  only because the nav pass **relocates** any objective it cannot reach — Saltbush's were moved up to
+  22.5 m, so "Stock Yards" may no longer sit on the stock yards. The objective positions on both maps are
+  an artefact of navigation, not a design decision.
+- **Selat Canal deploys teams 70 m apart**, less than half Saltbush's 162 m and a quarter of Red Gum's
+  560 m, and unlike Dry River's deliberately equal 86 m opening this is documented nowhere.
+- **The `-game` harness had two silent-failure modes, both now fixed in `Tools/run_map_capture.sh`.**
+  `-unattended` is a commandlet flag: a `-game` instance given it initialises the engine and then exits,
+  which reads as a stall in the log. And Git Bash rewrites `/Game/Maps/...` into
+  `C:/Program Files/Git/Game/Maps/...`, so the game loads nothing **while still writing a 2.87 MB
+  screenshot of an empty frame** — a capture that looks like success and is not. The script now requires
+  both a map-load line and an image before reporting PASS.
+- **Pre-existing:** `Docs/CHANGELOG.md` contains **two different entries both numbered Session 028** in
+  committed history (line 1798 "Written ADFRC Authorisation Recorded", line 2137 "Website Typography and
+  Front End"). Not introduced here and not renumbered, because renumbering committed history is riskier
+  than the collision.
+- **A false alarm worth recording.** Midway through this session `Docs/CHANGELOG.md` was seen with 65
+  deletions and 0 additions against HEAD, which matched the R-26 silent-truncation signature, and it was
+  restored from HEAD. On inspection this was a **transient mid-write state from the concurrent session**
+  that committed the full entry moments later (`44e073d1`); nothing was lost. Recorded because the
+  temptation in a shared checkout is to "fix" a sibling's in-progress edit, and here the right move was to
+  check the log before acting.
+
+### NEXT ACTION
+
+**Run `Tools/run_map_capture.sh` to completion on a gameplay map** — it has never produced a passing
+result, and until it does, every claim in this log about how the game looks remains an inference.
+
+---
+
+## Session 029 — 2026-09-27 — Fair Map Layouts: Spawn Tool, Cross-Map Objectives, Map Documents
+
+### COMPLETED
+
+- **Reviewed the other agent's `MAPS_SALTBUSH.md` and `MAPS_SELATCANAL.md`** (sound, evidence-based) and
+  acted on their findings; both are rewritten with the new measurements; `MAPS_REDGUM.md` is new.
+- **`layout_spawns.py`** (new, final authority on starts, all four maps): 8 starts per team on clear
+  walkable ground (70 cm wall clearance, 2 m headroom, reachable from the deployment **and** to the centre
+  objective), farthest-point spread, hidden from the enemy deployment first, facing the centre objective;
+  deployments more than 200 m on foot from the centre objective slide in. Reports spacing, spawn exposure
+  and each team's walk to every objective.
+  - Selat Canal 7/8 → **8/8**; spawn exposure 0/64 on Red Gum, Dry River, Saltbush (Canal 11/64).
+- **`layout_objectives.py`** (new): objectives placed across the map at even-walk points (Red Gum
+  flanks; Saltbush spread). The opening objective is now even on Saltbush (105 vs 104 m; was 46 vs 134 m)
+  and within 11% on Red Gum (213 vs 240 m; was ~170 vs ~390 m). Red Gum's flank objectives are renamed
+  North Paddock / South Paddock (they no longer stand on the bore pump and shearing shed).
+- **`build_objective_map.py`**: deployments chosen by `min(walk, 1.6 x straight line)` and objectives
+  along the walking route (straight line gave a 70 m walled street; walk alone gave two banks 20 m apart).
+- Front-end Red Gum card text follows the renamed objectives.
+
+### FILES CHANGED
+
+`Tools/Unreal/layout_spawns.py`, `layout_objectives.py` (new), `build_objective_map.py`;
+`Docs/MAPS_SALTBUSH.md`, `MAPS_SELATCANAL.md` (rewritten), `MAPS_REDGUM.md` (new); `SSMenuWidget.cpp`;
+maps `L_RedGum_01`, `L_DryRiver_01`, `L_Saltbush_01`, `L_SelatCanal_01`.
+
+### TESTING
+
+| Test | Command | Exit | Result | Evidence |
+|---|---|---|---|---|
+| Guard | `python Tools/validate_architecture.py` | 0 | PASS | — |
+| Build | `Build.bat SouthernSpearEditor ...` | 0 | Succeeded | — |
+| Automation | `Automation RunTests SouthernSpear` | 255 | 30 Success; 1 Fail (parallel session's `TwoPlayerAuthoritySmoke`) | `Build/tests.log` |
+| Spawn layout | `layout_spawns.py` | 0 | ok=true, 8/8 on all maps; figures above | `Build/spawn_layout.json` |
+| Objective layout | `layout_objectives.py` | 0 | Red Gum flanks 3–4% at placement; Saltbush spread; Canal rejected (objectives within 28 m) | `Build/objective_layout.json` |
+| Saltbush match | 8 bots, 180 s, `-nullrhi` | 124 | Windmill captured by Team One (first capture on this map) | log |
+| Red Gum match | 8 bots, 180 s, before and after pull-in | 124 | **No capture** (contested stalemate) | log |
+| Canal / Dry River matches | 8 bots, 150 s | 124 | **No capture** | log |
+| Nav step-height experiment | canal reach probe | 0 | 36 → 41 of 164 reachable at 45 cm; reverted | log |
+
+### ASSETS
+
+None new.
+
+### RISKS
+
+- R-25 (new): **capture stalemate.** ADR-018 freezes a contested objective; respawning bots keep both
+  teams present, so small or long maps can go a whole round without a capture. Needs a rules or bot
+  decision (producer).
+- Selat Canal cannot host a fair three-objective sequence on its connected footprint (22% of samples).
+- R-24 (GitHub LFS push) still open.
+
+### DEFECTS FOUND
+
+1. Selat Canal 7/8 starts (other agent's review).
+2. Opening objective much nearer Team One on the builder maps (fairness measurement).
+3. Canal Team One starts on a disconnected nav island (layout debug; fixed: starts must reach the objectives).
+
+### NEXT ACTION
+
+**Producer decides the capture stalemate** (R-25): majority capture, respawn waves, or attack/defend bot
+roles.
+
+---
+
+## Session 030 — 2026-09-27 — Native Resolution, Ray Tracing Default Off, Scoreboard with Ping, Dry River Real Cover; Locomotion Audit
+
+### COMPLETED
+
+- **"Textures are horrible" — two causes, both fixed:**
+  - the game rendered at **60.6% (1552x873)** of the producer's 2560x1440 display and upscaled:
+    `sg.ResolutionQuality=0` means "project default", which UE 5.8 scales down on large displays. An
+    unset value now becomes native 100% (`USSUserPrefsSubsystem`); Settings > Render resolution still
+    lowers it. Verified: `stat unit` shows 100.0% (2560x1440).
+  - hardware ray tracing rendered Nanite-converted rocks and the weapons **black** (Saltbush capture,
+    A/B with the setting off). It now defaults off (Settings: "Hardware ray tracing (experimental)").
+- Settings console variables now apply at game-override priority: ray tracing, ray-traced shadows and
+  anti-aliasing were silently ignored below the project's own defaults (log: "SetByGameSetting ... ignored").
+- A startup crash introduced and fixed in session (the settings object was created before Lyra's
+  settings class loaded; now only once a world exists).
+- **Scoreboard (hold Tab)**: viewer-relative (own side "3 ACR · Friendly" first, "MAF · Opposing"),
+  eliminations / deaths / assists / ping per player, team kill totals, local row highlighted.
+  `USSScoreboardState` (Core) filled by `USSScoreboardSubsystem` (bridge, reflection); Lyra's base
+  per-player scorer `B_ShooterGameScoring_Base` granted by the experience (not the team-deathmatch
+  scorer, whose kill limit would end rounds). Verified live: kills and deaths count.
+- **Dry River real cover**: `dryriver_blockout.py` exports the designed cover (40 rocks, 20 trees,
+  30 scrub, fence) as `SS_MAP_DryRiver_01_Cover.csv` instead of baking low-poly cones and boulders into the
+  terrain; `dress_dryriver_cover.py` reimports the terrain and places Rural Australia rocks, trees and grass
+  trees at the same positions and sizes, and post-and-wire fences (119 posts) for the greybox and dressing
+  fences. Nav rebuilt (`build_dryriver_nav.py` ok, path verified); spawns re-laid (exposure 3/64).
+- Dev tools: `ss.Debug.FollowBot` (third-person look at the nearest bot), `-SSShowScoreboard`,
+  `-SSScoreDebug`.
+- **Locomotion audit** (`Docs/LOCOMOTION_AUDIT.md`) written before any movement change (producer brief).
+
+### TESTING
+
+| Test | Command | Exit | Result | Evidence |
+|---|---|---|---|---|
+| Guard | `python Tools/validate_architecture.py` | 0 | PASS | — |
+| Build | `Build.bat SouthernSpearEditor ...` | 0 | Succeeded | — |
+| Automation | `Automation RunTests SouthernSpear` | 255 | 30 Success; 1 Fail (parallel session's `TwoPlayerAuthoritySmoke`) | `Build/tests.log` |
+| Render resolution | default launch, `stat unit` | 124 | 60.6% before, 100.0% after | screenshots |
+| Ray tracing A/B | Saltbush spawn, HWRT on/off | 124 | Black cliff and weapon with HWRT on; correct with it off | screenshots |
+| Scoreboard | Dry River 10 bots, `-SSShowScoreboard`, `-SSScoreDebug` | 124 | Rows, teams, K/D, local row | screenshot, log |
+| Dry River cover | `dress_dryriver_cover.py`, `build_dryriver_nav.py`, `layout_spawns.py` | 0 | 90 props + 119 posts; nav ok; exposure 3/64 | reports |
+
+### RISKS
+
+- R-26 (new): third-person weapons are rotated ~90° in the soldiers' hands (bot-follow capture);
+  covered by the locomotion audit.
+- R-24, R-25 open.
+
+### DEFECTS FOUND
+
+1. Render resolution 60% (producer: textures; stat capture).
+2. Hardware ray tracing black meshes (A/B capture).
+3. Settings console variables ignored (log).
+4. Startup crash (introduced and fixed here).
+5. Third-person weapon rotation (bot-follow capture).
+
+### NEXT ACTION
+
+**Producer approves the locomotion roadmap** (`Docs/LOCOMOTION_AUDIT.md` §7), including adding Epic's
+Game Animation Sample.
+
+---
+
+## Session 031 — 2026-09-27 — ADF Soldiers from ADFRC (ADR-025), Locomotion Decisions (ADR-024), Audit Correction
+
+### COMPLETED
+
+- **Producer decisions recorded:** ADR-024 (locomotion rebuild per `LOCOMOTION_AUDIT.md`) and **ADR-025**
+  (real ADF look from the ADFRC set, overriding ADR-016's pattern rule for the AMCU textures; patches and
+  flags stripped; release needs Defence permission or the CMECU swap: R-27). CLAUDE.md content rule amended.
+- **Audit F2 withdrawn after measurement**: with Lyra's rifle drawn over ours (`ss.Debug.ShowLyraWeapon`) the
+  meshes overlap exactly; socket data agrees. The "rifle pointing up" is Lyra's jog pose (F5).
+- **3 ACR soldiers rebuilt from ADFRC gear** (producer: "very low quality, don't replicate Australian soldiers"):
+  - `Tools/Blender/adfrc_gear_rig.py`: fits Arma gear to the UE5 mannequin. It places the gear with the Memory LOD
+    joints, re-poses the limbs onto the mannequin's joints with a segment-distance rig, transfers skin weights
+    from the mannequin body, and encodes texture and rvmat names in the material slots. Rigid mode is for helmets.
+    Arma helper faces, BIS skin, flags and patches are dropped.
+  - Found: the other converter's `.blend` files carry no bone weights, and the gear files use Arma's true character
+    space, which is offset from the uniform file (`SS_GEAR_SPACE`, measured).
+  - Kit: Crye G3 combat uniform in **AMCU** with gloves and boots, **Ops-Core helmet** (AMCU cover, Peltor
+    headset), **TBAS T5 plate carrier** (AMCU carrier and pouches, belt, holster). Multicam pouches use AMCU or
+    coyote variants, or flat coyote.
+  - `Tools/Unreal/setup_adf_soldier.py`: imports onto Lyra's `SK_Mannequin`; `M_SS_GearPBR`
+    (colour, normal, SMDI; skeletal); matte non-metallic fabric (the SMDI gloss rendered chrome-white).
+    `setup_soldiers.py`: 3 ACR = head + uniform + carrier + helmet on the animated skeleton (audit F3 for the
+    friendly side).
+  - Bugs found on the way: a rigid helmet group named "head.001" (an Arma selection shared the name), and
+    `save_loaded_asset` skipping Python-set materials (not dirty).
+- The parallel session's MAF materials (`Characters/Materials`, `Characters/Textures` and their scripts) are
+  committed with the soldier Blueprint that references them.
+
+### TESTING
+
+| Test | Command | Exit | Result | Evidence |
+|---|---|---|---|---|
+| Gear fit | Blender renders (mannequin overlay, front and side) | 0 | Uniform, helmet and carrier on the mannequin | renders (scratch) |
+| Textures | Blender textured render | 0 | AMCU sleeves and trousers, plain torso (as authored); UVs correct | render |
+| Import | `setup_adf_soldier.py` | 0 | ok=true; every slot has colour, normal and SMDI; materials persisted (verified) | `Build/adf_soldier_setup.json` |
+| In game | Dry River, `ss.Debug.FollowBot` | 124 | ADF soldier animated: helmet on head, AMCU uniform, carrier, matte fabric | captures |
+| Weapon alignment | `ss.Debug.ShowLyraWeapon` | 124 | Lyra's and our meshes coincide | captures |
+
+### RISKS
+
+- **R-27 (new):** AMCU and ADF kit are Commonwealth designs; a commercial release needs Defence permission or
+  the CMECU swap (ADR-025).
+- The uniform's upper sleeves are slightly puffy after the re-pose; the MAF side still uses the Fab parts.
+
+### NEXT ACTION
+
+**S1: `ASSCharacter` + `USSCharacterMovementComponent`** (tactical speeds, momentum, replicated stances; ADR-024).
+
+---
+
+## Session 033 — Map playability measured for the first time; the reference map fails its own rules
+
+Run in parallel with the other session's soldier and locomotion work. Nothing outside `Tools/Unreal/`,
+`Docs/MAPS_PLAYABILITY_AUDIT.md` and this entry was touched, and no map asset was written.
+
+### COMPLETED
+
+- **Wrote `Tools/Unreal/audit_map_playability.py`**, a read-only audit that measures the Dry River design
+  rules against every map. It loads a map, builds nothing, places nothing and saves nothing, so it is safe
+  to run while another tool is dressing the same level. It reports walkable ground, open-crossing distance,
+  hard:soft cover ratio, cover density, close-quarters and long-range sightlines, per-objective cover and
+  overwatch, walk parity between the two teams, and spawn exposure.
+- **Ran it on all four maps**: `ok: true`, 0 errors, report at `Build/map_playability.json`.
+- **Wrote `Docs/MAPS_PLAYABILITY_AUDIT.md`** with the scoreboard, the per-map findings and the method.
+
+Headline results, all measured:
+
+- **Dry River fails its own design rules.** 13% of the ground has no cover within 30 m (the document
+  promises under 20 m), 44 blocking cover props on the whole map against a documented ~120, 0.09 props per
+  walkable cell, a 291.5 m maximum sightline against a 220 m limit, the Farmstead 58% walk-imbalanced
+  between teams, and **35 of 64 spawn pairs can see each other**.
+- **Red Gum is not playable as it stands.** 1020 x 1020 m of paddock whose navigation volume covers
+  **17%** of it, **12 hard and 0 soft cover objects in the entire map**, 50% of ground with no cover within
+  30 m, 310 m median sightline, and 0-1 cover positions within 20 m of any objective.
+- **Saltbush is the best map in the project** (7 rules pass): p90 open crossing 16.0 m, 0 of 64 spawn
+  pairs exposed, 95% nav coverage. Its two failures are the 35% and 22% walk imbalance on Stock Yards and
+  Dry Dam, and a 1:9.97 hard:soft cover ratio where the design wants 1:3.
+- **Selat Canal has the best geometry and the worst fairness.** 2.0 m p50 open crossing and 51.7 m
+  median sightline make it the tightest map in the project, but all three objectives fail walk parity at
+  **63%, 42% and 75%**, on the project's only Special Forces map.
+
+### FILES CHANGED
+
+Created: `Tools/Unreal/audit_map_playability.py`, `Docs/MAPS_PLAYABILITY_AUDIT.md`.
+
+Modified: `Docs/CHANGELOG.md` (this entry). **Left uncommitted on purpose** — this file also carries
+another session's uncommitted edits, and staging it would stage theirs with it.
+
+### TESTING
+
+- `UnrealEditor-Cmd.exe SouthernSpear.uproject -nullrhi -unattended -ExecutePythonScript=Tools/Unreal/audit_map_playability.py`
+  — **PASS**, `ok: true`, 0 errors, all four maps, `Build/map_playability.json`. Three maps in one run
+  (~9 min); Selat Canal separately with `SS_MAPS=L_SelatCanal_01 SS_OUT=mp_canal.json` after a loop bug
+  was fixed, then merged.
+- The script is **not** a game run. No map was played, no screenshot captured, and `run_map_capture.sh`
+  is still unproven.
+
+### ASSETS
+
+None. No asset was created, imported, modified or licensed. The audit is measurement only.
+
+### RISKS
+
+- **R-34 — the map set is documented as finished and is not.** `MAPS_DRYRIVER.md`, `MAPS_SALTBUSH.md`
+  and `MAPS_SELATCANAL.md` read as design intent. Measured, Dry River misses its own cover and sightline
+  rules, Red Gum has no cover and a navmesh on a sixth of the map, and Selat Canal's objectives are
+  badly lopsided. The three "documented, not signed off" notes are correct and must not be relaxed until
+  the maps measure clean.
+- **R-35 — `Tools/Unreal/layout_spawns.py` under-reports spawn exposure.** It traces each candidate
+  start to the enemy **centroid**, one point, rather than to the enemy starts. It reported 3/64 for Dry
+  River; tracing all 64 pairs gives 35/64. Every `exposed_pairs` figure in `Build/spawn_layout.json` is
+  optimistic. Not fixed here because the file belongs to the concurrent session's work.
+
+### DEFECTS FOUND
+
+Four defects in the audit tool itself, all found by running it, and all the kind that would have
+produced confident nonsense:
+
+1. **`get_actor_bounds` returns (origin, extent), not (min, max).** Treating the origin as a corner
+   classified every prop as a kerb and reported **0 cover objects on a map with 290 dressing props**.
+2. **Projecting to navigation from the middle of the map's bounding box** silently misses on any map
+   with a tall z range. It reported Dry River at 31% nav coverage; measured from the traced ground height
+   the figure is 100%. The first version of this audit published that 31%.
+3. **`find_path_to_location_synchronously` floods the navmesh** when the goal is on an island the start
+   cannot reach. On one Dry River objective that took **nine minutes** and nothing can interrupt it.
+   Replaced with a projected polyline, which reports unreachable by failing rather than by stalling.
+4. **A `while len(pairs) < 3000` loop cannot terminate on a small map.** Selat Canal has 31 walkable
+   points, so 465 distinct pairs exist and the loop spun forever. Now bounded by the pair count.
+
+Also corrected in the tool's own method: the "close quarters" rule was unmeasurable as written, because
+a 10 m sample grid means two sampled points are never within 5 m of each other. It now probes 3, 5, 8 and
+15 m in eight directions from every sample point.
+
+### NEXT ACTION
+
+**Fix the Selat Canal objective placement** — three objectives, all three between 42% and 75% walk
+imbalanced, on the only Special Forces map — and make the placement refuse to save a lopsided result
+rather than silently relocating it.
+
+---
+
+## Session 034 — 2026-09-28 — Damage Model, Blood, Bullet Penetration (ADR-026)
+
+### COMPLETED
+
+- **Damage model** (`Tools/Unreal/setup_damage_model.py`): hit zones PM_SS_Head/Torso/Limb (tags SS.Zone.*),
+  set per physics body by bone name in `ASSCharacter::BeginPlay` (head 3, torso 7, limb 12 bodies);
+  per-weapon `B_SS_WeaponInstance_<W>` with zone multipliers and damage flat to 300 m. Rifles: head one hit,
+  torso 3, limbs 5; A25 torso 2. Crash on first death (GC freed the zone materials) fixed: `ZoneMaterials` UPROPERTY.
+- **Blood**: `ASSCharacter::HandleGameplayCue` on `GameplayCue.Character.DamageTaken` spawns the VFX-pack blood
+  burst at the hit point along the shot (clients only).
+- **Hero class (ADR-026, D-08)**: Lyra's `B_Hero_Default` reparented to `ASSCharacter`; `B_SS_Hero*` and
+  `HeroData_SS` deleted (copies broke Lyra's class-identity casts: bots never fired).
+- **Bullet penetration (ADR-026, D-09)**: a marked hook in `ULyraGameplayAbility_RangedWeapon::TraceBulletsInCartridge`
+  (one penetration; hits beyond carry the damage lost in `PenetrationDepth`, which replicates with target data) and
+  in `LyraDamageExecution` (applies it). `USSBallisticsSubsystem` (bridge) measures thickness with a reverse trace
+  on the blocking component; `FSSPenetrationRules` (Core): up to 20 cm, 25-75% damage lost; never terrain or pawns.
+- `Docs/LYRA_ADOPTION.md` D-08, D-09; `Docs/DECISION_LOG.md` ADR-026.
+- Numbered 034: the parallel session's uncommitted changelog already uses 032, 032b, 032c and 033.
+
+### FILES CHANGED
+
+Core `SSBallistics.*`, `Tests/SSBallisticsTests.cpp`, `SSNativeGameplayTags.*`; bridge `SSCharacter.*`,
+`SSCharacterMovementComponent.*`, `SSBallisticsSubsystem.*`, `Build.cs`; Lyra `LyraGameplayAbility_RangedWeapon.*`,
+`LyraDamageExecution.cpp`; `Tools/Unreal/setup_damage_model.py`, `setup_tactical_movement.py`; content listed in ASSETS.
+
+### TESTING
+
+| Test | Command | Exit | Result | Evidence |
+|---|---|---|---|---|
+| Guard | `python Tools/validate_architecture.py` | 0 | PASS | console |
+| Build | `Build.bat SouthernSpearEditor Win64 Development` | 0 | Succeeded | console |
+| Automation | `Automation RunTests SouthernSpear` | 255 | 33 Success, 1 Fail (`TwoPlayerAuthoritySmoke`, the parallel session's test, failing before this session) | `Docs/evidence/S034_tests.txt` |
+| Live | Dry River, 8 bots, 150 s round, `LogTemp=Verbose` (timeout kill) | 124 | 3 penetrations (1.0 and 9.3 cm surfaces), 175 blood spawns, no crash | `Docs/evidence/S034_penetration_live.txt` |
+| Earlier live | Dry River, 8 bots | 124 | 16 kills in about 2 min after the GC fix; 42 blood spawns in 90 s | session log |
+
+NOT RUN: direct measurement of reduced damage through a wall (Lyra's execution has no per-hit damage log);
+visual confirmation of blood (two rendered captures did not show a splat clearly); multiplayer client-to-server penetration check.
+
+### ASSETS
+
+PM_SS_Head/Torso/Limb, B_SS_WeaponInstance_* (copies of Lyra's weapon instances), WID_SS_* InstanceType,
+Lyra `B_Hero_Default` (reparented), experience and IMC updates; blood uses the already-registered VFX pack.
+
+### RISKS
+
+- **R-36 (new; first numbered R-28, which was already taken):** two Lyra departures (D-08, D-09) must be re-applied on any Lyra update.
+- Penetration thickness is geometric only (no per-material table); thin rock edges can be shot through.
+
+### DEFECTS FOUND
+
+- Ragdoll crash at first death: zone physical materials garbage-collected (live bot run, fatal assert).
+- Bots never fired with a copied hero class (live bot run: zero kills).
+
+### NEXT ACTION
+
+**Measure through-cover damage**: a scripted test that fires through a 5 cm board at a target and checks the health lost.
+
+---
+
+## Session 035 — 2026-09-28 — Full Test Suite Green; Penetration Hook Measured; Parallel Session's Work Committed
+
+### COMPLETED
+
+- **All 35 SouthernSpear tests pass (exit 0)**, the first fully green run in several sessions. The parallel session's
+  `TwoPlayerAuthoritySmoke` had two causes, found from its callstacks:
+  - **ours**: `USSSettingsSyncSubsystem` pushed volumes into Lyra's settings in editor test worlds, where Lyra cannot
+    load its audio control-bus mix (it needs `GEngine->GetCurrentPlayWorld()`): three `bSoundControlBusMixLoaded`
+    ensures. Volumes are now pushed only with an audio device and a play world;
+  - **Lyra's loading screen** adding a widget to a headless test viewport (`ViewportOverlayWidget.IsValid()`).
+    Test runs now pass `-NoLoadingScreen` (Lyra's own switch): CLAUDE.md, README, CI.
+- **CI ran almost no tests**: it filtered on `SouthernSpear.Unit/Integration/Network/Leak`, of which only `Network`
+  exists. Now `RunTests SouthernSpear`, with `-nosound -NoLoadingScreen`.
+- **Through-cover measurement** (Session 034 NEXT ACTION): `SouthernSpear.Bridge.Ballistics.PenetrationHook` calls the
+  hook Lyra's weapon actually uses (so it also proves the bridge registered it) against engine-cube boards: a 5 cm board
+  is penetrated with 37.5% damage lost (an A88 torso hit 38 → 23.75) and the trace resumes just beyond it; a 40 cm
+  block stops the bullet. `LyraBulletPenetration::GetHook` exported for the test.
+- Changelog repaired: the parallel session's uncommitted copy had dropped Sessions 029–031; restored, and its
+  Session 033 kept. Risk renumbered: Session 034's "R-28" was taken, now **R-36** (added to PROJECT_AUDIT).
+- Committed the parallel session's finished, uncommitted work: Session 033 entry, ASSET_REGISTER,
+  SOURCED_ASSET_REVIEW, DECISION_LOG execution note, TEST_PLAN, the smoke test and its `EngineSettings` dependency,
+  README. Untracked art folders (`Art/Weapons/{A88/New,AKM,C4A1,PKM,_Optics}`, `Content/AUG`, `Content/SouthernSpear`,
+  `Docs/images/conceptart*.png`) handled below.
+
+- **Untracked folders resolved:** the blocked or reference-only weapon sources (`Art/Weapons/{A88/New,AKM,C4A1,PKM}`), the Fab optic
+  export `Art/Weapons/_Optics` (no republishing) and the raw CC BY scan sources `Content/SouthernSpear/Vendor` are git-ignored;
+  `Content/AUG` (ADFRC audio) committed as LFS pointers. ASSET_REGISTER 4.9g added (AUD-AUG-001, CH-ADF-001, GP-DMG-001).
+  `Docs/images/conceptart{1,2}.png` left untracked: their source is unknown.
+
+### FILES CHANGED
+
+`SSSettingsSyncSubsystem.cpp`, `Tests/SSPenetrationHookTests.cpp` (new), Lyra `LyraGameplayAbility_RangedWeapon.h`
+(export), `.github/workflows/build.yml`, `CLAUDE.md`, `README.md`, `Docs/TEST_PLAN.md`, `Docs/PROJECT_AUDIT.md`, this file.
+
+### TESTING
+
+| Test | Command | Exit | Result | Evidence |
+|---|---|---|---|---|
+| Guard | `python Tools/validate_architecture.py` | 0 | PASS | console |
+| Build | `Build.bat SouthernSpearEditor Win64 Development` | 0 | Succeeded (first try failed to link: `GetHook` not exported; fixed) | console |
+| Network smoke alone, before the flag | `RunTests SouthernSpear.Network` | 255 | Fail: only the loading-screen ensure left after the audio fix | `Build/smoke.log` (not retained) |
+| All tests | `UnrealEditor-Cmd ... -nosound -NoLoadingScreen ... "Automation RunTests SouthernSpear;Quit"` | 0 | 35/35 Success | `Docs/evidence/S035_tests.txt` |
+
+NOT RUN: the CI workflow itself (self-hosted runner); damage through a board in a live match (the execution's
+`1 - PenetrationDepth` factor is verified by reading, not by a measured health change); rendered blood check.
+
+### ASSETS
+
+None.
+
+### RISKS
+
+- R-36 (from Session 034) recorded in PROJECT_AUDIT.
+- The concept art images have no recorded source.
+
+### DEFECTS FOUND
+
+- Settings sync triggered Lyra audio ensures in test worlds (callstack in the smoke-test log).
+- CI test filter matched only one of four test groups (reading the workflow).
+- Risk ID collision R-28 (grep of PROJECT_AUDIT).
+
+### NEXT ACTION
+
+**Wire the AUG audio (`/Game/AUG/Sound`) into the A88 family's fire, tail and reload cues**, replacing Lyra's rifle sounds.
+
+---
+
+## Session 036 — 2026-09-28 — A-Series Rifles Fire with the AUG Recordings
+
+### COMPLETED
+
+- **Rifle fire audio from the ADFRC AUG recordings** (AUD-AUG-001, L-0021), in C++ because SoundCues cannot be
+  authored headlessly (Session 032b). `ASSCharacter` handles `GameplayCue.Weapon.Rifle.Fire` on every client:
+  - a random close shot (3 variants, ±3% pitch); unspatialised for the human shooter, 60 m falloff for everyone else;
+  - a distant shot layer (3 variants) heard to 600 m, and the `tailMeadows` outdoor tail;
+  - Lyra's `MSS_Weapons_Rifle2_Fire` muted. Found by logging: Lyra's weapon Blueprint spawns that MetaSound
+    **owned by the pawn**, not the weapon actor; it is matched by sound name so footsteps stay.
+  - Pistol and shotgun cues keep Lyra's sounds. All rifles (A88 family, A4, A416, A89, A25) share the AUG set for now.
+- Defect caught before shipping: AI pawns count as locally controlled on the server, so bot shots would have
+  played unspatialised to the player. The 2D close shot is now for `IsLocallyControlled() && IsPlayerControlled()` only.
+
+### FILES CHANGED
+
+`SSCharacter.h/.cpp`, this file, `Docs/evidence/S035_rifle_audio_live.txt`.
+
+### TESTING
+
+| Test | Command | Exit | Result | Evidence |
+|---|---|---|---|---|
+| Guard | `python Tools/validate_architecture.py` | 0 | PASS | console |
+| Build | `Build.bat SouthernSpearEditor Win64 Development` | 0 | Succeeded | console |
+| All tests | `UnrealEditor-Cmd ... -nosound -NoLoadingScreen ... "Automation RunTests SouthernSpear;Quit"` | 0 | 35/35 Success | `Build/tests_036.log` (not retained) |
+| Live, audio device on | Dry River, 8 bots, `LogTemp=Verbose`, no `-nosound` (timeout kill) | 124 | 257 rifle shots: AUG layers played, Lyra's MetaSound muted on 257/257, all spatialised (bots), no crash | `Docs/evidence/S035_rifle_audio_live.txt` |
+
+NOT RUN: **listening**. No one has heard the result; the mix levels (close 1.0, distant 0.7, tail 0.3–0.45) and
+whether Lyra's first-shot trigger leaks before the mute are unverified by ear. Reload and dry-fire sounds not wired.
+
+### ASSETS
+
+Uses AUD-AUG-001; nothing new.
+
+### RISKS
+
+- Mix levels unverified by ear (see NOT RUN).
+
+### DEFECTS FOUND
+
+- Bot shots would have played as the player's own (code reading after the first live log showed `local=1`).
+- Mute target was wrong at first: the MetaSound is on the pawn, not the weapon actor (live log, `muted=0` on 319 shots).
+
+### NEXT ACTION
+
+**Play a match with sound and judge the rifle audio by ear** (levels, first-shot leak, distance), then tune the three volumes.
+
+---
+
+## Session 037 — 2026-09-28 — Pre-Test Pass: Minimap Edge, First-Person Rifle Placement, Game Icon
+
+### COMPLETED
+
+- Rendered review of the current build (first person, a followed bot, front end) before the next playtest.
+- **Minimap showed a black band** (about 30% of the corner map) near the Dry River spawns: the view reached past the
+  edge of the ground. The corner map's centre is now clamped to the playable area (objectives + player starts);
+  measured on Dry River, a +15 m margin still left a strip, so there is no margin. The player arrow is clamped inside the frame.
+- **First-person rifle too large**: hip position `ss.FP.Hip` 38 13 -16 → **48 16 -20** (further forward, right and lower);
+  aiming is unchanged (it is computed from the sight socket).
+- **Game icon**: the producer's `Docs/images/SouthernSpear.ico` (10 sizes, 16–256 px) is installed as
+  `Build/Windows/Application.ico` by `Tools/build_game_icon.py` (the tool still generates one from the logo if the file is absent).
+- Committed the producer and parallel-agent images: `SouthernSpear.ico`, `conceptart1.png`, `conceptart2.png`.
+
+### FILES CHANGED
+
+`SSMinimapWidget.h/.cpp`, `SSFirstPersonSubsystem.cpp`, `Tools/build_game_icon.py`, `Docs/images/*`, evidence, this file.
+
+### TESTING
+
+| Test | Command | Exit | Result | Evidence |
+|---|---|---|---|---|
+| Guard | `python Tools/validate_architecture.py` | 0 | PASS | console |
+| Build | `Build.bat SouthernSpearEditor Win64 Development` | 0 | Succeeded | console |
+| All tests | `UnrealEditor-Cmd ... -nosound -NoLoadingScreen ... "Automation RunTests SouthernSpear;Quit"` | 0 | 35/35 Success | `Build/tests_037.log` (not retained) |
+| Rendered | Dry River `-game -windowed -SSShotAt=30`, before and after | 124 | Minimap fully filled; rifle smaller | `Docs/evidence/S037_before_fp.jpg`, `S037_after_fp.jpg` |
+| Icon | `python Tools/build_game_icon.py` then `cmp` | 0 | identical to the supplied file | console |
+
+NOT RUN: minimap on Red Gum, Saltbush and Selat Canal; a packaged exe showing the icon.
+
+### ASSETS
+
+`Docs/images/SouthernSpear.ico` (producer-supplied). Concept art: source not recorded (committed at the producer's request).
+
+### RISKS
+
+- The rifle optic texture carries a maker's mark (visible in first person): third-party branding to strip before release (R-27).
+
+### DEFECTS FOUND
+
+- Minimap black band (rendered review). Oversized first-person rifle (rendered review).
+
+### NEXT ACTION
+
+**Playtest with sound**: judge the rifle audio, the new first-person placement and the minimap on all four maps.
+
+---
+
+## Session 038 — 2026-09-28 — Window Icon, Game Splash, Hit Direction, Minimap Fixes; GPT-6 Findings
+
+### COMPLETED
+
+- **Icon (producer: "still the Unreal logo")**: development runs are `UnrealEditor.exe -game`, whose embedded icon is
+  Unreal's; `Application.ico` only reaches a packaged `SouthernSpear.exe`. New `USSWindowIconSubsystem` (SouthernSpearUI)
+  sets the window and class icons from `Build/Windows/Application.ico` (fallback `Docs/images/SouthernSpear.ico`) once
+  the game window exists (a first attempt at map load ran before the window existed and did nothing).
+- **Splash**: `Content/Splash/Splash.bmp` (960×240, from `Docs/images/header.png`) replaces Unreal's game splash
+  (engine lookup: project `Content/Splash/Splash.*` first). Editor splash unchanged.
+- **Hit direction**: `USSLocalHudState` gains `LastHitTime`/`LastHitFrom` and `HitBearing()`; `ASSCharacter` fills them
+  from Lyra's damage cue for the local player; the HUD shows a clay triangle on a 150 px ring pointing at the shooter,
+  fading over 1.5 s (alongside the existing clay flash).
+- **Defect found: the UI fonts have no ▲ glyph** (Barlow Condensed, Inter: checked with fontTools), so the minimap's player
+  arrow had always rendered as nothing. `SSGlyphTextures::Triangle()` (Core, runtime texture) now draws both arrows;
+  the minimap arrow has an ink outline (pale brass on sand was invisible).
+- **Minimap view**: Session 037's clamp to objectives + player starts pinned the arrow to the edge, because deployment
+  spawns lie outside that box. Replaced with downward ground traces at the view edges on each re-render, pulling the view
+  inward (at most half a view) where there is no ground; re-render is keyed to pawn movement, not the view centre.
+- **Blood** no longer spawns on the local player's own body (it filled the first-person view with pale sprites, seen in a capture).
+- Dev tool: `-SSExecAt=<s> -SSExec="cmd1|cmd2"` runs console commands as the local player after the pawn exists.
+- **GPT-6 (producer's parallel agent) reported, no git writes**: 16 local commits ahead of origin; `git lfs push --dry-run`
+  lists 258 candidate objects; `git lfs fsck` over the range passes (local objects valid); first LFS-introducing unpushed
+  commits 44e073d1, 0a20459c, 7c9b0210. The exact GH008 object list is unknown without the full rejection output. Branding
+  audit: 207 candidate PNGs by filename, not inspected visually, **no edits made**.
+
+### FILES CHANGED
+
+Core `SSLocalHudState.h`, `SSGlyphTextures.h` (new), `Tests/SSHudTests.cpp` (new); bridge `SSCharacter.cpp`;
+UI `SSWindowIconSubsystem.*` (new), `SSPlayerHudWidget.*`; ObjectivesUI `SSMinimapWidget.*`, `SSObjectiveHudSubsystem.*`;
+`Content/Splash/Splash.bmp`; `CLAUDE.md`; evidence; this file.
+
+### TESTING
+
+| Test | Command | Exit | Result | Evidence |
+|---|---|---|---|---|
+| Guard | `python Tools/validate_architecture.py` | 0 | PASS | console |
+| Build | `Build.bat SouthernSpearEditor Win64 Development` | 0 | Succeeded (one shadowing error fixed on the way) | console |
+| All tests | `UnrealEditor-Cmd ... -nosound -NoLoadingScreen ... "Automation RunTests SouthernSpear;Quit"` | 0 | 36/36 Success (new `Core.Hud.HitBearing`) | `Build/tests_038.log` (not retained) |
+| Icon | windowed `-game`, front end | 124 | `SSWindowIcon applied=1` (WM_GETICON returns the set icon) | log |
+| Hit arrow | Dry River, `-SSExecAt=14 -SSExec="EnableCheats|DamageSelf 20" -SSShotAt=14.2` | 124 | health 100→80, `SSHitDir` logged, arrow drawn (points behind: self-damage source is the pawn) | `Docs/evidence/S038_hit_arrow.jpg` |
+| Minimap | Dry River, Red Gum, Selat Canal, `-SSShotAt=20` | 124 | Dry River and Red Gum filled, arrow visible; Selat Canal mostly black (see RISKS) | `Docs/evidence/S038_minimaps.jpg` |
+
+NOT RUN: the taskbar button and the splash window were not seen (no desktop capture by rule); a real shooter's bearing
+in a firefight (the idle player was not hit in 75 s); Saltbush minimap.
+
+### ASSETS
+
+`Content/Splash/Splash.bmp` from the producer's `header.png` (`Docs/evidence/S038_splash.jpg`).
+
+### RISKS
+
+- Selat Canal's minimap is mostly black: the map is built over void and water, and the minimap pass skips translucency.
+- GH008 push block still open; decision needed (upload LFS objects after a rights check, rewrite history, or pointer-only remote).
+
+### DEFECTS FOUND
+
+- Missing ▲ glyph: minimap player arrow never rendered (screenshot zoom, then fontTools cmap check).
+- Session 037 minimap clamp hid the player at the edge (rendered capture).
+- Own-body blood in the first-person view (rendered capture).
+
+### NEXT ACTION
+
+**Producer playtest**: confirm the taskbar icon and splash on launch, and judge hit arrow, rifle audio and first-person placement.
+
+---
+
+## Session 039 — 2026-09-28 — Class Selection with a 3D Soldier and Weapon Preview; Smart App Control Block
+
+### COMPLETED
+
+- **Class screen redesigned (producer request)**: classes down the left (number, name, role, kit), a DEPLOY button,
+  and on the right a live 3D preview of the selected soldier and weapon as they appear in game, with the class name and kit.
+  Clicking a class now selects and previews it; DEPLOY confirms (it used to deploy on click).
+- **Preview stage** (`USSClassSelectWidget`, SouthernSpearUI; no new dependencies): spawned 2.5 km above the map while
+  the screen is open, destroyed on close. Lyra's invisible mannequin body plays the rifle hip-fire idle; the friendly
+  soldier parts are read from `B_SS_Soldier`'s `FriendlyParts` by reflection (SouthernSpearTeam is not a UI dependency)
+  and follow it; the class weapon (`B_SS_<W>_Weapon`, standard or Special Forces kit) is attached as Lyra attaches it
+  (`weapon_r`, yaw -90). Scene capture with a show-only list, sky and clouds off, three studio point lights, a lit
+  backdrop wall and a floor disc (engine shapes, palette tints); slow sway around a three-quarter view.
+- Found on the way (rendered captures): the sky rendered behind the show-only capture; point lights over-exposed the model;
+  dark rifles vanished against black (backdrop added); the backdrop plane faced away.
+
+### FILES CHANGED
+
+`SSClassSelectWidget.h/.cpp`; evidence; this file.
+
+### TESTING
+
+| Test | Command | Exit | Result | Evidence |
+|---|---|---|---|---|
+| Guard | `python Tools/validate_architecture.py` | 0 | PASS | console |
+| Build | `Build.bat SouthernSpearEditor Win64 Development` | 0 | Succeeded | console |
+| Rendered | Dry River windowed `-game -SSShotAt=12` (class screen opens on deploy) | 124 | Layout as requested; 3 ACR soldier in AMCU, Ops-Core, TBAS; A88 held (seen in a brightened zoom) | `Docs/evidence/S039_class_select.jpg`, `S039_class_preview_weapon.jpg` |
+
+NOT RUN: automation tests after the final build, and any rendered check of the last four builds: **Windows Smart App
+Control blocked `UnrealEditor-SouthernSpearUI.dll`** (GetLastError 4551; Code Integrity events 3077/3118,
+`Docs/evidence/S039_smart_app_control.txt`). Two earlier builds this session were blocked, then allowed after a code change;
+from 10:31 every rebuild was blocked, including one of the exact source that had loaded. The committed source is that
+last-loaded version. Selecting other classes (weapon swap) was not exercised on screen.
+
+### ASSETS
+
+None new (engine BasicShapes; existing soldier, weapon and Lyra animation assets).
+
+### RISKS
+
+- **R-37 (new): Smart App Control blocks locally built, unsigned module DLLs**, so the game does not start (SouthernSpearUI
+  fails to load). Not changeable by an agent (security setting). Producer decision: turn Smart App Control off (Windows
+  Security → App & browser control; Windows only allows turning it back on after a reset) or sign the binaries with a
+  trusted certificate.
+
+### DEFECTS FOUND
+
+- Sky behind the show-only capture; over-exposed studio lights; rifle invisible against black; backdrop facing away
+  (all from rendered captures).
+
+### NEXT ACTION
+
+**Producer: resolve the Smart App Control block (R-37)**, then rebuild, run the tests, and check the class screen with each class.
+
+---
+
+## Session 040 — 2026-09-28 — Soldiers Slimmed (Uniform Fit Cap), Fabric Material, Crisp Uniform Textures; Class Preview Polish
+
+### COMPLETED
+
+- **"Player models way too bulky"** (producer). Measured before changing: `Tools/Blender/probe_gear_fit.py` (uniform vertex
+  distance to the UE5 mannequin's skin, per region) gave medians of 1.3–1.6 cm (torso, forearm, thigh) but 3.0 cm on the
+  upper arm; a Blender silhouette render (`render_gear_silhouette.py`) showed ~12 cm cloth "wings" at both shoulders and
+  baggy thighs, a re-pose artifact of `adfrc_gear_rig.py` (Arma shoulder cloth left behind when the arms move onto the
+  mannequin). New optional step 2b, `SS_GEAR_CAP` (cm): cloth further than the cap from the skin is pulled in, keeping 15%
+  of the excess so pockets and folds stand proud. Compared 3.5 and 2.5 cm; **2.5 cm adopted** (8538 of 23187 vertices
+  moved; worst 12.3 cm before). Plate carriers are not capped (their offset is real). The MAF side uses the same uniform mesh.
+- **"Textures don't look good"**: resolution was not the cause (uniform colour 4096², normal/SMDI 2048²). Two causes found:
+  1. fabric used one flat roughness (0.85) with the Arma SMDI switched off (it rendered chrome under the weapon mapping):
+     new **`M_SS_FabricPBR`** (`setup_adf_soldier.py`): roughness 0.95→0.62 from the SMDI gloss, specular 0.15 + 0.35 × SMDI
+     specular, adjustable normal strength; hard items keep the weapon material;
+  2. the first capture after the change showed the AMCU pattern smeared: script-built materials carry no texture-streaming
+     data, so textures stayed at low mips. Soldier textures are now resident (never stream), capped at 2048 px (the fix the
+     weapons already use).
+- Class preview: the soldier (and his weapon) turns, the backdrop and lights stay put (the wall edge had swung into view);
+  right-hand three-quarter view where the rifle is carried; larger backdrop. Window icon confirmed in the producer's screenshot.
+
+### FILES CHANGED
+
+`Tools/Blender/adfrc_gear_rig.py` (fit cap; rebuild command uses `SS_GEAR_CAP=2.5`), `probe_gear_fit.py` and
+`render_gear_silhouette.py` (new); `Tools/Unreal/setup_adf_soldier.py` (fabric master, resident textures);
+`Art/Characters/ADF/SK_ADF_Uniform_G3.fbx`; soldier content under `SSExp_ObjectiveAssault/Characters/ADF`;
+`SSClassSelectWidget.cpp`; evidence; this file.
+
+### TESTING
+
+| Test | Command | Exit | Result | Evidence |
+|---|---|---|---|---|
+| Fit, before | `blender -b --factory-startup -P Tools/Blender/probe_gear_fit.py -- <uniform> <vest>` | 0 | uniform upper arm median 3.0 cm, p90 5.6 cm; others 1.3–2.4 cm | console |
+| Silhouette | `render_gear_silhouette.py`: original, cap 3.5, cap 2.5 | 0 | shoulder wings largely removed, legs slimmer | `Docs/evidence/S040_uniform_fit_before_cap35_cap25.jpg` |
+| Re-import | `UnrealEditor-Cmd ... setup_adf_soldier.py` | 0 | `ok: true` | `Build/adf_soldier_setup.json` |
+| Rendered | class screen `-SSShotAt=10`; bot follow `-SSShotAt=30` | 124 | slimmer soldier, crisp AMCU, fabric sheen | `Docs/evidence/S040_soldier_before_after.jpg`, `S040_soldier_ingame.jpg` |
+| Guard, build, tests | as in CLAUDE.md | 0 | PASS; Succeeded; 36/36 | `Build/tests_040.log` (not retained) |
+
+NOT RUN: Arma normal-map green-channel convention check (DirectX vs OpenGL is still unverified); texture memory measurement
+of the resident soldier set; the MAF look re-checked in a capture.
+
+### ASSETS
+
+`M_SS_FabricPBR` (new, original material); new SMDI texture imports for existing ADFRC items (L-0021, CH-ADF-001).
+
+### RISKS
+
+- Resident soldier textures raise memory use (bounded by the 2048 px cap); not measured yet.
+
+### DEFECTS FOUND
+
+- Uniform shoulder "wings" from the gear re-pose (silhouette render). Flat fabric shading (material review).
+  Low-mip uniform textures from script-built materials (rendered capture). Class-preview wall edge (producer screenshot).
+
+### NEXT ACTION
+
+**Verify the Arma normal-map green channel** (render a seam-heavy fabric patch with and without the flip under a low light)
+and set the import flag accordingly for soldier and weapon textures.
+
+---
+
+## Session 041 — 2026-09-28 — Weapon Optics Re-Placed Onto The Sight Line; Loadout Renders Rebuilt
+
+### COMPLETED
+
+- **Optics moved off the buffer tubes.** `Tools/Blender/adfrc_weapon.py` placed a mounted
+  optic at `eye.x / 2` — the midpoint of the trigger (the mesh origin) and the REAR sight — so
+  every scope on the A4, A416 and A25 sat over the buffer tube or the stock, and the EF88's
+  Spectr sat off the back of its rail. The rule now uses the model's own memory points:
+  the midpoint of `front_sight_axis` and `rear_sight_axis` at eye height, falling back to the
+  bullpup `op_axis` proxy when a weapon has no iron sights.
+- **The four exported meshes corrected** by `Tools/Blender/fix_weapon_optics.py` (the optic
+  source blends under `Art/ADFRC_BLEND/adfrc_optics_ss/` are no longer on disk, so the meshes
+  were edited rather than re-exported; the FBX settings match the exporter's exactly and every
+  non-optic part is byte-identical afterwards):
+  - A88 Spectr +0.131 m · A4 TA31 +0.305 m · A416 TA31 +0.245 m · A25 TA648 +0.309 m
+  - `manifest.json` for each weapon records the new `optic.centre_m` and a `placement` note.
+- **Loadout renders rebuilt** (`Tools/Blender/render_weapons.py`). The previous pipeline guessed
+  textures by filename across the whole ADFRC tree, which picked up other weapons' maps, and it
+  wired Arma's transparent `_CA` overlay maps to Base Color — that is why the scopes came out as
+  black holes and white reticle blobs. Materials now come from each weapon's export manifest
+  (colour + NOHQ normal + SMDI gloss/grime), with lens and reticle slots built as what they are.
+- **Lighting and framing fixed**: the area lights were placed with hand-written Euler angles that
+  aimed them away from the weapon; they are now derived from the offset like the camera. Power is
+  scaled to each model's size, exposure is set per material, and the camera fits the real
+  silhouette (mesh vertices, iterated) instead of the bounding box, which was clipping muzzle and
+  stock.
+- **AKM textures found.** The AKM's maps are packed in its .blend, so `has_data` was False and the
+  lookup silently returned nothing — the rifle rendered as default white plastic. The AKM now
+  renders with its packed base colour, normal, roughness, metallic and AO.
+- **A89 shown as the ADFRC F89** (producer decision). The in-build A89 mesh came from
+  `ADFRC_F89_Minimi_MLOD`, which is assembled from Minimi parts plus Maximi (M249) and Mag58
+  parts and reads as an M249. The site now renders `ADFRC_F89_Minimi_Mod_MLOD` — F89_Base_01/02,
+  F89_MK3_01, MK3_Handguard, with their own textures — and the card, alt text and
+  ASSET_REGISTER all say so.
+- Website rebuilt and published; `Docs/Website/*` updated.
+
+### TESTING
+
+| Check | Command | Result |
+|---|---|---|
+| Renders | `blender --background --factory-startup -P Tools/Blender/render_weapons.py` | 6/6 rendered; texture report shows every slot resolved to a real map |
+| Render statistics | `python Build/audit/render_check.py` | opaque-pixel means 102–150, crushed blacks ≤ 2.1%, blown highlights ≤ 0.2% (AKM 0.7%) |
+| Optic placement | `blender -P Build/audit/probe_slots_geom.py` | scopes now between the sights; every other slot's bounds unchanged |
+| Sight derivation | `blender -P Build/audit/sight_points.py` | centres from the Arma memory points, not hand-tuned |
+| Optic-only renders | `blender -P Build/audit/scope_check.py` | lenses and reticles render as glass, no black holes or white blobs |
+| Website (local) | `node interaction_test.js`, `node responsive_audit.js`, `node text_audit.js` | all checks passed; 9 viewports × 2 pages clean |
+| Website (live) | `node live_verify.js` | sections incl. `loadout`; no console errors, no failed requests |
+
+### ASSETS
+
+- No new third-party assets. `Docs/images/weapons/*.png` re-rendered (studio renders of existing
+  models). The A89 render changes provenance from `SM_A89.fbx` to `ADFRC_F89_Minimi_Mod_MLOD`,
+  both L-0021 material under the recorded website promotion exception.
+- ASSET_REGISTER website-promotion exception updated to name the ADFRC F89 stand-in.
+
+### RISKS
+
+- **R-38 — the game FBX files were edited in place.** The optics were moved without re-running
+  the exporter (its optic sources are gone), so `adfrc_weapon.py`'s corrected rule and the
+  meshes agree only because `fix_weapon_optics.py` applied the same deltas. Re-exporting a
+  weapon from source in future will overwrite the mesh; check the optic position afterwards.
+- The A89 shown on the site is not the mesh in the build. The build still carries the
+  Minimi/Maximi variant; swapping it to the F89 is a separate change to `SM_A89.fbx`.
+
+### DEFECTS FOUND
+
+- Optic mounted over the stock on all three scoped rifles (producer review of the renders; root
+  cause found in `adfrc_weapon.py`).
+- Renders showed no texture: filename-guessed texture lookup, overlay maps wired as diffuse.
+- Lights aimed away from the subject; bounding-box framing clipping the weapons.
+- Packed-texture lookup keyed on `has_data` (AKM rendered untextured).
+- ADFRC blend collector left the six-triangle LOD proxy boxes in the scene, so they rendered
+  as multi-metre grey planes around the A89.
+
+### NEXT ACTION
+
+**Swap the build's A89 mesh to the ADFRC F89** so the game and the site show the same weapon, or
+record a decision to keep the Minimi variant in the build and label it as such.
+
+---
+
+## Session 042 — 2026-09-28 — Player-Model Renders For Both Sides: BUILT, PUBLISHED, THEN WITHDRAWN
+
+### OUTCOME
+
+**The Soldiers section was published and then withdrawn in the same session.** The
+producer reviewed the renders on the live site and rejected them: the body's proportions read
+as a mannequin, not a soldier. The section, its nav link, its styles and its published image
+derivatives have all been removed. The renders and the tooling remain in the repository for
+internal use. This entry records what was built, what was wrong with it, and what was learned,
+because the tooling work is sound and will be reused when there is a body worth rendering.
+
+### BUILT
+
+- **`Tools/Blender/render_soldiers.py`**, producing matched studio renders of both sides: 3 ACR
+  in CMECU carrying the A88, MAF in the red-earth set carrying the A4.
+- **Camouflage retuned to the producer's reference photography** (Australian Disruptive
+  Pattern-style uniform shots). `Build/audit/tune_camo.py` measures the fabric in the reference
+  and searches the palette for the closest match instead of eyeballing it: reference lum
+  p10/p50/p90 = 40/129/235, median saturation 0.46, oxide-red population 8.7%. The old four-tone
+  set had no pale ground and no red and rendered as a khaki wash (sat 0.23, nothing above 175).
+  The new seven-tone set scores lum 43/107/205, sat 0.47, red 10.2%. Still noise-generated,
+  still original, still not AMCU/Auscam (ADR-016). **This part is kept** — it is the game's
+  own texture, not a website asset.
+- Renderer bugs found and fixed along the way, all by measuring rather than looking:
+  - Each kit FBX carries its own armature scaled 0.01 to match the body's centimetre rig;
+    deleting it stripped the scale and blew the kit up 100x, which put a 1.8 m figure inside a
+    183 m camera frame and rendered the MAF as a torso with no legs.
+  - The camera was fitted to rest-pose vertices (the A-pose) rather than the evaluated mesh.
+  - `pbr()` looked for `T_SS_<set>` where the files are `T_SS_<set>_BC`, so **no base colour
+    was ever linked** and both soldiers rendered as untextured default grey.
+  - The weapon was anchored to the midpoint of the two wrists, which put it in mid-air beside
+    the figure. It is now fitted by construction: the grip point is placed on the right wrist
+    and the bore swung at the left, bringing each wrist to within 44–59 mm of the rifle
+    (a hand's width) from several metres.
+  - `bpy.ops.object.mode_set` returns CANCELLED with no exception unless the object is *also*
+    selected, so pose-bone rotations written from OBJECT mode were silently discarded.
+
+### WHY IT WAS WITHDRAWN
+
+- **The body is the blocker.** It is the L-0016 Fab mannequin — which ASSET_REGISTER already
+  tracks as C-001, "Manny is a placeholder; original body required" — wearing L-0021 kit fitted
+  to a *different* skeleton. The proportions read as a dummy and the carrier sits on the torso as
+  flat slabs. Neither lighting nor texture work fixes a fitting and silhouette problem, and the
+  producer's read was that the body is the most obviously wrong thing in the image.
+- **The rig cannot be posed properly.** The bone chain is disconnected: the upperarm's tail sits
+  16 cm from the lowerarm's head while the mesh spans the gap, so rotating the upperarm does not
+  carry the wrist. IK is impossible on it. `Build/audit/solve_carry.py` instead searches the four
+  arm angles against carry targets and converges to a 1.4 mm residual, which is good enough to
+  put the hands on the weapon but cannot make the pose read as natural.
+- **The preview tooling failed for the whole session** ("produced no frames"), so the renders
+  were never visually checked before publishing, and two changes made while guessing at numbers
+  made the result worse rather than better (see DEFECTS).
+
+### DEFECTS FOUND
+
+- The weapon floated beside the figure instead of being held (midpoint-of-wrists anchoring).
+- No base colour was ever linked; both soldiers were untextured grey.
+- The gear rendered 100x oversized and the figure was framed out of shot.
+- The MAF render had no legs and the camera fitted the rest pose.
+- **UV tiling was the wrong fix and was reverted.** The FBX lays UVs 0..1 over the whole 1.8 m
+  figure, so the camo is genuinely coarse. Scaling the UVs 7x (camo) and 16x (fabric) was tried
+  on the reasoning that finer blobs would read better; at render resolution it turned the
+  pattern into high-frequency noise and looked worse. Reverted to 1.0, with a note that the
+  correct fix is UVs authored at the right scale in the source meshes, not a global multiplier.
+- **Flat ambient was the wrong fix and was reverted.** Raising the world background from 0.35 to
+  0.85 to open up crushed blacks removed the form-shaping entirely and made the figures read as
+  cardboard. Reverted to 0.35.
+- Both of the above were made without ever seeing the render, because the preview capture tool
+  was unavailable. **Process lesson: publish nothing visual that has not been looked at.**
+
+### ASSETS
+
+- No new third-party assets. `Docs/images/soldiers/*.png` are studio renders of existing models,
+  now internal-only. Nothing from this session is published.
+- The CMECU and MAF texture retune is kept and applies to the game, not the website.
+- ASSET_REGISTER and LICENCE_REGISTER L-0022 record the camouflage work and the withdrawal.
+
+### RISKS
+
+- **R-39 (closed).** The soldier renders were two restricted layers in one image (L-0016 body,
+  L-0021 kit) with no single material whose clearance carried the picture. Withdrawn, so the
+  exposure no longer exists.
+
+### NEXT ACTION
+
+**Do not render the player model for the website until C-001/C-002 has an original body.** The
+renders, the pose solver and the camera/lighting work in `render_soldiers.py` are ready to reuse
+the moment there is a mesh worth rendering. The gap the section was filling is better filled by a
+frozen in-engine capture, which is the site's top outstanding asset.
+
+
+---
+
+## Session 044 — 2026-09-28 — Dry River Expanded And Dressed From Packs, Kill Feed, Lyra Pops Removed, Bluestone Quarry, Gloved First-Person Arms
+
+### COMPLETED
+
+- **Dry River ground and size** (producer screenshots: grey checker, "red dirt slightly off"). The Rural Australia
+  `_NA` textures are packed masks; sampled as normals they failed the material and Unreal drew its checker. Terrain
+  and outer skirt now both use the pack's `MI_Ground_Dirt_01` (world-space UVs), so there is no seam; Nanite is off on
+  the terrain mesh (it showed flat low-mip texture). Playable area 340 x 240 m (`dryriver_world.PLAY_HALF_X/Y`), with
+  boundary volumes and a matching nav volume.
+- **Dry River dressing from packs, not blocks** ("assets added are very poor quality, just a block"):
+  - textured corrugated shelters built in Blender (`dryriver_shelters.py`: lean-to, three-bay shed, tank);
+  - Megascans corrugated iron (`setup_fab_materials.py`: `M_SS_ScanPBR`, `MI_SS_CorrugatedIron`), replacing Singapore
+    Canal metal that carried Asian ornament;
+  - yard clutter, sandbag sangars and supply dumps from Singapore Canal *generic* props;
+  - Rural Australia rocks, logs and trees, with hidden trunk colliders;
+  - tinted quarry ledges, rock clusters and 560 creek stones from the Scene Quarry pack.
+  Old blockout crates, barrels and scrub were swapped in place; puddles and pale ground patches were removed.
+- **Red Gum homestead textured** from pack materials (edits to the other agent's `import_redgum_homestead.py` and
+  `redgum_homestead.py`; those files and the map stay uncommitted with that agent's work).
+- **Kill feed** (producer): top-right "killer · WEAPON · victim" in viewer-relative colours, plus "ELIMINATED <name>"
+  below the crosshair for the viewer's own kills. Server binds each pawn's `ULyraHealthSet::OnOutOfHealth` and sends
+  per-viewer entries through `USSKillFeedRelay` (a client RPC on each PlayerController). Rules (`FSSKillFeedRules`) are
+  in Core, with a new test. Lyra's message path could not be used: `FLyraVerbMessage` is not exported, and the game
+  state multicast only broadcasts on clients.
+- **Lyra presentation removed** (producer: "weird lyra blocks when damaged", "hit points above the enemy"): the bridge
+  destroys Lyra number-pop and nameplate components client-side; the log showed 11 removed in a live match. Lyra's
+  red/blue Tab scoreboard is collapsed while ours shows.
+- **Bluestone Quarry** (`L_Bluestone_01`, producer: "activate that african map"). The African Slate Quarry is a
+  studio-lit ~70 x 80 m diorama, not a level, so the generic builder (`build_objective_map.py`, key `quarry`) now
+  does the following:
+  - strips the showroom and the light bars above the pit;
+  - gives the pack meshes complex collision;
+  - adds outdoor daylight and fog;
+  - rings the pit with a rim at each side's measured edge height, dressed with the pack's own rocks and bushes and
+    textured with a new world-aligned material (`M_SS_WorldGroundVT`);
+  - adds boundary walls and three objectives.
+  All legs connect. It is on the operations menu. Paused for fine-tuning on the producer's instruction.
+- **First person: gloved arms view model** (producer decision on ADR-024 S2: "arms view model", recorded here). The
+  Fab M4 and G17 FPS packs, with their real-weapon models removed (`Tools/Blender/fp_arms.py`), give draw, fire,
+  reload, empty reload and holster. The A-series weapon rides the pack's weapon bone at a grip measured from the idle
+  pose. Pistols switch to the G17 arms automatically (held mesh shorter than 35 cm). Reloads are time-scaled to
+  Lyra's montage; walk bob, sway, sprint lowering and fire kick are procedural. Sleeves use the soldiers' AMCU G3 shirt
+  fabric and the hands a coyote glove, via a per-polygon UV mask (`make_fp_arms_texture.py`). Weapons moved forward
+  twice on producer feedback (`ss.FP.ArmsOffset 17 0 -2`, `ss.FP.WeaponOffset 9 0 -3`).
+- **Own-body shadow** ("da Vinci shadow"): hidden meshes stopped refreshing bones, so the shadow stayed in the bind
+  pose. The local body and gear now keep posing while hidden.
+- **VibeUE** (MIT, git-ignored clone in `Plugins/VibeUE`) builds and loads. Its services are Python-callable from our
+  commandlets, verified: 800+ functions including AnimGraph, AnimSequence and Skeleton; CLAUDE.md section added.
+  The Unreal MCP and EditorToolset plugins are enabled in the `.uproject`, with VibeUE marked `Optional`. Auto-starting
+  the editor MCP server was **not** configured (blocked by the permission classifier; the producer's call).
+- **ADR-028** (producer): every Fab asset is cleared for our use; no per-asset licence lookups.
+- Asset review for the producer: the Animation Starter Pack (deaths, prone, hit reacts) is the next animation source;
+  Vibe3D (scripted collision, LODs, UVs) and Universal PCG Scatter are useful. See NEXT ACTION.
+
+### FILES CHANGED
+
+- **Code:**
+  - `Plugins/SouthernSpearCore`: `SSKillFeedState.h/.cpp`, `Tests/SSKillFeedTests.cpp`;
+  - `SouthernSpearLyraBridge`: `SSKillFeedSubsystem.h/.cpp`, `SSLyraReflection.h`, `SSHudStateSubsystem.h/.cpp`,
+    `SSFirstPersonSubsystem.h/.cpp`;
+  - `SouthernSpearUI`: `SSKillFeedWidget.h/.cpp`, `SSPlayerHudSubsystem.h/.cpp`, `SSMenuWidget.h/.cpp`.
+- **Tools:** `Tools/Unreal/expand_dryriver.py`, `setup_fab_materials.py`, `setup_fp_arms.py`, `build_objective_map.py`;
+  `Tools/Blender/dryriver_shelters.py`, `dryriver_skirt.py`, `fp_arms.py`; `Tools/Common/dryriver_world.py`;
+  `Tools/Textures/make_fp_arms_texture.py`.
+- **Content:** `Content/Maps/L_DryRiver_01.umap`, `L_Bluestone_01.umap`; `Content/Art/Blockout/SS_MAP_DryRiver_01`,
+  `SS_MAP_DryRiver_Skirt`; `Content/Art/Environment/DryRiver/*`, `Fab/*`; `SSExp_ObjectiveAssault/Content/FirstPerson/*`.
+- **Config and docs:** `SouthernSpear.uproject`, `.gitignore`, `CLAUDE.md`; `Docs/DECISION_LOG.md` (ADR-028);
+  `Docs/LICENCE_REGISTER.md`; this file; `Docs/evidence/S044_*.jpg`.
+
+### TESTING
+
+| Test | Command | Exit | Result | Evidence |
+|---|---|---|---|---|
+| Guard | `python Tools/validate_architecture.py` | 0 | PASS | console |
+| Build | `Build.bat SouthernSpearEditor Win64 Development` | 0 | Succeeded (after every C++ change) | console |
+| Automation | as in CLAUDE.md | 0 | 37/37 `Result={Success}` | `Build/tests_044.log` (not retained) |
+| Kill feed live | bot match, `-FORCELOGFLUSH` | 0 | kill lines with weapons and "(you)"; producer: "kill feed looks good" | `Docs/evidence/S044_kill_feed.jpg` |
+| Bluestone passes | `SS_MAP=quarry SS_PASS=level|nav ... build_objective_map.py` | 0 | ok true; legs [T,T,T,T]; deployments 120 m apart, 158 m walk | `Build/objective_map_quarry_*.json`, `Docs/evidence/S044_bluestone_quarry.jpg` |
+| First person | `-game -SSShotAt ... -SSExec="ss.FP.DebugSlot 0/1"` | killed after shot | rifle and pistol held in gloved hands, AMCU sleeves | `Docs/evidence/S044_fp_arms_rifle_pistol.jpg` |
+| Dry River | `expand_dryriver.py` | 0 | ok true, nav 3 path points; the two known dressing checks fail as before | `Docs/evidence/S044_dryriver_*.jpg` |
+
+NOT RUN:
+- the own-body shadow is not visually confirmed (no capture caught it in frame);
+- the Lyra Tab scoreboard hide was not seen in play (no scripted Tab);
+- a damage hit was not captured after the number-pop removal;
+- ADS with the new arms was not tuned;
+- `verify_dressing.py` was not re-run after expansion;
+- nav was not rebuilt for Red Gum.
+
+### ASSETS
+
+- **Fab, cleared under ADR-028:** M4 and G17 FPS animation packs (arms and clips only; weapon models dropped); African
+  Slate Quarry (the Bluestone base, as ADR-022 did for Red Gum, on producer direction); Megascans Military Trenches
+  Corrugated Wall (texture set).
+- **Other packs:** Singapore Canal generic props and wood materials on Dry River (no architecture or ornament);
+  Rural Australia ground, rocks, logs and trees.
+- **Not used:** the gloves pack (CC BY 4.0, "Bobeer"; credit if used).
+- **Tooling:** VibeUE (MIT).
+- **Original:** `M_SS_WorldGroundVT`; the arms sleeve/glove textures are derived from the pack's shading and the ADFRC
+  G3 fabric (L-0021).
+
+### RISKS
+
+- **R-40:** first-person arms reuse Fab pack skeletons that differ from the body; third-person and first-person
+  reloads are two separate animations kept in step by time scaling, not by shared data.
+- **R-41:** `L_Bluestone_01` references the git-ignored Scene Quarry pack, so a clone needs the pack from Fab (as R-19).
+
+### DEFECTS FOUND
+
+- Checker ground from packed mask textures sampled as normals (producer screenshot).
+- Studio lights, showroom and void edges in the quarry scene (probe and captures).
+- Arms texture UV split wrong twice: forearms and hands overlap in U, so a per-polygon mask was needed (in-game capture).
+- Pistol arms culled after a mesh swap (bounds; capture).
+- The asset-rename step double-prefixed clips on re-import (import report).
+
+### NEXT ACTION
+
+**Deaths and hit reactions:** retarget the Animation Starter Pack deaths and hit reacts to the UE5 mannequin, play them
+on death, then blend into ragdoll.
+
+---
+
+## Session 046 — 2026-09-28 — Ragdoll Deaths, No Lyra Cubes, KILLED IN ACTION, Re-Deploy, Quieter HUD, Working Scopes, Dry River Farm Props
+
+### COMPLETED
+
+- **Build unbroken** (producer: "SouthernSpear could not be compiled"): the death work had three compile errors (a
+  non-existent collision-profile constant, a missing ability-system include, and a `TeamOf` clash between the
+  scoreboard's local helper and `SSLyraReflection::TeamOf` under the unity build; the helper is now
+  `ScoreboardTeamOf`).
+- **Deaths** (producer: "ragdoll / death animations?"): `ASSCharacter` ragdolls the body 0.12 s after death with a
+  push along the killing shot (from the damage cue), keeps the corpse 15 s instead of Lyra's instant hide-and-destroy,
+  and hides the first-person arms and weapon once the body goes limp. 17 ragdolls in a 10-bot match, no new errors.
+- **Lyra cubes gone** (producer: "the spawn 'weird cubes' needs to go"): `ShouldAcceptGameplayCue` refuses
+  `GameplayCue.Character.Death` (NS_DeathCubes) and the spawn cue (`GameplayCue.Character.Spawn`, GCNL_Spawning's cube
+  materialise). The log showed 50 spawn cues refused in one match.
+- **KILLED IN ACTION** (producer): on the viewer's own death the screen darkens and "KILLED IN ACTION / BY <name> ·
+  <weapon>" shows for 4 s (`FSSKillFeedRules::RecentLocalDeath`, tested); the class selection opens after it.
+- **RE-DEPLOY** in the match menu (producer): the menu sets a request in `USSLocalHudState`; the bridge sends it
+  through the player controller's relay (`USSKillFeedRelay::ServerRedeploy`) and the server applies Lyra's own
+  self-destruct, so the player respawns with the selected class. The banner then reads "RE-DEPLOYING".
+- **HUD re-laid, after America's Army 2** (producer: "a lot at the top of the screen", "kill feed does push under the
+  mini map"; AA2 kept objectives small in the top-right corner):
+  - minimap 200 px at the top right, with a compact objective block the same width directly under it;
+  - the kill feed moved to the top left;
+  - the compass is a slim strip alone at the top centre.
+- **Scopes work** (producer: "scopes don't work at all"; the eye looked at the back of a solid optic). Aiming a
+  magnified optic hides the view model, narrows the view by the optic's power and draws an eyepiece (black surround,
+  round mask, stadia, post, aim point). The power comes from `USSLocalHudState::OpticMagnificationFor`, tested:
+  A25 6x, the A88 family and A89 4x, others 0 (iron or red dot, aimed over the view model as before). The producer
+  confirmed "scope on the A88 is working".
+- **Dry River farm props** (producer: "replace the 'cars' that were just boxes with actual cars ... add barns, the
+  windmill, wells"). New re-runnable pass `Tools/Unreal/farm_dryriver.py`:
+  - the three box wrecks become the Fab car wreck at the dressing plan's wreck positions;
+  - a windmill, a water tower, a hand pump and the StoneWell well at the Water Point;
+  - at the Farmstead, the buildings stand where the blockout designed them (`MAPS_DRYRIVER.md` 4.4): the open pole
+    barn as the objective's shed, the enclosed barn as the residence, and a timber rail fence on the stock-pen line;
+  - also a pump, a well, a caravan, an outhouse, and 14 fuel drums by the sheds and barns.
+- **Prop textures** (producer: "all of these have no textures on them and look strange"). Four Fab downloads
+  (windmill, barn, old barn, fuel barrel) shipped their FBX without the texture files it references. Their slots now
+  take textured materials: timber and roofing iron from the Dry River shelters, and rusted or galvanised metal from
+  the Modular Rural Cabin pack. The Cabin pack's own wood and roof came out green and blotchy on these meshes, so
+  they were replaced. The drums became the Cabin pack's textured drum. The pump's textures were embedded in its FBX
+  (`Tools/Blender/extract_fab_textures.py`), and the water tower ships its PNGs: both now have their own PBR
+  instances.
+- **Greybox out of the terrain** (producer screenshot: red wall and slab at the objective): the farm shed, residence,
+  pen rails and 2 m layout-marker slabs no longer export into the terrain FBX (`dryriver_blockout.py`; CSVs
+  byte-identical), re-imported alone by `Tools/Unreal/reimport_dryriver_terrain.py` (120 fewer triangles).
+- Map work then halted on the producer's instruction ("we will get there and improve them down the track").
+
+### FILES CHANGED
+
+- **Core:**
+  - `SSKillFeedState.h/.cpp` (`RecentLocalDeath`);
+  - `SSLocalHudState.h` (re-deploy request, optic power);
+  - `SSGlyphTextures.h` (`ScopeMask`);
+  - tests `SSKillFeedTests.cpp`, `SSHudTests.cpp`.
+- **Bridge:**
+  - `SSCharacter.h/.cpp` (ragdoll, corpse, cue refusal);
+  - `SSFirstPersonSubsystem.cpp` (dead or scoped: hide the view model);
+  - `SSFirstPersonCameraMode.cpp` (scope FOV);
+  - `SSHudStateSubsystem.cpp`;
+  - `SSKillFeedSubsystem.h/.cpp` (`ServerRedeploy`);
+  - `SSScoreboardSubsystem.cpp`.
+- **UI:** `SSKillFeedWidget.h/.cpp`, `SSPlayerHudWidget.h/.cpp`, `SSPlayerHudSubsystem.h/.cpp`, `SSMenuWidget.h/.cpp`.
+- **ObjectivesUI:** `SSObjectiveStatusWidget.cpp`, `SSMinimapWidget.cpp`, `SSCompassWidget.cpp`.
+- **Tools:** `Tools/Unreal/farm_dryriver.py`, `reimport_dryriver_terrain.py`; `Tools/Blender/extract_fab_textures.py`,
+  `dryriver_blockout.py`.
+- **Content:** `Content/Maps/L_DryRiver_01.umap`; `Content/Art/Blockout/SS_MAP_DryRiver_01` (fbx, uasset, blend);
+  `Content/Art/Environment/DryRiver/Farm/*`.
+- **Docs and evidence:** this file; `Docs/evidence/S046_*.jpg`.
+
+### TESTING
+
+| Test | Command | Exit | Result | Evidence |
+|---|---|---|---|---|
+| Guard | `python Tools/validate_architecture.py` | 0 | PASS | console |
+| Build | `Build.bat SouthernSpearEditor Win64 Development` | 0 | Succeeded after every C++ change | console |
+| Automation | as in CLAUDE.md | 0 | 37/37 `Result={Success}` | `Build/tests_046.log` (not retained) |
+| Ragdoll | 10-bot Dry River match, `-FORCELOGFLUSH` | killed | 17 `SSRagdoll` lines, no new errors | log |
+| Cubes | 8-bot match | killed | 50 `SSCue refused GameplayCue.Character.Spawn`; death cue refused in code | log |
+| KIA | `-SSExec="EnableCheats\|DamageSelf 500"` + capture | killed | banner, darkened view, no arms | `Docs/evidence/S046_killed_in_action.jpg` |
+| HUD layout | 8-bot match capture | killed | compass top centre, minimap and objectives top right, feed top left | `Docs/evidence/S046_hud_layout.jpg` |
+| Scope | `-SSExec="ss.FP.ForceAim 1"` + capture | killed | eyepiece, reticle, 4x view, view model hidden | `Docs/evidence/S046_scope_view.jpg` |
+| Farm pass | `farm_dryriver.py` | 0 | ok true (wrecks 3, windmill, tower, pumps, wells, barns, 13 fence segments, drums) | `Build/farm_dryriver_report.json` |
+| Terrain | `reimport_dryriver_terrain.py` | 0 | ok true, 15096 → 14976 triangles, complex-as-simple | `Build/reimport_dryriver_terrain.json` |
+| Nav | `build_dryriver_nav.py` | 0 | ok true, 6 path points | `Build/dryriver_nav_report.json` |
+
+NOT RUN:
+- **RE-DEPLOY** was not exercised in play (no scripted menu click);
+- the **final Farmstead layout** (barns in their designed places, pen fence, greybox gone) was not captured: the
+  producer halted map work first. `S046_dryriver_farmstead.jpg` shows the textured barns before the move;
+- scopes with the A25 (6x) and A89 were not captured;
+- the pistol still has no iron-sight alignment (producer, end of session).
+
+### ASSETS
+
+- **Fab, cleared under ADR-028:**
+  - Old Rustic Hand Water Pump and Water Tower, with their own textures;
+  - Red car wreck, American Old Windmill, Barn and Old Barn, via the Ravenshoe agent's prepared meshes.
+  - Seller AI-use flags on some of these are recorded by that agent (ADR-029).
+- **Packs in `Content/`, referenced in place, not committed (ADR-021):**
+  - Modular Rural Cabin: drums, caravan, outhouse, fence, rust and metal materials;
+  - StoneWell: the well;
+  - Singapore Canal timber; Megascans corrugated iron (already in use).
+  - Both new packs had complex-as-simple collision set on the used meshes.
+
+### RISKS
+
+- **R-42:** Dry River now references the Ravenshoe agent's prop meshes and two further git-ignored packs (Modular
+  Rural Cabin, StoneWell): a clone needs those packs, as R-19/R-41.
+- **R-43:** the Farmstead's barns replace the designed shed and residence by footprint, not by exact cover shape (the
+  open barn is 12 × 8 m against the 18 × 10 m shed); sight lines through the objective were not re-audited.
+
+### DEFECTS FOUND
+
+- Death code broke the build: missing include, a wrong constant, and a unity-build name clash (build log).
+- First-person arms stayed on screen after death (capture).
+- Scoped aim looked at the back of a solid optic (capture).
+- Fab downloads missing their textures, so props rendered flat (producer).
+- The Cabin materials rendered green on foreign meshes (producer screenshot).
+- The farm pass deleted the box wrecks and then its own replacements on a re-run. Fixed: it now places from the
+  dressing CSV.
+- Greybox marker slabs and pen rails were still in the terrain mesh (producer screenshot).
+
+### NEXT ACTION
+
+**First-person weapon handling:**
+- iron-sight alignment for the pistol;
+- a better grip fit in the gloved hands, trying the Fab gloves pack (CC BY 4.0, "Bobeer": credit line);
+- ADFRC weapon animations, textures, models and sounds, using the ADFRC agent's `ASSET_MANIFEST.json` and
+  integration guide.
 
 ---
 

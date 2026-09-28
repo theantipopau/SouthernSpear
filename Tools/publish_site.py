@@ -39,6 +39,7 @@ REMOTE = "https://github.com/theantipopau/southernspear-site.git"
 
 FILES = {
     "index.html": "Site/index.html",
+    "changelog.html": "Site/changelog.html",
     "styles.css": "Site/styles.css",
     "site.js": "Site/site.js",
     "README.md": "Site/README.site.md",
@@ -79,6 +80,23 @@ RETIRED = (
     # SVG is dead weight. Anything dropped from the build must be listed here
     # or it stays published forever.
     "assets/favicon.svg",
+    # The player-model renders were published for one session and withdrawn:
+    # the body is the L-0016 Fab mannequin (a placeholder the asset register
+    # tracks as C-001) wearing L-0021 kit fitted to a different skeleton, and the
+    # proportions read as a dummy. See Session 042 in Docs/CHANGELOG.md. The
+    # renders stay in Docs/images/soldiers/ for internal use.
+    "assets/soldiers/soldier-3acr-720.avif",
+    "assets/soldiers/soldier-3acr-720.png",
+    "assets/soldiers/soldier-3acr-720.webp",
+    "assets/soldiers/soldier-3acr-1200.avif",
+    "assets/soldiers/soldier-3acr-1200.png",
+    "assets/soldiers/soldier-3acr-1200.webp",
+    "assets/soldiers/soldier-maf-720.avif",
+    "assets/soldiers/soldier-maf-720.png",
+    "assets/soldiers/soldier-maf-720.webp",
+    "assets/soldiers/soldier-maf-1200.avif",
+    "assets/soldiers/soldier-maf-1200.png",
+    "assets/soldiers/soldier-maf-1200.webp",
 )
 
 

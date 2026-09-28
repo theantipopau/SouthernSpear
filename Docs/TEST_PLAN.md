@@ -318,6 +318,7 @@ Every session appends to this table. **Empty means not tested — not passed.**
 | 2026-09-26 | Dry River dressing data | `python Tools/verify_dressing.py` | **PASS 19/19** | `CHANGELOG.md` Session 006 |
 | 2026-09-26 | Game Feature activation | `-game` on `/ShooterMaps/Maps/L_Expanse` | **PASS** (ShooterCore Active on demand) | `Docs/evidence/G031_gamefeature_activation_keylines.txt` |
 | 2026-09-26 | SouthernSpear.Objectives (pure + world) | `Automation RunTests SouthernSpear` | **PASS**; suite 26/26 | `Docs/evidence/G040_tests_keylines.txt` |
+| — | Two-player authority smoke | `Automation RunTests SouthernSpear.Network.Gameplay.TwoPlayerAuthoritySmoke` | **PASS** (2026-09-28, with `-NoLoadingScreen`) | `Docs/evidence/S035_tests.txt`; editor test worlds, not dedicated-server acceptance (R-09). |
 | 2026-09-26 | Objective Assault live game | `-game` on `/Game/Maps/L_DryRiver_01` | **PASS**: experience loaded, round 1 InProgress | `Docs/evidence/G040_dryriver_objective_assault_game_keylines.txt` |
 | — | Dedicated server | — | **NOT RUN** | R-09 |
 

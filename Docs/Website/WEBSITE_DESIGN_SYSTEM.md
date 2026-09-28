@@ -133,7 +133,30 @@ Rules:
 `#training` (stacked list + 3-up) → `#operations` (diagram + 2-up) →
 `#maps` (auto-fit cards) → `#media` (showcase + gallery) →
 `#development` (auto-fit status) → `#roadmap` (timeline rail) →
-`#changelog` (controls + grouped list) → `#faq` (narrow accordion).
+`#loadout` (weapon render cards) → `#latest` (latest-session panel) →
+`#faq` (narrow accordion).
+
+**Loadout imagery — producer decision of 2026-09-28.** The `#loadout` section shows studio
+renders of the current internal weapon models: the ADFRC-derived A88, A4, A416 and A25, the
+ADFRC F89 shown as the A89 stand-in, plus the sourced AKM as a labelled reference render.
+`Tools/Blender/render_weapons.py` renders them into `Docs/images/weapons/`. Materials come
+from each weapon's own export manifest (`Art/Weapons/*/ADFRC/manifest.json`), which names the
+colour and normal map for every material slot; the sibling `_NOHQ` and `_SMDI` maps complete
+the set. Looking textures up by filename across the tree is not safe — the same stem ships in
+several weapon packs — and Arma's `_CA` maps are overlay layers, not diffuse: wired to Base
+Color they turn scope lenses black and reticles white. Publishing third-party-derived models
+is a recorded producer risk acceptance (LICENCE_REGISTER L-0017/L-0021, ASSET_REGISTER intake
+rule), **not a licence clearance**; the section copy says so plainly — the weapons are
+described as current stand-ins to be reshaped into original A-series designs before release,
+and the AKM card states it is not a game weapon. The renders carry alpha, so they sit directly
+on the section band, and every card is captioned as a render, not gameplay.
+
+**Two pages.** The full searchable changelog lives on `changelog.html` (2026-09-28), which
+opens with `.page-head` — a flat, banner-less header using the ink-900 surface, a radial
+brass wash and the standard eyebrow/title/lede stack. The home page keeps only
+`#latest`, a static `.latest-update__session` card (latest date, title, up to four
+COMPLETED points, the NEXT ACTION line, and buttons to the full log). The session card
+language is shared by both pages so the log reads as one system.
 
 Radii stay small. This is a document and an interface, not an app.
 
@@ -262,3 +285,14 @@ Rules:
   and in the FAQ, because "Australian" and "3 ACR" are the two most misreadable claims.
 * Status, roadmap and changelog are generated from `data/*.md`. If a fact is in those
   documents it is rendered from them, never copied into the HTML.
+* **Renders of the current internal models are labelled as renders, never as gameplay.** The
+  Loadout section says so in its `section__note`, which also states the provenance: which
+  licence layer the picture is composed of, that publication is a recorded risk acceptance and
+  not a licence clearance, and that the original parts are scheduled for reshaping.
+* **A render is only published once a person has looked at it.** Session 042 published
+  player-model renders that had never been visually reviewed — the preview tooling had failed —
+  and they had to be withdrawn the same day. Measure what can be measured (silhouette, exposure,
+  hand-to-prop distance), but never substitute a metric for looking at the image.
+* **Never claim the project is affiliated with, or endorsed by, the ADF or any military**, and
+  never show a real unit's insignia. The kit on the MAF render is a peacekeeper-style loadout, not
+  a depiction of any real unit's equipment.

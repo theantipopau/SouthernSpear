@@ -87,7 +87,7 @@
  "optic": {
   "source": "E:\\SouthernSpear\\Art\\ADFRC_BLEND\\adfrc_optics_ss\\ADFRC_Spectr_RAR_MLOD.blend",
   "centre_m": [
-   -0.12093688547611237,
+   0.01006311452388764,
    0.0,
    0.12018274515867233
   ],
@@ -95,6 +95,7 @@
    0.15694963932037354,
    0.06312497705221176,
    0.0790637657046318
-  ]
+  ],
+  "placement": "Spectr onto the bullpup rail, between the rail sections"
  }
 }

@@ -17,6 +17,7 @@
 #include "Components/VerticalBoxSlot.h"
 #include "SSPalette.h"
 #include "Styling/CoreStyle.h"
+#include "SSFonts.h"
 
 /** Small helpers shared by the C++-built Southern Spear widgets. */
 namespace SSWidgetKit
@@ -24,7 +25,7 @@ namespace SSWidgetKit
 	inline UTextBlock* Text(UWidgetTree* Tree, int32 Size, bool bBold, const FLinearColor& Colour, int32 LetterSpacing = 0)
 	{
 		UTextBlock* T = Tree->ConstructWidget<UTextBlock>();
-		FSlateFontInfo Font = FCoreStyle::GetDefaultFontStyle(bBold ? "Bold" : "Regular", Size);
+		FSlateFontInfo Font = bBold ? SSFonts::Display(Size) : SSFonts::Body(Size);
 		Font.LetterSpacing = LetterSpacing;
 		T->SetFont(Font);
 		T->SetColorAndOpacity(Colour);
@@ -105,7 +106,8 @@ namespace SSWidgetKit
 	}
 
 	/** Flat menu button: field plate, brass on hover, sand label. */
-	inline UButton* MenuButton(UWidgetTree* Tree, const FText& Label, float Width = 420.f)
+	/** Menu button; bPrimary is the website primary (brass fill, ink label). */
+	inline UButton* MenuButton(UWidgetTree* Tree, const FText& Label, float Width = 420.f, bool bPrimary = false)
 	{
 		UButton* Button = Tree->ConstructWidget<UButton>();
 		FButtonStyle Style = Button->GetStyle();
@@ -116,16 +118,20 @@ namespace SSWidgetKit
 			Brush.TintColor = FSlateColor(C);
 			return Brush;
 		};
-		Style.SetNormal(Flat(SSPalette::Field800(0.92f)));
-		Style.SetHovered(Flat(SSPalette::Brass500(0.95f)));
+		Style.SetNormal(Flat(bPrimary ? SSPalette::Brass500() : SSPalette::Field800(0.92f)));
+		Style.SetHovered(Flat(bPrimary ? SSPalette::Brass300() : SSPalette::Brass500(0.95f)));
 		Style.SetPressed(Flat(SSPalette::Brass300()));
 		Style.SetNormalPadding(FMargin(18.f, 12.f));
 		Style.SetPressedPadding(FMargin(18.f, 13.f, 18.f, 11.f));
 		Button->SetStyle(Style);
 		USizeBox* Size = Tree->ConstructWidget<USizeBox>();
 		Size->SetWidthOverride(Width);
-		UTextBlock* T = Text(Tree, 15, true, SSPalette::Sand100(), 120);
+		UTextBlock* T = Text(Tree, 15, true, bPrimary ? SSPalette::Ink950() : SSPalette::Sand100(), 120);
 		T->SetText(Label);
+		if (bPrimary)
+		{
+			T->SetShadowColorAndOpacity(FLinearColor::Transparent);
+		}
 		Size->AddChild(T);
 		Button->AddChild(Size);
 		return Button;

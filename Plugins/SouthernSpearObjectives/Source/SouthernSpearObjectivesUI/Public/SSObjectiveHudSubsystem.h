@@ -46,4 +46,5 @@ private:
 	float RetryAccumulator = 0.f;
 	float ElapsedSeconds = 0.f;
 	bool bShotTaken = false;
+	bool bExecDone = false;
 };

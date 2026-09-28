@@ -405,6 +405,28 @@
 		{
 			"Name": "SSExp_ObjectiveAssault",
 			"Enabled": true
+		},
+		{
+			"Name": "ModelContextProtocol",
+			"Enabled": true,
+			"TargetAllowList": [
+				"Editor"
+			]
+		},
+		{
+			"Name": "EditorToolset",
+			"Enabled": true,
+			"TargetAllowList": [
+				"Editor"
+			]
+		},
+		{
+			"Name": "VibeUE",
+			"Enabled": true,
+			"TargetAllowList": [
+				"Editor"
+			],
+			"Optional": true
 		}
 	],
 	"EpicSampleNameHash": "451731683"

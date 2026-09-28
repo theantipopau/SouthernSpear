@@ -19,16 +19,17 @@
 #include "SSObjectiveHudModel.h"
 #include "SSUIStyle.h"
 #include "Styling/CoreStyle.h"
+#include "SSFonts.h"
 
 namespace
 {
-	constexpr float PanelWidth = 540.f;
+	constexpr float PanelWidth = 204.f; // matches the minimap above it (top right)
 	constexpr int32 MaxChips = 6;
 
 	UTextBlock* MakeText(UWidgetTree* Tree, int32 Size, bool bBold, const FLinearColor& Colour, int32 LetterSpacing = 0)
 	{
 		UTextBlock* Text = Tree->ConstructWidget<UTextBlock>();
-		FSlateFontInfo Font = FCoreStyle::GetDefaultFontStyle(bBold ? "Bold" : "Regular", Size);
+		FSlateFontInfo Font = bBold ? SSFonts::Display(Size) : SSFonts::Body(Size);
 		Font.LetterSpacing = LetterSpacing;
 		Text->SetFont(Font);
 		Text->SetColorAndOpacity(Colour);
@@ -87,20 +88,20 @@ bool USSObjectiveStatusWidget::Initialize()
 	UCanvasPanel* Root = T->ConstructWidget<UCanvasPanel>();
 	T->RootWidget = Root;
 
-	// Panel: field-dark plate with a brass top edge, as on the website cards.
+	// Panel: top right, directly under the minimap, the same width. Field-dark plate with a brass top edge.
 	UVerticalBox* Frame = T->ConstructWidget<UVerticalBox>();
 	UCanvasPanelSlot* FrameSlot = Root->AddChildToCanvas(Frame);
-	FrameSlot->SetAnchors(FAnchors(0.5f, 0.f));
-	FrameSlot->SetAlignment(FVector2D(0.5f, 0.f));
-	FrameSlot->SetPosition(FVector2D(0.f, 18.f));
+	FrameSlot->SetAnchors(FAnchors(1.f, 0.f));
+	FrameSlot->SetAlignment(FVector2D(1.f, 0.f));
+	FrameSlot->SetPosition(FVector2D(-20.f, 212.f));
 	FrameSlot->SetAutoSize(true);
 
 	AddV(Frame, Rule(T, SSUIStyle::Brass500(), 2.f));
-	UBorder* Plate = MakeBorder(T, SSUIStyle::Ink900(0.86f), FMargin(16.f, 10.f, 16.f, 12.f));
+	UBorder* Plate = MakeBorder(T, SSUIStyle::Ink900(0.72f), FMargin(10.f, 6.f, 10.f, 8.f));
 	AddV(Frame, Plate);
 
 	USizeBox* Width = T->ConstructWidget<USizeBox>();
-	Width->SetWidthOverride(PanelWidth - 32.f);
+	Width->SetWidthOverride(PanelWidth - 20.f);
 	Plate->SetContent(Width);
 	UVerticalBox* Body = T->ConstructWidget<UVerticalBox>();
 	Width->AddChild(Body);
@@ -108,46 +109,46 @@ bool USSObjectiveStatusWidget::Initialize()
 	// Row 1: ROUND 3 ........ ASSAULT 12:34
 	UHorizontalBox* Top = T->ConstructWidget<UHorizontalBox>();
 	AddV(Body, Top);
-	RoundText = MakeText(T, 13, true, SSUIStyle::Brass300(), 180);
+	RoundText = MakeText(T, 10, true, SSUIStyle::Brass300(), 120);
 	AddH(Top, RoundText, false, VAlign_Bottom);
 	AddH(Top, T->ConstructWidget<USpacer>(), true);
-	PhaseText = MakeText(T, 12, true, SSUIStyle::Sage400(), 160);
-	AddH(Top, PhaseText, false, VAlign_Bottom)->SetPadding(FMargin(0.f, 0.f, 10.f, 3.f));
-	ClockText = MakeText(T, 26, true, SSUIStyle::Sand100(), 40);
+	PhaseText = MakeText(T, 9, true, SSUIStyle::Sage400(), 120);
+	AddH(Top, PhaseText, false, VAlign_Bottom)->SetPadding(FMargin(0.f, 0.f, 6.f, 2.f));
+	ClockText = MakeText(T, 16, true, SSUIStyle::Sand100(), 20);
 	AddH(Top, ClockText, false, VAlign_Bottom);
 
-	AddV(Body, Rule(T, SSUIStyle::Line(0.9f), 1.f), 6.f);
+	AddV(Body, Rule(T, SSUIStyle::Line(0.9f), 1.f), 4.f);
 
 	// Row 2: [A][B]  OBJ B  FARMSTEAD ........ OPPOSING CAPTURING
 	ObjectiveRow = T->ConstructWidget<UHorizontalBox>();
-	AddV(Body, ObjectiveRow, 8.f);
+	AddV(Body, ObjectiveRow, 5.f);
 	for (int32 Index = 0; Index < MaxChips; ++Index)
 	{
 		FChipWidgets Chip;
 		Chip.Outline = MakeBorder(T, SSUIStyle::Line(), FMargin(1.5f));
 		USizeBox* ChipSize = T->ConstructWidget<USizeBox>();
-		ChipSize->SetWidthOverride(24.f);
-		ChipSize->SetHeightOverride(24.f);
+		ChipSize->SetWidthOverride(18.f);
+		ChipSize->SetHeightOverride(18.f);
 		Chip.Outline->SetContent(ChipSize);
 		Chip.Fill = MakeBorder(T, SSUIStyle::Field800(), FMargin(0.f));
 		Chip.Fill->SetHorizontalAlignment(HAlign_Center);
 		Chip.Fill->SetVerticalAlignment(VAlign_Center);
 		ChipSize->AddChild(Chip.Fill);
-		Chip.Letter = MakeText(T, 12, true, SSUIStyle::Sand100());
+		Chip.Letter = MakeText(T, 9, true, SSUIStyle::Sand100());
 		Chip.Fill->SetContent(Chip.Letter);
-		AddH(ObjectiveRow, Chip.Outline)->SetPadding(FMargin(0.f, 0.f, 4.f, 0.f));
+		AddH(ObjectiveRow, Chip.Outline)->SetPadding(FMargin(0.f, 0.f, 3.f, 0.f));
 		Chips.Add(Chip);
 	}
-	ObjectiveNameText = MakeText(T, 15, true, SSUIStyle::Sand100(), 60);
-	AddH(ObjectiveRow, ObjectiveNameText)->SetPadding(FMargin(8.f, 0.f, 0.f, 0.f));
-	AddH(ObjectiveRow, T->ConstructWidget<USpacer>(), true);
-	StatusText = MakeText(T, 12, true, SSUIStyle::Sage400(), 140);
-	AddH(ObjectiveRow, StatusText);
+	ObjectiveNameText = MakeText(T, 11, true, SSUIStyle::Sand100(), 40);
+	AddH(ObjectiveRow, ObjectiveNameText, false, VAlign_Center)->SetPadding(FMargin(5.f, 0.f, 0.f, 0.f));
+	// Status on its own line: the panel is narrow.
+	StatusText = MakeText(T, 9, true, SSUIStyle::Sage400(), 120);
+	AddV(Body, StatusText, 4.f);
 
 	// Capture bar: two fill-weighted segments, so no engine bar style is needed.
 	USizeBox* BarSize = T->ConstructWidget<USizeBox>();
-	BarSize->SetHeightOverride(6.f);
-	AddV(Body, BarSize, 8.f);
+	BarSize->SetHeightOverride(4.f);
+	AddV(Body, BarSize, 3.f);
 	UHorizontalBox* Bar = T->ConstructWidget<UHorizontalBox>();
 	BarSize->AddChild(Bar);
 	BarFill = MakeBorder(T, SSUIStyle::Sage400(), FMargin(0.f));
@@ -158,19 +159,19 @@ bool USSObjectiveStatusWidget::Initialize()
 
 	// Row 4: FRIENDLY 1  —  0 OPPOSING
 	UHorizontalBox* Score = T->ConstructWidget<UHorizontalBox>();
-	AddV(Body, Score, 10.f);
-	FirstSideText = MakeText(T, 12, true, SSUIStyle::Sage200(), 160);
-	FirstScoreText = MakeText(T, 18, true, SSUIStyle::Sand100());
-	UTextBlock* Dash = MakeText(T, 14, false, SSUIStyle::Line());
+	AddV(Body, Score, 6.f);
+	FirstSideText = MakeText(T, 9, true, SSUIStyle::Sage200(), 100);
+	FirstScoreText = MakeText(T, 13, true, SSUIStyle::Sand100());
+	UTextBlock* Dash = MakeText(T, 11, false, SSUIStyle::Line());
 	Dash->SetText(FText::FromString(TEXT("—")));
-	SecondScoreText = MakeText(T, 18, true, SSUIStyle::Sand100());
-	SecondSideText = MakeText(T, 12, true, SSUIStyle::Opfor300(), 160);
+	SecondScoreText = MakeText(T, 13, true, SSUIStyle::Sand100());
+	SecondSideText = MakeText(T, 9, true, SSUIStyle::Opfor300(), 100);
 	AddH(Score, T->ConstructWidget<USpacer>(), true);
-	AddH(Score, FirstSideText)->SetPadding(FMargin(0.f, 0.f, 8.f, 0.f));
+	AddH(Score, FirstSideText, false, VAlign_Center)->SetPadding(FMargin(0.f, 0.f, 5.f, 0.f));
 	AddH(Score, FirstScoreText);
-	AddH(Score, Dash)->SetPadding(FMargin(10.f, 0.f));
+	AddH(Score, Dash)->SetPadding(FMargin(6.f, 0.f));
 	AddH(Score, SecondScoreText);
-	AddH(Score, SecondSideText)->SetPadding(FMargin(8.f, 0.f, 0.f, 0.f));
+	AddH(Score, SecondSideText, false, VAlign_Center)->SetPadding(FMargin(5.f, 0.f, 0.f, 0.f));
 	AddH(Score, T->ConstructWidget<USpacer>(), true);
 
 	SetVisibility(ESlateVisibility::HitTestInvisible);

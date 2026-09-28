@@ -33,6 +33,9 @@ protected:
 	/** Multiplier on the player's field-of-view preference (aiming narrows it). */
 	float FovScale = 1.f;
 
+	/** Smoothed lean (-1..1) for the eye offset and roll. */
+	float LeanAlpha = 0.f;
+
 	/** Aiming: put the eye behind the held weapon's Sight socket when it has one. */
 	bool bSightEye = false;
 };

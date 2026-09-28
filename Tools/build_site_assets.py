@@ -116,17 +116,69 @@ def build_brand():
         print("  brand/southern-spear-emblem-{}.*".format(width), size)
 
 
-    # Favicon suite, derived from the same emblem crop.
-    icon = at_width(emblem, 256).crop((16, 0, 240, 224)).resize((256, 256), Image.LANCZOS)
-    for px in (32, 48, 96, 180, 192, 512):
-        icon.resize((px, px), Image.LANCZOS).convert("RGBA").quantize(
+    # Favicon suite, from the producer-supplied multi-size icon. The game
+    # executable installs this exact file (Tools/build_game_icon.py), so the
+    # browser tab, the game and the installed shortcuts all show one mark.
+    supplied = os.path.join(SRC, "SouthernSpear.ico")
+    if os.path.isfile(supplied):
+        src_icon = Image.open(supplied)
+        src_icon.load()
+        sizes = sorted(src_icon.info.get("sizes") or [])
+        if sizes:
+            # Exact frames where the source carries them
+            # (16/20/24/32/40/48/64/96/128/256); everything else resizes
+            # from the largest frame. PIL reads ICO frames by setting .size,
+            # and reports each candidate as a (w, h) tuple.
+            frames = {}
+            for entry in sizes:
+                side = max(entry)
+                src_icon.size = (side, side)
+                frames[side] = src_icon.copy().convert("RGBA")
+            base = frames[max(frames)]
+        else:
+            base = src_icon.convert("RGBA").resize((256, 256), Image.LANCZOS)
+            frames = {}
+
+        def at(px):
+            # A frame at the exact size wins; otherwise scale the largest
+            # frame. The source tops out at 256, so the 512 manifest icon is
+            # a clean 2x resample of flat-colour badge art.
+            if px in frames:
+                return frames[px]
+            return base.resize((px, px), Image.LANCZOS)
+
+        for px in (32, 48, 96, 180, 192, 512):
+            at(px).quantize(colors=128, method=Image.FASTOCTREE).save(
+                os.path.join(OUT, "favicon-{}.png".format(px)), optimize=True)
+        at(180).quantize(colors=128, method=Image.FASTOCTREE).save(
+            os.path.join(OUT, "apple-touch-icon.png"), optimize=True)
+        # Small sizes only: large ico frames are dead weight because every
+        # browser takes the PNG icons instead.
+        ico_steps = [px for px in (16, 24, 32, 48) if px in frames]
+        if not ico_steps:
+            ico_steps = [32]
+        ico_images = [frames[px].resize((px, px), Image.LANCZOS) for px in ico_steps]
+        # PIL's ICO writer skips any requested size larger than the base
+        # image, so the largest frame must be the one saved; the rest ride
+        # along as exact-size append_images.
+        ico_images.sort(key=lambda im: im.size[0])
+        ico_images[-1].save(
+            os.path.join(OUT, "favicon.ico"), format="ICO",
+            sizes=[(px, px) for px in ico_steps],
+            append_images=ico_images[:-1])
+        print("  favicon suite from SouthernSpear.ico ({} frames), ico, apple-touch-icon".format(len(sizes)))
+    else:
+        # Fallback: the emblem crop, used before the supplied icon arrived.
+        icon = at_width(emblem, 256).crop((16, 0, 240, 224)).resize((256, 256), Image.LANCZOS)
+        for px in (32, 48, 96, 180, 192, 512):
+            icon.resize((px, px), Image.LANCZOS).convert("RGBA").quantize(
+                colors=128, method=Image.FASTOCTREE).save(
+                os.path.join(OUT, "favicon-{}.png".format(px)), optimize=True)
+        icon.resize((180, 180), Image.LANCZOS).convert("RGBA").quantize(
             colors=128, method=Image.FASTOCTREE).save(
-            os.path.join(OUT, "favicon-{}.png".format(px)), optimize=True)
-    icon.resize((180, 180), Image.LANCZOS).convert("RGBA").quantize(
-        colors=128, method=Image.FASTOCTREE).save(
-        os.path.join(OUT, "apple-touch-icon.png"), optimize=True)
-    icon.resize((32, 32), Image.LANCZOS).save(os.path.join(OUT, "favicon.ico"), sizes=[(16, 16), (32, 32)])
-    print("  favicon suite, ico, apple-touch-icon")
+            os.path.join(OUT, "apple-touch-icon.png"), optimize=True)
+        icon.resize((32, 32), Image.LANCZOS).save(os.path.join(OUT, "favicon.ico"), sizes=[(16, 16), (32, 32)])
+        print("  favicon suite from the emblem crop, ico, apple-touch-icon")
 
 
 def hero_crops():
@@ -189,6 +241,41 @@ def build_concepts():
     print("  concepts/environment-detail-0{1,2}-*")
 
 
+def build_weapons():
+    """Loadout renders of the current internal weapon models.
+
+    Sources are the renders produced by Tools/Blender/render_weapons.py: the
+    ADFRC-derived A88, A4, A416 and A25, the ADFRC F89 shown as the A89
+    stand-in, and the sourced AKM as an explicitly labelled reference render.
+    Per the producer decision of 2026-09-28 (LICENCE_REGISTER L-0017/L-0021,
+    and the ASSET_REGISTER intake-rule exception) these are published on the
+    site as promotion; that decision is a recorded risk acceptance, not a
+    licence clearance, and none of this changes the blocked release status of
+    the underlying assets.
+
+    Each render is transparent, so the transparent margin is cropped away
+    before the derivatives are written: a long thin rifle in a 4:3 frame wastes
+    a third of its pixels, and the site's cards are landscape anyway.
+    """
+    weapons = (("a88", "weapon-a88"), ("a89", "weapon-a89"), ("a4", "weapon-a4"),
+               ("a416", "weapon-a416"), ("a25", "weapon-a25"), ("akm", "weapon-akm"))
+    for src_stem, stem in weapons:
+        path = os.path.join(SRC, "weapons", src_stem + ".png")
+        if not os.path.isfile(path):
+            print("  SKIP", path, "(run Tools/Blender/render_weapons.py first)")
+            continue
+        img = Image.open(path).convert("RGBA")
+        bbox = img.getchannel("A").getbbox()
+        if bbox:
+            pad = round(max(img.size) * 0.02)
+            img = img.crop((max(0, bbox[0] - pad), max(0, bbox[1] - pad),
+                            min(img.width, bbox[2] + pad), min(img.height, bbox[3] + pad)))
+        for width in (720, 1200):
+            save_alpha(at_width(img, width), "weapons/" + stem,
+                       "{}-{}".format(stem, width), width)
+        print("  weapons/{}-* (source {}x{})".format(stem, img.width, img.height))
+
+
 def build_social():
     art = Image.open(MENU).convert("RGB")
     target_ratio = 1200 / 630
@@ -216,6 +303,7 @@ def main():
     build_brand()
     build_hero()
     build_concepts()
+    build_weapons()
     build_social()
     print("done")
 

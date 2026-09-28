@@ -233,8 +233,8 @@ jobs:
         run: |
           "%UE_ROOT%\Engine\Binaries\Win64\UnrealEditor-Cmd.exe" ^
               "%PROJECT_DIR%\%PROJECT_NAME%.uproject" ^
-              -ExecCmds="Automation RunTests SouthernSpear.Unit+SouthernSpear.Integration+SouthernSpear.Network+SouthernSpear.Leak;Quit" ^
-              -unattended -nopause -nosplash -nullrhi -log -ReportOutputPath="%PROJECT_DIR%\Saved\TestResults"
+              -ExecCmds="Automation RunTests SouthernSpear;Quit" ^
+              -unattended -nopause -nosplash -nullrhi -nosound -NoLoadingScreen -log -ReportOutputPath="%PROJECT_DIR%\Saved\TestResults"
 
       - name: Upload test results
         if: always()

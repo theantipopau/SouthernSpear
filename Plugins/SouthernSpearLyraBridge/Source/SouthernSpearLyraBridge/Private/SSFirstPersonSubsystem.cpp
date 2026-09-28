@@ -5,7 +5,11 @@
 #include "Animation/AnimInstance.h"
 #include "Animation/AnimMontage.h"
 #include "Animation/AnimSequence.h"
+#include "Camera/CameraActor.h"
 #include "Camera/LyraCameraComponent.h"
+#include "AIController.h"
+#include "EngineUtils.h"
+#include "GenericTeamAgentInterface.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "Components/StaticMeshComponent.h"
 #include "Engine/SkeletalMesh.h"
@@ -21,34 +25,62 @@ DEFINE_LOG_CATEGORY_STATIC(LogSSFirstPerson, Log, All);
 
 namespace
 {
-	// Fab "FPS Animation" pack (AKS-74U): first-person arms on the UE5 arms skeleton.
-	const TCHAR* ArmsMeshPath = TEXT("/Game/FP_AKS74U_Animation/Demo/FirstPersonArms/Character/Mesh/SK_Mannequin_Arms.SK_Mannequin_Arms");
-	const TCHAR* AnimRoot = TEXT("/Game/FP_AKS74U_Animation/AKS74U/Animations/");
+	// Fab "M4" (rifle) and "G17" (pistol) FPS animation packs: gloved arms and clips, their real-weapon
+	// models removed (Tools/Blender/fp_arms.py, Tools/Unreal/setup_fp_arms.py). Bones: FPS_Camera_j (the
+	// eye), Main_j (the weapon), RightHand* / LeftHand* (fingers). Assets: FirstPerson/<Set>/SK_FP_Arms_<Set>
+	// and A_FP_<Set>_<Clip> (Draw, Fire, Holster, Idle, Reload, Reload_Empty).
+	const TCHAR* const ArmsSets[] = { TEXT("Rifle"), TEXT("Pistol") };
+	constexpr float PistolMaxLength = 35.f; // cm: shorter held weapons use the pistol arms
 
-	UAnimSequence* Anim(const TCHAR* Name)
+	FString ArmsMeshPath(int32 Set)
 	{
-		const FString Path = FString(AnimRoot) + Name + TEXT(".") + Name;
-		return LoadObject<UAnimSequence>(nullptr, *Path);
+		return FString::Printf(TEXT("/SSExp_ObjectiveAssault/FirstPerson/%s/SK_FP_Arms_%s.SK_FP_Arms_%s"), ArmsSets[Set], ArmsSets[Set], ArmsSets[Set]);
 	}
 
+	UAnimSequence* Clip(int32 Set, const TCHAR* Name)
+	{
+		static TMap<FString, TWeakObjectPtr<UAnimSequence>> Cache;
+		const FString Asset = FString::Printf(TEXT("A_FP_%s_%s"), ArmsSets[Set], Name);
+		TWeakObjectPtr<UAnimSequence>& Cached = Cache.FindOrAdd(Asset);
+		if (!Cached.IsValid())
+		{
+			Cached = LoadObject<UAnimSequence>(nullptr, *FString::Printf(TEXT("/SSExp_ObjectiveAssault/FirstPerson/%s/%s.%s"), ArmsSets[Set], *Asset, *Asset));
+		}
+		return Cached.Get();
+	}
+	const FName CameraBone(TEXT("FPS_Camera_j"));
+	const FName WeaponBone(TEXT("Main_j"));
+	const FName RightGripBone(TEXT("RightHandMiddle1"));
+	const FName LeftGripBone(TEXT("LeftHandMiddle1"));
+
 	// Live-tunable placement (console): arms relative to the eye, weapon on weapon_r.
-	TAutoConsoleVariable<FString> CVarArmsOffset(TEXT("ss.FP.ArmsOffset"), TEXT("0 0 0"),
+	TAutoConsoleVariable<FString> CVarArmsOffset(TEXT("ss.FP.ArmsOffset"), TEXT("17 0 -2"),
 		TEXT("First-person arms offset from the eye, cm (forward right up)."));
-	TAutoConsoleVariable<FString> CVarWeaponOffset(TEXT("ss.FP.WeaponOffset"), TEXT("-1.5 -7.5 -7"),
-		TEXT("Held weapon offset on the arms' ik_hand_gun bone, cm."));
-	TAutoConsoleVariable<FString> CVarWeaponRotation(TEXT("ss.FP.WeaponRotation"), TEXT("0 -90 0"),
-		TEXT("Held weapon rotation on ik_hand_gun, degrees (pitch yaw roll); 90 yaw turns our +X meshes to the pack's +Y."));
-	TAutoConsoleVariable<int32> CVarArms(TEXT("ss.FP.Arms"), 0,
-		TEXT("1: Fab arms pack holding the weapon (its AKS74U poses do not fit our weapons). 0: camera-held weapon view model."));
-	TAutoConsoleVariable<FString> CVarHip(TEXT("ss.FP.Hip"), TEXT("38 13 -16"),
+	TAutoConsoleVariable<FString> CVarWeaponOffset(TEXT("ss.FP.WeaponOffset"), TEXT("9 0 -3"),
+		TEXT("Held weapon: grip offset from the right hand's middle knuckle, in the weapon's frame, cm (forward right up)."));
+	TAutoConsoleVariable<FString> CVarPistolOffset(TEXT("ss.FP.PistolOffset"), TEXT("0 0 -1"),
+		TEXT("Held pistol: grip offset from the pack's weapon bone (where its pistol sat), in the weapon's frame, cm (forward right up)."));
+	TAutoConsoleVariable<FString> CVarWeaponRotation(TEXT("ss.FP.WeaponRotation"), TEXT("0 0 0"),
+		TEXT("Held weapon: extra rotation on the measured grip, degrees (pitch yaw roll)."));
+	TAutoConsoleVariable<int32> CVarArms(TEXT("ss.FP.Arms"), 1,
+		TEXT("1: gloved arms view model (Fab M4 FPS pack) holding the weapon. 0: camera-held weapon view model."));
+	TAutoConsoleVariable<FString> CVarHip(TEXT("ss.FP.Hip"), TEXT("48 16 -20"),
 		TEXT("Camera-held weapon: grip position at the hip, cm (forward right up)."));
 	TAutoConsoleVariable<int32> CVarBodyView(TEXT("ss.FP.BodyView"), 0,
 		TEXT("1: true first person (the body's own hands and weapon, Lyra animations; the eye moves to the optic when aiming). 0: the Fab arms pack view model."));
+	TAutoConsoleVariable<int32> CVarShowLyraWeapon(TEXT("ss.Debug.ShowLyraWeapon"), 0,
+		TEXT("Debug: 1 also draws Lyra's original weapon meshes (hidden under ours) to check alignment."));
+	TAutoConsoleVariable<float> CVarFollowBot(TEXT("ss.Debug.FollowBot"), 0.f,
+		TEXT("Debug: non-zero views the nearest bot from this many cm (behind and to the side); negative: the nearest enemy bot."));
 	TAutoConsoleVariable<float> CVarDebugPitch(TEXT("ss.FP.DebugPitch"), 0.f,
 		TEXT("Debug: non-zero holds the local view at this pitch, degrees (captures)."));
+	TAutoConsoleVariable<float> CVarDebugYawTurn(TEXT("ss.FP.DebugYawTurn"), 0.f,
+		TEXT("Debug: non-zero turns the local view by this many degrees once (captures, e.g. to face the own shadow)."));
+	TAutoConsoleVariable<int32> CVarDebugSlot(TEXT("ss.FP.DebugSlot"), -1,
+		TEXT("Debug: >= 0 selects that quickbar slot once (captures; e.g. 1 = sidearm)."));
 	TAutoConsoleVariable<int32> CVarForceAim(TEXT("ss.FP.ForceAim"), 0,
 		TEXT("Debug: 1 holds the first-person view in aim (for sight alignment captures)."));
-	TAutoConsoleVariable<float> CVarEyeRelief(TEXT("ss.FP.EyeRelief"), 13.f,
+	TAutoConsoleVariable<float> CVarEyeRelief(TEXT("ss.FP.EyeRelief"), 20.f,
 		TEXT("Minimum distance, cm, from the eye to the weapon's Sight socket when aiming."));
 
 	FVector ParseVector(const TAutoConsoleVariable<FString>& CVar)
@@ -85,12 +117,88 @@ void USSFirstPersonSubsystem::Tick(float DeltaTime)
 	{
 		return;
 	}
+	if (const float Follow = CVarFollowBot.GetValueOnGameThread())
+	{
+		// Third-person look at the nearest bot (animation review): a camera
+		// actor trails it, and the local view switches to that camera.
+		APawn* Bot = nullptr;
+		float Best = TNumericLimits<float>::Max();
+		for (TActorIterator<APawn> It(GetWorld()); It; ++It)
+		{
+			// Negative distance: follow the nearest bot of the OTHER team (MAF presentation checks).
+			const IGenericTeamAgentInterface* Mine = Cast<IGenericTeamAgentInterface>(Pawn);
+			const IGenericTeamAgentInterface* Theirs = Cast<IGenericTeamAgentInterface>(*It);
+			const bool bEnemy = Mine && Theirs && Mine->GetGenericTeamId() != Theirs->GetGenericTeamId();
+			if (Follow < 0.f && !bEnemy)
+			{
+				continue;
+			}
+			if (Cast<AAIController>(It->GetController()) && FVector::DistSquared(It->GetActorLocation(), Pawn->GetActorLocation()) < Best)
+			{
+				Best = FVector::DistSquared(It->GetActorLocation(), Pawn->GetActorLocation());
+				Bot = *It;
+			}
+		}
+		if (CVarShowLyraWeapon.GetValueOnGameThread() != 0)
+		{
+			for (TActorIterator<AActor> It(GetWorld()); It; ++It)
+			{
+				if (It->GetClass()->GetName().StartsWith(TEXT("B_SS_")) && It->GetClass()->GetName().Contains(TEXT("_Weapon")))
+				{
+					TInlineComponentArray<USkeletalMeshComponent*> Skels(*It);
+					for (USkeletalMeshComponent* Skel : Skels)
+					{
+						Skel->SetVisibility(true);
+						Skel->SetHiddenInGame(false);
+					}
+				}
+			}
+		}
+		if (Bot)
+		{
+			if (!FollowCamera.IsValid())
+			{
+				FActorSpawnParameters Params;
+				Params.ObjectFlags |= RF_Transient;
+				FollowCamera = GetWorld()->SpawnActor<ACameraActor>(Params);
+			}
+			const FRotator Facing(0.f, Bot->GetActorRotation().Yaw + 150.f, 0.f);
+			const FVector Eye = Bot->GetActorLocation() + Facing.Vector() * -FMath::Abs(Follow) + FVector(0.f, 0.f, 60.f);
+			FollowCamera->SetActorLocationAndRotation(Eye, (Bot->GetActorLocation() + FVector(0, 0, 20) - Eye).Rotation());
+			APlayerController* Controller = const_cast<APlayerController*>(Player);
+			if (Controller->GetViewTarget() != FollowCamera.Get())
+			{
+				Controller->SetViewTarget(FollowCamera.Get());
+			}
+		}
+	}
 	if (const float DebugPitch = CVarDebugPitch.GetValueOnGameThread())
 	{
 		APlayerController* Controller = const_cast<APlayerController*>(Player);
 		FRotator Rotation = Controller->GetControlRotation();
 		Rotation.Pitch = DebugPitch;
 		Controller->SetControlRotation(Rotation);
+	}
+	if (const int32 Slot = CVarDebugSlot.GetValueOnGameThread(); Slot >= 0)
+	{
+		// ULyraQuickBarComponent is not exported: call its SetActiveSlotIndex UFUNCTION by reflection.
+		CVarDebugSlot->Set(-1);
+		static UClass* QuickBarClass = FindObject<UClass>(nullptr, TEXT("/Script/LyraGame.LyraQuickBarComponent"));
+		UActorComponent* QuickBar = QuickBarClass ? Player->GetComponentByClass(QuickBarClass) : nullptr;
+		if (UFunction* Fn = QuickBar ? QuickBar->FindFunction(TEXT("SetActiveSlotIndex")) : nullptr)
+		{
+			struct { int32 NewIndex; } Params{ Slot };
+			QuickBar->ProcessEvent(Fn, &Params);
+			UE_LOG(LogSSFirstPerson, Log, TEXT("Debug: quickbar slot %d selected."), Slot);
+		}
+	}
+	if (const float Turn = CVarDebugYawTurn.GetValueOnGameThread())
+	{
+		APlayerController* Controller = const_cast<APlayerController*>(Player);
+		FRotator Rotation = Controller->GetControlRotation();
+		Rotation.Yaw += Turn;
+		Controller->SetControlRotation(Rotation);
+		CVarDebugYawTurn->Set(0.f);
 	}
 	if (HandledPawn.Get() == Pawn)
 	{
@@ -132,7 +240,7 @@ void USSFirstPersonSubsystem::Tick(float DeltaTime)
 		UE_LOG(LogSSFirstPerson, Log, TEXT("First-person camera active for %s (body view)."), *Pawn->GetName());
 		return;
 	}
-	USkeletalMesh* ArmsMesh = CVarArms.GetValueOnGameThread() != 0 ? LoadObject<USkeletalMesh>(nullptr, ArmsMeshPath) : nullptr;
+	USkeletalMesh* ArmsMesh = CVarArms.GetValueOnGameThread() != 0 ? LoadObject<USkeletalMesh>(nullptr, *ArmsMeshPath(0)) : nullptr;
 	if (ArmsMesh)
 	{
 		Arms = NewObject<USkeletalMeshComponent>(Pawn, TEXT("SS_FirstPersonArms"));
@@ -143,15 +251,19 @@ void USSFirstPersonSubsystem::Tick(float DeltaTime)
 		Arms->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 		Arms->VisibilityBasedAnimTickOption = EVisibilityBasedAnimTickOption::AlwaysTickPoseAndRefreshBones;
 		Arms->SetAnimationMode(EAnimationMode::AnimationSingleNode);
+		// The packs' rest poses sit away from the animated arms: without larger bounds the arms were culled
+		// in view (pistol set). Standard for first-person arms.
+		Arms->SetBoundsScale(20.f);
 		Arms->RegisterComponent();
-		Play(Anim(TEXT("A_FP_AKS74U_Equipe")), false);
+		ArmsSet = 0;
+		Play(Clip(ArmsSet, TEXT("Idle")), true); // the grip is measured from this pose next tick
+		bGripMeasured = false;
 	}
 
 	ViewModel = NewObject<UStaticMeshComponent>(Pawn, TEXT("SS_ViewModel"));
 	if (Arms)
 	{
-		// The pack holds its rifle at ik_hand_gun, gun along the arms' +Y.
-		ViewModel->SetupAttachment(Arms, TEXT("ik_hand_gun"));
+		ViewModel->SetupAttachment(Arms, WeaponBone);
 	}
 	else
 	{
@@ -167,6 +279,10 @@ void USSFirstPersonSubsystem::Tick(float DeltaTime)
 		// First person shows only the arms: the body (and the soldier parts
 		// that follow it, below) is hidden from its owner but keeps its shadow.
 		Character->GetMesh()->SetOwnerNoSee(true);
+		// Hidden meshes stop refreshing bones by default, so the body's shadow froze in the bind pose (the
+		// producer's "da Vinci shadow"). Keep the local body posing so its shadow (and the gear and weapon
+		// that follow it) matches the soldier.
+		Character->GetMesh()->VisibilityBasedAnimTickOption = EVisibilityBasedAnimTickOption::AlwaysTickPoseAndRefreshBones;
 	}
 	HandledPawn = Pawn;
 	LastMagazine = -1;
@@ -192,46 +308,39 @@ void USSFirstPersonSubsystem::UpdateArmsAnimation(APawn* Pawn, float DeltaTime)
 {
 	const USSLocalHudState* State = GetWorld()->GetSubsystem<USSLocalHudState>();
 	const int32 Magazine = State ? State->Magazine : -1;
-	const bool bAim = *bAiming;
 
-	// Reload: follow the body's Lyra reload montage (the gameplay authority).
+	// Reload: follow the body's Lyra reload montage (the gameplay authority), scaled to its length.
 	const ACharacter* Character = Cast<ACharacter>(Pawn);
 	const UAnimInstance* Body = Character && Character->GetMesh() ? Character->GetMesh()->GetAnimInstance() : nullptr;
 	const UAnimMontage* Montage = Body ? Body->GetCurrentActiveMontage() : nullptr;
 	const bool bReloading = Montage && Montage->GetName().Contains(TEXT("Reload"));
 	if (bReloading && !bReloadSeen)
 	{
-		const bool bEmpty = Magazine == 0;
-		Play(Anim(bEmpty ? (bAim ? TEXT("A_FP_AKS74U_Reload_Empty_Aimed") : TEXT("A_FP_AKS74U_Reload_Empty"))
-			: (bAim ? TEXT("A_FP_AKS74U_Reload_Aimed") : TEXT("A_FP_AKS74U_Reload"))), false);
+		if (UAnimSequence* Reload = Clip(ArmsSet, Magazine == 0 ? TEXT("Reload_Empty") : TEXT("Reload")))
+		{
+			Play(Reload, false);
+			const float Rate = Reload->GetPlayLength() / FMath::Max(0.3f, Montage->GetPlayLength());
+			Arms->SetPlayRate(Rate);
+			OneShotRemaining = Reload->GetPlayLength() / Rate;
+		}
 	}
 	bReloadSeen = bReloading;
 
 	// Fire: the magazine count dropped.
 	if (Magazine >= 0 && LastMagazine >= 0 && Magazine < LastMagazine && !bReloading)
 	{
-		Play(Anim(bAim ? TEXT("A_FP_AKS74U_Fire_Aimed") : TEXT("A_FP_AKS74U_Fire")), false);
+		Play(Clip(ArmsSet, TEXT("Fire")), false);
+		Recoil = 1.f;
 	}
 	LastMagazine = Magazine;
 
 	OneShotRemaining -= DeltaTime;
 	if (OneShotRemaining > 0.f)
 	{
-		return; // let fire / reload / equip finish
+		return; // let draw / fire / reload finish
 	}
-
-	// Loops by movement state.
-	const float Speed = Pawn->GetVelocity().Size2D();
-	const TCHAR* Loop = bAim
-		? (Speed > 30.f ? TEXT("A_FP_AKS74U_Walk_F_Loop_Aimed") : TEXT("A_FP_AKS74U_Aim_Loop"))
-		: (Speed > 420.f ? TEXT("A_FP_AKS74U_Run_Loop") : Speed > 30.f ? TEXT("A_FP_AKS74U_Walk_F_Loop") : TEXT("A_FP_AKS74U_Idle_Loop"));
-	static TMap<FString, TWeakObjectPtr<UAnimSequence>> Cache;
-	TWeakObjectPtr<UAnimSequence>& Cached = Cache.FindOrAdd(Loop);
-	if (!Cached.IsValid())
-	{
-		Cached = Anim(Loop);
-	}
-	Play(Cached.Get(), true);
+	Arms->SetPlayRate(1.f);
+	Play(Clip(ArmsSet, TEXT("Idle")), true); // a held pose; walk, sway and sprint are procedural (UpdateViewModel)
 }
 
 void USSFirstPersonSubsystem::UpdateViewModel(APawn* Pawn, float DeltaTime)
@@ -248,6 +357,21 @@ void USSFirstPersonSubsystem::UpdateViewModel(APawn* Pawn, float DeltaTime)
 			TInlineComponentArray<UPrimitiveComponent*> Prims(Actor);
 			for (const UPrimitiveComponent* Prim : Prims)
 			{
+				if (const USkeletalMeshComponent* Skel = Cast<USkeletalMeshComponent>(Prim))
+				{
+					for (const FName& Socket : Skel->GetAllSocketNames())
+					{
+						const FTransform T = Skel->GetSocketTransform(Socket, RTS_Component);
+						UE_LOG(LogSSFirstPerson, Log, TEXT("  socket %s.%s loc=%s rot=%s"), *Prim->GetName(), *Socket.ToString(),
+							*T.GetLocation().ToString(), *T.Rotator().ToString());
+					}
+				}
+				if (const UStaticMeshComponent* Static = Cast<UStaticMeshComponent>(Prim); Static && Static->DoesSocketExist(TEXT("Muzzle")))
+				{
+					UE_LOG(LogSSFirstPerson, Log, TEXT("  static %s muzzle(component)=%s relrot=%s parent=%s"), *Prim->GetName(),
+						*Static->GetSocketTransform(TEXT("Muzzle"), RTS_Component).GetLocation().ToString(),
+						*Static->GetRelativeRotation().ToString(), *GetNameSafe(Static->GetAttachParent()));
+				}
 				UE_LOG(LogSSFirstPerson, Log, TEXT("FP component %s.%s (%s) visible=%d ownerNoSee=%d mesh=%s"), *Actor->GetName(), *Prim->GetName(),
 					*Prim->GetClass()->GetName(), Prim->IsVisible(), Prim->bOwnerNoSee,
 					Cast<USkeletalMeshComponent>(Prim) ? *GetNameSafe(Cast<USkeletalMeshComponent>(Prim)->GetSkeletalMeshAsset()) : TEXT("-"));
@@ -258,6 +382,18 @@ void USSFirstPersonSubsystem::UpdateViewModel(APawn* Pawn, float DeltaTime)
 	{
 		HudState->bAiming = *bAiming;
 	}
+	if (const ACharacter* Character = Cast<ACharacter>(Pawn); Character && Character->GetMesh()->IsSimulatingPhysics())
+	{
+		// Dead (ASSCharacter ragdolls the body): the arms and weapon leave the view.
+		if (Arms) { Arms->SetVisibility(false, true); }
+		if (ViewModel) { ViewModel->SetVisibility(false); }
+		return;
+	}
+	// Looking through a magnified scope: the eyepiece view replaces the weapon (HUD overlay, narrowed FOV).
+	const USSLocalHudState* Optics = GetWorld()->GetSubsystem<USSLocalHudState>();
+	const bool bScoped = *bAiming && Optics && Optics->OpticMagnification > 1.f;
+	if (Arms && Arms->IsVisible() == bScoped) { Arms->SetVisibility(!bScoped, true); }
+	if (ViewModel && ViewModel->IsVisible() == bScoped) { ViewModel->SetVisibility(!bScoped); }
 	if (!ViewModel)
 	{
 		// Body view: the soldier parts and the held weapon hide themselves
@@ -293,6 +429,7 @@ void USSFirstPersonSubsystem::UpdateViewModel(APawn* Pawn, float DeltaTime)
 			// shadow kept: owner-no-see alone let the beret through from inside.
 			Body->SetOwnerNoSee(true);
 			Body->bCastHiddenShadow = true;
+			Body->VisibilityBasedAnimTickOption = EVisibilityBasedAnimTickOption::AlwaysTickPoseAndRefreshBones;
 			Body->SetHiddenInGame(true);
 		}
 		TInlineComponentArray<UStaticMeshComponent*> Meshes(Actor);
@@ -322,29 +459,85 @@ void USSFirstPersonSubsystem::UpdateViewModel(APawn* Pawn, float DeltaTime)
 
 	if (Arms)
 	{
-		UpdateArmsAnimation(Pawn, DeltaTime);
-		// Arms face +Y in their mesh space (UE mannequin): turn to camera +X, then
-		// shift so the animated head bone sits at the eye; the pack's animations
-		// frame the weapon for that eye position.
-		const FRotator Facing(0.f, -90.f, 0.f);
-		const FVector HeadInComponent = Arms->DoesSocketExist(TEXT("head"))
-			? Arms->GetBoneLocation(TEXT("head"), EBoneSpaces::ComponentSpace) : FVector(0.f, 0.f, 160.f);
-		const FVector Eye = Facing.RotateVector(HeadInComponent);
-		Arms->SetRelativeLocationAndRotation(-Eye + ParseVector(CVarArmsOffset) + SwayOffset, Facing);
-		const FVector Rot = ParseVector(CVarWeaponRotation);
-		ViewModel->SetRelativeLocationAndRotation(ParseVector(CVarWeaponOffset), FRotator(Rot.X, Rot.Y, Rot.Z));
-		// The pack animates a short AKS74U; its hand bone swings our longer
-		// weapons across the view. Keep the grip in the hand but point the
-		// weapon along the view (a slight inward cant at the hip).
-		if (const USceneComponent* ViewParent = Arms->GetAttachParent())
+		// Pistols use the G17 arms: swap the arms mesh when the held weapon's class changes, and measure
+		// the grip again in the new idle pose.
+		if (Held != LastHeld.Get())
 		{
-			const FRotator Cant(0.f, FMath::Lerp(-2.5f, 0.f, AimAlpha), FMath::Lerp(-4.f, 0.f, AimAlpha));
-			ViewModel->SetWorldRotation(ViewParent->GetComponentQuat() * Cant.Quaternion());
+			const int32 WantSet = Held && Held->GetBoundingBox().GetSize().X < PistolMaxLength ? 1 : 0;
+			if (WantSet != ArmsSet)
+			{
+				if (USkeletalMesh* SetMesh = LoadObject<USkeletalMesh>(nullptr, *ArmsMeshPath(WantSet)))
+				{
+					ArmsSet = WantSet;
+					Arms->SetSkeletalMesh(SetMesh);
+					Current = nullptr;
+					OneShotRemaining = 0.f;
+					Play(Clip(ArmsSet, TEXT("Idle")), true);
+					bGripMeasured = false;
+					LastHeld = Held; // the draw plays once the grip is measured
+					return;
+				}
+			}
 		}
 
-		// Aiming: the pack frames its own iron sights; our optics sit higher and
-		// differ per weapon, so shift the arms until the weapon's Sight socket is
-		// on the line of sight (camera X axis) with some eye relief.
+		// Measure the grip once per arms set, in the idle pose. Our meshes have their origin at the pistol
+		// grip, +X to the muzzle. A rifle: grip at the right hand's knuckles, barrel toward the left hand. A
+		// pistol (small, and the support hand wraps the grip): on the pack's own weapon bone, where its
+		// pistol sat, pointing along the view. Upright; the transform is then kept on the weapon bone so
+		// the pack's reloads carry the weapon.
+		if (!bGripMeasured && Arms->GetBoneIndex(WeaponBone) != INDEX_NONE && Arms->GetBoneIndex(RightGripBone) != INDEX_NONE)
+		{
+			const FVector Right = Arms->GetBoneLocation(RightGripBone, EBoneSpaces::ComponentSpace);
+			const FVector Left = Arms->GetBoneLocation(LeftGripBone, EBoneSpaces::ComponentSpace);
+			const FVector Forward = ArmsSet == 1 ? FVector(0.f, 1.f, 0.f) : (Left - Right).GetSafeNormal(); // arms face +Y
+			if (!Forward.IsNearlyZero())
+			{
+				const FMatrix Frame = FRotationMatrix::MakeFromXZ(Forward, FVector::UpVector);
+				const FVector Anchor = ArmsSet == 1 ? Arms->GetBoneLocation(WeaponBone, EBoneSpaces::ComponentSpace) : Right;
+				const FTransform Grip(Frame.Rotator(), Anchor);
+				const FTransform Bone = Arms->GetBoneTransform(Arms->GetBoneIndex(WeaponBone), FTransform::Identity);
+				GripOnWeaponBone = Grip.GetRelativeTransform(Bone);
+				bGripMeasured = true;
+				Play(Clip(ArmsSet, TEXT("Draw")), false);
+				UE_LOG(LogSSFirstPerson, Log, TEXT("Arms (%s) grip measured: right %s left %s -> on %s %s"), ArmsSets[ArmsSet],
+					*Right.ToString(), *Left.ToString(), *WeaponBone.ToString(), *GripOnWeaponBone.ToString());
+			}
+		}
+		if (Held != LastHeld.Get())
+		{
+			LastHeld = Held;
+			if (bGripMeasured)
+			{
+				Play(Clip(ArmsSet, TEXT("Draw")), false); // weapon switch
+			}
+		}
+		UpdateArmsAnimation(Pawn, DeltaTime);
+
+		// The arms face +Y in their mesh (UE convention): turn to camera +X and put the animated
+		// camera bone on the eye.
+		const FRotator Facing(0.f, -90.f, 0.f);
+		const FVector CameraInComponent = Arms->GetBoneIndex(CameraBone) != INDEX_NONE
+			? Arms->GetBoneLocation(CameraBone, EBoneSpaces::ComponentSpace) : FVector(0.f, 0.f, 160.f);
+		const FVector Eye = Facing.RotateVector(CameraInComponent);
+
+		// Procedural layer: walk bob, sprint lower, fire kick (the pack's fire clip adds its own).
+		const float Speed = Pawn->GetVelocity().Size2D();
+		SprintAlpha = FMath::FInterpTo(SprintAlpha, (Speed > 450.f && !*bAiming) ? 1.f : 0.f, DeltaTime, 6.f);
+		BobPhase += DeltaTime * FMath::Lerp(6.f, 9.f, SprintAlpha) * FMath::Clamp(Speed / 350.f, 0.f, 1.f);
+		const float Bob = FMath::Clamp(Speed / 400.f, 0.f, 1.f) * SwayScale;
+		const FVector BobOffset(0.f, FMath::Sin(BobPhase) * 0.9f * Bob, -FMath::Abs(FMath::Sin(BobPhase)) * 1.1f * Bob);
+		Recoil = FMath::FInterpTo(Recoil, 0.f, DeltaTime, 14.f);
+		const FVector Kick(-1.2f * Recoil * SwayScale, 0.f, 0.f);
+		const FVector SprintOffset(-4.f, 3.f, -6.f);
+		const FRotator SprintTilt(-22.f * SprintAlpha, 18.f * SprintAlpha, -12.f * SprintAlpha);
+		Arms->SetRelativeLocationAndRotation(-Eye + ParseVector(CVarArmsOffset) + SwayOffset + BobOffset + Kick + SprintOffset * SprintAlpha,
+			(SprintTilt.Quaternion() * Facing.Quaternion()).Rotator());
+
+		const FVector Rot = ParseVector(CVarWeaponRotation);
+		const FTransform Tune(FRotator(Rot.X, Rot.Y, Rot.Z), ParseVector(ArmsSet == 1 ? CVarPistolOffset : CVarWeaponOffset));
+		ViewModel->SetRelativeTransform(Tune * GripOnWeaponBone);
+
+		// Aiming: put the weapon's Sight socket on the line of sight (camera X axis) with eye relief.
 		static const FName SightSocket(TEXT("Sight"));
 		const USceneComponent* View = Arms->GetAttachParent();
 		if (View && AimAlpha > 0.f && ViewModel->DoesSocketExist(SightSocket))

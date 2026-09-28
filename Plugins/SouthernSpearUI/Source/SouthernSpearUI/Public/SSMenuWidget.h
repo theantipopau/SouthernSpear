@@ -51,12 +51,16 @@ private:
 	UFUNCTION() void OnDryRiver();
 	UFUNCTION() void OnSaltbush();
 	UFUNCTION() void OnSelatCanal();
+	UFUNCTION() void OnBluestone();
 	UFUNCTION() void OnBots4();
 	UFUNCTION() void OnBots8();
 	UFUNCTION() void OnBots12();
 	UFUNCTION() void OnSettings();
 	UFUNCTION() void OnResume();
+	UFUNCTION() void OnRedeploy();
 	UFUNCTION() void OnMainMenu();
+	UFUNCTION() void OnDiscord();
+	bool bDevSettingsOpened = false;
 	UFUNCTION() void OnQuit();
 
 	void SetBots(int32 Count);

@@ -14,7 +14,8 @@
 # - Orientation from the Arma memory LOD: muzzle_pos to +X, origin at
 #   trigger_axis (the gripping hand), SOCKET_Muzzle at muzzle_pos. Without
 #   memory points: thinner end to +X, bounding-box centre. Metres.
-# - Optional third argument: an optic FBX merged on the sight line (eye point).
+# - Optional third argument: an optic FBX/blend merged between the iron sights
+#   at eye height (or on the bullpup optic proxy when there are no iron sights).
 #
 # Run: blender --background --factory-startup --python Tools/Blender/adfrc_weapon.py -- <src.blend> <NAME> [optic.fbx]
 
@@ -193,7 +194,20 @@ if OPTIC and os.path.exists(OPTIC):
         o_lo = mathutils.Vector((min(v.x for v in ovs), min(v.y for v in ovs), min(v.z for v in ovs)))
         o_hi = mathutils.Vector((max(v.x for v in ovs), max(v.y for v in ovs), max(v.z for v in ovs)))
         eye = points.get("eye", mathutils.Vector((-0.15, 0.0, 0.08)))
-        target = mathutils.Vector(((eye.x + 0.0) / 2, 0.0, eye.z))  # optic centre on the sight line
+        # The scope belongs BETWEEN the iron sights, at eye height. The old
+        # rule was eye.x / 2 - the midpoint of the trigger (the origin) and the
+        # REAR sight - which parked every scope over the buffer tube or the
+        # stock, behind the shooter. Prefer the model's own sight points; fall
+        # back to the optic proxy (bullpup rail weapons have no iron sights).
+        front = points.get("front_sight_axis")
+        rear = points.get("rear_sight_axis")
+        if front is not None and rear is not None:
+            centre_x = (front.x + rear.x) / 2.0
+        elif "op_axis" in points:
+            centre_x = points["op_axis"].x
+        else:
+            centre_x = eye.x + 0.12
+        target = mathutils.Vector((centre_x, 0.0, eye.z))  # optic centre on the sight line
         shift = target - (o_lo + o_hi) / 2
         for v in opt.data.vertices:
             v.co += shift

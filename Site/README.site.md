@@ -10,7 +10,8 @@ Starter Game, and inspired by the design philosophy of the classic America's Arm
 release, no download, and no announced release date.
 
 - Live site: https://theantipopau.github.io/southernspear-site/
-- Rolling changelog: [`data/CHANGELOG.md`](data/CHANGELOG.md), one entry per working session
+- Rolling changelog: [`data/CHANGELOG.md`](data/CHANGELOG.md), one entry per working session,
+  presented at [changelog.html](changelog.html)
 - Roadmap: [`data/DEVELOPMENT_ROADMAP.md`](data/DEVELOPMENT_ROADMAP.md)
 
 ## What is in this repository
@@ -20,14 +21,15 @@ It contains only the website and published documentation. No engine, Lyra or gam
 present, and none is ever published.
 
 ```
-index.html      the site
+index.html      the site home
+changelog.html  the full development changelog (search, filters, deep links)
 styles.css      design tokens and components
 site.js         navigation, Markdown subset renderer, status / roadmap / changelog
 404.html        not-found page
 robots.txt      crawler policy
-sitemap.xml     single-page sitemap with section anchors
+sitemap.xml     sitemap: home sections plus the changelog page
 manifest.webmanifest
-assets/         optimised image derivatives (brand, hero, concepts, social, favicons)
+assets/         optimised image derivatives (brand, hero, concepts, weapons, social, favicons)
 fonts/          self-hosted latin subsets (Barlow Condensed, Inter, IBM Plex Mono)
 data/           the published project documents, copied verbatim
 ```
@@ -48,7 +50,17 @@ python Tools/publish_site.py         # build, then commit and push this reposito
 
 Brand variants are strict crops of the approved artwork. Nothing is redrawn, and the spear,
 the Southern Cross and the approved proportions are untouched. The monochrome footer mark is a
-CSS filter rather than a second drawing.
+CSS filter rather than a second drawing. The favicon suite is generated from the
+producer-supplied multi-size icon (`Docs/images/SouthernSpear.ico`), the same file the game
+executable installs, so the browser tab and the game show one mark.
+
+The `weapons/` derivatives come from 3D studio renders made in the private repository with
+`Tools/Blender/render_weapons.py`. They are renders of the current internal models, not captured
+gameplay, and the site says so where they appear.
+
+The project's own camouflage — used on the character in the game — is generated from noise by
+`Tools/Textures/make_character_textures.py` and is original work, not a copy of any real-world
+camouflage.
 
 ## Disclaimer
 

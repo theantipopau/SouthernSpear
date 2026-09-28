@@ -30,10 +30,13 @@ public:
 };
 
 /**
- * Settings screen (front end and match menu): display mode, resolution,
- * graphics quality, VSync, frame limit and field of view. Engine settings go
- * through UGameUserSettings on Apply; field of view is a Southern Spear
- * preference (FSSUserPrefs) applied immediately. Built in C++.
+ * Settings screen (front end and match menu), five tabs: Display (window,
+ * resolution, VSync, frame limit, field of view, brightness), Graphics
+ * (preset and per-category scalability, render resolution, anti-aliasing,
+ * hardware ray tracing, ray-traced shadows, motion blur), Audio, Controls
+ * (sensitivity, invert) and Interface (FPS counter, developer messages).
+ * Engine settings go through UGameUserSettings on Apply; Southern Spear
+ * preferences (FSSUserPrefs) apply immediately. Built in C++.
  */
 UCLASS()
 class SSUI_API USSSettingsWidget : public UUserWidget
@@ -50,8 +53,17 @@ public:
 	/** Replays the entry animation (call when shown again). */
 	void Replay() { Elapsed = 0.f; }
 
+	/** Shows one tab (0 Display, 1 Graphics, 2 Audio, 3 Controls, 4 Interface). */
+	void SelectTab(int32 Tab);
+
 private:
 	UFUNCTION() void OnApply();
+	UFUNCTION() void OnTab0() { SelectTab(0); }
+	UFUNCTION() void OnTab1() { SelectTab(1); }
+	UFUNCTION() void OnTab2() { SelectTab(2); }
+	UFUNCTION() void OnTab3() { SelectTab(3); }
+	UFUNCTION() void OnTab4() { SelectTab(4); }
+
 	UFUNCTION() void OnBack();
 
 	USSSettingRow* AddRow(class UVerticalBox* Box, const FText& Label, TArray<FText> Options, int32 Current, TFunction<void(int32)> OnChanged);
@@ -59,6 +71,11 @@ private:
 	UPROPERTY(Transient) TArray<TObjectPtr<USSSettingRow>> Rows;
 	UPROPERTY(Transient) TArray<TObjectPtr<UWidget>> Animated;
 	UPROPERTY(Transient) TObjectPtr<UWidget> Panel;
+	UPROPERTY(Transient) TArray<TObjectPtr<class UVerticalBox>> Pages;
+	UPROPERTY(Transient) TArray<TObjectPtr<UTextBlock>> TabLabels;
+	UPROPERTY(Transient) TArray<TObjectPtr<class UBorder>> TabUnderlines;
+	UPROPERTY(Transient) TArray<TObjectPtr<USSSettingRow>> QualityRows;
+	UPROPERTY(Transient) TObjectPtr<USSSettingRow> PresetRow;
 
 	TArray<FIntPoint> Resolutions;
 	float Elapsed = 0.f;

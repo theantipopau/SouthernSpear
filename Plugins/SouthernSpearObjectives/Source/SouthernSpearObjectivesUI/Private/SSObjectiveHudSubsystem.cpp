@@ -46,6 +46,25 @@ void USSObjectiveHudSubsystem::Tick(float DeltaTime)
 		FScreenshotRequest::RequestScreenshot(TEXT("SSShot.png"), /*bShowUI=*/ true, /*bAddFilenameSuffix=*/ false);
 		UE_LOG(LogSSObjectives, Log, TEXT("Requested viewport screenshot at %.1f s."), ElapsedSeconds);
 	}
+	// Dev scripting: -SSExecAt=<seconds> -SSExec="cmd1|cmd2" runs console commands as the local player
+	// once (after the pawn exists, unlike -ExecCmds, which runs at startup).
+	float ExecAt = 0.f;
+	FString Exec;
+	if (!bExecDone && FParse::Value(FCommandLine::Get(), TEXT("SSExecAt="), ExecAt) && ElapsedSeconds >= ExecAt
+		&& FParse::Value(FCommandLine::Get(), TEXT("SSExec="), Exec, /*bShouldStopOnSeparator=*/ false))
+	{
+		if (APlayerController* Player = GetWorld() ? GetWorld()->GetFirstPlayerController() : nullptr)
+		{
+			bExecDone = true;
+			TArray<FString> Commands;
+			Exec.ParseIntoArray(Commands, TEXT("|"));
+			for (const FString& Command : Commands)
+			{
+				UE_LOG(LogSSObjectives, Log, TEXT("SSExec at %.1f s: %s"), ElapsedSeconds, *Command);
+				Player->ConsoleCommand(Command.TrimStartAndEnd());
+			}
+		}
+	}
 
 	if (StatusWidget)
 	{

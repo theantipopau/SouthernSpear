@@ -9,10 +9,13 @@
 class USSClassSelectWidget;
 class USSMenuWidget;
 class USSPlayerHudWidget;
+class USSScoreboardWidget;
+class USSKillFeedWidget;
 
 /**
  * Client: adds the Southern Spear player HUD once the local player has a pawn,
- * toggles the match menu with Escape, and shows class selection on first
+ * toggles the match menu with Escape, shows the scoreboard while Tab is held,
+ * and shows class selection on first
  * deployment, after death and on L. Not created on the front end.
  */
 UCLASS()
@@ -30,5 +33,8 @@ private:
 	UPROPERTY(Transient) TObjectPtr<USSPlayerHudWidget> Hud;
 	UPROPERTY(Transient) TObjectPtr<USSMenuWidget> PauseMenu;
 	UPROPERTY(Transient) TObjectPtr<USSClassSelectWidget> ClassSelect;
+	UPROPERTY(Transient) TObjectPtr<USSScoreboardWidget> Scoreboard;
+	UPROPERTY(Transient) TObjectPtr<USSKillFeedWidget> KillFeed;
 	bool bHadPawn = false;
+	bool bClassSelectPending = false;
 };
