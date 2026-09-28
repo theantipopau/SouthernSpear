@@ -3873,11 +3873,24 @@ third-party file is used.
 - The Medic kit equals the Rifleman kit (A88 + A9; healing not in the game): reported by the producer's
   agent. It is a design gap, noted and not changed here.
 
+### ADDENDUM — ADF Re-Cut registry reviewed for weapons and animation
+
+- `Tools/Weapons/adfrc_weapon_data.py` (new, stdlib) reads the committed `config_registry.json` and writes
+  `Docs/WEAPON_SOURCE_DATA.md/.json`. For each A-series weapon it gives the source class, rpm and dispersion per
+  fire mode, magazine, handling, muzzle/ejection memory points, grip-pose clip, reload gesture (shipped or
+  vanilla) and resolved audio. Run: `python Tools/Weapons/adfrc_weapon_data.py` → **exit 0**, 8 weapons,
+  0 missing.
+- `Docs/WEAPONS_ANIMATION_PLAN.md` (new): **W1** per-weapon stats (today every weapon is a copy of Lyra's rifle
+  or pistol), **W2** grip sockets from the `handAnim` poses for left-hand IK (not blocked by R-32), **W3** ejection
+  and muzzle effects, **W4** reload audio, **W5** bullpup reload as IK trajectories, **W6** bipod and prone holds,
+  **W7** locomotion (existing audit). Recommendation: W1 then W2.
+
 ### NEXT ACTION
 
 **Build and run `Automation RunTests SouthernSpear`, then play one Section Assault match with Tab held.**
 Confirm the RANK column (insignia + level), the front-end badge, the unclipped objective panel, and that
-`ss.Callsign <name>` renames you on the scoreboard. Screenshot the scoreboard for `Docs/evidence/`.
+`ss.Callsign <name>` renames you on the scoreboard. Screenshot the scoreboard for `Docs/evidence/`. (After that,
+the weapons plan's W1 is the next build task.)
 
 ---
 

@@ -1,0 +1,415 @@
+{
+ "generated_from": "Docs/Sourced/ADFRC/config_registry.json",
+ "weapons": [
+  {
+   "name": "A88",
+   "role": "service rifle",
+   "source_class": "ADFRC_EF88_Base",
+   "source_file": "Source/adfrc_ef88/EF88.hpp",
+   "fire_modes": [
+    {
+     "mode": "single",
+     "rpm": 682,
+     "dispersion_rad": 0.000581776,
+     "dispersion_moa": 2.0
+    },
+    {
+     "mode": "fullauto",
+     "rpm": 682,
+     "dispersion_rad": 0.000581776,
+     "dispersion_moa": 2.0
+    }
+   ],
+   "magazines": [
+    "ADFRC_30Rnd_aug_ef88"
+   ],
+   "magazine_wells": [
+    "CBA_556x45_STEYR"
+   ],
+   "handling": {
+    "inertia": 0.4,
+    "dexterity": 1.3,
+    "aimTransitionSpeed": 1.1,
+    "swayDecaySpeed": 1.25,
+    "maxRecoilSway": 0.0125
+   },
+   "memory_points": {
+    "muzzleend": "konec hlavne",
+    "muzzlepos": "usti hlavne",
+    "cartridgepos": "nabojnicestart",
+    "cartridgevel": "nabojniceend"
+   },
+   "grip_pose_clips": [
+    "EF88_Vg_static"
+   ],
+   "reload_action": "GestureReloadAUG",
+   "reload_shipped_frames": 165,
+   "sound_sets_resolved": [
+    "AUG_InteriorTail_SoundSet",
+    "AUG_Shot_SoundSet",
+    "AUG_Tail_SoundSet",
+    "AUG_silencerInteriorTail_SoundSet",
+    "AUG_silencerShot_SoundSet",
+    "AUG_silencerTail_SoundSet"
+   ],
+   "sound_sets_vanilla_only": []
+  },
+  {
+   "name": "A88G",
+   "role": "service rifle, grenade launcher",
+   "source_class": "ADFRC_EF88GL_Base",
+   "source_file": "Source/adfrc_ef88/EF88.hpp",
+   "fire_modes": [
+    {
+     "mode": "single",
+     "rpm": 682,
+     "dispersion_rad": 0.000581776,
+     "dispersion_moa": 2.0
+    },
+    {
+     "mode": "fullauto",
+     "rpm": 682,
+     "dispersion_rad": 0.000581776,
+     "dispersion_moa": 2.0
+    }
+   ],
+   "magazines": [
+    "ADFRC_30Rnd_aug_ef88"
+   ],
+   "magazine_wells": [
+    "CBA_556x45_STEYR"
+   ],
+   "handling": {
+    "inertia": 0.55,
+    "dexterity": 1.7,
+    "aimTransitionSpeed": 1.1,
+    "swayDecaySpeed": 1.35,
+    "maxRecoilSway": 0.0125
+   },
+   "memory_points": {
+    "muzzleend": "konec hlavne",
+    "muzzlepos": "usti hlavne",
+    "cartridgepos": "nabojnicestart",
+    "cartridgevel": "nabojniceend"
+   },
+   "grip_pose_clips": [
+    "AUG_GL"
+   ],
+   "reload_action": "GestureReloadAUG",
+   "reload_shipped_frames": 165,
+   "sound_sets_resolved": [
+    "AUG_InteriorTail_SoundSet",
+    "AUG_Shot_SoundSet",
+    "AUG_Tail_SoundSet",
+    "AUG_silencerInteriorTail_SoundSet",
+    "AUG_silencerShot_SoundSet",
+    "AUG_silencerTail_SoundSet"
+   ],
+   "sound_sets_vanilla_only": []
+  },
+  {
+   "name": "A89",
+   "role": "light support weapon",
+   "source_class": "ADFRC_minimi_BASE",
+   "source_file": "Source/adfrc_minimi/config.cpp",
+   "fire_modes": [
+    {
+     "mode": "fullauto",
+     "rpm": 750,
+     "dispersion_rad": 0.00101,
+     "dispersion_moa": 3.47
+    },
+    {
+     "mode": "fullautodeployed",
+     "rpm": 750,
+     "dispersion_rad": 0.00101,
+     "dispersion_moa": 3.47
+    }
+   ],
+   "magazines": [
+    "ADFRC_200Rnd_556_Minimi_TR5"
+   ],
+   "magazine_wells": [],
+   "handling": {
+    "dexterity": 100
+   },
+   "memory_points": {},
+   "grip_pose_clips": [
+    "Minimi_Standard"
+   ],
+   "reload_action": "GestureReloadM200",
+   "reload_shipped_frames": null,
+   "sound_sets_resolved": [],
+   "sound_sets_vanilla_only": [
+    "Zafir_Shot_SoundSet",
+    "Zafir_Tail_SoundSet"
+   ]
+  },
+  {
+   "name": "A4",
+   "role": "carbine",
+   "source_class": "ADFRC_M4A5_556_Base",
+   "source_file": "Source/adfrc_m4a5/M4A5.hpp",
+   "fire_modes": [
+    {
+     "mode": "single",
+     "rpm": 857,
+     "dispersion_rad": 0.000581776,
+     "dispersion_moa": 2.0
+    },
+    {
+     "mode": "fullauto",
+     "rpm": 857,
+     "dispersion_rad": 0.000581776,
+     "dispersion_moa": 2.0
+    }
+   ],
+   "magazines": [
+    "ADFRC_30Rnd_PMAG"
+   ],
+   "magazine_wells": [
+    "STANAG_556x45",
+    "STANAG_556x45_Large",
+    "CBA_556x45_STANAG",
+    "CBA_556x45_STANAG_L",
+    "CBA_556x45_STANAG_XL",
+    "CBA_556x45_STANAG_2D",
+    "CBA_556x45_STANAG_2D_XL"
+   ],
+   "handling": {
+    "inertia": 0.3,
+    "dexterity": 1.3,
+    "swayDecaySpeed": 1.25,
+    "maxRecoilSway": 0.0125
+   },
+   "memory_points": {
+    "muzzleend": "konec hlavne",
+    "muzzlepos": "usti hlavne",
+    "cartridgepos": "nabojnicestart",
+    "cartridgevel": "nabojniceend"
+   },
+   "grip_pose_clips": [
+    "ar15_8in_cgrip_static"
+   ],
+   "reload_action": "GestureReloadSPAR_01",
+   "reload_shipped_frames": null,
+   "sound_sets_resolved": [],
+   "sound_sets_vanilla_only": [
+    "SPAR01_InteriorTail_SoundSet",
+    "SPAR01_Shot_SoundSet",
+    "SPAR01_Tail_SoundSet",
+    "SPAR01_silencerInteriorTail_SoundSet",
+    "SPAR01_silencerShot_SoundSet",
+    "SPAR01_silencerTail_SoundSet"
+   ]
+  },
+  {
+   "name": "A416",
+   "role": "carbine (SF)",
+   "source_class": "ADFRC_HK416_556_Base",
+   "source_file": "Source/adfrc_hk416/HK416.hpp",
+   "fire_modes": [
+    {
+     "mode": "single",
+     "rpm": 857,
+     "dispersion_rad": 0.000581776,
+     "dispersion_moa": 2.0
+    },
+    {
+     "mode": "fullauto",
+     "rpm": 857,
+     "dispersion_rad": 0.000581776,
+     "dispersion_moa": 2.0
+    }
+   ],
+   "magazines": [
+    "ADFRC_30Rnd_PMAG"
+   ],
+   "magazine_wells": [
+    "STANAG_556x45",
+    "STANAG_556x45_Large",
+    "CBA_556x45_STANAG",
+    "CBA_556x45_STANAG_L",
+    "CBA_556x45_STANAG_XL",
+    "CBA_556x45_STANAG_2D",
+    "CBA_556x45_STANAG_2D_XL"
+   ],
+   "handling": {
+    "inertia": 0.3,
+    "dexterity": 1.3,
+    "swayDecaySpeed": 1.25,
+    "maxRecoilSway": 0.0125
+   },
+   "memory_points": {
+    "muzzleend": "konec hlavne",
+    "muzzlepos": "usti hlavne",
+    "cartridgepos": "nabojnicestart",
+    "cartridgevel": "nabojniceend"
+   },
+   "grip_pose_clips": [
+    "hk416_cgrip_static"
+   ],
+   "reload_action": "GestureReloadSPAR_01",
+   "reload_shipped_frames": null,
+   "sound_sets_resolved": [],
+   "sound_sets_vanilla_only": [
+    "SPAR01_InteriorTail_SoundSet",
+    "SPAR01_Shot_SoundSet",
+    "SPAR01_Tail_SoundSet",
+    "SPAR01_silencerInteriorTail_SoundSet",
+    "SPAR01_silencerShot_SoundSet",
+    "SPAR01_silencerTail_SoundSet"
+   ]
+  },
+  {
+   "name": "A417",
+   "role": "battle rifle (SF)",
+   "source_class": "ADFRC_HK417_Base",
+   "source_file": "Source/adfrc_hk417/HK417.hpp",
+   "fire_modes": [
+    {
+     "mode": "single",
+     "rpm": 857,
+     "dispersion_rad": 0.00068445995,
+     "dispersion_moa": 2.35
+    },
+    {
+     "mode": "fullauto",
+     "rpm": 600,
+     "dispersion_rad": 0.00068445995,
+     "dispersion_moa": 2.35
+    }
+   ],
+   "magazines": [
+    "ADFRC_20RD_HK417_F4"
+   ],
+   "magazine_wells": [
+    "CBA_762x51_HK417",
+    "CBA_762x51_HK417_L",
+    "CBA_762x51_HK417_XL"
+   ],
+   "handling": {
+    "inertia": 0.3,
+    "dexterity": 1.3,
+    "swayDecaySpeed": 1.25,
+    "maxRecoilSway": 0.0125
+   },
+   "memory_points": {
+    "muzzleend": "konec hlavne",
+    "muzzlepos": "usti hlavne",
+    "cartridgepos": "nabojnicestart",
+    "cartridgevel": "nabojniceend"
+   },
+   "grip_pose_clips": [
+    "hk417_static"
+   ],
+   "reload_action": "GestureReloadSPAR_01",
+   "reload_shipped_frames": null,
+   "sound_sets_resolved": [],
+   "sound_sets_vanilla_only": [
+    "SPAR_17_Shot_SoundSet",
+    "SPAR_17_Tail_SoundSet",
+    "SPAR_17_interiorTail_SoundSet",
+    "SPAR_17_silencerInteriorTail_SoundSet",
+    "SPAR_17_silencerShot_SoundSet",
+    "SPAR_17_silencerTail_SoundSet"
+   ]
+  },
+  {
+   "name": "A25",
+   "role": "marksman rifle",
+   "source_class": "adfrc_SR25_Base",
+   "source_file": "Source/adfrc_SR25/config.cpp",
+   "fire_modes": [
+    {
+     "mode": "single",
+     "rpm": 600,
+     "dispersion_rad": 0.000436332,
+     "dispersion_moa": 1.5
+    }
+   ],
+   "magazines": [],
+   "magazine_wells": [],
+   "handling": {
+    "inertia": 0.99,
+    "dexterity": 1.8,
+    "swayDecaySpeed": 1.25,
+    "maxRecoilSway": 0.0125,
+    "recoil": "recoil_ebr"
+   },
+   "memory_points": {
+    "muzzleend": "konec hlavne",
+    "muzzlepos": "usti hlavne",
+    "cartridgepos": "nabojnicestart",
+    "cartridgevel": "nabojniceend"
+   },
+   "grip_pose_clips": [
+    "ar15_10in_cgrip_static"
+   ],
+   "reload_action": "GestureReloadSPAR_01",
+   "reload_shipped_frames": null,
+   "sound_sets_resolved": [],
+   "sound_sets_vanilla_only": [
+    "SPAR_17_InteriorTail_SoundSet",
+    "SPAR_17_Shot_SoundSet",
+    "SPAR_17_Tail_SoundSet",
+    "SPAR_17_silencerInteriorTail_SoundSet",
+    "SPAR_17_silencerShot_SoundSet",
+    "SPAR_17_silencerTail_SoundSet"
+   ]
+  },
+  {
+   "name": "A9",
+   "role": "pistol",
+   "source_class": "ADFRC_G19_Base",
+   "source_file": "Source/adfrc_g19/G19.hpp",
+   "fire_modes": [
+    {
+     "mode": "single",
+     "rpm": 600,
+     "dispersion_rad": 0.0025,
+     "dispersion_moa": 8.59
+    }
+   ],
+   "magazines": [],
+   "magazine_wells": [],
+   "handling": {
+    "inertia": 0.15,
+    "swayDecaySpeed": 1.25,
+    "maxRecoilSway": 0.0125,
+    "recoil": "recoil_pistol_p07"
+   },
+   "memory_points": {
+    "muzzleend": "konec hlavne",
+    "muzzlepos": "usti hlavne",
+    "cartridgepos": "nabojnicestart",
+    "cartridgevel": "nabojniceend"
+   },
+   "grip_pose_clips": [],
+   "reload_action": null,
+   "reload_shipped_frames": null,
+   "sound_sets_resolved": [],
+   "sound_sets_vanilla_only": [
+    "P07_InteriorTail_SoundSet",
+    "P07_Shot_SoundSet",
+    "P07_Tail_SoundSet",
+    "P07_silencerInteriorTail_SoundSet",
+    "P07_silencerShot_SoundSet",
+    "P07_silencerTail_SoundSet"
+   ]
+  }
+ ],
+ "maf_grip_clips_available": [
+  "ak_cgrip_static",
+  "ak_afg_static",
+  "ak_vg_static",
+  "ak_vg_tb_static",
+  "ak_under_static"
+ ],
+ "shipped_reload_gestures": {
+  "GestureReloadAUG": 165,
+  "GestureReloadAUGProne": 165,
+  "MPP_Slow_Reload": 91,
+  "MPP_Fast_Reload": 54
+ }
+}
