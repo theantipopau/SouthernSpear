@@ -5300,6 +5300,230 @@ frame (see the prompt in the Session 064 reply), and build the replacement.
 ---
 
 
+## Session 065 — 2026-09-29 — R-65 Answered From The 5.8 Source; The Full Decode; Three W5 Probes
+
+Four tasks, run in order on `e4fff018`. The R-65 answer is the one that changes a decision, so it comes
+with the engine quotes and line numbers and **no fix was written** — the producer writes that.
+
+### COMPLETED
+
+**1. R-65 (the hand IK never runs) — answered from the UE 5.8.3 source, and the Session 059 diagnosis
+was incomplete.**
+
+**a. A per-component post-process Anim Blueprint override exists.** `USkeletalMeshComponent`
+(`Objects/Components/SkeletalMeshComponent.h`):
+
+```cpp
+/** Post-processing AnimBP to use for the given skeletal mesh component, overriding the one set in the skeletal mesh asset. */
+UPROPERTY(transient)
+TSubclassOf<UAnimInstance> OverridePostProcessAnimBP;                                    // line 410
+ENGINE_API TSubclassOf<UAnimInstance> GetPostProcessAnimBPClassToBeUsed() const;          // line 417
+UPROPERTY(transient)
+TObjectPtr<UAnimInstance> PostProcessAnimInstance;                                        // line 423
+UFUNCTION(BlueprintCallable, Category = "Components|SkeletalMesh")
+ENGINE_API void SetOverridePostProcessAnimBP(TSubclassOf<UAnimInstance> InPostProcessAnimBlueprint,
+                                             bool ReinitAnimInstances = true);            // line 433
+```
+Also available: `ToggleDisablePostProcessBlueprint()` (437) and `GetDisablePostProcessBlueprint()` (441).
+
+**b. `PostAnimEvaluation` is not virtual, and — this is the correction — `FinalizeBoneTransform` *is*
+reached in a normal game frame.** Declaration (SkeletalMeshComponent.h:2271, public):
+
+```cpp
+ENGINE_API void PostAnimEvaluation(FAnimationEvaluationContext& EvaluationContext);       // NOT virtual
+```
+
+`USkeletalMeshComponent::PostAnimEvaluation` is `SkeletalMeshComponent.cpp:3181-3381`. After the
+evaluation itself, in order (`if (bDoEvaluation || bDoInterpolation)` opens at 3276; the whole block
+closes at 3363):
+
+| line | call |
+|---|---|
+| 3193 | `EvaluationContext.AnimInstance->PostUpdateAnimation()` |
+| 3198 | `PostProcessAnimInstance->PostUpdateAnimation()` (when `ShouldPostUpdatePostProcessInstance()`) |
+| 3211 / 3217 / 3222-3227 | cache copies: `CachedCurve`, `CachedAttributes`, `CachedComponentSpaceTransforms`, `CachedBoneSpaceTransforms` (per `bDuplicateToCache*`) |
+| 3240 / 3245 / 3250 | `OnUROPreInterpolation()` on the main, linked and post-process instances |
+| 3262 | `FAnimationRuntime::LerpBoneTransforms(...)` |
+| 3263 | `GetSkeletalMeshAsset()->FillComponentSpaceTransforms(...)` |
+| 3266 / 3269 | `AnimCurves.LerpTo(...)`, `UE::Anim::Attributes::InterpolateAttributes(...)` |
+| 3279 | `ResetMorphTargetCurves()` |
+| 3291 | `AnimScriptInstance->UpdateCurvesPostEvaluation()` |
+| 3297 | `LinkedInstance->CopyCurveValues(*AnimScriptInstance)` |
+| 3302 | `UpdateMorphTargetOverrideCurves()` |
+| 3310 / 3315 | post-process curve copy / `UpdateCurvesPostEvaluation()` |
+| 3322 | `DoInstancePostEvaluation()` (when `bDoEvaluation`) |
+| 3325 | `DoInstanceFinalizeAnimation(EvaluationContext.bDoEvaluation)` |
+| 3327 | `bNeedToFlipSpaceBaseBuffers = true` |
+| 3337-3338 / 3343-3344 | `UpdateKinematicBonesToAnim(...)`, `UpdateRBJointMotors()` (bodies or per-poly collision) |
+| **3354 / 3360** | **`FinalizeAnimationUpdate()`** — editor branch / `!ShouldBlendPhysicsBones()` |
+| 3366 | `DoInstanceFinalizeAnimation(false)` (the else branch) |
+| 3377 | `ConditionallyDispatchQueuedAnimEvents()` (the else branch) |
+| 3380 | `AnimEvaluationContext.Clear()` |
+
+`USkeletalMeshComponent::FinalizeAnimationUpdate()` is defined **in `PhysicsEngine/PhysAnim.cpp:468`**,
+not in `SkeletalMeshComponent.cpp`, and its first act is `FinalizeBoneTransform();` at **PhysAnim.cpp:473**.
+`USkeletalMeshComponent::FinalizeBoneTransform()` (`SkeletalMeshComponent.cpp:5167`, virtual, overriding
+`USkinnedMeshComponent::FinalizeBoneTransform` declared at `SkinnedMeshComponent.h:1712`) is where
+`ConditionallyDispatchQueuedAnimEvents()` runs (5186) and where **`OnBoneTransformsFinalizedMC.Broadcast()`
+is (5188)** — the only broadcast site in the engine.
+
+Every normal-frame route to it, in full:
+
+- `PostAnimEvaluation` → `FinalizeAnimationUpdate()` when `!ShouldBlendPhysicsBones()` (3354/3360);
+- with physics blending, the tick calls `BlendInPhysicsInternal` (`SkeletalMeshComponentPhysics.cpp:3456`,
+  under `if (ShouldBlendPhysicsBones())`) → `FinalizeAnimationUpdate()` at `PhysAnim.cpp:459` (serial), or
+  `FParallelBlendPhysicsCompletionTask::DoTask` (`PhysAnim.cpp:97`) → `CompleteParallelBlendPhysics()`
+  (`PhysAnim.cpp:526`) → `FinalizeAnimationUpdate()` at 530 — the default path, `a.ParallelBlendPhysics 1`;
+- `RefreshBoneTransforms` (2862) calls `FinalizeBoneTransform()` directly at 3039, but only when
+  `TickFunction == nullptr && ShouldBlendPhysicsBones()` (3036).
+
+`ShouldBlendPhysicsBones()` itself is `PhysAnim.cpp:400`: `Bodies.Num() > 0 && CollisionEnabledHasPhysics(...)
+&& (bBlendPhysics || DoAnyPhysicsBodiesHaveWeight())`. The two routes are complementary — when it is false
+PostAnimEvaluation finalises, when it is true the physics blend does — so the broadcast does happen in a
+normal game frame, on any frame that evaluated or interpolated. The remaining callers are editor-only:
+Sequencer, the FBX exporters, the physics-asset editor and `UPoseableMeshComponent`.
+
+**So R-65's premise needs revisiting before the fix is written.** Session 059 searched
+`SkeletalMeshComponent.cpp` for callers of `FinalizeBoneTransform` and found only the
+`TickFunction == nullptr` branch; `FinalizeAnimationUpdate` lives in `PhysAnim.cpp` and was missed. If
+`USSHandIKMeshComponent::FinalizeBoneTransform()` does run, the failure is elsewhere — the ordering
+(a hook there runs *before* `UpdateChildTransforms`, `UpdateBounds` and `MarkRenderDynamicDataDirty`,
+PhysAnim.cpp:483-523), the post-process route, or the component simply not being the one that renders.
+
+**c. `AnimGraphService` can build part of this post-process graph, not all of it.** From
+`Build/vibeue_python_api.json` and `Plugins/VibeUE/Source/VibeUE/Public/PythonAPI/UAnimGraphService.h`:
+
+- Creating the Anim Blueprint is not a VibeUE call — use the engine API the
+  `animation-blueprint` skill documents: `unreal.AnimBlueprintFactory` with `target_skeleton` and
+  `parent_class` (any `UAnimInstance` subclass, so a C++ parent works) +
+  `unreal.AssetToolsHelpers.get_asset_tools().create_asset(name, path, unreal.AnimBlueprint, factory)`,
+  then `unreal.EditorAssetLibrary.save_asset(path)`. `SkeletonService.set_post_process_anim_blueprint` and
+  `SkeletonService.save_asset` exist for the skeleton side.
+- Two Bone IK: **`add_two_bone_ik_node(anim_blueprint_path, graph_name, pos_x, pos_y)`** — that is the whole
+  signature; it creates a `UAnimGraphNode_TwoBoneIK` and sets only its graph position. It cannot set the IK
+  bone, the effector location or its space, the joint target, or alpha.
+- **There is no Input Pose node anywhere in the plugin** (no `add_input_pose`, and no generic node-add in
+  `AnimGraphService`; `BlueprintService.create_node_by_key` is for ordinary Blueprints).
+- Pins are connected, not bound: `connect_anim_nodes(abp, graph, source_node_id, source_pin_name="Pose",
+  target_node_id="", target_pin_name="Result")`, `connect_to_output_pose(abp, graph, node_id, "Pose")`,
+  `get_output_pose_node_id(abp, graph)`, `disconnect_anim_node(...)`. For a value,
+  `BlueprintService.set_node_pin_value(blueprint, graph, node_id, pin_name, value)` writes a literal default
+  (`Schema->TrySetDefaultValue`) and `configure_node(blueprint, graph, node_id, property_name, value)` sets a
+  property on the node — neither creates a variable binding, and no method in either service does.
+- Variables and compile: `BlueprintService.add_member_variable(path, name, type, default, is_array,
+  container_type, instance_editable)` and `BlueprintService.compile_blueprint(path)` still exist in C++, but
+  the skill's guidance is that the engine toolset took them over —
+  `editor_toolset.toolsets.blueprint.BlueprintTools` (`add_variable`, `compile_blueprint`) via `call_tool`.
+  Setting the node's IK parameters and binding its pins to the parent's variables is the part that has to be
+  done in the editor (or by a new plugin method), not by a service call.
+
+**2. The full decode, and the grip still fits.** `python Docs/Sourced/ADFRC/rtm_rigs.py` → **13 rigs, 165
+clips**, written as `adfrc-rig/2` and `adfrc-anim-local/2` (+ `adfrc-rig-index/1`), exit 0. Then
+`python Tools/build_adfrc_weapons.py`: 7/7 OK, and every rifle's `grip.fit` is still `true` with a span
+**identical to the pre-pull run** — A88 0.2418, A88G 0.2929, A4 0.3113, A416 0.3381, A25 0.3486, A89 0.3013 m
+(all inside the 0.24-0.35 m band). The /2 conversion is therefore correct on the real tree, not just in the
+unit test; the stop-and-report condition was not met.
+
+**3. The reload clip path.** `python Tools/Common/adfrc_grip.py --export-frames Docs/evidence/w5_reload_clips`
+→ 4 clips (GestureReloadAUG 165 frames/66 bones, GestureReloadAUGProne 165/66, MPP_Fast_Reload 54/67,
+MPP_Slow_Reload 91/67). `python Tools/Common/adfrc_reload.py A88`:
+
+```json
+{"clip": "GestureReloadAUG", "frames": 165, "max_step_cm": 88.14, "start_cm": [98.89, 50.83, -159.73],
+ "end_cm": [98.9, 50.79, -159.73], "grip_cm": [22.23, -9.4, -1.51], "start_to_grip_cm": 185.84,
+ "switch_phase": 0.48}
+```
+
+**4. The A88 magazine probe.** `Tools/Blender/probe_weapon_parts.py` on
+`ADFRC_EF88_MLOD.blend`:
+
+```
+[probe parts] Art/ADFRC_BLEND/adfrc_ef88/ADFRC_EF88_MLOD.blend magazine groups:
+[{"object": "Memory", "collections": ["point_cloud"], "group": "magazine_axis", "vertices": 2},
+ {"object": "Memory", "collections": ["point_cloud"], "group": "mag_latch_axis", "vertices": 3}]
+```
+
+**5. Muzzle-flash candidates.** A commandlet pass over the asset registry
+(`-ExecutePythonScript`, the convention `setup_weapons.py` uses): `/Game/Realistic_Starter_VFX_Pack_Vol2`
+holds 188 assets — 56 `ParticleSystem`, 0 `NiagaraSystem` — and **not one** has Muzzle, Flash or Shot in its
+name; its particles are `P_Asphalt`, `P_Blood_Splat_Cone`, `P_Destruction_*`, `P_Explosion_*` and similar.
+The same keyword pass over all of `/Game` (14,558 assets) found 4, recorded in
+`Docs/evidence/vfx_muzzle_candidates.json`:
+
+| class | path |
+|---|---|
+| NiagaraSystem | `/Game/Effects/Particles/Weapons/NS_WeaponFire_MuzzleFlash_Rifle` |
+| NiagaraSystem | `/Game/Effects/Particles/Weapons/NS_WeaponFire_Tracer_Shotgun` |
+| ParticleSystem | `/Game/AK-47/FX/MuzzleFlash/P_AssaultRifle_MuzzleFlash` |
+| ParticleSystem | `/Game/Downloaded/VaultCache/Untitled7d3b12f5addbV1/data/Content/AK-47/FX/MuzzleFlash/P_AssaultRifle_MuzzleFlash` |
+
+### FILES CHANGED
+
+- `Docs/evidence/w5_reload_clips/` — new: `GestureReloadAUG.json`, `GestureReloadAUGProne.json`,
+  `MPP_Fast_Reload.json`, `MPP_Slow_Reload.json`, `parts_A88.json`.
+- `Docs/evidence/vfx_muzzle_candidates.json` — new (with the pack inventory and the /Game wide scan).
+- `Art/Weapons/*/ADFRC/` — 7 `SM_*.fbx` (LFS) + 7 `manifest.json` touched by the rebuild.
+- `Docs/CHANGELOG.md`.
+- Not committed, by instruction: `Build/probe_muzzle_vfx.py` (the throwaway probe that produced the VFX
+  list) and the stale `/1` decode tree, moved to `Build/ADFRC_Rig_stale_v1/`.
+
+### TESTING
+
+- `python Docs/Sourced/ADFRC/rtm_rigs.py` — exit 0; 13 rigs / 165 clips, schemas `adfrc-rig/2`,
+  `adfrc-anim-local/2`, `adfrc-rig-index/1`.
+- `python Tools/build_adfrc_weapons.py` — exit 0, 7/7 OK; all six grip spans identical to the previous run
+  and all `fit: true`; A9 unchanged (no handAnim clip, so no grip).
+- `python Tools/Common/adfrc_grip.py --export-frames ...` — exit 0, "4 clip(s) written".
+- `python Tools/Common/adfrc_reload.py A88` — exit 0, JSON above.
+- Blender probe — exit 0, magazine groups line above.
+- Editor commandlet probe — exit 0, `[VFX]` line written; the report is the JSON.
+
+### ASSETS
+
+None imported, created or modified by hand. The 7 weapon FBX were re-exported by
+`Tools/build_adfrc_weapons.py` and re-committed.
+
+### RISKS
+
+No new risk numbers were taken: this session did not reserve a range, and the ID rule says not to guess the
+next free one. The open items this session raises, for numbering with the others: the R-65 mechanism (below) is
+now unproven rather than confirmed; the A88 magazine has no detachable named selection (below); the weapon
+FBX export is not byte-reproducible (below); and the decoder cannot be re-run over its own output (below).
+
+### DEFECTS FOUND
+
+- **R-65's mechanism does not hold as written.** `FinalizeBoneTransform` is reached in a normal frame via
+  `FinalizeAnimationUpdate` (`PhysAnim.cpp:468`, called from 3354/3360, 459 and 530). Any fix should start
+  from why the override's work is not visible in the rendered pose, not from "it never runs".
+- **`rtm_rigs.py` cannot be run twice.** Its input glob skips a file whose *immediate* parent directory is
+  `Rig` (`if os.path.basename(os.path.dirname(f)) != "Rig"`), but it writes its own output to
+  `Rig/<rigkey>/<clip>.json`, where the parent is `<rigkey>`. The second run therefore reads its own output
+  as input and dies with `KeyError: 'bones'` (165 files) — this is how this session started. The stale `/1`
+  tree was moved aside to `Build/ADFRC_Rig_stale_v1/` and the tree was decoded fresh. One line fixes it:
+  exclude anything under `Rig/`, not just files directly in it.
+- **The FBX export is not reproducible.** Each `SM_*.fbx` is the same size and differs from the committed
+  one only in the `CreationTimeStamp` bytes at offset ~292 of the header (`cmp` on the A88: first difference
+  at byte 292, inside Year/Month/Day/Hour/Minute/Second). Every rebuild therefore mints 7 new LFS objects
+  (~23 MB) that carry no mesh change, and the manifests show as modified purely through CRLF.
+- **The A88's magazine is not a detachable part.** The probe reports 67 mesh objects in the MLOD blend and
+  **none** of them carries a vertex group: the named selections Arma uses did not survive the conversion, and
+  the only magazine references left are two memory points on the `Memory` point cloud (`magazine_axis`, 2
+  vertices; `mag_latch_axis`, 3). Arma's reload works by hiding the `magazine` named selection, so as it
+  stands there is no geometry to hide or swap — the magazine is welded into the gun mesh. That is a W5
+  finding, not a tooling one.
+- **`GestureReloadAUG` starts 1.86 m from the grip, with an 0.88 m single-frame step.** The clip is a
+  full-body gesture whose first frame is not a weapon-ready pose; worth knowing before the path is turned
+  into an animation.
+
+### NEXT ACTION
+
+Write the R-65 fix from the annotated call chain above, starting with why
+`USSHandIKMeshComponent::FinalizeBoneTransform` (or the post-process route) does not change the rendered pose
+— then fix the `rtm_rigs.py` exclusion so the decoder can be re-run, and stop regenerating the FBX until the
+export timestamp is pinned.
+
+---
+
 ## Open Threads
 
 | Item | Blocked on | Owner |

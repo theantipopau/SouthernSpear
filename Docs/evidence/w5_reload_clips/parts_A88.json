@@ -1,0 +1,2468 @@
+{
+ "source": "Art/ADFRC_BLEND/adfrc_ef88/ADFRC_EF88_MLOD.blend",
+ "objects": [
+  {
+   "name": "adfrc_ef88_ADFRC_EF88_MLOD_R0",
+   "collections": [
+    "view_R0"
+   ],
+   "vertices": 6388,
+   "materials": [
+    "P3D: adfrc_ef88_co.paa :: adfrc_ef88_poly.rvmat"
+   ],
+   "vertex_groups": {
+    "muzzleflash": 0,
+    "bolt_handle": 0,
+    "ef88": 0,
+    "bolt_group": 0,
+    "front_sight": 0,
+    "rear_sight": 0,
+    "camoplastic": 0,
+    "barrel": 0,
+    "brake": 0,
+    "ruid": 0,
+    "ff": 0,
+    "bolt_release": 0,
+    "magazine": 0,
+    "safety": 0,
+    "trigger": 0,
+    "mag_latch": 0,
+    "charging_handle": 0,
+    "camometal": 0,
+    "@proxy_0": 0,
+    "@proxy_1": 0,
+    "@proxy_2": 0,
+    "@proxy_3": 0,
+    "@proxy_4": 0,
+    "@proxy_5": 0,
+    "@proxy_6": 0
+   }
+  },
+  {
+   "name": "adfrc_ef88_ADFRC_EF88_MLOD_R0.001",
+   "collections": [
+    "view_R0"
+   ],
+   "vertices": 15229,
+   "materials": [
+    "P3D: adfrc_ef88_co.paa :: adfrc_ef88_metal.rvmat"
+   ],
+   "vertex_groups": {
+    "muzzleflash": 0,
+    "bolt_handle": 0,
+    "ef88": 0,
+    "bolt_group": 0,
+    "front_sight": 0,
+    "rear_sight": 0,
+    "camoplastic": 0,
+    "barrel": 0,
+    "brake": 0,
+    "ruid": 0,
+    "ff": 0,
+    "bolt_release": 0,
+    "magazine": 0,
+    "safety": 0,
+    "trigger": 0,
+    "mag_latch": 0,
+    "charging_handle": 0,
+    "camometal": 0,
+    "@proxy_0": 0,
+    "@proxy_1": 0,
+    "@proxy_2": 0,
+    "@proxy_3": 0,
+    "@proxy_4": 0,
+    "@proxy_5": 0,
+    "@proxy_6": 0
+   }
+  },
+  {
+   "name": "adfrc_ef88_ADFRC_EF88_MLOD_R0.002",
+   "collections": [
+    "view_R0"
+   ],
+   "vertices": 4497,
+   "materials": [
+    "P3D: adfrc_ef88_co.paa :: adfrc_ef88_poly.rvmat"
+   ],
+   "vertex_groups": {
+    "muzzleflash": 0,
+    "bolt_handle": 0,
+    "ef88": 0,
+    "bolt_group": 0,
+    "front_sight": 0,
+    "rear_sight": 0,
+    "camoplastic": 0,
+    "barrel": 0,
+    "brake": 0,
+    "ruid": 0,
+    "ff": 0,
+    "bolt_release": 0,
+    "magazine": 0,
+    "safety": 0,
+    "trigger": 0,
+    "mag_latch": 0,
+    "charging_handle": 0,
+    "camometal": 0,
+    "@proxy_0": 0,
+    "@proxy_1": 0,
+    "@proxy_2": 0,
+    "@proxy_3": 0,
+    "@proxy_4": 0,
+    "@proxy_5": 0,
+    "@proxy_6": 0
+   }
+  },
+  {
+   "name": "adfrc_ef88_ADFRC_EF88_MLOD_R0.003",
+   "collections": [
+    "view_R0"
+   ],
+   "vertices": 13408,
+   "materials": [
+    "P3D: adfrc_ef88_co.paa :: adfrc_ef88_metal.rvmat"
+   ],
+   "vertex_groups": {
+    "muzzleflash": 0,
+    "bolt_handle": 0,
+    "ef88": 0,
+    "bolt_group": 0,
+    "front_sight": 0,
+    "rear_sight": 0,
+    "camoplastic": 0,
+    "barrel": 0,
+    "brake": 0,
+    "ruid": 0,
+    "ff": 0,
+    "bolt_release": 0,
+    "magazine": 0,
+    "safety": 0,
+    "trigger": 0,
+    "mag_latch": 0,
+    "charging_handle": 0,
+    "camometal": 0,
+    "@proxy_0": 0,
+    "@proxy_1": 0,
+    "@proxy_2": 0,
+    "@proxy_3": 0,
+    "@proxy_4": 0,
+    "@proxy_5": 0,
+    "@proxy_6": 0
+   }
+  },
+  {
+   "name": "adfrc_ef88_ADFRC_EF88_MLOD_R0.004",
+   "collections": [
+    "view_R0"
+   ],
+   "vertices": 3115,
+   "materials": [
+    "P3D: adfrc_ef88_co.paa :: adfrc_ef88_poly.rvmat"
+   ],
+   "vertex_groups": {
+    "muzzleflash": 0,
+    "bolt_handle": 0,
+    "ef88": 0,
+    "bolt_group": 0,
+    "front_sight": 0,
+    "rear_sight": 0,
+    "camoplastic": 0,
+    "barrel": 0,
+    "brake": 0,
+    "ruid": 0,
+    "ff": 0,
+    "bolt_release": 0,
+    "magazine": 0,
+    "safety": 0,
+    "trigger": 0,
+    "mag_latch": 0,
+    "charging_handle": 0,
+    "camometal": 0,
+    "@proxy_0": 0,
+    "@proxy_1": 0,
+    "@proxy_2": 0,
+    "@proxy_3": 0,
+    "@proxy_4": 0,
+    "@proxy_5": 0,
+    "@proxy_6": 0
+   }
+  },
+  {
+   "name": "adfrc_ef88_ADFRC_EF88_MLOD_R0.005",
+   "collections": [
+    "view_R0"
+   ],
+   "vertices": 10147,
+   "materials": [
+    "P3D: adfrc_ef88_co.paa :: adfrc_ef88_metal.rvmat"
+   ],
+   "vertex_groups": {
+    "muzzleflash": 0,
+    "bolt_handle": 0,
+    "ef88": 0,
+    "bolt_group": 0,
+    "front_sight": 0,
+    "rear_sight": 0,
+    "camoplastic": 0,
+    "barrel": 0,
+    "brake": 0,
+    "ruid": 0,
+    "ff": 0,
+    "bolt_release": 0,
+    "magazine": 0,
+    "safety": 0,
+    "trigger": 0,
+    "mag_latch": 0,
+    "charging_handle": 0,
+    "camometal": 0,
+    "@proxy_0": 0,
+    "@proxy_1": 0,
+    "@proxy_2": 0,
+    "@proxy_3": 0,
+    "@proxy_4": 0,
+    "@proxy_5": 0,
+    "@proxy_6": 0
+   }
+  },
+  {
+   "name": "adfrc_ef88_ADFRC_EF88_MLOD_R0.006",
+   "collections": [
+    "view_R0"
+   ],
+   "vertices": 2689,
+   "materials": [
+    "P3D: adfrc_ef88_co.paa :: adfrc_ef88_poly.rvmat"
+   ],
+   "vertex_groups": {
+    "muzzleflash": 0,
+    "bolt_handle": 0,
+    "ef88": 0,
+    "bolt_group": 0,
+    "front_sight": 0,
+    "rear_sight": 0,
+    "camoplastic": 0,
+    "barrel": 0,
+    "brake": 0,
+    "ruid": 0,
+    "ff": 0,
+    "bolt_release": 0,
+    "magazine": 0,
+    "safety": 0,
+    "trigger": 0,
+    "mag_latch": 0,
+    "charging_handle": 0,
+    "camometal": 0,
+    "@proxy_0": 0,
+    "@proxy_1": 0,
+    "@proxy_2": 0,
+    "@proxy_3": 0,
+    "@proxy_4": 0,
+    "@proxy_5": 0,
+    "@proxy_6": 0
+   }
+  },
+  {
+   "name": "adfrc_ef88_ADFRC_EF88_MLOD_R0.007",
+   "collections": [
+    "view_R0"
+   ],
+   "vertices": 9331,
+   "materials": [
+    "P3D: adfrc_ef88_co.paa :: adfrc_ef88_metal.rvmat"
+   ],
+   "vertex_groups": {
+    "muzzleflash": 0,
+    "bolt_handle": 0,
+    "ef88": 0,
+    "bolt_group": 0,
+    "front_sight": 0,
+    "rear_sight": 0,
+    "camoplastic": 0,
+    "barrel": 0,
+    "brake": 0,
+    "ruid": 0,
+    "ff": 0,
+    "bolt_release": 0,
+    "magazine": 0,
+    "safety": 0,
+    "trigger": 0,
+    "mag_latch": 0,
+    "charging_handle": 0,
+    "camometal": 0,
+    "@proxy_0": 0,
+    "@proxy_1": 0,
+    "@proxy_2": 0,
+    "@proxy_3": 0,
+    "@proxy_4": 0,
+    "@proxy_5": 0,
+    "@proxy_6": 0
+   }
+  },
+  {
+   "name": "adfrc_ef88_ADFRC_EF88_MLOD_R0.008",
+   "collections": [
+    "view_R0"
+   ],
+   "vertices": 2371,
+   "materials": [
+    "P3D: adfrc_ef88_co.paa :: adfrc_ef88_poly.rvmat"
+   ],
+   "vertex_groups": {
+    "muzzleflash": 0,
+    "bolt_handle": 0,
+    "ef88": 0,
+    "bolt_group": 0,
+    "front_sight": 0,
+    "rear_sight": 0,
+    "camoplastic": 0,
+    "barrel": 0,
+    "brake": 0,
+    "ruid": 0,
+    "ff": 0,
+    "bolt_release": 0,
+    "magazine": 0,
+    "safety": 0,
+    "trigger": 0,
+    "mag_latch": 0,
+    "charging_handle": 0,
+    "camometal": 0,
+    "@proxy_0": 0,
+    "@proxy_1": 0,
+    "@proxy_2": 0,
+    "@proxy_3": 0,
+    "@proxy_4": 0,
+    "@proxy_5": 0,
+    "@proxy_6": 0
+   }
+  },
+  {
+   "name": "adfrc_ef88_ADFRC_EF88_MLOD_R0.009",
+   "collections": [
+    "view_R0"
+   ],
+   "vertices": 6186,
+   "materials": [
+    "P3D: adfrc_ef88_co.paa :: adfrc_ef88_metal.rvmat"
+   ],
+   "vertex_groups": {
+    "muzzleflash": 0,
+    "bolt_handle": 0,
+    "ef88": 0,
+    "bolt_group": 0,
+    "front_sight": 0,
+    "rear_sight": 0,
+    "camoplastic": 0,
+    "barrel": 0,
+    "brake": 0,
+    "ruid": 0,
+    "ff": 0,
+    "bolt_release": 0,
+    "magazine": 0,
+    "safety": 0,
+    "trigger": 0,
+    "mag_latch": 0,
+    "charging_handle": 0,
+    "camometal": 0,
+    "@proxy_0": 0,
+    "@proxy_1": 0,
+    "@proxy_2": 0,
+    "@proxy_3": 0,
+    "@proxy_4": 0,
+    "@proxy_5": 0,
+    "@proxy_6": 0
+   }
+  },
+  {
+   "name": "adfrc_ef88_ADFRC_EF88_MLOD_R0.010",
+   "collections": [
+    "view_R0"
+   ],
+   "vertices": 1352,
+   "materials": [
+    "P3D: adfrc_ef88_co.paa :: adfrc_ef88_poly.rvmat"
+   ],
+   "vertex_groups": {
+    "muzzleflash": 0,
+    "bolt_handle": 0,
+    "ef88": 0,
+    "bolt_group": 0,
+    "front_sight": 0,
+    "rear_sight": 0,
+    "camoplastic": 0,
+    "barrel": 0,
+    "brake": 0,
+    "ruid": 0,
+    "ff": 0,
+    "bolt_release": 0,
+    "magazine": 0,
+    "safety": 0,
+    "trigger": 0,
+    "mag_latch": 0,
+    "charging_handle": 0,
+    "camometal": 0,
+    "@proxy_0": 0,
+    "@proxy_1": 0,
+    "@proxy_2": 0,
+    "@proxy_3": 0,
+    "@proxy_4": 0,
+    "@proxy_5": 0,
+    "@proxy_6": 0
+   }
+  },
+  {
+   "name": "adfrc_ef88_ADFRC_EF88_MLOD_R0.011",
+   "collections": [
+    "view_R0"
+   ],
+   "vertices": 3414,
+   "materials": [
+    "P3D: adfrc_ef88_co.paa :: adfrc_ef88_metal.rvmat"
+   ],
+   "vertex_groups": {
+    "muzzleflash": 0,
+    "bolt_handle": 0,
+    "ef88": 0,
+    "bolt_group": 0,
+    "front_sight": 0,
+    "rear_sight": 0,
+    "camoplastic": 0,
+    "barrel": 0,
+    "brake": 0,
+    "ruid": 0,
+    "ff": 0,
+    "bolt_release": 0,
+    "magazine": 0,
+    "safety": 0,
+    "trigger": 0,
+    "mag_latch": 0,
+    "charging_handle": 0,
+    "camometal": 0,
+    "@proxy_0": 0,
+    "@proxy_1": 0,
+    "@proxy_2": 0,
+    "@proxy_3": 0,
+    "@proxy_4": 0,
+    "@proxy_5": 0,
+    "@proxy_6": 0
+   }
+  },
+  {
+   "name": "adfrc_ef88_ADFRC_EF88_MLOD_VP",
+   "collections": [
+    "view_VP"
+   ],
+   "vertices": 6388,
+   "materials": [
+    "P3D: adfrc_ef88_co.paa :: adfrc_ef88_poly.rvmat"
+   ],
+   "vertex_groups": {
+    "muzzleflash": 0,
+    "bolt_handle": 0,
+    "ef88": 0,
+    "bolt_group": 0,
+    "front_sight": 0,
+    "rear_sight": 0,
+    "camoplastic": 0,
+    "barrel": 0,
+    "brake": 0,
+    "ruid": 0,
+    "ff": 0,
+    "bolt_release": 0,
+    "magazine": 0,
+    "safety": 0,
+    "trigger": 0,
+    "mag_latch": 0,
+    "charging_handle": 0,
+    "camometal": 0,
+    "@proxy_0": 0,
+    "@proxy_1": 0,
+    "@proxy_2": 0,
+    "@proxy_3": 0,
+    "@proxy_4": 0,
+    "@proxy_5": 0,
+    "@proxy_6": 0
+   }
+  },
+  {
+   "name": "adfrc_ef88_ADFRC_EF88_MLOD_VP.001",
+   "collections": [
+    "view_VP"
+   ],
+   "vertices": 15229,
+   "materials": [
+    "P3D: adfrc_ef88_co.paa :: adfrc_ef88_metal.rvmat"
+   ],
+   "vertex_groups": {
+    "muzzleflash": 0,
+    "bolt_handle": 0,
+    "ef88": 0,
+    "bolt_group": 0,
+    "front_sight": 0,
+    "rear_sight": 0,
+    "camoplastic": 0,
+    "barrel": 0,
+    "brake": 0,
+    "ruid": 0,
+    "ff": 0,
+    "bolt_release": 0,
+    "magazine": 0,
+    "safety": 0,
+    "trigger": 0,
+    "mag_latch": 0,
+    "charging_handle": 0,
+    "camometal": 0,
+    "@proxy_0": 0,
+    "@proxy_1": 0,
+    "@proxy_2": 0,
+    "@proxy_3": 0,
+    "@proxy_4": 0,
+    "@proxy_5": 0,
+    "@proxy_6": 0
+   }
+  },
+  {
+   "name": "adfrc_ruid_ADFRC_EF88_MLOD_R0",
+   "collections": [
+    "view_R0"
+   ],
+   "vertices": 100,
+   "materials": [
+    "P3D: adfrc_ruid_co.paa :: adfrc_ruid.rvmat"
+   ],
+   "vertex_groups": {
+    "muzzleflash": 0,
+    "bolt_handle": 0,
+    "ef88": 0,
+    "bolt_group": 0,
+    "front_sight": 0,
+    "rear_sight": 0,
+    "camoplastic": 0,
+    "barrel": 0,
+    "brake": 0,
+    "ruid": 0,
+    "ff": 0,
+    "bolt_release": 0,
+    "magazine": 0,
+    "safety": 0,
+    "trigger": 0,
+    "mag_latch": 0,
+    "charging_handle": 0,
+    "camometal": 0,
+    "@proxy_0": 0,
+    "@proxy_1": 0,
+    "@proxy_2": 0,
+    "@proxy_3": 0,
+    "@proxy_4": 0,
+    "@proxy_5": 0,
+    "@proxy_6": 0
+   }
+  },
+  {
+   "name": "adfrc_ruid_ADFRC_EF88_MLOD_R0.001",
+   "collections": [
+    "view_R0"
+   ],
+   "vertices": 100,
+   "materials": [
+    "P3D: adfrc_ruid_co.paa :: adfrc_ruid.rvmat"
+   ],
+   "vertex_groups": {
+    "muzzleflash": 0,
+    "bolt_handle": 0,
+    "ef88": 0,
+    "bolt_group": 0,
+    "front_sight": 0,
+    "rear_sight": 0,
+    "camoplastic": 0,
+    "barrel": 0,
+    "brake": 0,
+    "ruid": 0,
+    "ff": 0,
+    "bolt_release": 0,
+    "magazine": 0,
+    "safety": 0,
+    "trigger": 0,
+    "mag_latch": 0,
+    "charging_handle": 0,
+    "camometal": 0,
+    "@proxy_0": 0,
+    "@proxy_1": 0,
+    "@proxy_2": 0,
+    "@proxy_3": 0,
+    "@proxy_4": 0,
+    "@proxy_5": 0,
+    "@proxy_6": 0
+   }
+  },
+  {
+   "name": "adfrc_ruid_ADFRC_EF88_MLOD_R0.002",
+   "collections": [
+    "view_R0"
+   ],
+   "vertices": 58,
+   "materials": [
+    "P3D: adfrc_ruid_co.paa :: adfrc_ruid.rvmat"
+   ],
+   "vertex_groups": {
+    "muzzleflash": 0,
+    "bolt_handle": 0,
+    "ef88": 0,
+    "bolt_group": 0,
+    "front_sight": 0,
+    "rear_sight": 0,
+    "camoplastic": 0,
+    "barrel": 0,
+    "brake": 0,
+    "ruid": 0,
+    "ff": 0,
+    "bolt_release": 0,
+    "magazine": 0,
+    "safety": 0,
+    "trigger": 0,
+    "mag_latch": 0,
+    "charging_handle": 0,
+    "camometal": 0,
+    "@proxy_0": 0,
+    "@proxy_1": 0,
+    "@proxy_2": 0,
+    "@proxy_3": 0,
+    "@proxy_4": 0,
+    "@proxy_5": 0,
+    "@proxy_6": 0
+   }
+  },
+  {
+   "name": "adfrc_ruid_ADFRC_EF88_MLOD_R0.003",
+   "collections": [
+    "view_R0"
+   ],
+   "vertices": 44,
+   "materials": [
+    "P3D: adfrc_ruid_co.paa :: adfrc_ruid.rvmat"
+   ],
+   "vertex_groups": {
+    "muzzleflash": 0,
+    "bolt_handle": 0,
+    "ef88": 0,
+    "bolt_group": 0,
+    "front_sight": 0,
+    "rear_sight": 0,
+    "camoplastic": 0,
+    "barrel": 0,
+    "brake": 0,
+    "ruid": 0,
+    "ff": 0,
+    "bolt_release": 0,
+    "magazine": 0,
+    "safety": 0,
+    "trigger": 0,
+    "mag_latch": 0,
+    "charging_handle": 0,
+    "camometal": 0,
+    "@proxy_0": 0,
+    "@proxy_1": 0,
+    "@proxy_2": 0,
+    "@proxy_3": 0,
+    "@proxy_4": 0,
+    "@proxy_5": 0,
+    "@proxy_6": 0
+   }
+  },
+  {
+   "name": "adfrc_ruid_ADFRC_EF88_MLOD_R0.004",
+   "collections": [
+    "view_R0"
+   ],
+   "vertices": 18,
+   "materials": [
+    "P3D: adfrc_ruid_co.paa :: adfrc_ruid.rvmat"
+   ],
+   "vertex_groups": {
+    "muzzleflash": 0,
+    "bolt_handle": 0,
+    "ef88": 0,
+    "bolt_group": 0,
+    "front_sight": 0,
+    "rear_sight": 0,
+    "camoplastic": 0,
+    "barrel": 0,
+    "brake": 0,
+    "ruid": 0,
+    "ff": 0,
+    "bolt_release": 0,
+    "magazine": 0,
+    "safety": 0,
+    "trigger": 0,
+    "mag_latch": 0,
+    "charging_handle": 0,
+    "camometal": 0,
+    "@proxy_0": 0,
+    "@proxy_1": 0,
+    "@proxy_2": 0,
+    "@proxy_3": 0,
+    "@proxy_4": 0,
+    "@proxy_5": 0,
+    "@proxy_6": 0
+   }
+  },
+  {
+   "name": "adfrc_ruid_ADFRC_EF88_MLOD_R0.005",
+   "collections": [
+    "view_R0"
+   ],
+   "vertices": 4,
+   "materials": [
+    "P3D: adfrc_ruid_co.paa :: adfrc_ruid.rvmat"
+   ],
+   "vertex_groups": {
+    "muzzleflash": 0,
+    "bolt_handle": 0,
+    "ef88": 0,
+    "bolt_group": 0,
+    "front_sight": 0,
+    "rear_sight": 0,
+    "camoplastic": 0,
+    "barrel": 0,
+    "brake": 0,
+    "ruid": 0,
+    "ff": 0,
+    "bolt_release": 0,
+    "magazine": 0,
+    "safety": 0,
+    "trigger": 0,
+    "mag_latch": 0,
+    "charging_handle": 0,
+    "camometal": 0,
+    "@proxy_0": 0,
+    "@proxy_1": 0,
+    "@proxy_2": 0,
+    "@proxy_3": 0,
+    "@proxy_4": 0,
+    "@proxy_5": 0,
+    "@proxy_6": 0
+   }
+  },
+  {
+   "name": "adfrc_ruid_ADFRC_EF88_MLOD_VP",
+   "collections": [
+    "view_VP"
+   ],
+   "vertices": 100,
+   "materials": [
+    "P3D: adfrc_ruid_co.paa :: adfrc_ruid.rvmat"
+   ],
+   "vertex_groups": {
+    "muzzleflash": 0,
+    "bolt_handle": 0,
+    "ef88": 0,
+    "bolt_group": 0,
+    "front_sight": 0,
+    "rear_sight": 0,
+    "camoplastic": 0,
+    "barrel": 0,
+    "brake": 0,
+    "ruid": 0,
+    "ff": 0,
+    "bolt_release": 0,
+    "magazine": 0,
+    "safety": 0,
+    "trigger": 0,
+    "mag_latch": 0,
+    "charging_handle": 0,
+    "camometal": 0,
+    "@proxy_0": 0,
+    "@proxy_1": 0,
+    "@proxy_2": 0,
+    "@proxy_3": 0,
+    "@proxy_4": 0,
+    "@proxy_5": 0,
+    "@proxy_6": 0
+   }
+  },
+  {
+   "name": "adfrc_tag_ADFRC_EF88_MLOD_R0",
+   "collections": [
+    "view_R0"
+   ],
+   "vertices": 100,
+   "materials": [
+    "P3D: adfrc_tag_co.paa :: adfrc_tag.rvmat"
+   ],
+   "vertex_groups": {
+    "muzzleflash": 0,
+    "bolt_handle": 0,
+    "ef88": 0,
+    "bolt_group": 0,
+    "front_sight": 0,
+    "rear_sight": 0,
+    "camoplastic": 0,
+    "barrel": 0,
+    "brake": 0,
+    "ruid": 0,
+    "ff": 0,
+    "bolt_release": 0,
+    "magazine": 0,
+    "safety": 0,
+    "trigger": 0,
+    "mag_latch": 0,
+    "charging_handle": 0,
+    "camometal": 0,
+    "@proxy_0": 0,
+    "@proxy_1": 0,
+    "@proxy_2": 0,
+    "@proxy_3": 0,
+    "@proxy_4": 0,
+    "@proxy_5": 0,
+    "@proxy_6": 0
+   }
+  },
+  {
+   "name": "adfrc_tag_ADFRC_EF88_MLOD_R0.001",
+   "collections": [
+    "view_R0"
+   ],
+   "vertices": 100,
+   "materials": [
+    "P3D: adfrc_tag_co.paa :: adfrc_tag.rvmat"
+   ],
+   "vertex_groups": {
+    "muzzleflash": 0,
+    "bolt_handle": 0,
+    "ef88": 0,
+    "bolt_group": 0,
+    "front_sight": 0,
+    "rear_sight": 0,
+    "camoplastic": 0,
+    "barrel": 0,
+    "brake": 0,
+    "ruid": 0,
+    "ff": 0,
+    "bolt_release": 0,
+    "magazine": 0,
+    "safety": 0,
+    "trigger": 0,
+    "mag_latch": 0,
+    "charging_handle": 0,
+    "camometal": 0,
+    "@proxy_0": 0,
+    "@proxy_1": 0,
+    "@proxy_2": 0,
+    "@proxy_3": 0,
+    "@proxy_4": 0,
+    "@proxy_5": 0,
+    "@proxy_6": 0
+   }
+  },
+  {
+   "name": "adfrc_tag_ADFRC_EF88_MLOD_R0.002",
+   "collections": [
+    "view_R0"
+   ],
+   "vertices": 58,
+   "materials": [
+    "P3D: adfrc_tag_co.paa :: adfrc_tag.rvmat"
+   ],
+   "vertex_groups": {
+    "muzzleflash": 0,
+    "bolt_handle": 0,
+    "ef88": 0,
+    "bolt_group": 0,
+    "front_sight": 0,
+    "rear_sight": 0,
+    "camoplastic": 0,
+    "barrel": 0,
+    "brake": 0,
+    "ruid": 0,
+    "ff": 0,
+    "bolt_release": 0,
+    "magazine": 0,
+    "safety": 0,
+    "trigger": 0,
+    "mag_latch": 0,
+    "charging_handle": 0,
+    "camometal": 0,
+    "@proxy_0": 0,
+    "@proxy_1": 0,
+    "@proxy_2": 0,
+    "@proxy_3": 0,
+    "@proxy_4": 0,
+    "@proxy_5": 0,
+    "@proxy_6": 0
+   }
+  },
+  {
+   "name": "adfrc_tag_ADFRC_EF88_MLOD_R0.003",
+   "collections": [
+    "view_R0"
+   ],
+   "vertices": 42,
+   "materials": [
+    "P3D: adfrc_tag_co.paa :: adfrc_tag.rvmat"
+   ],
+   "vertex_groups": {
+    "muzzleflash": 0,
+    "bolt_handle": 0,
+    "ef88": 0,
+    "bolt_group": 0,
+    "front_sight": 0,
+    "rear_sight": 0,
+    "camoplastic": 0,
+    "barrel": 0,
+    "brake": 0,
+    "ruid": 0,
+    "ff": 0,
+    "bolt_release": 0,
+    "magazine": 0,
+    "safety": 0,
+    "trigger": 0,
+    "mag_latch": 0,
+    "charging_handle": 0,
+    "camometal": 0,
+    "@proxy_0": 0,
+    "@proxy_1": 0,
+    "@proxy_2": 0,
+    "@proxy_3": 0,
+    "@proxy_4": 0,
+    "@proxy_5": 0,
+    "@proxy_6": 0
+   }
+  },
+  {
+   "name": "adfrc_tag_ADFRC_EF88_MLOD_R0.004",
+   "collections": [
+    "view_R0"
+   ],
+   "vertices": 20,
+   "materials": [
+    "P3D: adfrc_tag_co.paa :: adfrc_tag.rvmat"
+   ],
+   "vertex_groups": {
+    "muzzleflash": 0,
+    "bolt_handle": 0,
+    "ef88": 0,
+    "bolt_group": 0,
+    "front_sight": 0,
+    "rear_sight": 0,
+    "camoplastic": 0,
+    "barrel": 0,
+    "brake": 0,
+    "ruid": 0,
+    "ff": 0,
+    "bolt_release": 0,
+    "magazine": 0,
+    "safety": 0,
+    "trigger": 0,
+    "mag_latch": 0,
+    "charging_handle": 0,
+    "camometal": 0,
+    "@proxy_0": 0,
+    "@proxy_1": 0,
+    "@proxy_2": 0,
+    "@proxy_3": 0,
+    "@proxy_4": 0,
+    "@proxy_5": 0,
+    "@proxy_6": 0
+   }
+  },
+  {
+   "name": "adfrc_tag_ADFRC_EF88_MLOD_R0.005",
+   "collections": [
+    "view_R0"
+   ],
+   "vertices": 4,
+   "materials": [
+    "P3D: adfrc_tag_co.paa :: adfrc_tag.rvmat"
+   ],
+   "vertex_groups": {
+    "muzzleflash": 0,
+    "bolt_handle": 0,
+    "ef88": 0,
+    "bolt_group": 0,
+    "front_sight": 0,
+    "rear_sight": 0,
+    "camoplastic": 0,
+    "barrel": 0,
+    "brake": 0,
+    "ruid": 0,
+    "ff": 0,
+    "bolt_release": 0,
+    "magazine": 0,
+    "safety": 0,
+    "trigger": 0,
+    "mag_latch": 0,
+    "charging_handle": 0,
+    "camometal": 0,
+    "@proxy_0": 0,
+    "@proxy_1": 0,
+    "@proxy_2": 0,
+    "@proxy_3": 0,
+    "@proxy_4": 0,
+    "@proxy_5": 0,
+    "@proxy_6": 0
+   }
+  },
+  {
+   "name": "adfrc_tag_ADFRC_EF88_MLOD_VP",
+   "collections": [
+    "view_VP"
+   ],
+   "vertices": 100,
+   "materials": [
+    "P3D: adfrc_tag_co.paa :: adfrc_tag.rvmat"
+   ],
+   "vertex_groups": {
+    "muzzleflash": 0,
+    "bolt_handle": 0,
+    "ef88": 0,
+    "bolt_group": 0,
+    "front_sight": 0,
+    "rear_sight": 0,
+    "camoplastic": 0,
+    "barrel": 0,
+    "brake": 0,
+    "ruid": 0,
+    "ff": 0,
+    "bolt_release": 0,
+    "magazine": 0,
+    "safety": 0,
+    "trigger": 0,
+    "mag_latch": 0,
+    "charging_handle": 0,
+    "camometal": 0,
+    "@proxy_0": 0,
+    "@proxy_1": 0,
+    "@proxy_2": 0,
+    "@proxy_3": 0,
+    "@proxy_4": 0,
+    "@proxy_5": 0,
+    "@proxy_6": 0
+   }
+  },
+  {
+   "name": "Geometry",
+   "collections": [
+    "geometry_GEO"
+   ],
+   "vertices": 32,
+   "materials": [
+    "P3D: no material"
+   ],
+   "vertex_groups": {
+    "component02": 8,
+    "component03": 8,
+    "component04": 8,
+    "component05": 8
+   }
+  },
+  {
+   "name": "mbus_front_ADFRC_EF88_MLOD_R0",
+   "collections": [
+    "view_R0"
+   ],
+   "vertices": 3610,
+   "materials": [
+    "P3D: mbus_front_co.paa :: adfrc_mbus_front_metal.rvmat"
+   ],
+   "vertex_groups": {
+    "muzzleflash": 0,
+    "bolt_handle": 0,
+    "ef88": 0,
+    "bolt_group": 0,
+    "front_sight": 0,
+    "rear_sight": 0,
+    "camoplastic": 0,
+    "barrel": 0,
+    "brake": 0,
+    "ruid": 0,
+    "ff": 0,
+    "bolt_release": 0,
+    "magazine": 0,
+    "safety": 0,
+    "trigger": 0,
+    "mag_latch": 0,
+    "charging_handle": 0,
+    "camometal": 0,
+    "@proxy_0": 0,
+    "@proxy_1": 0,
+    "@proxy_2": 0,
+    "@proxy_3": 0,
+    "@proxy_4": 0,
+    "@proxy_5": 0,
+    "@proxy_6": 0
+   }
+  },
+  {
+   "name": "mbus_front_ADFRC_EF88_MLOD_R0.001",
+   "collections": [
+    "view_R0"
+   ],
+   "vertices": 5674,
+   "materials": [
+    "P3D: mbus_front_co.paa :: adfrc_mbus_front.rvmat"
+   ],
+   "vertex_groups": {
+    "muzzleflash": 0,
+    "bolt_handle": 0,
+    "ef88": 0,
+    "bolt_group": 0,
+    "front_sight": 0,
+    "rear_sight": 0,
+    "camoplastic": 0,
+    "barrel": 0,
+    "brake": 0,
+    "ruid": 0,
+    "ff": 0,
+    "bolt_release": 0,
+    "magazine": 0,
+    "safety": 0,
+    "trigger": 0,
+    "mag_latch": 0,
+    "charging_handle": 0,
+    "camometal": 0,
+    "@proxy_0": 0,
+    "@proxy_1": 0,
+    "@proxy_2": 0,
+    "@proxy_3": 0,
+    "@proxy_4": 0,
+    "@proxy_5": 0,
+    "@proxy_6": 0
+   }
+  },
+  {
+   "name": "mbus_front_ADFRC_EF88_MLOD_R0.002",
+   "collections": [
+    "view_R0"
+   ],
+   "vertices": 3534,
+   "materials": [
+    "P3D: mbus_front_co.paa :: adfrc_mbus_front_metal.rvmat"
+   ],
+   "vertex_groups": {
+    "muzzleflash": 0,
+    "bolt_handle": 0,
+    "ef88": 0,
+    "bolt_group": 0,
+    "front_sight": 0,
+    "rear_sight": 0,
+    "camoplastic": 0,
+    "barrel": 0,
+    "brake": 0,
+    "ruid": 0,
+    "ff": 0,
+    "bolt_release": 0,
+    "magazine": 0,
+    "safety": 0,
+    "trigger": 0,
+    "mag_latch": 0,
+    "charging_handle": 0,
+    "camometal": 0,
+    "@proxy_0": 0,
+    "@proxy_1": 0,
+    "@proxy_2": 0,
+    "@proxy_3": 0,
+    "@proxy_4": 0,
+    "@proxy_5": 0,
+    "@proxy_6": 0
+   }
+  },
+  {
+   "name": "mbus_front_ADFRC_EF88_MLOD_R0.003",
+   "collections": [
+    "view_R0"
+   ],
+   "vertices": 5292,
+   "materials": [
+    "P3D: mbus_front_co.paa :: adfrc_mbus_front.rvmat"
+   ],
+   "vertex_groups": {
+    "muzzleflash": 0,
+    "bolt_handle": 0,
+    "ef88": 0,
+    "bolt_group": 0,
+    "front_sight": 0,
+    "rear_sight": 0,
+    "camoplastic": 0,
+    "barrel": 0,
+    "brake": 0,
+    "ruid": 0,
+    "ff": 0,
+    "bolt_release": 0,
+    "magazine": 0,
+    "safety": 0,
+    "trigger": 0,
+    "mag_latch": 0,
+    "charging_handle": 0,
+    "camometal": 0,
+    "@proxy_0": 0,
+    "@proxy_1": 0,
+    "@proxy_2": 0,
+    "@proxy_3": 0,
+    "@proxy_4": 0,
+    "@proxy_5": 0,
+    "@proxy_6": 0
+   }
+  },
+  {
+   "name": "mbus_front_ADFRC_EF88_MLOD_R0.004",
+   "collections": [
+    "view_R0"
+   ],
+   "vertices": 3218,
+   "materials": [
+    "P3D: mbus_front_co.paa :: adfrc_mbus_front_metal.rvmat"
+   ],
+   "vertex_groups": {
+    "muzzleflash": 0,
+    "bolt_handle": 0,
+    "ef88": 0,
+    "bolt_group": 0,
+    "front_sight": 0,
+    "rear_sight": 0,
+    "camoplastic": 0,
+    "barrel": 0,
+    "brake": 0,
+    "ruid": 0,
+    "ff": 0,
+    "bolt_release": 0,
+    "magazine": 0,
+    "safety": 0,
+    "trigger": 0,
+    "mag_latch": 0,
+    "charging_handle": 0,
+    "camometal": 0,
+    "@proxy_0": 0,
+    "@proxy_1": 0,
+    "@proxy_2": 0,
+    "@proxy_3": 0,
+    "@proxy_4": 0,
+    "@proxy_5": 0,
+    "@proxy_6": 0
+   }
+  },
+  {
+   "name": "mbus_front_ADFRC_EF88_MLOD_R0.005",
+   "collections": [
+    "view_R0"
+   ],
+   "vertices": 4513,
+   "materials": [
+    "P3D: mbus_front_co.paa :: adfrc_mbus_front.rvmat"
+   ],
+   "vertex_groups": {
+    "muzzleflash": 0,
+    "bolt_handle": 0,
+    "ef88": 0,
+    "bolt_group": 0,
+    "front_sight": 0,
+    "rear_sight": 0,
+    "camoplastic": 0,
+    "barrel": 0,
+    "brake": 0,
+    "ruid": 0,
+    "ff": 0,
+    "bolt_release": 0,
+    "magazine": 0,
+    "safety": 0,
+    "trigger": 0,
+    "mag_latch": 0,
+    "charging_handle": 0,
+    "camometal": 0,
+    "@proxy_0": 0,
+    "@proxy_1": 0,
+    "@proxy_2": 0,
+    "@proxy_3": 0,
+    "@proxy_4": 0,
+    "@proxy_5": 0,
+    "@proxy_6": 0
+   }
+  },
+  {
+   "name": "mbus_front_ADFRC_EF88_MLOD_R0.006",
+   "collections": [
+    "view_R0"
+   ],
+   "vertices": 2770,
+   "materials": [
+    "P3D: mbus_front_co.paa :: adfrc_mbus_front_metal.rvmat"
+   ],
+   "vertex_groups": {
+    "muzzleflash": 0,
+    "bolt_handle": 0,
+    "ef88": 0,
+    "bolt_group": 0,
+    "front_sight": 0,
+    "rear_sight": 0,
+    "camoplastic": 0,
+    "barrel": 0,
+    "brake": 0,
+    "ruid": 0,
+    "ff": 0,
+    "bolt_release": 0,
+    "magazine": 0,
+    "safety": 0,
+    "trigger": 0,
+    "mag_latch": 0,
+    "charging_handle": 0,
+    "camometal": 0,
+    "@proxy_0": 0,
+    "@proxy_1": 0,
+    "@proxy_2": 0,
+    "@proxy_3": 0,
+    "@proxy_4": 0,
+    "@proxy_5": 0,
+    "@proxy_6": 0
+   }
+  },
+  {
+   "name": "mbus_front_ADFRC_EF88_MLOD_R0.007",
+   "collections": [
+    "view_R0"
+   ],
+   "vertices": 4012,
+   "materials": [
+    "P3D: mbus_front_co.paa :: adfrc_mbus_front.rvmat"
+   ],
+   "vertex_groups": {
+    "muzzleflash": 0,
+    "bolt_handle": 0,
+    "ef88": 0,
+    "bolt_group": 0,
+    "front_sight": 0,
+    "rear_sight": 0,
+    "camoplastic": 0,
+    "barrel": 0,
+    "brake": 0,
+    "ruid": 0,
+    "ff": 0,
+    "bolt_release": 0,
+    "magazine": 0,
+    "safety": 0,
+    "trigger": 0,
+    "mag_latch": 0,
+    "charging_handle": 0,
+    "camometal": 0,
+    "@proxy_0": 0,
+    "@proxy_1": 0,
+    "@proxy_2": 0,
+    "@proxy_3": 0,
+    "@proxy_4": 0,
+    "@proxy_5": 0,
+    "@proxy_6": 0
+   }
+  },
+  {
+   "name": "mbus_front_ADFRC_EF88_MLOD_R0.008",
+   "collections": [
+    "view_R0"
+   ],
+   "vertices": 874,
+   "materials": [
+    "P3D: mbus_front_co.paa :: adfrc_mbus_front_metal.rvmat"
+   ],
+   "vertex_groups": {
+    "muzzleflash": 0,
+    "bolt_handle": 0,
+    "ef88": 0,
+    "bolt_group": 0,
+    "front_sight": 0,
+    "rear_sight": 0,
+    "camoplastic": 0,
+    "barrel": 0,
+    "brake": 0,
+    "ruid": 0,
+    "ff": 0,
+    "bolt_release": 0,
+    "magazine": 0,
+    "safety": 0,
+    "trigger": 0,
+    "mag_latch": 0,
+    "charging_handle": 0,
+    "camometal": 0,
+    "@proxy_0": 0,
+    "@proxy_1": 0,
+    "@proxy_2": 0,
+    "@proxy_3": 0,
+    "@proxy_4": 0,
+    "@proxy_5": 0,
+    "@proxy_6": 0
+   }
+  },
+  {
+   "name": "mbus_front_ADFRC_EF88_MLOD_R0.009",
+   "collections": [
+    "view_R0"
+   ],
+   "vertices": 2546,
+   "materials": [
+    "P3D: mbus_front_co.paa :: adfrc_mbus_front.rvmat"
+   ],
+   "vertex_groups": {
+    "muzzleflash": 0,
+    "bolt_handle": 0,
+    "ef88": 0,
+    "bolt_group": 0,
+    "front_sight": 0,
+    "rear_sight": 0,
+    "camoplastic": 0,
+    "barrel": 0,
+    "brake": 0,
+    "ruid": 0,
+    "ff": 0,
+    "bolt_release": 0,
+    "magazine": 0,
+    "safety": 0,
+    "trigger": 0,
+    "mag_latch": 0,
+    "charging_handle": 0,
+    "camometal": 0,
+    "@proxy_0": 0,
+    "@proxy_1": 0,
+    "@proxy_2": 0,
+    "@proxy_3": 0,
+    "@proxy_4": 0,
+    "@proxy_5": 0,
+    "@proxy_6": 0
+   }
+  },
+  {
+   "name": "mbus_front_ADFRC_EF88_MLOD_R0.010",
+   "collections": [
+    "view_R0"
+   ],
+   "vertices": 416,
+   "materials": [
+    "P3D: mbus_front_co.paa :: adfrc_mbus_front_metal.rvmat"
+   ],
+   "vertex_groups": {
+    "muzzleflash": 0,
+    "bolt_handle": 0,
+    "ef88": 0,
+    "bolt_group": 0,
+    "front_sight": 0,
+    "rear_sight": 0,
+    "camoplastic": 0,
+    "barrel": 0,
+    "brake": 0,
+    "ruid": 0,
+    "ff": 0,
+    "bolt_release": 0,
+    "magazine": 0,
+    "safety": 0,
+    "trigger": 0,
+    "mag_latch": 0,
+    "charging_handle": 0,
+    "camometal": 0,
+    "@proxy_0": 0,
+    "@proxy_1": 0,
+    "@proxy_2": 0,
+    "@proxy_3": 0,
+    "@proxy_4": 0,
+    "@proxy_5": 0,
+    "@proxy_6": 0
+   }
+  },
+  {
+   "name": "mbus_front_ADFRC_EF88_MLOD_R0.011",
+   "collections": [
+    "view_R0"
+   ],
+   "vertices": 1539,
+   "materials": [
+    "P3D: mbus_front_co.paa :: adfrc_mbus_front.rvmat"
+   ],
+   "vertex_groups": {
+    "muzzleflash": 0,
+    "bolt_handle": 0,
+    "ef88": 0,
+    "bolt_group": 0,
+    "front_sight": 0,
+    "rear_sight": 0,
+    "camoplastic": 0,
+    "barrel": 0,
+    "brake": 0,
+    "ruid": 0,
+    "ff": 0,
+    "bolt_release": 0,
+    "magazine": 0,
+    "safety": 0,
+    "trigger": 0,
+    "mag_latch": 0,
+    "charging_handle": 0,
+    "camometal": 0,
+    "@proxy_0": 0,
+    "@proxy_1": 0,
+    "@proxy_2": 0,
+    "@proxy_3": 0,
+    "@proxy_4": 0,
+    "@proxy_5": 0,
+    "@proxy_6": 0
+   }
+  },
+  {
+   "name": "mbus_front_ADFRC_EF88_MLOD_VP",
+   "collections": [
+    "view_VP"
+   ],
+   "vertices": 3610,
+   "materials": [
+    "P3D: mbus_front_co.paa :: adfrc_mbus_front_metal.rvmat"
+   ],
+   "vertex_groups": {
+    "muzzleflash": 0,
+    "bolt_handle": 0,
+    "ef88": 0,
+    "bolt_group": 0,
+    "front_sight": 0,
+    "rear_sight": 0,
+    "camoplastic": 0,
+    "barrel": 0,
+    "brake": 0,
+    "ruid": 0,
+    "ff": 0,
+    "bolt_release": 0,
+    "magazine": 0,
+    "safety": 0,
+    "trigger": 0,
+    "mag_latch": 0,
+    "charging_handle": 0,
+    "camometal": 0,
+    "@proxy_0": 0,
+    "@proxy_1": 0,
+    "@proxy_2": 0,
+    "@proxy_3": 0,
+    "@proxy_4": 0,
+    "@proxy_5": 0,
+    "@proxy_6": 0
+   }
+  },
+  {
+   "name": "mbus_front_ADFRC_EF88_MLOD_VP.001",
+   "collections": [
+    "view_VP"
+   ],
+   "vertices": 5674,
+   "materials": [
+    "P3D: mbus_front_co.paa :: adfrc_mbus_front.rvmat"
+   ],
+   "vertex_groups": {
+    "muzzleflash": 0,
+    "bolt_handle": 0,
+    "ef88": 0,
+    "bolt_group": 0,
+    "front_sight": 0,
+    "rear_sight": 0,
+    "camoplastic": 0,
+    "barrel": 0,
+    "brake": 0,
+    "ruid": 0,
+    "ff": 0,
+    "bolt_release": 0,
+    "magazine": 0,
+    "safety": 0,
+    "trigger": 0,
+    "mag_latch": 0,
+    "charging_handle": 0,
+    "camometal": 0,
+    "@proxy_0": 0,
+    "@proxy_1": 0,
+    "@proxy_2": 0,
+    "@proxy_3": 0,
+    "@proxy_4": 0,
+    "@proxy_5": 0,
+    "@proxy_6": 0
+   }
+  },
+  {
+   "name": "mbus_rear_ADFRC_EF88_MLOD_R0",
+   "collections": [
+    "view_R0"
+   ],
+   "vertices": 9700,
+   "materials": [
+    "P3D: mbus_rear_co.paa :: adfrc_mbus_rear.rvmat"
+   ],
+   "vertex_groups": {
+    "muzzleflash": 0,
+    "bolt_handle": 0,
+    "ef88": 0,
+    "bolt_group": 0,
+    "front_sight": 0,
+    "rear_sight": 0,
+    "camoplastic": 0,
+    "barrel": 0,
+    "brake": 0,
+    "ruid": 0,
+    "ff": 0,
+    "bolt_release": 0,
+    "magazine": 0,
+    "safety": 0,
+    "trigger": 0,
+    "mag_latch": 0,
+    "charging_handle": 0,
+    "camometal": 0,
+    "@proxy_0": 0,
+    "@proxy_1": 0,
+    "@proxy_2": 0,
+    "@proxy_3": 0,
+    "@proxy_4": 0,
+    "@proxy_5": 0,
+    "@proxy_6": 0
+   }
+  },
+  {
+   "name": "mbus_rear_ADFRC_EF88_MLOD_R0.001",
+   "collections": [
+    "view_R0"
+   ],
+   "vertices": 6500,
+   "materials": [
+    "P3D: mbus_rear_co.paa :: adfrc_mbus_rear_metal.rvmat"
+   ],
+   "vertex_groups": {
+    "muzzleflash": 0,
+    "bolt_handle": 0,
+    "ef88": 0,
+    "bolt_group": 0,
+    "front_sight": 0,
+    "rear_sight": 0,
+    "camoplastic": 0,
+    "barrel": 0,
+    "brake": 0,
+    "ruid": 0,
+    "ff": 0,
+    "bolt_release": 0,
+    "magazine": 0,
+    "safety": 0,
+    "trigger": 0,
+    "mag_latch": 0,
+    "charging_handle": 0,
+    "camometal": 0,
+    "@proxy_0": 0,
+    "@proxy_1": 0,
+    "@proxy_2": 0,
+    "@proxy_3": 0,
+    "@proxy_4": 0,
+    "@proxy_5": 0,
+    "@proxy_6": 0
+   }
+  },
+  {
+   "name": "mbus_rear_ADFRC_EF88_MLOD_R0.002",
+   "collections": [
+    "view_R0"
+   ],
+   "vertices": 9168,
+   "materials": [
+    "P3D: mbus_rear_co.paa :: adfrc_mbus_rear.rvmat"
+   ],
+   "vertex_groups": {
+    "muzzleflash": 0,
+    "bolt_handle": 0,
+    "ef88": 0,
+    "bolt_group": 0,
+    "front_sight": 0,
+    "rear_sight": 0,
+    "camoplastic": 0,
+    "barrel": 0,
+    "brake": 0,
+    "ruid": 0,
+    "ff": 0,
+    "bolt_release": 0,
+    "magazine": 0,
+    "safety": 0,
+    "trigger": 0,
+    "mag_latch": 0,
+    "charging_handle": 0,
+    "camometal": 0,
+    "@proxy_0": 0,
+    "@proxy_1": 0,
+    "@proxy_2": 0,
+    "@proxy_3": 0,
+    "@proxy_4": 0,
+    "@proxy_5": 0,
+    "@proxy_6": 0
+   }
+  },
+  {
+   "name": "mbus_rear_ADFRC_EF88_MLOD_R0.003",
+   "collections": [
+    "view_R0"
+   ],
+   "vertices": 6424,
+   "materials": [
+    "P3D: mbus_rear_co.paa :: adfrc_mbus_rear_metal.rvmat"
+   ],
+   "vertex_groups": {
+    "muzzleflash": 0,
+    "bolt_handle": 0,
+    "ef88": 0,
+    "bolt_group": 0,
+    "front_sight": 0,
+    "rear_sight": 0,
+    "camoplastic": 0,
+    "barrel": 0,
+    "brake": 0,
+    "ruid": 0,
+    "ff": 0,
+    "bolt_release": 0,
+    "magazine": 0,
+    "safety": 0,
+    "trigger": 0,
+    "mag_latch": 0,
+    "charging_handle": 0,
+    "camometal": 0,
+    "@proxy_0": 0,
+    "@proxy_1": 0,
+    "@proxy_2": 0,
+    "@proxy_3": 0,
+    "@proxy_4": 0,
+    "@proxy_5": 0,
+    "@proxy_6": 0
+   }
+  },
+  {
+   "name": "mbus_rear_ADFRC_EF88_MLOD_R0.004",
+   "collections": [
+    "view_R0"
+   ],
+   "vertices": 7907,
+   "materials": [
+    "P3D: mbus_rear_co.paa :: adfrc_mbus_rear.rvmat"
+   ],
+   "vertex_groups": {
+    "muzzleflash": 0,
+    "bolt_handle": 0,
+    "ef88": 0,
+    "bolt_group": 0,
+    "front_sight": 0,
+    "rear_sight": 0,
+    "camoplastic": 0,
+    "barrel": 0,
+    "brake": 0,
+    "ruid": 0,
+    "ff": 0,
+    "bolt_release": 0,
+    "magazine": 0,
+    "safety": 0,
+    "trigger": 0,
+    "mag_latch": 0,
+    "charging_handle": 0,
+    "camometal": 0,
+    "@proxy_0": 0,
+    "@proxy_1": 0,
+    "@proxy_2": 0,
+    "@proxy_3": 0,
+    "@proxy_4": 0,
+    "@proxy_5": 0,
+    "@proxy_6": 0
+   }
+  },
+  {
+   "name": "mbus_rear_ADFRC_EF88_MLOD_R0.005",
+   "collections": [
+    "view_R0"
+   ],
+   "vertices": 5828,
+   "materials": [
+    "P3D: mbus_rear_co.paa :: adfrc_mbus_rear_metal.rvmat"
+   ],
+   "vertex_groups": {
+    "muzzleflash": 0,
+    "bolt_handle": 0,
+    "ef88": 0,
+    "bolt_group": 0,
+    "front_sight": 0,
+    "rear_sight": 0,
+    "camoplastic": 0,
+    "barrel": 0,
+    "brake": 0,
+    "ruid": 0,
+    "ff": 0,
+    "bolt_release": 0,
+    "magazine": 0,
+    "safety": 0,
+    "trigger": 0,
+    "mag_latch": 0,
+    "charging_handle": 0,
+    "camometal": 0,
+    "@proxy_0": 0,
+    "@proxy_1": 0,
+    "@proxy_2": 0,
+    "@proxy_3": 0,
+    "@proxy_4": 0,
+    "@proxy_5": 0,
+    "@proxy_6": 0
+   }
+  },
+  {
+   "name": "mbus_rear_ADFRC_EF88_MLOD_R0.006",
+   "collections": [
+    "view_R0"
+   ],
+   "vertices": 6971,
+   "materials": [
+    "P3D: mbus_rear_co.paa :: adfrc_mbus_rear.rvmat"
+   ],
+   "vertex_groups": {
+    "muzzleflash": 0,
+    "bolt_handle": 0,
+    "ef88": 0,
+    "bolt_group": 0,
+    "front_sight": 0,
+    "rear_sight": 0,
+    "camoplastic": 0,
+    "barrel": 0,
+    "brake": 0,
+    "ruid": 0,
+    "ff": 0,
+    "bolt_release": 0,
+    "magazine": 0,
+    "safety": 0,
+    "trigger": 0,
+    "mag_latch": 0,
+    "charging_handle": 0,
+    "camometal": 0,
+    "@proxy_0": 0,
+    "@proxy_1": 0,
+    "@proxy_2": 0,
+    "@proxy_3": 0,
+    "@proxy_4": 0,
+    "@proxy_5": 0,
+    "@proxy_6": 0
+   }
+  },
+  {
+   "name": "mbus_rear_ADFRC_EF88_MLOD_R0.007",
+   "collections": [
+    "view_R0"
+   ],
+   "vertices": 5307,
+   "materials": [
+    "P3D: mbus_rear_co.paa :: adfrc_mbus_rear_metal.rvmat"
+   ],
+   "vertex_groups": {
+    "muzzleflash": 0,
+    "bolt_handle": 0,
+    "ef88": 0,
+    "bolt_group": 0,
+    "front_sight": 0,
+    "rear_sight": 0,
+    "camoplastic": 0,
+    "barrel": 0,
+    "brake": 0,
+    "ruid": 0,
+    "ff": 0,
+    "bolt_release": 0,
+    "magazine": 0,
+    "safety": 0,
+    "trigger": 0,
+    "mag_latch": 0,
+    "charging_handle": 0,
+    "camometal": 0,
+    "@proxy_0": 0,
+    "@proxy_1": 0,
+    "@proxy_2": 0,
+    "@proxy_3": 0,
+    "@proxy_4": 0,
+    "@proxy_5": 0,
+    "@proxy_6": 0
+   }
+  },
+  {
+   "name": "mbus_rear_ADFRC_EF88_MLOD_R0.008",
+   "collections": [
+    "view_R0"
+   ],
+   "vertices": 3578,
+   "materials": [
+    "P3D: mbus_rear_co.paa :: adfrc_mbus_rear.rvmat"
+   ],
+   "vertex_groups": {
+    "muzzleflash": 0,
+    "bolt_handle": 0,
+    "ef88": 0,
+    "bolt_group": 0,
+    "front_sight": 0,
+    "rear_sight": 0,
+    "camoplastic": 0,
+    "barrel": 0,
+    "brake": 0,
+    "ruid": 0,
+    "ff": 0,
+    "bolt_release": 0,
+    "magazine": 0,
+    "safety": 0,
+    "trigger": 0,
+    "mag_latch": 0,
+    "charging_handle": 0,
+    "camometal": 0,
+    "@proxy_0": 0,
+    "@proxy_1": 0,
+    "@proxy_2": 0,
+    "@proxy_3": 0,
+    "@proxy_4": 0,
+    "@proxy_5": 0,
+    "@proxy_6": 0
+   }
+  },
+  {
+   "name": "mbus_rear_ADFRC_EF88_MLOD_R0.009",
+   "collections": [
+    "view_R0"
+   ],
+   "vertices": 1566,
+   "materials": [
+    "P3D: mbus_rear_co.paa :: adfrc_mbus_rear_metal.rvmat"
+   ],
+   "vertex_groups": {
+    "muzzleflash": 0,
+    "bolt_handle": 0,
+    "ef88": 0,
+    "bolt_group": 0,
+    "front_sight": 0,
+    "rear_sight": 0,
+    "camoplastic": 0,
+    "barrel": 0,
+    "brake": 0,
+    "ruid": 0,
+    "ff": 0,
+    "bolt_release": 0,
+    "magazine": 0,
+    "safety": 0,
+    "trigger": 0,
+    "mag_latch": 0,
+    "charging_handle": 0,
+    "camometal": 0,
+    "@proxy_0": 0,
+    "@proxy_1": 0,
+    "@proxy_2": 0,
+    "@proxy_3": 0,
+    "@proxy_4": 0,
+    "@proxy_5": 0,
+    "@proxy_6": 0
+   }
+  },
+  {
+   "name": "mbus_rear_ADFRC_EF88_MLOD_R0.010",
+   "collections": [
+    "view_R0"
+   ],
+   "vertices": 1972,
+   "materials": [
+    "P3D: mbus_rear_co.paa :: adfrc_mbus_rear.rvmat"
+   ],
+   "vertex_groups": {
+    "muzzleflash": 0,
+    "bolt_handle": 0,
+    "ef88": 0,
+    "bolt_group": 0,
+    "front_sight": 0,
+    "rear_sight": 0,
+    "camoplastic": 0,
+    "barrel": 0,
+    "brake": 0,
+    "ruid": 0,
+    "ff": 0,
+    "bolt_release": 0,
+    "magazine": 0,
+    "safety": 0,
+    "trigger": 0,
+    "mag_latch": 0,
+    "charging_handle": 0,
+    "camometal": 0,
+    "@proxy_0": 0,
+    "@proxy_1": 0,
+    "@proxy_2": 0,
+    "@proxy_3": 0,
+    "@proxy_4": 0,
+    "@proxy_5": 0,
+    "@proxy_6": 0
+   }
+  },
+  {
+   "name": "mbus_rear_ADFRC_EF88_MLOD_R0.011",
+   "collections": [
+    "view_R0"
+   ],
+   "vertices": 688,
+   "materials": [
+    "P3D: mbus_rear_co.paa :: adfrc_mbus_rear_metal.rvmat"
+   ],
+   "vertex_groups": {
+    "muzzleflash": 0,
+    "bolt_handle": 0,
+    "ef88": 0,
+    "bolt_group": 0,
+    "front_sight": 0,
+    "rear_sight": 0,
+    "camoplastic": 0,
+    "barrel": 0,
+    "brake": 0,
+    "ruid": 0,
+    "ff": 0,
+    "bolt_release": 0,
+    "magazine": 0,
+    "safety": 0,
+    "trigger": 0,
+    "mag_latch": 0,
+    "charging_handle": 0,
+    "camometal": 0,
+    "@proxy_0": 0,
+    "@proxy_1": 0,
+    "@proxy_2": 0,
+    "@proxy_3": 0,
+    "@proxy_4": 0,
+    "@proxy_5": 0,
+    "@proxy_6": 0
+   }
+  },
+  {
+   "name": "mbus_rear_ADFRC_EF88_MLOD_VP",
+   "collections": [
+    "view_VP"
+   ],
+   "vertices": 9700,
+   "materials": [
+    "P3D: mbus_rear_co.paa :: adfrc_mbus_rear.rvmat"
+   ],
+   "vertex_groups": {
+    "muzzleflash": 0,
+    "bolt_handle": 0,
+    "ef88": 0,
+    "bolt_group": 0,
+    "front_sight": 0,
+    "rear_sight": 0,
+    "camoplastic": 0,
+    "barrel": 0,
+    "brake": 0,
+    "ruid": 0,
+    "ff": 0,
+    "bolt_release": 0,
+    "magazine": 0,
+    "safety": 0,
+    "trigger": 0,
+    "mag_latch": 0,
+    "charging_handle": 0,
+    "camometal": 0,
+    "@proxy_0": 0,
+    "@proxy_1": 0,
+    "@proxy_2": 0,
+    "@proxy_3": 0,
+    "@proxy_4": 0,
+    "@proxy_5": 0,
+    "@proxy_6": 0
+   }
+  },
+  {
+   "name": "mbus_rear_ADFRC_EF88_MLOD_VP.001",
+   "collections": [
+    "view_VP"
+   ],
+   "vertices": 6500,
+   "materials": [
+    "P3D: mbus_rear_co.paa :: adfrc_mbus_rear_metal.rvmat"
+   ],
+   "vertex_groups": {
+    "muzzleflash": 0,
+    "bolt_handle": 0,
+    "ef88": 0,
+    "bolt_group": 0,
+    "front_sight": 0,
+    "rear_sight": 0,
+    "camoplastic": 0,
+    "barrel": 0,
+    "brake": 0,
+    "ruid": 0,
+    "ff": 0,
+    "bolt_release": 0,
+    "magazine": 0,
+    "safety": 0,
+    "trigger": 0,
+    "mag_latch": 0,
+    "charging_handle": 0,
+    "camometal": 0,
+    "@proxy_0": 0,
+    "@proxy_1": 0,
+    "@proxy_2": 0,
+    "@proxy_3": 0,
+    "@proxy_4": 0,
+    "@proxy_5": 0,
+    "@proxy_6": 0
+   }
+  },
+  {
+   "name": "Memory",
+   "collections": [
+    "point_cloud"
+   ],
+   "vertices": 65,
+   "materials": [],
+   "vertex_groups": {
+    "bolt_axis": 2,
+    "eye": 1,
+    "muzzle_end": 1,
+    "muzzle_pos": 1,
+    "nabojnicestart": 1,
+    "nabojniceend": 1,
+    "trigger_axis": 4,
+    "safety_axis": 2,
+    "bipod": 1,
+    "magazine_axis": 2,
+    "mag_latch_axis": 3,
+    "bolt_release_axis": 4,
+    "selector_axis": 4,
+    "charging_handle_axis": 2,
+    "gl_cartridge_axis": 2,
+    "muzzle_ugl_pos": 2,
+    "muzzle_ugl_end": 2,
+    "gl_axis": 2,
+    "gl": 4,
+    "gl_lock_axis": 2,
+    "op_eye_100": 1,
+    "op_look": 1,
+    "op_axis": 2,
+    "op_eye_200": 1,
+    "op_eye_300": 1,
+    "op_eye_400": 1,
+    "op_eye_50": 1,
+    "op_eye_75": 1,
+    "op_eye_150": 1,
+    "op_eye_250": 1,
+    "op_eye_350": 1,
+    "op_move": 2
+   }
+  },
+  {
+   "name": "Resolution 1.001",
+   "collections": [
+    "view_R0"
+   ],
+   "vertices": 21,
+   "materials": [
+    "P3D: no material"
+   ],
+   "vertex_groups": {
+    "muzzleflash": 0,
+    "bolt_handle": 0,
+    "ef88": 0,
+    "bolt_group": 0,
+    "front_sight": 0,
+    "rear_sight": 0,
+    "camoplastic": 0,
+    "barrel": 0,
+    "brake": 0,
+    "ruid": 0,
+    "ff": 0,
+    "bolt_release": 0,
+    "magazine": 0,
+    "safety": 0,
+    "trigger": 0,
+    "mag_latch": 0,
+    "charging_handle": 0,
+    "camometal": 0,
+    "@proxy_0": 0,
+    "@proxy_1": 0,
+    "@proxy_2": 0,
+    "@proxy_3": 0,
+    "@proxy_4": 0,
+    "@proxy_5": 0,
+    "@proxy_6": 0
+   }
+  },
+  {
+   "name": "Resolution 2.001",
+   "collections": [
+    "view_R0"
+   ],
+   "vertices": 21,
+   "materials": [
+    "P3D: no material"
+   ],
+   "vertex_groups": {
+    "muzzleflash": 0,
+    "bolt_handle": 0,
+    "ef88": 0,
+    "bolt_group": 0,
+    "front_sight": 0,
+    "rear_sight": 0,
+    "camoplastic": 0,
+    "barrel": 0,
+    "brake": 0,
+    "ruid": 0,
+    "ff": 0,
+    "bolt_release": 0,
+    "magazine": 0,
+    "safety": 0,
+    "trigger": 0,
+    "mag_latch": 0,
+    "charging_handle": 0,
+    "camometal": 0,
+    "@proxy_0": 0,
+    "@proxy_1": 0,
+    "@proxy_2": 0,
+    "@proxy_3": 0,
+    "@proxy_4": 0,
+    "@proxy_5": 0,
+    "@proxy_6": 0
+   }
+  },
+  {
+   "name": "Resolution 3.001",
+   "collections": [
+    "view_R0"
+   ],
+   "vertices": 21,
+   "materials": [
+    "P3D: no material"
+   ],
+   "vertex_groups": {
+    "muzzleflash": 0,
+    "bolt_handle": 0,
+    "ef88": 0,
+    "bolt_group": 0,
+    "front_sight": 0,
+    "rear_sight": 0,
+    "camoplastic": 0,
+    "barrel": 0,
+    "brake": 0,
+    "ruid": 0,
+    "ff": 0,
+    "bolt_release": 0,
+    "magazine": 0,
+    "safety": 0,
+    "trigger": 0,
+    "mag_latch": 0,
+    "charging_handle": 0,
+    "camometal": 0,
+    "@proxy_0": 0,
+    "@proxy_1": 0,
+    "@proxy_2": 0,
+    "@proxy_3": 0,
+    "@proxy_4": 0,
+    "@proxy_5": 0,
+    "@proxy_6": 0
+   }
+  },
+  {
+   "name": "Resolution 4.001",
+   "collections": [
+    "view_R0"
+   ],
+   "vertices": 21,
+   "materials": [
+    "P3D: no material"
+   ],
+   "vertex_groups": {
+    "muzzleflash": 0,
+    "bolt_handle": 0,
+    "ef88": 0,
+    "bolt_group": 0,
+    "front_sight": 0,
+    "rear_sight": 0,
+    "camoplastic": 0,
+    "barrel": 0,
+    "brake": 0,
+    "ruid": 0,
+    "ff": 0,
+    "bolt_release": 0,
+    "magazine": 0,
+    "safety": 0,
+    "trigger": 0,
+    "mag_latch": 0,
+    "charging_handle": 0,
+    "camometal": 0,
+    "@proxy_0": 0,
+    "@proxy_1": 0,
+    "@proxy_2": 0,
+    "@proxy_3": 0,
+    "@proxy_4": 0,
+    "@proxy_5": 0,
+    "@proxy_6": 0
+   }
+  },
+  {
+   "name": "Resolution 5.001",
+   "collections": [
+    "view_R0"
+   ],
+   "vertices": 21,
+   "materials": [
+    "P3D: no material"
+   ],
+   "vertex_groups": {
+    "muzzleflash": 0,
+    "bolt_handle": 0,
+    "ef88": 0,
+    "bolt_group": 0,
+    "front_sight": 0,
+    "rear_sight": 0,
+    "camoplastic": 0,
+    "barrel": 0,
+    "brake": 0,
+    "ruid": 0,
+    "ff": 0,
+    "bolt_release": 0,
+    "magazine": 0,
+    "safety": 0,
+    "trigger": 0,
+    "mag_latch": 0,
+    "charging_handle": 0,
+    "camometal": 0,
+    "@proxy_0": 0,
+    "@proxy_1": 0,
+    "@proxy_2": 0,
+    "@proxy_3": 0,
+    "@proxy_4": 0,
+    "@proxy_5": 0,
+    "@proxy_6": 0
+   }
+  },
+  {
+   "name": "Resolution 6.001",
+   "collections": [
+    "view_R0"
+   ],
+   "vertices": 21,
+   "materials": [
+    "P3D: no material"
+   ],
+   "vertex_groups": {
+    "muzzleflash": 0,
+    "bolt_handle": 0,
+    "ef88": 0,
+    "bolt_group": 0,
+    "front_sight": 0,
+    "rear_sight": 0,
+    "camoplastic": 0,
+    "barrel": 0,
+    "brake": 0,
+    "ruid": 0,
+    "ff": 0,
+    "bolt_release": 0,
+    "magazine": 0,
+    "safety": 0,
+    "trigger": 0,
+    "mag_latch": 0,
+    "charging_handle": 0,
+    "camometal": 0,
+    "@proxy_0": 0,
+    "@proxy_1": 0,
+    "@proxy_2": 0,
+    "@proxy_3": 0,
+    "@proxy_4": 0,
+    "@proxy_5": 0,
+    "@proxy_6": 0
+   }
+  },
+  {
+   "name": "Shadow Volume 0",
+   "collections": [
+    "shadow_volume_SV"
+   ],
+   "vertices": 28398,
+   "materials": [
+    "P3D: no material"
+   ],
+   "vertex_groups": {
+    "muzzleflash": 0,
+    "bolt_handle": 0,
+    "ef88": 0,
+    "bolt_group": 0,
+    "front_sight": 0,
+    "rear_sight": 0,
+    "barrel": 0,
+    "brake": 0,
+    "ruid": 0,
+    "ff": 0,
+    "bolt_release": 0,
+    "magazine": 0,
+    "safety": 0,
+    "trigger": 0,
+    "mag_latch": 0,
+    "charging_handle": 0
+   }
+  },
+  {
+   "name": "Shadow Volume 1000",
+   "collections": [
+    "shadow_volume_SV"
+   ],
+   "vertices": 20043,
+   "materials": [
+    "P3D: no material"
+   ],
+   "vertex_groups": {
+    "muzzleflash": 0,
+    "bolt_handle": 0,
+    "ef88": 0,
+    "bolt_group": 0,
+    "front_sight": 0,
+    "rear_sight": 0,
+    "barrel": 0,
+    "brake": 0,
+    "ruid": 0,
+    "ff": 0,
+    "bolt_release": 0,
+    "magazine": 0,
+    "safety": 0,
+    "trigger": 0,
+    "mag_latch": 0,
+    "charging_handle": 0
+   }
+  },
+  {
+   "name": "View - Pilot.001",
+   "collections": [
+    "view_VP"
+   ],
+   "vertices": 21,
+   "materials": [
+    "P3D: no material"
+   ],
+   "vertex_groups": {
+    "muzzleflash": 0,
+    "bolt_handle": 0,
+    "ef88": 0,
+    "bolt_group": 0,
+    "front_sight": 0,
+    "rear_sight": 0,
+    "camoplastic": 0,
+    "barrel": 0,
+    "brake": 0,
+    "ruid": 0,
+    "ff": 0,
+    "bolt_release": 0,
+    "magazine": 0,
+    "safety": 0,
+    "trigger": 0,
+    "mag_latch": 0,
+    "charging_handle": 0,
+    "camometal": 0,
+    "@proxy_0": 0,
+    "@proxy_1": 0,
+    "@proxy_2": 0,
+    "@proxy_3": 0,
+    "@proxy_4": 0,
+    "@proxy_5": 0,
+    "@proxy_6": 0
+   }
+  }
+ ],
+ "magazine_groups": [
+  {
+   "object": "Memory",
+   "collections": [
+    "point_cloud"
+   ],
+   "group": "magazine_axis",
+   "vertices": 2
+  },
+  {
+   "object": "Memory",
+   "collections": [
+    "point_cloud"
+   ],
+   "group": "mag_latch_axis",
+   "vertices": 3
+  }
+ ]
+}

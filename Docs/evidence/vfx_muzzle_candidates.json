@@ -1,0 +1,397 @@
+{
+  "schema": "ss-vfx-candidates/1",
+  "root": "/Game/Realistic_Starter_VFX_Pack_Vol2",
+  "keywords": [
+    "muzzle",
+    "flash",
+    "shot"
+  ],
+  "classes_wanted": [
+    "ParticleSystem",
+    "NiagaraSystem"
+  ],
+  "assets_scanned": 188,
+  "classes_seen": {
+    "Blueprint": 2,
+    "MapBuildDataRegistry": 2,
+    "Material": 54,
+    "MaterialInstanceConstant": 6,
+    "ParticleSystem": 56,
+    "StaticMesh": 10,
+    "Texture2D": 51,
+    "UserDefinedEnum": 1,
+    "VectorFieldStatic": 4,
+    "World": 2
+  },
+  "candidate_count": 0,
+  "candidates": [],
+  "pack_particle_inventory": [
+    {
+      "path": "/Game/Realistic_Starter_VFX_Pack_Vol2/Particles/Hit/P_Asphalt.P_Asphalt",
+      "package": "/Game/Realistic_Starter_VFX_Pack_Vol2/Particles/Hit/P_Asphalt",
+      "name": "P_Asphalt",
+      "class": "ParticleSystem"
+    },
+    {
+      "path": "/Game/Realistic_Starter_VFX_Pack_Vol2/Particles/Blood/P_Blood_Splat_Cone.P_Blood_Splat_Cone",
+      "package": "/Game/Realistic_Starter_VFX_Pack_Vol2/Particles/Blood/P_Blood_Splat_Cone",
+      "name": "P_Blood_Splat_Cone",
+      "class": "ParticleSystem"
+    },
+    {
+      "path": "/Game/Realistic_Starter_VFX_Pack_Vol2/Particles/Hit/P_Brick.P_Brick",
+      "package": "/Game/Realistic_Starter_VFX_Pack_Vol2/Particles/Hit/P_Brick",
+      "name": "P_Brick",
+      "class": "ParticleSystem"
+    },
+    {
+      "path": "/Game/Realistic_Starter_VFX_Pack_Vol2/Particles/Water/P_Bubbles_A.P_Bubbles_A",
+      "package": "/Game/Realistic_Starter_VFX_Pack_Vol2/Particles/Water/P_Bubbles_A",
+      "name": "P_Bubbles_A",
+      "class": "ParticleSystem"
+    },
+    {
+      "path": "/Game/Realistic_Starter_VFX_Pack_Vol2/Particles/Water/P_Bubbles_B.P_Bubbles_B",
+      "package": "/Game/Realistic_Starter_VFX_Pack_Vol2/Particles/Water/P_Bubbles_B",
+      "name": "P_Bubbles_B",
+      "class": "ParticleSystem"
+    },
+    {
+      "path": "/Game/Realistic_Starter_VFX_Pack_Vol2/Particles/Environment/P_Butterfly.P_Butterfly",
+      "package": "/Game/Realistic_Starter_VFX_Pack_Vol2/Particles/Environment/P_Butterfly",
+      "name": "P_Butterfly",
+      "class": "ParticleSystem"
+    },
+    {
+      "path": "/Game/Realistic_Starter_VFX_Pack_Vol2/Particles/Hit/P_Ceramic.P_Ceramic",
+      "package": "/Game/Realistic_Starter_VFX_Pack_Vol2/Particles/Hit/P_Ceramic",
+      "name": "P_Ceramic",
+      "class": "ParticleSystem"
+    },
+    {
+      "path": "/Game/Realistic_Starter_VFX_Pack_Vol2/Particles/Hit/P_Concrete.P_Concrete",
+      "package": "/Game/Realistic_Starter_VFX_Pack_Vol2/Particles/Hit/P_Concrete",
+      "name": "P_Concrete",
+      "class": "ParticleSystem"
+    },
+    {
+      "path": "/Game/Realistic_Starter_VFX_Pack_Vol2/Particles/Environment/P_Dandelion.P_Dandelion",
+      "package": "/Game/Realistic_Starter_VFX_Pack_Vol2/Particles/Environment/P_Dandelion",
+      "name": "P_Dandelion",
+      "class": "ParticleSystem"
+    },
+    {
+      "path": "/Game/Realistic_Starter_VFX_Pack_Vol2/Particles/Hit/P_Default.P_Default",
+      "package": "/Game/Realistic_Starter_VFX_Pack_Vol2/Particles/Hit/P_Default",
+      "name": "P_Default",
+      "class": "ParticleSystem"
+    },
+    {
+      "path": "/Game/Realistic_Starter_VFX_Pack_Vol2/Particles/Destruction/P_Destruction_Building_A.P_Destruction_Building_A",
+      "package": "/Game/Realistic_Starter_VFX_Pack_Vol2/Particles/Destruction/P_Destruction_Building_A",
+      "name": "P_Destruction_Building_A",
+      "class": "ParticleSystem"
+    },
+    {
+      "path": "/Game/Realistic_Starter_VFX_Pack_Vol2/Particles/Destruction/P_Destruction_Building_B.P_Destruction_Building_B",
+      "package": "/Game/Realistic_Starter_VFX_Pack_Vol2/Particles/Destruction/P_Destruction_Building_B",
+      "name": "P_Destruction_Building_B",
+      "class": "ParticleSystem"
+    },
+    {
+      "path": "/Game/Realistic_Starter_VFX_Pack_Vol2/Particles/Destruction/P_Destruction_Ceramic.P_Destruction_Ceramic",
+      "package": "/Game/Realistic_Starter_VFX_Pack_Vol2/Particles/Destruction/P_Destruction_Ceramic",
+      "name": "P_Destruction_Ceramic",
+      "class": "ParticleSystem"
+    },
+    {
+      "path": "/Game/Realistic_Starter_VFX_Pack_Vol2/Particles/Destruction/P_Destruction_Concrete.P_Destruction_Concrete",
+      "package": "/Game/Realistic_Starter_VFX_Pack_Vol2/Particles/Destruction/P_Destruction_Concrete",
+      "name": "P_Destruction_Concrete",
+      "class": "ParticleSystem"
+    },
+    {
+      "path": "/Game/Realistic_Starter_VFX_Pack_Vol2/Particles/Destruction/P_Destruction_Electric.P_Destruction_Electric",
+      "package": "/Game/Realistic_Starter_VFX_Pack_Vol2/Particles/Destruction/P_Destruction_Electric",
+      "name": "P_Destruction_Electric",
+      "class": "ParticleSystem"
+    },
+    {
+      "path": "/Game/Realistic_Starter_VFX_Pack_Vol2/Particles/Destruction/P_Destruction_Glass.P_Destruction_Glass",
+      "package": "/Game/Realistic_Starter_VFX_Pack_Vol2/Particles/Destruction/P_Destruction_Glass",
+      "name": "P_Destruction_Glass",
+      "class": "ParticleSystem"
+    },
+    {
+      "path": "/Game/Realistic_Starter_VFX_Pack_Vol2/Particles/Destruction/P_Destruction_Metal.P_Destruction_Metal",
+      "package": "/Game/Realistic_Starter_VFX_Pack_Vol2/Particles/Destruction/P_Destruction_Metal",
+      "name": "P_Destruction_Metal",
+      "class": "ParticleSystem"
+    },
+    {
+      "path": "/Game/Realistic_Starter_VFX_Pack_Vol2/Particles/Destruction/P_Destruction_Wood.P_Destruction_Wood",
+      "package": "/Game/Realistic_Starter_VFX_Pack_Vol2/Particles/Destruction/P_Destruction_Wood",
+      "name": "P_Destruction_Wood",
+      "class": "ParticleSystem"
+    },
+    {
+      "path": "/Game/Realistic_Starter_VFX_Pack_Vol2/Particles/Sparks/P_Embers_A.P_Embers_A",
+      "package": "/Game/Realistic_Starter_VFX_Pack_Vol2/Particles/Sparks/P_Embers_A",
+      "name": "P_Embers_A",
+      "class": "ParticleSystem"
+    },
+    {
+      "path": "/Game/Realistic_Starter_VFX_Pack_Vol2/Particles/Explosion/P_Explosion_Big_A.P_Explosion_Big_A",
+      "package": "/Game/Realistic_Starter_VFX_Pack_Vol2/Particles/Explosion/P_Explosion_Big_A",
+      "name": "P_Explosion_Big_A",
+      "class": "ParticleSystem"
+    },
+    {
+      "path": "/Game/Realistic_Starter_VFX_Pack_Vol2/Particles/Explosion/P_Explosion_Big_B.P_Explosion_Big_B",
+      "package": "/Game/Realistic_Starter_VFX_Pack_Vol2/Particles/Explosion/P_Explosion_Big_B",
+      "name": "P_Explosion_Big_B",
+      "class": "ParticleSystem"
+    },
+    {
+      "path": "/Game/Realistic_Starter_VFX_Pack_Vol2/Particles/Explosion/P_Explosion_Big_C.P_Explosion_Big_C",
+      "package": "/Game/Realistic_Starter_VFX_Pack_Vol2/Particles/Explosion/P_Explosion_Big_C",
+      "name": "P_Explosion_Big_C",
+      "class": "ParticleSystem"
+    },
+    {
+      "path": "/Game/Realistic_Starter_VFX_Pack_Vol2/Particles/Explosion/P_Explosion_Side.P_Explosion_Side",
+      "package": "/Game/Realistic_Starter_VFX_Pack_Vol2/Particles/Explosion/P_Explosion_Side",
+      "name": "P_Explosion_Side",
+      "class": "ParticleSystem"
+    },
+    {
+      "path": "/Game/Realistic_Starter_VFX_Pack_Vol2/Particles/Explosion/P_Explosion_Smoke.P_Explosion_Smoke",
+      "package": "/Game/Realistic_Starter_VFX_Pack_Vol2/Particles/Explosion/P_Explosion_Smoke",
+      "name": "P_Explosion_Smoke",
+      "class": "ParticleSystem"
+    },
+    {
+      "path": "/Game/Realistic_Starter_VFX_Pack_Vol2/Particles/Fire/P_Fire_Big.P_Fire_Big",
+      "package": "/Game/Realistic_Starter_VFX_Pack_Vol2/Particles/Fire/P_Fire_Big",
+      "name": "P_Fire_Big",
+      "class": "ParticleSystem"
+    },
+    {
+      "path": "/Game/Realistic_Starter_VFX_Pack_Vol2/Particles/Fire/P_Fire_Small.P_Fire_Small",
+      "package": "/Game/Realistic_Starter_VFX_Pack_Vol2/Particles/Fire/P_Fire_Small",
+      "name": "P_Fire_Small",
+      "class": "ParticleSystem"
+    },
+    {
+      "path": "/Game/Realistic_Starter_VFX_Pack_Vol2/Particles/Fire/P_Fire_Wall.P_Fire_Wall",
+      "package": "/Game/Realistic_Starter_VFX_Pack_Vol2/Particles/Fire/P_Fire_Wall",
+      "name": "P_Fire_Wall",
+      "class": "ParticleSystem"
+    },
+    {
+      "path": "/Game/Realistic_Starter_VFX_Pack_Vol2/Particles/Environment/P_Fireflies.P_Fireflies",
+      "package": "/Game/Realistic_Starter_VFX_Pack_Vol2/Particles/Environment/P_Fireflies",
+      "name": "P_Fireflies",
+      "class": "ParticleSystem"
+    },
+    {
+      "path": "/Game/Realistic_Starter_VFX_Pack_Vol2/Particles/Environment/P_Fish_A.P_Fish_A",
+      "package": "/Game/Realistic_Starter_VFX_Pack_Vol2/Particles/Environment/P_Fish_A",
+      "name": "P_Fish_A",
+      "class": "ParticleSystem"
+    },
+    {
+      "path": "/Game/Realistic_Starter_VFX_Pack_Vol2/Particles/Environment/P_Fish_B.P_Fish_B",
+      "package": "/Game/Realistic_Starter_VFX_Pack_Vol2/Particles/Environment/P_Fish_B",
+      "name": "P_Fish_B",
+      "class": "ParticleSystem"
+    },
+    {
+      "path": "/Game/Realistic_Starter_VFX_Pack_Vol2/Particles/Fire/P_flamethrower.P_Flamethrower",
+      "package": "/Game/Realistic_Starter_VFX_Pack_Vol2/Particles/Fire/P_flamethrower",
+      "name": "P_Flamethrower",
+      "class": "ParticleSystem"
+    },
+    {
+      "path": "/Game/Realistic_Starter_VFX_Pack_Vol2/Particles/Hit/P_Ice.P_Ice",
+      "package": "/Game/Realistic_Starter_VFX_Pack_Vol2/Particles/Hit/P_Ice",
+      "name": "P_Ice",
+      "class": "ParticleSystem"
+    },
+    {
+      "path": "/Game/Realistic_Starter_VFX_Pack_Vol2/Particles/Hit/P_Leather.P_Leather",
+      "package": "/Game/Realistic_Starter_VFX_Pack_Vol2/Particles/Hit/P_Leather",
+      "name": "P_Leather",
+      "class": "ParticleSystem"
+    },
+    {
+      "path": "/Game/Realistic_Starter_VFX_Pack_Vol2/Particles/Environment/P_Leaves_Vortex.P_Leaves_Vortex",
+      "package": "/Game/Realistic_Starter_VFX_Pack_Vol2/Particles/Environment/P_Leaves_Vortex",
+      "name": "P_Leaves_Vortex",
+      "class": "ParticleSystem"
+    },
+    {
+      "path": "/Game/Realistic_Starter_VFX_Pack_Vol2/Particles/Explosion/P_Molotov.P_Molotov",
+      "package": "/Game/Realistic_Starter_VFX_Pack_Vol2/Particles/Explosion/P_Molotov",
+      "name": "P_Molotov",
+      "class": "ParticleSystem"
+    },
+    {
+      "path": "/Game/Realistic_Starter_VFX_Pack_Vol2/Particles/Hit/P_Paper.P_Paper",
+      "package": "/Game/Realistic_Starter_VFX_Pack_Vol2/Particles/Hit/P_Paper",
+      "name": "P_Paper",
+      "class": "ParticleSystem"
+    },
+    {
+      "path": "/Game/Realistic_Starter_VFX_Pack_Vol2/Particles/Hit/P_Rubber.P_Rubber",
+      "package": "/Game/Realistic_Starter_VFX_Pack_Vol2/Particles/Hit/P_Rubber",
+      "name": "P_Rubber",
+      "class": "ParticleSystem"
+    },
+    {
+      "path": "/Game/Realistic_Starter_VFX_Pack_Vol2/Particles/Smoke/P_Smoke_A.P_Smoke_A",
+      "package": "/Game/Realistic_Starter_VFX_Pack_Vol2/Particles/Smoke/P_Smoke_A",
+      "name": "P_Smoke_A",
+      "class": "ParticleSystem"
+    },
+    {
+      "path": "/Game/Realistic_Starter_VFX_Pack_Vol2/Particles/Smoke/P_Smoke_B.P_Smoke_B",
+      "package": "/Game/Realistic_Starter_VFX_Pack_Vol2/Particles/Smoke/P_Smoke_B",
+      "name": "P_Smoke_B",
+      "class": "ParticleSystem"
+    },
+    {
+      "path": "/Game/Realistic_Starter_VFX_Pack_Vol2/Particles/Smoke/P_Smoke_C.P_Smoke_C",
+      "package": "/Game/Realistic_Starter_VFX_Pack_Vol2/Particles/Smoke/P_Smoke_C",
+      "name": "P_Smoke_C",
+      "class": "ParticleSystem"
+    },
+    {
+      "path": "/Game/Realistic_Starter_VFX_Pack_Vol2/Particles/Smoke/P_Smoke_D.P_Smoke_D",
+      "package": "/Game/Realistic_Starter_VFX_Pack_Vol2/Particles/Smoke/P_Smoke_D",
+      "name": "P_Smoke_D",
+      "class": "ParticleSystem"
+    },
+    {
+      "path": "/Game/Realistic_Starter_VFX_Pack_Vol2/Particles/Smoke/P_Smoke_F.P_Smoke_F",
+      "package": "/Game/Realistic_Starter_VFX_Pack_Vol2/Particles/Smoke/P_Smoke_F",
+      "name": "P_Smoke_F",
+      "class": "ParticleSystem"
+    },
+    {
+      "path": "/Game/Realistic_Starter_VFX_Pack_Vol2/Particles/Sparks/P_Sparks_A.P_Sparks_A",
+      "package": "/Game/Realistic_Starter_VFX_Pack_Vol2/Particles/Sparks/P_Sparks_A",
+      "name": "P_Sparks_A",
+      "class": "ParticleSystem"
+    },
+    {
+      "path": "/Game/Realistic_Starter_VFX_Pack_Vol2/Particles/Sparks/P_Sparks_B.P_Sparks_B",
+      "package": "/Game/Realistic_Starter_VFX_Pack_Vol2/Particles/Sparks/P_Sparks_B",
+      "name": "P_Sparks_B",
+      "class": "ParticleSystem"
+    },
+    {
+      "path": "/Game/Realistic_Starter_VFX_Pack_Vol2/Particles/Sparks/P_Sparks_C.P_Sparks_C",
+      "package": "/Game/Realistic_Starter_VFX_Pack_Vol2/Particles/Sparks/P_Sparks_C",
+      "name": "P_Sparks_C",
+      "class": "ParticleSystem"
+    },
+    {
+      "path": "/Game/Realistic_Starter_VFX_Pack_Vol2/Particles/Sparks/P_Sparks_D.P_Sparks_D",
+      "package": "/Game/Realistic_Starter_VFX_Pack_Vol2/Particles/Sparks/P_Sparks_D",
+      "name": "P_Sparks_D",
+      "class": "ParticleSystem"
+    },
+    {
+      "path": "/Game/Realistic_Starter_VFX_Pack_Vol2/Particles/Sparks/P_Sparks_E.P_Sparks_E",
+      "package": "/Game/Realistic_Starter_VFX_Pack_Vol2/Particles/Sparks/P_Sparks_E",
+      "name": "P_Sparks_E",
+      "class": "ParticleSystem"
+    },
+    {
+      "path": "/Game/Realistic_Starter_VFX_Pack_Vol2/Particles/Sparks/P_Sparks_F.P_Sparks_F",
+      "package": "/Game/Realistic_Starter_VFX_Pack_Vol2/Particles/Sparks/P_Sparks_F",
+      "name": "P_Sparks_F",
+      "class": "ParticleSystem"
+    },
+    {
+      "path": "/Game/Realistic_Starter_VFX_Pack_Vol2/Particles/Sparks/P_Sparks_G.P_Sparks_G",
+      "package": "/Game/Realistic_Starter_VFX_Pack_Vol2/Particles/Sparks/P_Sparks_G",
+      "name": "P_Sparks_G",
+      "class": "ParticleSystem"
+    },
+    {
+      "path": "/Game/Realistic_Starter_VFX_Pack_Vol2/Particles/Smoke/P_Steam_A.P_Steam_A",
+      "package": "/Game/Realistic_Starter_VFX_Pack_Vol2/Particles/Smoke/P_Steam_A",
+      "name": "P_Steam_A",
+      "class": "ParticleSystem"
+    },
+    {
+      "path": "/Game/Realistic_Starter_VFX_Pack_Vol2/Particles/Hit/P_Vegetation.P_Vegetation",
+      "package": "/Game/Realistic_Starter_VFX_Pack_Vol2/Particles/Hit/P_Vegetation",
+      "name": "P_Vegetation",
+      "class": "ParticleSystem"
+    },
+    {
+      "path": "/Game/Realistic_Starter_VFX_Pack_Vol2/Particles/Water/P_Water_Dripping_A.P_Water_Dripping_A",
+      "package": "/Game/Realistic_Starter_VFX_Pack_Vol2/Particles/Water/P_Water_Dripping_A",
+      "name": "P_Water_Dripping_A",
+      "class": "ParticleSystem"
+    },
+    {
+      "path": "/Game/Realistic_Starter_VFX_Pack_Vol2/Particles/Water/P_Water_Dripping_B.P_Water_Dripping_B",
+      "package": "/Game/Realistic_Starter_VFX_Pack_Vol2/Particles/Water/P_Water_Dripping_B",
+      "name": "P_Water_Dripping_B",
+      "class": "ParticleSystem"
+    },
+    {
+      "path": "/Game/Realistic_Starter_VFX_Pack_Vol2/Particles/Water/P_Water_Leak_A.P_Water_Leak_A",
+      "package": "/Game/Realistic_Starter_VFX_Pack_Vol2/Particles/Water/P_Water_Leak_A",
+      "name": "P_Water_Leak_A",
+      "class": "ParticleSystem"
+    },
+    {
+      "path": "/Game/Realistic_Starter_VFX_Pack_Vol2/Particles/Water/P_Water_Leak_B.P_Water_Leak_B",
+      "package": "/Game/Realistic_Starter_VFX_Pack_Vol2/Particles/Water/P_Water_Leak_B",
+      "name": "P_Water_Leak_B",
+      "class": "ParticleSystem"
+    },
+    {
+      "path": "/Game/Realistic_Starter_VFX_Pack_Vol2/Particles/Hit/P_Wood.P_Wood",
+      "package": "/Game/Realistic_Starter_VFX_Pack_Vol2/Particles/Hit/P_Wood",
+      "name": "P_Wood",
+      "class": "ParticleSystem"
+    }
+  ],
+  "wide_scan": {
+    "root": "/Game",
+    "assets_scanned": 14558,
+    "candidate_count": 4,
+    "candidates": [
+      {
+        "path": "/Game/Effects/Particles/Weapons/NS_WeaponFire_MuzzleFlash_Rifle.NS_WeaponFire_MuzzleFlash_Rifle",
+        "package": "/Game/Effects/Particles/Weapons/NS_WeaponFire_MuzzleFlash_Rifle",
+        "name": "NS_WeaponFire_MuzzleFlash_Rifle",
+        "class": "NiagaraSystem"
+      },
+      {
+        "path": "/Game/Effects/Particles/Weapons/NS_WeaponFire_Tracer_Shotgun.NS_WeaponFire_Tracer_Shotgun",
+        "package": "/Game/Effects/Particles/Weapons/NS_WeaponFire_Tracer_Shotgun",
+        "name": "NS_WeaponFire_Tracer_Shotgun",
+        "class": "NiagaraSystem"
+      },
+      {
+        "path": "/Game/AK-47/FX/MuzzleFlash/P_AssaultRifle_MuzzleFlash.P_AssaultRifle_MuzzleFlash",
+        "package": "/Game/AK-47/FX/MuzzleFlash/P_AssaultRifle_MuzzleFlash",
+        "name": "P_AssaultRifle_MuzzleFlash",
+        "class": "ParticleSystem"
+      },
+      {
+        "path": "/Game/Downloaded/VaultCache/Untitled7d3b12f5addbV1/data/Content/AK-47/FX/MuzzleFlash/P_AssaultRifle_MuzzleFlash.P_AssaultRifle_MuzzleFlash",
+        "package": "/Game/Downloaded/VaultCache/Untitled7d3b12f5addbV1/data/Content/AK-47/FX/MuzzleFlash/P_AssaultRifle_MuzzleFlash",
+        "name": "P_AssaultRifle_MuzzleFlash",
+        "class": "ParticleSystem"
+      }
+    ]
+  }
+}
