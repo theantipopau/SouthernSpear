@@ -3,7 +3,8 @@
 The site source lives in Site/. The public repository
 (github.com/theantipopau/southernspear-site) receives only:
 
-    index.html, styles.css, site.js       from Site/
+    index.html, changelog.html,
+    presskit.html, styles.css, site.js    from Site/
     robots.txt, sitemap.xml, 404.html,
     manifest.webmanifest                  from Site/
     assets/**                             from Site/assets/  (generated derivatives)
@@ -40,6 +41,7 @@ REMOTE = "https://github.com/theantipopau/southernspear-site.git"
 FILES = {
     "index.html": "Site/index.html",
     "changelog.html": "Site/changelog.html",
+    "presskit.html": "Site/presskit.html",
     "styles.css": "Site/styles.css",
     "site.js": "Site/site.js",
     "README.md": "Site/README.site.md",

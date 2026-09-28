@@ -4836,6 +4836,79 @@ None new.
 ---
 
 
+## Session 061 — 2026-09-28 — Website: A Place For In-Engine Captures, a Roadmap Meter and a Press Kit
+
+### COMPLETED
+
+- **In-engine screenshot pipeline, ready for the first captures.** Frozen captures go in
+  `Docs/images/screenshots/` with an entry in its `screenshots.json` (file, title, alt, map, captured date,
+  optional session and note; the README there gives the steps). `python Tools/build_site_assets.py --only
+  screenshots` writes AVIF/WebP/JPEG derivatives at 960 and 1920 px to `Site/assets/screenshots/` and the view
+  model `Site/data/screenshots.json`, listing each file at its real width. An entry missing `alt`, `map` or a
+  `YYYY-MM-DD` date, or pointing at a missing file or an LFS pointer, stops the build (exit 1).
+  `build_site_assets.py` gained `--only <step>` so one step can run without the other sources.
+- **Media section** now opens with *In-engine captures*, rendered by `site.js` from `data/screenshots.json`
+  with a teal `In-engine` badge, the map, date and session under each, the newest at full width, and a
+  work-in-progress note. With no captures it shows a dashed "none published yet" note. The concept art below
+  keeps its orange labels; the section note now says only `In-engine` images come from the game.
+- **Lightbox** resolves its triggers when opened rather than once at start-up, so script-rendered captures
+  join the same previous/next sequence.
+- **Roadmap meter** above the timeline: one segment per phase, coloured by the state the roadmap records,
+  each linking to its phase, with "1 of 7 phases complete · Phase 1 in progress". No percentage (the
+  Development section says none is tracked).
+- **Development pulse**: sessions recorded, first session and latest session, counted from the changelog.
+- **FAQ "What PC will I need?"**: says minimum/recommended specs are not measured yet and will be set by
+  testing and listed on Steam; lists only what `Config/DefaultEngine.ini` fixes (DX12 + SM6, Lumen with
+  hardware ray tracing and software fallback, virtual shadow maps, TSR) and the TDD §9.1 target (60 fps at
+  1080p on an RX 9070 XT), labelled as a target, not a minimum.
+- **Press kit page** `presskit.html`: fact sheet, one-line/short/long descriptions drawn from existing site
+  copy, the logo, emblem and artwork as downloads (artwork labelled as artwork), contact (Discord, GitHub) and
+  the disclaimers. Linked from every footer, added to `sitemap.xml` and to `publish_site.py`.
+
+### FILES CHANGED
+
+`Site/index.html`, `Site/site.js`, `Site/styles.css`, `Site/changelog.html`, `Site/presskit.html` (new),
+`Site/sitemap.xml`, `Site/README.site.md`, `Site/data/screenshots.json` (new);
+`Tools/build_site_assets.py`, `Tools/publish_site.py`; `Docs/images/screenshots/README.md` (new),
+`Docs/images/screenshots/screenshots.json` (new); `Docs/Website/WEBSITE_DESIGN_SYSTEM.md`; `Docs/CHANGELOG.md`.
+
+### TESTING
+
+- `python3 Tools/build_site_assets.py --only screenshots` on a scratch copy with two fixture images (one
+  1672 px, one 2560 px wide): exit 0, 12 derivatives, view model lists the 1672 px file at 1672w.
+- Same, with an entry missing `alt`, `map` and `captured`: **exit 1**, names the entry and the missing fields.
+- Headless Chromium 1194 over `Site/` served locally, 1440 px and 390 px, reduced motion: no page or console
+  errors on `index.html`, `changelog.html` and `presskit.html`; no horizontal scroll at either width;
+  captures render and open in the lightbox, arrow keys step into the static gallery; meter reads "1 of 7
+  phases complete · Phase 1 in progress"; pulse reads 63 / 26 Sep 2026 / 28 Sep 2026; with the empty view
+  model the "none published yet" note stays and `aria-busy` clears. Every screenshot was looked at.
+- **NOT RUN:** `python Tools/publish_site.py` (not published from this session); the full
+  `build_site_assets.py` (the sources in `Docs/images/` are LFS pointers in this checkout); the
+  `Build/audit/text_audit.js` font-floor check (not present in this checkout).
+
+### ASSETS
+
+None. The press kit links existing derivatives only.
+
+### RISKS
+
+- **R-69 (open, low):** the press kit's largest logo is the 420 px lockup. Press usually wants a large
+  transparent logo; a 1024 px press derivative from `logo.png` would fix it, and needs the LFS source.
+
+### DEFECTS FOUND
+
+- None in existing code. Found in review of the new code: a source narrower than 1920 px was advertised in
+  `srcset` as 1920w. Fixed before commit by recording each file's real width.
+
+### NEXT ACTION
+
+**On the producer's machine:** carry out Session 060's NEXT ACTION (the weapon checks, the build, both
+views in a match), and in that same run capture the first in-engine screenshots with `-SSShotAt` or
+`HighResShot 1920x1080` (game viewport only, no window frame), then follow
+`Docs/images/screenshots/README.md` and publish.
+
+---
+
 ## Open Threads
 
 | Item | Blocked on | Owner |

@@ -12,11 +12,15 @@ monochrome footer mark is a CSS filter rather than a second drawing.
 Usage:
     python Tools/build_site_assets.py
     python Tools/build_site_assets.py --clean     # remove Site/assets first
+    python Tools/build_site_assets.py --only screenshots   # one step only
 """
 
 import argparse
+import datetime
+import json
 import os
 import shutil
+import sys
 
 from PIL import Image, ImageFilter
 
@@ -32,6 +36,15 @@ MENU = os.path.join(SRC, "mainmenu.png")        # 1536x1024, main menu key art (
 LOADING = os.path.join(SRC, "loadingscreen.png")  # 1536x1024, designed title screen
 CONCEPT1 = os.path.join(SRC, "conceptart1.png")    # 1536x1024
 CONCEPT2 = os.path.join(SRC, "conceptart2.png")    # 1672x941
+
+# In-engine captures. The producer drops frozen screenshots and a manifest in
+# Docs/images/screenshots/ (see the README there); this script writes the web
+# derivatives and the site's view model, Site/data/screenshots.json.
+SHOTS_SRC = os.path.join(SRC, "screenshots")
+SHOTS_MANIFEST = os.path.join(SHOTS_SRC, "screenshots.json")
+SHOTS_VIEW = os.path.join(ROOT, "Site", "data", "screenshots.json")
+SHOT_WIDTHS = (960, 1920)
+SHOT_REQUIRED = ("file", "title", "alt", "map", "captured")
 
 # logo.png: opaque plate spans x 80..943, y 75..946. The wordmark inside the plate
 # starts at y~705 (first dense light row), so everything above it is emblem.
@@ -276,6 +289,89 @@ def build_weapons():
         print("  weapons/{}-* (source {}x{})".format(stem, img.width, img.height))
 
 
+def build_screenshots():
+    """In-engine captures from the pre-alpha build.
+
+    Every entry must say what it shows (alt), where (map) and when (captured),
+    because the site labels each capture with them: a screenshot is evidence of
+    the build on a date, and an undated one could not be told apart from a
+    later, better build. A missing field or file stops the build rather than
+    publishing a capture that cannot be captioned honestly.
+
+    With no manifest the view model is written empty, and the page shows its
+    "no captures published yet" note.
+    """
+    shots = []
+    if os.path.isfile(SHOTS_MANIFEST):
+        with open(SHOTS_MANIFEST, encoding="utf-8") as fh:
+            entries = json.load(fh).get("screenshots", [])
+    else:
+        entries = []
+        print("  SKIP", SHOTS_MANIFEST, "(no captures yet)")
+
+    errors = []
+    for index, entry in enumerate(entries):
+        label = entry.get("file") or "entry {}".format(index + 1)
+        missing = [key for key in SHOT_REQUIRED if not str(entry.get(key, "")).strip()]
+        if missing:
+            errors.append("{}: missing {}".format(label, ", ".join(missing)))
+            continue
+        try:
+            datetime.date.fromisoformat(entry["captured"])
+        except ValueError:
+            errors.append("{}: captured must be YYYY-MM-DD, got {!r}".format(label, entry["captured"]))
+            continue
+        path = os.path.join(SHOTS_SRC, entry["file"])
+        if not os.path.isfile(path):
+            errors.append("{}: file not found in Docs/images/screenshots/".format(label))
+            continue
+        with open(path, "rb") as fh:
+            if fh.read(64).startswith(b"version https://git-lfs"):
+                errors.append("{}: is an LFS pointer; run git lfs pull".format(label))
+                continue
+
+        stem = "shot-" + os.path.splitext(entry["file"])[0].lower().replace(" ", "-").replace("_", "-")
+        img = Image.open(path).convert("RGB")
+        # Each file is listed at its real width: a 1672 px source must not be
+        # advertised to the browser as a 1920 px candidate, and a source
+        # narrower than the smallest width yields one file, not two copies.
+        files = []
+        for width in SHOT_WIDTHS:
+            scaled = at_width(img, width)
+            if files and files[-1]["width"] == scaled.width:
+                continue
+            name = "{}-{}".format(stem, width)
+            save(scaled, "screenshots/" + name, name, quality=82, avif_q=56, webp_q=80)
+            files.append({"width": scaled.width, "path": "assets/screenshots/" + name})
+        largest = at_width(img, SHOT_WIDTHS[-1])
+        shots.append({
+            "id": stem,
+            "title": entry["title"].strip(),
+            "alt": entry["alt"].strip(),
+            "map": entry["map"].strip(),
+            "captured": entry["captured"],
+            "session": str(entry.get("session", "")).strip(),
+            "note": str(entry.get("note", "")).strip(),
+            "width": largest.width,
+            "height": largest.height,
+            "files": files,
+        })
+        print("  screenshots/{}-* (source {}x{})".format(stem, img.width, img.height))
+
+    if errors:
+        for line in errors:
+            print("  ERROR", line)
+        sys.exit("screenshots: {} problem(s) in {}".format(len(errors), SHOTS_MANIFEST))
+
+    # Newest first, so the gallery opens on the current state of the build.
+    shots.sort(key=lambda shot: shot["captured"], reverse=True)
+    os.makedirs(os.path.dirname(SHOTS_VIEW), exist_ok=True)
+    with open(SHOTS_VIEW, "w", encoding="utf-8", newline="\n") as fh:
+        json.dump({"screenshots": shots}, fh, indent=2, ensure_ascii=False)
+        fh.write("\n")
+    print("  data/screenshots.json ({} capture(s))".format(len(shots)))
+
+
 def build_social():
     art = Image.open(MENU).convert("RGB")
     target_ratio = 1200 / 630
@@ -290,10 +386,28 @@ def build_social():
     print("  social/social-preview-1200x630.jpg", card.size)
 
 
+STEPS = {
+    "brand": build_brand,
+    "hero": build_hero,
+    "concepts": build_concepts,
+    "weapons": build_weapons,
+    "screenshots": build_screenshots,
+    "social": build_social,
+}
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--clean", action="store_true")
+    ap.add_argument("--only", choices=sorted(STEPS),
+                    help="run a single step, e.g. after adding screenshots")
     args = ap.parse_args()
+
+    if args.only:
+        print("building website assets into", OUT, "(only {})".format(args.only))
+        STEPS[args.only]()
+        print("done")
+        return
 
     if args.clean and os.path.isdir(OUT):
         shutil.rmtree(OUT)
@@ -304,6 +418,7 @@ def main():
     build_hero()
     build_concepts()
     build_weapons()
+    build_screenshots()
     build_social()
     print("done")
 

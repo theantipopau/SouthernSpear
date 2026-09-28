@@ -151,7 +151,8 @@ described as current stand-ins to be reshaped into original A-series designs bef
 and the AKM card states it is not a game weapon. The renders carry alpha, so they sit directly
 on the section band, and every card is captioned as a render, not gameplay.
 
-**Two pages.** The full searchable changelog lives on `changelog.html` (2026-09-28), which
+**Three pages.** `presskit.html` (2026-09-28) reuses the `.page-head` pattern for a fact sheet,
+copy-ready descriptions, the approved logo and artwork as downloads, and contact details. The full searchable changelog lives on `changelog.html` (2026-09-28), which
 opens with `.page-head` — a flat, banner-less header using the ink-900 surface, a radial
 brass wash and the standard eyebrow/title/lede stack. The home page keeps only
 `#latest`, a static `.latest-update__session` card (latest date, title, up to four
@@ -209,7 +210,7 @@ Rules:
 | Skip link | `.skip-link` | Fixed, transform-hidden until focused |
 | Button | `.btn` + `--brass` / `--outline` / `--quiet` / `--ghost` | Min 44px tall; `--lg` 52px for hero |
 | Eyebrow | `.eyebrow` | Monospace, uppercase, brass |
-| Badge | `.badge`, `--concept`, `--wip` | Concept-art and in-progress labelling |
+| Badge | `.badge`, `--concept`, `--wip`, `--capture` | Concept-art, in-progress and in-engine-capture labelling. `--capture` uses the teal testing hue so a capture can never be read as concept art |
 | Status pill | `.state` + `--planned/--progress/--testing/--complete/--blocked` | Colour **and** label |
 | Card | `.card` | Topographic wash, top rule, hover lift |
 | Callout | `.callout`, `--fiction` | Left brass or opfor rule |
@@ -221,6 +222,11 @@ Rules:
 | Gallery | `.gallery__btn`, `.showcase__frame` | Buttons, not links, so keyboard and SR announce the action |
 | Lightbox | `.lightbox` | `role="dialog"`, `aria-modal`, focus trap, Esc, arrows |
 | Phase | `.phase` + `--current` / `--done` / `--todo` | Timeline rail with node |
+| Roadmap meter | `.roadmap-meter` | One segment per phase, coloured by recorded state, each a link to its phase. No percentage |
+| Pulse | `.pulse` | Three figures counted from the changelog: sessions recorded, first and latest session dates |
+| Captures | `.captures`, `.gallery--captures` | In-engine screenshots rendered from `data/screenshots.json`; dashed empty-state note until one exists |
+| Spec list | `.spec-list` | Definition rows inside the FAQ ("What PC will I need?") |
+| Press assets | `.press-asset` | Download cards on `presskit.html` |
 | Session | `.session` + `--latest` | `details`, grouped by day |
 | Filter | `.filter` | `aria-pressed` toggle buttons |
 | FAQ item | `.faq__item` | `details`, min 60px summary |
@@ -275,6 +281,13 @@ Rules:
   partnerships, confirmed platforms, or features absent from approved documents.
 * Never present concept art as captured gameplay. Concept images carry a
   `badge--concept` label and their caption says so.
+* **In-engine captures carry a date, a map and (where known) a session.** They come only from
+  `Docs/images/screenshots/` via `Tools/build_site_assets.py --only screenshots`, which refuses an
+  entry without `alt`, `map` or `captured`. The window frame and anything outside the game
+  viewport are cropped away; never publish a desktop capture.
+* **PC specifications are not published until measured.** The FAQ states only what the engine
+  and `Config/DefaultEngine.ini` fix (DX12/SM6, Lumen with hardware ray tracing, virtual shadow
+  maps, TSR) and the TDD §9.1 performance target, labelled as a target and not a minimum.
 * Undecided answers are stated as "not yet announced", never guessed.
 * The engine is stated as **Unreal Engine 5.8** in the site's own voice. The project's
   documents record the exact installed build as 5.8.3, and that precision is preserved
