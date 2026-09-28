@@ -61,5 +61,17 @@
  ],
  "origin": "trigger_axis",
  "optic": null,
- "grip": null
+ "grip": null,
+ "eject": {
+  "port_m": [
+   0.0026,
+   -0.0129,
+   0.0437
+  ],
+  "direction": [
+   -0.197,
+   -0.675,
+   0.711
+  ]
+ }
 }
