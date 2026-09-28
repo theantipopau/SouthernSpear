@@ -83,6 +83,9 @@ namespace
 	TAutoConsoleVariable<float> CVarEyeRelief(TEXT("ss.FP.EyeRelief"), 20.f,
 		TEXT("Minimum distance, cm, from the eye to the weapon's Sight socket when aiming."));
 
+	TAutoConsoleVariable<float> CVarIronRelief(TEXT("ss.FP.IronRelief"), 38.f,
+		TEXT("Iron sights (no Sight socket, e.g. pistols): distance, cm, from the eye to the rear sight when aiming."));
+
 	FVector ParseVector(const TAutoConsoleVariable<FString>& CVar)
 	{
 		TArray<FString> Parts;
@@ -287,6 +290,32 @@ void USSFirstPersonSubsystem::Tick(float DeltaTime)
 	HandledPawn = Pawn;
 	LastMagazine = -1;
 	UE_LOG(LogSSFirstPerson, Log, TEXT("First-person camera active for %s (arms: %s)."), *Pawn->GetName(), Arms ? TEXT("Fab FPS pack") : TEXT("none"));
+}
+
+bool USSFirstPersonSubsystem::GetViewModelMuzzle(FVector& OutLocation) const
+{
+	static const FName MuzzleSocket(TEXT("Muzzle"));
+	if (!ViewModel || !ViewModel->GetStaticMesh())
+	{
+		return false;
+	}
+	if (ViewModel->IsVisible() && ViewModel->DoesSocketExist(MuzzleSocket))
+	{
+		OutLocation = ViewModel->GetSocketLocation(MuzzleSocket);
+		return true;
+	}
+	if (const USceneComponent* View = ViewModel->GetAttachParent() ? ViewModel->GetAttachmentRoot() : nullptr)
+	{
+		// Scoped (view model hidden) or no socket: from just ahead of and below the eye, along the view.
+		const APlayerController* Player = GetWorld() ? GetWorld()->GetFirstPlayerController() : nullptr;
+		if (Player && Player->PlayerCameraManager)
+		{
+			const FRotator Rotation = Player->PlayerCameraManager->GetCameraRotation();
+			OutLocation = Player->PlayerCameraManager->GetCameraLocation() + Rotation.Vector() * 60.f - FRotationMatrix(Rotation).GetUnitAxis(EAxis::Z) * 6.f;
+			return true;
+		}
+	}
+	return false;
 }
 
 void USSFirstPersonSubsystem::Play(UAnimSequence* Sequence, bool bLoop)
@@ -537,13 +566,30 @@ void USSFirstPersonSubsystem::UpdateViewModel(APawn* Pawn, float DeltaTime)
 		const FTransform Tune(FRotator(Rot.X, Rot.Y, Rot.Z), ParseVector(ArmsSet == 1 ? CVarPistolOffset : CVarWeaponOffset));
 		ViewModel->SetRelativeTransform(Tune * GripOnWeaponBone);
 
-		// Aiming: put the weapon's Sight socket on the line of sight (camera X axis) with eye relief.
+		// Aiming: put the weapon's sight on the line of sight (camera X axis) with eye relief. An optic has a
+		// Sight socket. Iron sights (the pistols: producer, "pistol ... has no iron sights") have none: their
+		// sight line runs along the top of the mesh, so the rear sight (the top, a fifth of the way from the
+		// back) goes on the eye line, held at arm's length.
 		static const FName SightSocket(TEXT("Sight"));
 		const USceneComponent* View = Arms->GetAttachParent();
-		if (View && AimAlpha > 0.f && ViewModel->DoesSocketExist(SightSocket))
+		const UStaticMesh* HeldMesh = ViewModel->GetStaticMesh();
+		if (View && AimAlpha > 0.f && HeldMesh)
 		{
-			const FVector Sight = View->GetComponentTransform().InverseTransformPosition(ViewModel->GetSocketLocation(SightSocket));
-			const FVector Correction(FMath::Max(0.f, CVarEyeRelief.GetValueOnGameThread() - Sight.X), -Sight.Y, -Sight.Z);
+			const bool bOptic = ViewModel->DoesSocketExist(SightSocket);
+			FVector SightWorld;
+			if (bOptic)
+			{
+				SightWorld = ViewModel->GetSocketLocation(SightSocket);
+			}
+			else
+			{
+				const FBox Box = HeldMesh->GetBoundingBox();
+				SightWorld = ViewModel->GetComponentTransform().TransformPosition(
+					FVector(Box.Min.X + Box.GetSize().X * 0.2f, Box.GetCenter().Y, Box.Max.Z - 0.2f));
+			}
+			const FVector Sight = View->GetComponentTransform().InverseTransformPosition(SightWorld);
+			const float Relief = bOptic ? CVarEyeRelief.GetValueOnGameThread() : CVarIronRelief.GetValueOnGameThread();
+			const FVector Correction(bOptic ? FMath::Max(0.f, Relief - Sight.X) : Relief - Sight.X, -Sight.Y, -Sight.Z);
 			Arms->AddRelativeLocation(Correction * AimAlpha);
 		}
 		return;

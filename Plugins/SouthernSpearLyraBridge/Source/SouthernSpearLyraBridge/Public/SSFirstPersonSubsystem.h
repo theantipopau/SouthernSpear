@@ -36,6 +36,10 @@ public:
 	virtual void Tick(float DeltaTime) override;
 	virtual TStatId GetStatId() const override;
 
+	/** Where the local player's shots visibly leave: the view model's Muzzle socket, or, looking through a
+	 * magnified scope (view model hidden), a point just ahead of the eye. False when there is no view model. */
+	bool GetViewModelMuzzle(FVector& OutLocation) const;
+
 private:
 	void UpdateViewModel(APawn* Pawn, float DeltaTime);
 	void UpdateArmsAnimation(APawn* Pawn, float DeltaTime);

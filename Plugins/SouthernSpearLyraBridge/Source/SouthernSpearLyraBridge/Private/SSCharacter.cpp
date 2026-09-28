@@ -24,6 +24,11 @@
 #include "PhysicsEngine/BodyInstance.h"
 #include "SSCharacterMovementComponent.h"
 #include "SSLocalHudState.h"
+#include "SSLyraReflection.h"
+#include "SSFirstPersonSubsystem.h"
+#include "Components/StaticMeshComponent.h"
+#include "Engine/StaticMesh.h"
+#include "GameFramework/PlayerState.h"
 #include "TimerManager.h"
 
 namespace
@@ -284,8 +289,30 @@ void ASSCharacter::PlayRifleFire()
 
 	const FVector Muzzle = GetMesh() && GetMesh()->DoesSocketExist(TEXT("weapon_r")) ? GetMesh()->GetSocketLocation(TEXT("weapon_r"))
 		: GetPawnViewLocation();
-	USoundBase* Close = LoadedCloseShots[FMath::RandHelper(LoadedCloseShots.Num())];
-	const float Pitch = FMath::FRandRange(0.97f, 1.03f);
+	// Which weapon, for this listener: the other side is MAF (AK recordings), a support weapon is pitched down.
+	LoadAll(OpforCloseShots, LoadedOpforShots);
+	const APlayerController* Listener = GetWorld() ? GetWorld()->GetFirstPlayerController() : nullptr;
+	const ESSTeamId ListenerTeam = SSLyraReflection::TeamOf(Listener ? Listener->PlayerState.Get() : nullptr);
+	const ESSTeamId ShooterTeam = SSLyraReflection::TeamOf(GetPlayerState());
+	const bool bOpposing = ListenerTeam != ESSTeamId::None && ShooterTeam != ESSTeamId::None && ListenerTeam != ShooterTeam;
+	FString Held;
+	TArray<AActor*> Attached;
+	GetAttachedActors(Attached, true, true);
+	for (const AActor* Actor : Attached)
+	{
+		TInlineComponentArray<UStaticMeshComponent*> Meshes(Actor);
+		for (const UStaticMeshComponent* WeaponMesh : Meshes)
+		{
+			if (WeaponMesh->GetStaticMesh() && Held.IsEmpty())
+			{
+				Held = WeaponMesh->GetStaticMesh()->GetName();
+			}
+		}
+	}
+	const bool bSupport = Held.Contains(TEXT("A89")) || Held.Contains(TEXT("RPK")) || Held.Contains(TEXT("PK"));
+	const TArray<TObjectPtr<USoundBase>>& CloseSet = bOpposing && LoadedOpforShots.Num() > 0 ? LoadedOpforShots : LoadedCloseShots;
+	USoundBase* Close = CloseSet[FMath::RandHelper(CloseSet.Num())];
+	const float Pitch = FMath::FRandRange(0.97f, 1.03f) * (bSupport ? SupportPitch : 1.f);
 	// AI pawns are "locally controlled" on the server; only the human shooter hears the unspatialised close shot.
 	const bool bShooterIsListener = IsLocallyControlled() && IsPlayerControlled();
 	if (bShooterIsListener)
@@ -323,7 +350,8 @@ void ASSCharacter::PlayRifleFire()
 			Echo->AdjustAttenuation(Tail);
 		}
 	}
-	UE_LOG(LogTemp, Verbose, TEXT("SSRifleAudio %s local=%d muted=%d"), *GetName(), bShooterIsListener, Muted);
+	UE_LOG(LogTemp, Verbose, TEXT("SSRifleAudio %s local=%d muted=%d opposing=%d weapon=%s support=%d"), *GetName(), bShooterIsListener, Muted,
+		bOpposing, *Held, bSupport);
 }
 
 bool ASSCharacter::ShouldAcceptGameplayCue(UObject* Self, FGameplayTag GameplayCueTag, EGameplayCueEvent::Type EventType, const FGameplayCueParameters& Parameters)
@@ -334,6 +362,13 @@ bool ASSCharacter::ShouldAcceptGameplayCue(UObject* Self, FGameplayTag GameplayC
 	{
 		return false;
 	}
+	// A weapon fire cue: its muzzle flash and tracer start at the Muzzle socket of Lyra's hidden weapon mesh.
+	// Put that socket on the barrel the viewer actually sees first (called before any cue effect spawns).
+	if (EventType == EGameplayCueEvent::Executed && GameplayCueTag.ToString().StartsWith(TEXT("GameplayCue.Weapon."))
+		&& GameplayCueTag.ToString().EndsWith(TEXT(".Fire")) && GetNetMode() != NM_DedicatedServer)
+	{
+		AlignLyraMuzzle();
+	}
 	// Lyra's spawn-in cue (GCNL_Spawning) materialises the body out of cubes (producer: "the spawn weird
 	// cubes needs to go"). Its tag lives in the ShooterCore feature, so match it by name.
 	if (GameplayCueTag.ToString().Contains(TEXT("Spawn")))
@@ -342,6 +377,68 @@ bool ASSCharacter::ShouldAcceptGameplayCue(UObject* Self, FGameplayTag GameplayC
 		return false;
 	}
 	return Super::ShouldAcceptGameplayCue(Self, GameplayCueTag, EventType, Parameters);
+}
+
+void ASSCharacter::AlignLyraMuzzle()
+{
+	// Producer: "where the bullets come out of the weapon, they are coming all over the shop - not out of the
+	// barrel". Lyra's weapon actor keeps its own (hidden) skeletal rifle, whose Muzzle socket anchors the fire
+	// cue's flash and tracer; our A-series mesh (visible) hangs off it with a different length (A88: ~28 cm
+	// shorter), and in first person the whole actor sits in the hidden third-person hands, not in view. Move the
+	// hidden mesh so its Muzzle lands on the visible barrel (first person: the view model's), and move its
+	// visible children back so they stay where they were. Presentation only: hit traces start at the camera.
+	static const FName MuzzleSocket(TEXT("Muzzle"));
+	TArray<AActor*> Attached;
+	GetAttachedActors(Attached, true, true);
+	for (AActor* Actor : Attached)
+	{
+		TInlineComponentArray<USkeletalMeshComponent*> Skels(Actor);
+		for (USkeletalMeshComponent* LyraMesh : Skels)
+		{
+			if (!LyraMesh->DoesSocketExist(MuzzleSocket))
+			{
+				continue;
+			}
+			TInlineComponentArray<UStaticMeshComponent*> Visuals(Actor);
+			UStaticMeshComponent* Visual = nullptr;
+			for (UStaticMeshComponent* Candidate : Visuals)
+			{
+				if (Candidate->GetStaticMesh() && Candidate->DoesSocketExist(MuzzleSocket))
+				{
+					Visual = Candidate;
+					break;
+				}
+			}
+			FVector Target;
+			const USSFirstPersonSubsystem* FirstPerson = IsLocallyControlled() && IsPlayerControlled() && GetWorld()
+				? GetWorld()->GetSubsystem<USSFirstPersonSubsystem>() : nullptr;
+			if (FirstPerson && FirstPerson->GetViewModelMuzzle(Target))
+			{
+				// first person: the barrel in view (or, looking through a scope, just ahead of the eye)
+			}
+			else if (Visual)
+			{
+				Target = Visual->GetSocketLocation(MuzzleSocket);
+			}
+			else
+			{
+				continue;
+			}
+			const FVector Delta = Target - LyraMesh->GetSocketLocation(MuzzleSocket);
+			if (Delta.SizeSquared() < 0.25f)
+			{
+				continue;
+			}
+			LyraMesh->AddWorldOffset(Delta);
+			for (UStaticMeshComponent* Child : Visuals)
+			{
+				if (Child->IsAttachedTo(LyraMesh))
+				{
+					Child->AddWorldOffset(-Delta);
+				}
+			}
+		}
+	}
 }
 
 void ASSCharacter::OnDeathStarted(AActor* OwningActor)

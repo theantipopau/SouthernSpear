@@ -57,6 +57,22 @@ public:
 		FSoftObjectPath(TEXT("/Game/AUG/Sound/AUG/Wavs/AUG_distShot_03.AUG_distShot_03")) };
 	UPROPERTY(EditDefaultsOnly, Category = "Tactical|Audio")
 	FSoftObjectPath RifleTail = FSoftObjectPath(TEXT("/Game/AUG/Sound/AUG/Wavs/AUG_tailMeadows.AUG_tailMeadows"));
+	/**
+	 * The other side's rifles (producer: "the OPFOR should have AK, RPK etc sounds"). Viewer-relative like the
+	 * uniforms: to each listener the opposing team is MAF, so its shots are the AK-47 pack's (close layer; the
+	 * distant layer and tail are shared). Support weapons (A89 / the MAF counterpart) use the same round as their
+	 * rifle, so they take their side's close shots pitched down (SupportPitch).
+	 */
+	UPROPERTY(EditDefaultsOnly, Category = "Tactical|Audio")
+	TArray<FSoftObjectPath> OpforCloseShots = {
+		FSoftObjectPath(TEXT("/Game/AK-47/Sound/AK-47/Wavs/AK-47_Fire_1.AK-47_Fire_1")),
+		FSoftObjectPath(TEXT("/Game/AK-47/Sound/AK-47/Wavs/AK-47_Fire_2.AK-47_Fire_2")),
+		FSoftObjectPath(TEXT("/Game/AK-47/Sound/AK-47/Wavs/AK-47_Fire_3.AK-47_Fire_3")),
+		FSoftObjectPath(TEXT("/Game/AK-47/Sound/AK-47/Wavs/AK-47_Fire_4.AK-47_Fire_4")),
+		FSoftObjectPath(TEXT("/Game/AK-47/Sound/AK-47/Wavs/AK-47_Fire_5.AK-47_Fire_5")),
+		FSoftObjectPath(TEXT("/Game/AK-47/Sound/AK-47/Wavs/AK-47_Fire_6.AK-47_Fire_6")) };
+	UPROPERTY(EditDefaultsOnly, Category = "Tactical|Audio")
+	float SupportPitch = 0.93f;
 
 	/**
 	 * The visible soldier (3 ACR / MAF parts, viewer-relative): a child actor on the body mesh,
@@ -106,6 +122,8 @@ protected:
 
 private:
 	void StartRagdoll();
+	/** Fire cues: Lyra's hidden weapon mesh moved so its Muzzle is on the visible barrel. */
+	void AlignLyraMuzzle();
 	/** Direction of the last hit taken (from the damage cue), for the ragdoll push. */
 	FVector LastShotDirection = FVector::ZeroVector;
 	FTimerHandle RagdollTimer;
@@ -141,6 +159,8 @@ private:
 	TArray<TObjectPtr<class USoundBase>> LoadedCloseShots;
 	UPROPERTY(Transient)
 	TArray<TObjectPtr<class USoundBase>> LoadedDistantShots;
+	UPROPERTY(Transient)
+	TArray<TObjectPtr<class USoundBase>> LoadedOpforShots;
 	UPROPERTY(Transient)
 	TObjectPtr<class USoundBase> LoadedTail;
 
