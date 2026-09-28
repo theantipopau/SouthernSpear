@@ -1,12 +1,12 @@
 {
- "source": "Art/ADFRC_BLEND/adfrc_minimi/ADFRC_F89_Minimi_MLOD.blend",
+ "source": "E:\\SouthernSpear\\Art\\ADFRC_BLEND\\adfrc_minimi/ADFRC_F89_Minimi_MLOD.blend",
  "fbx": "E:\\SouthernSpear\\Art\\Weapons\\A89\\ADFRC\\SM_A89.fbx",
  "dimensions_m": [
   1.093156099319458,
   0.315744549036026,
   0.3979361057281494
  ],
- "triangles": 27196,
+ "triangles": 38227,
  "parts": 8,
  "dropped": [
   "Resolution 0 (no texture)",
@@ -34,6 +34,18 @@
   "adfrc_minimi_2_co": {
    "colour": "E:\\SouthernSpear\\Art\\ADFRC\\Textures\\adfrc_minimi\\Textures\\adfrc_minimi_2_co.png",
    "normal": "E:\\SouthernSpear\\Art\\ADFRC\\Textures\\adfrc_minimi\\Textures\\adfrc_minimi_2_nohq.png"
+  },
+  "adfrc_elcan_co": {
+   "colour": "E:\\SouthernSpear\\Art\\ADFRC\\Textures\\adfrc_optics\\C79\\Textures\\ADFRC_Elcan_CO.png",
+   "normal": "E:\\SouthernSpear\\Art\\ADFRC\\Textures\\adfrc_optics\\C79\\Textures\\ADFRC_Elcan_NOHQ.png"
+  },
+  "adfrc_elcan_lens_co": {
+   "colour": "E:\\SouthernSpear\\Art\\ADFRC\\Textures\\adfrc_optics\\C79\\Textures\\ADFRC_Elcan_Lens_CO.png",
+   "normal": "E:\\SouthernSpear\\Art\\ADFRC\\Textures\\adfrc_optics\\C79\\Textures\\ADFRC_Elcan_Lens_NOHQ.png"
+  },
+  "optic": {
+   "colour": null,
+   "normal": null
   }
  },
  "muzzle_m": [
@@ -60,5 +72,21 @@
   "trigger_end"
  ],
  "origin": "trigger_axis",
- "optic": null
+ "optic": {
+  "source": "E:\\SouthernSpear\\Art\\ADFRC_BLEND\\adfrc_optics\\ADFRC_C79_MLOD.blend",
+  "centre_m": [
+   -0.013328803703188896,
+   0.0,
+   0.13859565556049347
+  ],
+  "size_m": [
+   0.15296819806098938,
+   0.050874799489974976,
+   0.07916486263275146
+  ],
+  "turned_to_face_muzzle": true,
+  "direction_from": "optic eye point",
+  "axis_z_m": 0.14701048284769058,
+  "rule": "ahead of eye point"
+ }
 }

@@ -28,6 +28,9 @@ bool FSSHudHitBearing::RunTest(const FString& Parameters)
 	TestEqual(TEXT("A25 6x"), USSLocalHudState::OpticMagnificationFor(TEXT("A25")), 6.f);
 	TestEqual(TEXT("A88 4x"), USSLocalHudState::OpticMagnificationFor(TEXT("A88")), 4.f);
 	TestEqual(TEXT("A88G 4x"), USSLocalHudState::OpticMagnificationFor(TEXT("a88g")), 4.f);
+	TestEqual(TEXT("A4 4x"), USSLocalHudState::OpticMagnificationFor(TEXT("A4")), 4.f);
+	TestEqual(TEXT("A416 4x"), USSLocalHudState::OpticMagnificationFor(TEXT("A416")), 4.f);
+	TestEqual(TEXT("A89 3.4x"), USSLocalHudState::OpticMagnificationFor(TEXT("A89")), 3.4f);
 	TestEqual(TEXT("A9 none"), USSLocalHudState::OpticMagnificationFor(TEXT("A9")), 0.f);
 	TestEqual(TEXT("unknown none"), USSLocalHudState::OpticMagnificationFor(FString()), 0.f);
 	return true;

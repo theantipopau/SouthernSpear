@@ -52,12 +52,13 @@ namespace
 	const FName WeaponBone(TEXT("Main_j"));
 	const FName RightGripBone(TEXT("RightHandMiddle1"));
 	const FName LeftGripBone(TEXT("LeftHandMiddle1"));
+	const FName TriggerBone(TEXT("Trigger_j")); // the pack weapon's trigger: our meshes have their origin there
 
 	// Live-tunable placement (console): arms relative to the eye, weapon on weapon_r.
 	TAutoConsoleVariable<FString> CVarArmsOffset(TEXT("ss.FP.ArmsOffset"), TEXT("17 0 -2"),
 		TEXT("First-person arms offset from the eye, cm (forward right up)."));
-	TAutoConsoleVariable<FString> CVarWeaponOffset(TEXT("ss.FP.WeaponOffset"), TEXT("9 0 -3"),
-		TEXT("Held weapon: grip offset from the right hand's middle knuckle, in the weapon's frame, cm (forward right up)."));
+	TAutoConsoleVariable<FString> CVarWeaponOffset(TEXT("ss.FP.WeaponOffset"), TEXT("0 0 0"),
+		TEXT("Held rifle: offset from the pack weapon trigger bone (Trigger_j), in the weapon frame, cm (forward right up)."));
 	TAutoConsoleVariable<FString> CVarPistolOffset(TEXT("ss.FP.PistolOffset"), TEXT("0 0 -1"),
 		TEXT("Held pistol: grip offset from the pack's weapon bone (where its pistol sat), in the weapon's frame, cm (forward right up)."));
 	TAutoConsoleVariable<FString> CVarWeaponRotation(TEXT("ss.FP.WeaponRotation"), TEXT("0 0 0"),
@@ -518,11 +519,43 @@ void USSFirstPersonSubsystem::UpdateViewModel(APawn* Pawn, float DeltaTime)
 		{
 			const FVector Right = Arms->GetBoneLocation(RightGripBone, EBoneSpaces::ComponentSpace);
 			const FVector Left = Arms->GetBoneLocation(LeftGripBone, EBoneSpaces::ComponentSpace);
-			const FVector Forward = ArmsSet == 1 ? FVector(0.f, 1.f, 0.f) : (Left - Right).GetSafeNormal(); // arms face +Y
+			// Rifle orientation: the pack's weapon bone, as its own M4 sat on it - its axis nearest the view's
+			// forward (the arms face +Y) and the one nearest up. The line between the knuckles (used before) runs
+			// up and across the body, and pointed the rifle's muzzle up and to the left (producer: "weapons
+			// sitting properly in the hands - still not right").
+			const FTransform BoneCS = Arms->GetBoneTransform(Arms->GetBoneIndex(WeaponBone), FTransform::Identity);
+			auto Nearest = [&BoneCS](const FVector& Want, const FVector& Exclude)
+			{
+				FVector Best = FVector::ZeroVector;
+				float BestDot = 0.f;
+				for (const EAxis::Type Axis : { EAxis::X, EAxis::Y, EAxis::Z })
+				{
+					const FVector V = BoneCS.GetUnitAxis(Axis);
+					if (FMath::Abs(FVector::DotProduct(V, Exclude)) > 0.9f)
+					{
+						continue;
+					}
+					const float D = FVector::DotProduct(V, Want);
+					if (FMath::Abs(D) > FMath::Abs(BestDot))
+					{
+						BestDot = D;
+						Best = V * FMath::Sign(D);
+					}
+				}
+				return Best;
+			};
+			const FVector BoneForward = Nearest(FVector(0.f, 1.f, 0.f), FVector::ZeroVector);
+			const FVector BoneUp = Nearest(FVector::UpVector, BoneForward);
+			const FVector Forward = ArmsSet == 1 ? FVector(0.f, 1.f, 0.f) : BoneForward;
+			const FVector Up = ArmsSet == 1 || BoneUp.IsNearlyZero() ? FVector::UpVector : BoneUp;
 			if (!Forward.IsNearlyZero())
 			{
-				const FMatrix Frame = FRotationMatrix::MakeFromXZ(Forward, FVector::UpVector);
-				const FVector Anchor = ArmsSet == 1 ? Arms->GetBoneLocation(WeaponBone, EBoneSpaces::ComponentSpace) : Right;
+				const FMatrix Frame = FRotationMatrix::MakeFromXZ(Forward, Up);
+				// Rifles: our trigger on the pack weapon's trigger bone, so the grip sits in the right hand exactly as
+				// the pack's own rifle did (the knuckle estimate needed hand-tuned offsets and still missed).
+				const bool bTriggerBone = ArmsSet == 0 && Arms->GetBoneIndex(TriggerBone) != INDEX_NONE;
+				const FVector Anchor = ArmsSet == 1 ? Arms->GetBoneLocation(WeaponBone, EBoneSpaces::ComponentSpace)
+					: bTriggerBone ? Arms->GetBoneLocation(TriggerBone, EBoneSpaces::ComponentSpace) : Right;
 				const FTransform Grip(Frame.Rotator(), Anchor);
 				const FTransform Bone = Arms->GetBoneTransform(Arms->GetBoneIndex(WeaponBone), FTransform::Identity);
 				GripOnWeaponBone = Grip.GetRelativeTransform(Bone);

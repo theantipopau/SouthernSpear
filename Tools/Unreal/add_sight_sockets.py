@@ -31,7 +31,9 @@ for name in ["A88", "A88G", "A89", "A4", "A416", "A25", "A9"]:
     c, size = optic["centre_m"], optic["size_m"]
     sight = [0.0, 0.0, 0.0]
     sight[fwd] = fsign * c[0] * 100.0
-    sight[up] = usign * (c[2] + 0.28 * size[2]) * 100.0
+    # The optical axis: the optic's own eye point when the build recorded it (adfrc_weapon.py), else estimated.
+    axis_z = optic.get("axis_z_m")
+    sight[up] = usign * (axis_z if axis_z is not None else c[2] + 0.28 * size[2]) * 100.0
     socket = mesh.find_socket("Sight")
     if not socket:
         socket = unreal.StaticMeshSocket(mesh)
@@ -41,3 +43,5 @@ for name in ["A88", "A88G", "A89", "A4", "A416", "A25", "A9"]:
     ok = eal.save_loaded_asset(mesh)
     out[name] = {"sight_cm": [round(v, 2) for v in sight], "muzzle_cm": [round(v, 2) for v in ue], "saved": ok}
 unreal.log("SS_SIGHT " + json.dumps(out))
+with open("E:/SouthernSpear/Build/sight_sockets.json", "w") as fh:
+    json.dump(out, fh, indent=1)

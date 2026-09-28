@@ -1,5 +1,5 @@
 {
- "source": "Art/ADFRC_BLEND/adfrc_SR25/adfrc_SR25_MLOD.blend",
+ "source": "E:\\SouthernSpear\\Art\\ADFRC_BLEND\\adfrc_SR25/adfrc_SR25_MLOD.blend",
  "fbx": "E:\\SouthernSpear\\Art\\Weapons\\A25\\ADFRC\\SM_A25.fbx",
  "dimensions_m": [
   1.052266001701355,
@@ -108,9 +108,9 @@
  ],
  "origin": "trigger_axis",
  "optic": {
-  "source": "E:\\SouthernSpear\\Art\\ADFRC_BLEND\\adfrc_optics_ss\\ADFRC_TA648_MLOD.blend",
+  "source": "E:\\SouthernSpear\\Art\\ADFRC_BLEND\\adfrc_optics\\ADFRC_TA648_MLOD.blend",
   "centre_m": [
-   0.19794012401103972,
+   0.08903181552886963,
    0.0,
    0.10903841257095337
   ],
@@ -119,6 +119,9 @@
    0.07416395843029022,
    0.08896142244338989
   ],
-  "placement": "TA648 between the SR25's front and rear sights"
+  "turned_to_face_muzzle": true,
+  "direction_from": "optic eye point",
+  "axis_z_m": 0.11279835924506187,
+  "rule": "ahead of rear sight"
  }
 }

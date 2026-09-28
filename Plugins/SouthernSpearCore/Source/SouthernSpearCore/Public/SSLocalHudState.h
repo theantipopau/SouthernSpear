@@ -64,8 +64,9 @@ public:
 	UPROPERTY(Transient, BlueprintReadOnly, Category = "HUD")
 	float OpticMagnification = 0.f;
 
-	/** The fitted optic by weapon display name: A25 marksman (TA648 6x), the A88 family and A89 (Specter 4x);
-	 * others 0. Cosmetic view only (ADR-004): recoil, spread and damage are untouched. */
+	/** The fitted optic by weapon display name (Tools/build_adfrc_weapons.py): A25 marksman TA648 6x; the A88
+	 * family Spectr and the A4 / A416 TA31 4x; the A89 C79 3.4x; others (pistols) 0. Cosmetic view only
+	 * (ADR-004): recoil, spread and damage are untouched. */
 	static float OpticMagnificationFor(const FString& WeaponName)
 	{
 		const FString Name = WeaponName.ToUpper();
@@ -73,7 +74,11 @@ public:
 		{
 			return 6.f;
 		}
-		if (Name.StartsWith(TEXT("A88")) || Name.StartsWith(TEXT("A89")))
+		if (Name.StartsWith(TEXT("A89")))
+		{
+			return 3.4f;
+		}
+		if (Name.StartsWith(TEXT("A88")) || Name.StartsWith(TEXT("A416")) || Name.StartsWith(TEXT("A4")))
 		{
 			return 4.f;
 		}

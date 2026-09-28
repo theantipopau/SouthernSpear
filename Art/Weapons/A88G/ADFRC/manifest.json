@@ -1,5 +1,5 @@
 {
- "source": "Art/ADFRC_BLEND/adfrc_ef88/ADFRC_EF88_SL40_MLOD.blend",
+ "source": "E:\\SouthernSpear\\Art\\ADFRC_BLEND\\adfrc_ef88/ADFRC_EF88_SL40_MLOD.blend",
  "fbx": "E:\\SouthernSpear\\Art\\Weapons\\A88G\\ADFRC\\SM_A88G.fbx",
  "dimensions_m": [
   0.8022162318229675,
@@ -106,9 +106,9 @@
  ],
  "origin": "trigger_axis",
  "optic": {
-  "source": "E:\\SouthernSpear\\Art\\ADFRC_BLEND\\adfrc_optics_ss\\ADFRC_Spectr_RAR_MLOD.blend",
+  "source": "E:\\SouthernSpear\\Art\\ADFRC_BLEND\\adfrc_optics\\ADFRC_Spectr_RAR_MLOD.blend",
   "centre_m": [
-   -0.12093688547611237,
+   0.009999999776482582,
    0.0,
    0.12018274515867233
   ],
@@ -116,6 +116,10 @@
    0.15694963932037354,
    0.06312497705221176,
    0.0790637657046318
-  ]
+  ],
+  "turned_to_face_muzzle": true,
+  "direction_from": "optic eye point",
+  "axis_z_m": 0.12664968520402908,
+  "rule": "optic proxy"
  }
 }

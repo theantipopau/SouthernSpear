@@ -36,6 +36,7 @@ argv = sys.argv[sys.argv.index("--") + 1:]
 SRC, NAME = argv[0], argv[1]
 OPTIC = os.path.abspath(argv[2]) if len(argv) > 2 else None  # optional optic FBX merged on the rail
 OUT_DIR = os.path.join(ROOT, "Art", "Weapons", NAME, "ADFRC")
+OPTIC_AHEAD_OF_EYE = float(os.environ.get("SS_OPTIC_AHEAD", "0.10"))  # m, rear of the optic ahead of the eye point
 os.makedirs(OUT_DIR, exist_ok=True)
 
 bpy.ops.wm.open_mainfile(filepath=os.path.abspath(SRC))
@@ -164,6 +165,7 @@ else:
 # Optional optic on the rail: sight axis at the iron-sight eye height, centred
 # between the trigger and the eye point.
 optic_report = None
+optic_eye = None
 if OPTIC and os.path.exists(OPTIC):
     before = set(bpy.data.objects)
     if OPTIC.lower().endswith(".blend"):
@@ -172,8 +174,22 @@ if OPTIC and os.path.exists(OPTIC):
         with bpy.data.libraries.load(OPTIC, link=False) as (src, dst):
             lods = sorted((n for n in src.objects if n.startswith("Resolution")),
                           key=lambda n: float(re.sub(r"[^0-9.]", "", n) or 0))
-            dst.objects = lods[:1]
-        for o in dst.objects:
+            # Other converts (the C79) keep one object per material per LOD instead: "<material>_R0" is LOD0.
+            dst.objects = lods[:1] or [n for n in src.objects if n.endswith("_R0")]
+            dst.objects += [n for n in src.objects if n == "Memory"]
+        # The optic's own eye point (Arma memory "eye" / "eye1"): the eyepiece end, which must face the stock.
+        loaded = [o for o in dst.objects if o]
+        memories = [o for o in loaded if o.name.startswith("Memory")]
+        for o in memories:
+            for g in o.vertex_groups:
+                if g.name in ("eye", "eye1"):
+                    pts = [v.co.copy() for v in o.data.vertices if any(e.group == g.index for e in v.groups)]
+                    if pts:
+                        optic_eye = o.matrix_world @ (sum(pts, mathutils.Vector()) / len(pts))
+        geometry = [o for o in loaded if o not in memories]
+        for o in memories:
+            bpy.data.objects.remove(o, do_unlink=True)
+        for o in geometry:
             bpy.context.scene.collection.objects.link(o)
     else:
         bpy.ops.import_scene.fbx(filepath=OPTIC)
@@ -190,6 +206,27 @@ if OPTIC and os.path.exists(OPTIC):
         if d.y > d.x and d.y >= d.z:
             for v in opt.data.vertices:
                 v.co = mathutils.Vector((v.co.y, -v.co.x, v.co.z))
+            if optic_eye is not None:
+                optic_eye = mathutils.Vector((optic_eye.y, -optic_eye.x, optic_eye.z))
+        # Which way it looks: the objective (front) end of a scope is the wider one. Turning the long axis onto
+        # X leaves the direction to chance - every optic came out reversed, the objective bell facing the
+        # shooter (producer, Session 047: "scopes on the weapons are wrong way around"). Wider end to +X.
+        def end_size(sign):
+            xs = [v.co.x for v in opt.data.vertices]
+            lo_x, hi_x = min(xs), max(xs)
+            cut = (hi_x - lo_x) / 8.0
+            band = [v.co for v in opt.data.vertices if (v.co.x > hi_x - cut if sign > 0 else v.co.x < lo_x + cut)]
+            return max(max(v.y for v in band) - min(v.y for v in band), max(v.z for v in band) - min(v.z for v in band)) if band else 0.0
+        # Prefer the optic's eye point: its end is the eyepiece. Without one, the objective is taken as the wider
+        # end (true of the ACOGs, not of the C79, whose eyepiece is the larger).
+        o_mid_x = sum(v.co.x for v in opt.data.vertices) / max(len(opt.data.vertices), 1)
+        if optic_eye is not None:
+            optic_turned = optic_eye.x > o_mid_x
+        else:
+            optic_turned = end_size(-1) > end_size(+1)
+        if optic_turned:
+            for v in opt.data.vertices:
+                v.co = mathutils.Vector((-v.co.x, -v.co.y, v.co.z))
         ovs = [v.co for v in opt.data.vertices]
         o_lo = mathutils.Vector((min(v.x for v in ovs), min(v.y for v in ovs), min(v.z for v in ovs)))
         o_hi = mathutils.Vector((max(v.x for v in ovs), max(v.y for v in ovs), max(v.z for v in ovs)))
@@ -199,15 +236,23 @@ if OPTIC and os.path.exists(OPTIC):
         # REAR sight - which parked every scope over the buffer tube or the
         # stock, behind the shooter. Prefer the model's own sight points; fall
         # back to the optic proxy (bullpup rail weapons have no iron sights).
-        front = points.get("front_sight_axis")
+        # Where along the rail: a magnified optic sits on the receiver's flat-top just ahead of the rear sight
+        # (Session 047: centring it between the iron sights parked ACOGs out over the handguard). Bullpups use
+        # their optic proxy; otherwise (the F89) just ahead of the eye point, on the receiver's feed cover rail.
         rear = points.get("rear_sight_axis")
-        if front is not None and rear is not None:
-            centre_x = (front.x + rear.x) / 2.0
+        o_len = o_hi.x - o_lo.x
+        if os.environ.get("SS_OPTIC_X"):
+            centre_x = float(os.environ["SS_OPTIC_X"])  # a verified placement (build_adfrc_weapons.py)
+        elif rear is not None:
+            centre_x = rear.x + o_len / 2.0 + 0.02
         elif "op_axis" in points:
             centre_x = points["op_axis"].x
         else:
-            centre_x = eye.x + 0.12
+            centre_x = eye.x + o_len / 2.0 + OPTIC_AHEAD_OF_EYE
         target = mathutils.Vector((centre_x, 0.0, eye.z))  # optic centre on the sight line
+        print("[ADFRC optic] rear_sight", tuple(round(c, 3) for c in rear) if rear is not None else None,
+              "optic x", round(o_lo.x, 3), round(o_hi.x, 3), "len", round(o_len, 3), "centre_x", round(centre_x, 3),
+              "eye", tuple(round(c, 3) for c in optic_eye) if optic_eye is not None else None, "turned", optic_turned)
         shift = target - (o_lo + o_hi) / 2
         for v in opt.data.vertices:
             v.co += shift
@@ -222,7 +267,12 @@ if OPTIC and os.path.exists(OPTIC):
             o.select_set(o in (obj, opt))
         bpy.context.view_layer.objects.active = obj
         bpy.ops.object.join()
-        optic_report = {"source": OPTIC, "centre_m": list(target), "size_m": list(o_hi - o_lo)}
+        optic_report = {"source": OPTIC, "centre_m": list(target), "size_m": list(o_hi - o_lo),
+                        "turned_to_face_muzzle": optic_turned,
+                        "direction_from": "optic eye point" if optic_eye is not None else "wider end",
+                        # Height of the optical axis (the optic's eye point, moved with it): the Sight socket.
+                        "axis_z_m": (optic_eye.z + shift.z) if optic_eye is not None else None,
+                        "rule": "ahead of rear sight" if rear is not None else ("optic proxy" if "op_axis" in points else "ahead of eye point")}
         manifest.setdefault("optic", {"colour": None, "normal": None})
 
 sock = bpy.data.objects.new("SOCKET_Muzzle", None)

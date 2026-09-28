@@ -1,9 +1,9 @@
 {
- "source": "Art/ADFRC_BLEND/adfrc_m4a5/adfrc_m4A5_NOFS_MLOD.blend",
+ "source": "E:\\SouthernSpear\\Art\\ADFRC_BLEND\\adfrc_m4a5/adfrc_m4A5_NOFS_MLOD.blend",
  "fbx": "E:\\SouthernSpear\\Art\\Weapons\\A4\\ADFRC\\SM_A4.fbx",
  "dimensions_m": [
   0.7804136276245117,
-  0.0727878212928772,
+  0.07278785109519958,
   0.24771323800086975
  ],
  "triangles": 111470,
@@ -118,9 +118,9 @@
  ],
  "origin": "trigger_axis",
  "optic": {
-  "source": "E:\\SouthernSpear\\Art\\ADFRC_BLEND\\adfrc_optics_ss\\ADFRC_TA31_BLK_MLOD.blend",
+  "source": "E:\\SouthernSpear\\Art\\ADFRC_BLEND\\adfrc_optics\\ADFRC_TA31_BLK_MLOD.blend",
   "centre_m": [
-   0.19645745404958725,
+   0.06752978265285492,
    0.0,
    0.10183264315128326
   ],
@@ -129,6 +129,9 @@
    0.057302966713905334,
    0.07672258466482162
   ],
-  "placement": "TA31 between the M4's front and rear sights"
+  "turned_to_face_muzzle": true,
+  "direction_from": "optic eye point",
+  "axis_z_m": 0.10951147973537445,
+  "rule": "ahead of rear sight"
  }
 }

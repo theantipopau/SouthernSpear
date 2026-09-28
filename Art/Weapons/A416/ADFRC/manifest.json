@@ -1,5 +1,5 @@
 {
- "source": "Art/ADFRC_BLEND/adfrc_hk416/adfrc_HK416_MLOD.blend",
+ "source": "E:\\SouthernSpear\\Art\\ADFRC_BLEND\\adfrc_hk416/adfrc_HK416_MLOD.blend",
  "fbx": "E:\\SouthernSpear\\Art\\Weapons\\A416\\ADFRC\\SM_A416.fbx",
  "dimensions_m": [
   0.7275092601776123,
@@ -100,9 +100,9 @@
  ],
  "origin": "trigger_axis",
  "optic": {
-  "source": "E:\\SouthernSpear\\Art\\ADFRC_BLEND\\adfrc_optics_ss\\ADFRC_TA31_BLK_MLOD.blend",
+  "source": "E:\\SouthernSpear\\Art\\ADFRC_BLEND\\adfrc_optics\\ADFRC_TA31_BLK_MLOD.blend",
   "centre_m": [
-   0.1343441551089287,
+   0.05031513050198555,
    0.0,
    0.107328400015831
   ],
@@ -111,6 +111,9 @@
    0.057302966713905334,
    0.07672258466482162
   ],
-  "placement": "TA31 between the HK416's front and rear sights"
+  "turned_to_face_muzzle": true,
+  "direction_from": "optic eye point",
+  "axis_z_m": 0.11500723659992218,
+  "rule": "ahead of rear sight"
  }
 }
