@@ -27,6 +27,8 @@ MESHES = ["SK_ADF_Uniform_G3", "SK_ADF_Vest_TBAS", "SK_ADF_Helmet_OpsCore",
 MAF_SWAP = {"crye_g3_shirt_amc_co": "Crye_G3_Shirt_Green_co", "crye_g3_pants_amc_co": "Crye_G3_Pants_green_co",
             "crye_g3_boots_coyote_brown_co": "Crye_G3_Boots_Ranger_Green_co"}
 MAF_FLAT = ("pasgt_dpc_co", "belt_amcu_co", "tacgear_amcu_co")
+# ADFRC colour sheets are 4096^2. A cap below that halves them on import (Session 051).
+MAX_TEXTURE_SIZE = 4096
 REPORT = os.path.join(PROJECT_DIR, "Build", "adf_soldier_setup.json")
 eal = unreal.EditorAssetLibrary
 mel = unreal.MaterialEditingLibrary
@@ -56,8 +58,11 @@ def fabric_master():
     chrome-white; before this, fabric used one flat roughness (0.85) and looked like plastic."""
     path = DEST + "/M_SS_FabricPBR"
     E = unreal
-    if eal.does_asset_exist(path):
-        return unreal.load_asset(path)
+    # Same trap as material_for: does_asset_exist() answers False for this plugin path, so branch on
+    # the load instead or a re-run tries to create a material that is already there.
+    existing = unreal.load_asset(path)
+    if existing is not None:
+        return existing
     m = tools.create_asset("M_SS_FabricPBR", DEST, unreal.Material, unreal.MaterialFactoryNew())
     m.set_editor_property("used_with_skeletal_mesh", True)
     col = mel.create_material_expression(m, E.MaterialExpressionTextureSampleParameter2D, -900, 0)
@@ -129,11 +134,17 @@ def texture(stem, normal=False, masks=False):
                                 unreal.TextureCompressionSettings.TC_NORMALMAP if normal else unreal.TextureCompressionSettings.TC_MASKS)
     if tex:
         tex.set_editor_property("lod_group", unreal.TextureGroup.TEXTUREGROUP_CHARACTER)
-        # Resident at up to 2048 px: script-built materials carry no texture-streaming data, so streamed
-        # textures stayed at low mips and the AMCU pattern smeared (Session 040 capture). Same fix as the
-        # weapons (upgrade_weapon_materials.py). Cap keeps the set to a few hundred MB of memory.
+        # Resident at full source resolution: script-built materials carry no texture-streaming data, so
+        # streamed textures stayed at low mips and the AMCU pattern smeared (Session 040 capture). Same
+        # fix as the weapons (upgrade_weapon_materials.py).
+        #
+        # The cap was 2048 to hold memory down, but the ADFRC colour sheets are 4096^2, so it was
+        # halving every uniform texture on import: the camo the producer reads as "bad textures" was
+        # 1024^2 on screen. A cap can only ever downscale, so 4096 leaves the 1024 gloves and 2048
+        # normals untouched and costs only what the sheets already occupy (they were resident either
+        # way). Session 051, Docs/PLAYER_MODEL_PLAN.md P1.
         tex.set_editor_property("never_stream", True)
-        tex.set_editor_property("max_texture_size", 2048)
+        tex.set_editor_property("max_texture_size", MAX_TEXTURE_SIZE)
         eal.save_loaded_asset(tex)
     return tex
 
@@ -155,8 +166,18 @@ def material_for(slot_name, parent, prefix="MI_ADF_", maf=False):
     rvstem = rv.group(1) if rv else (m.group(1) if m else None)
     name = prefix + re.sub(r"[^A-Za-z0-9_]", "_", (m.group(1) if m else slot_name))[:60]
     path = DEST + "/" + name
-    mi = unreal.load_asset(path) if eal.does_asset_exist(path) else tools.create_asset(
-        name, DEST, unreal.MaterialInstanceConstant, unreal.MaterialInstanceConstantFactoryNew())
+    # Load first, create only if that genuinely fails. EditorAssetLibrary.does_asset_exist() answers
+    # False for these game-feature paths (SSExp_ObjectiveAssault is not mounted in a commandlet) even
+    # when the asset is on disk and load_asset resolves it, so branching on it sent every re-run down
+    # the create path for an asset that already existed; create_asset then returned None and the run
+    # died on the MAF uniform slots, leaving Build/adf_soldier_setup.json with an empty
+    # maf_uniform_slots -- which setup_soldiers.py reads. Session 051.
+    mi = unreal.load_asset(path)
+    if mi is None:
+        mi = tools.create_asset(name, DEST, unreal.MaterialInstanceConstant,
+                                unreal.MaterialInstanceConstantFactoryNew())
+    if mi is None:
+        raise RuntimeError("cannot load or create material instance " + path)
     mi.set_editor_property("parent", parent)
     note = "no texture"
     if stem:
@@ -265,7 +286,27 @@ def main():
         slot = str(sm.get_editor_property("material_slot_name"))
         mi, stem, note = material_for(slot, parent, "MI_MAF_", True)
         report["maf_uniform_slots"].append(mi.get_path_name())
-    report["ok"] = all(isinstance(v, dict) and v["saved"] for v in report["meshes"].values())
+    # Proof, not assertion, that the texture cap is not halving anything: source size beside the cap
+    # actually set on the asset, for every texture this script imported.
+    report["textures"] = []
+    halved = 0
+    for d in reg.get_assets_by_path(DEST + "/Textures", recursive=True):
+        tex = unreal.load_asset(str(d.package_name) + "." + str(d.asset_name))
+        if not isinstance(tex, unreal.Texture):
+            continue
+        try:
+            w, h = tex.blueprint_get_size_x(), tex.blueprint_get_size_y()
+        except Exception as exc:
+            report["textures"].append({"name": str(d.asset_name), "error": str(exc)})
+            continue
+        cap = int(tex.get_editor_property("max_texture_size") or 0)
+        shrunk = bool(cap) and max(w, h) > cap
+        halved += int(shrunk)
+        report["textures"].append({"name": str(d.asset_name), "size": [w, h],
+                                   "max_texture_size": cap, "downscaled": shrunk})
+    report["textures_halved"] = halved
+    report["ok"] = (all(isinstance(v, dict) and v["saved"] for v in report["meshes"].values())
+                    and halved == 0)
 
 
 try:

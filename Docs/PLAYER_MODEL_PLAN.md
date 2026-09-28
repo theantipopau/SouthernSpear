@@ -116,17 +116,23 @@ model hard to improve, because there is nowhere to add a bone.
 
 ### P1 — Fix the texture pipeline (cheap, certain, do first)
 
-Three faults, all in `Tools/Unreal/setup_adf_soldier.py`:
+**P1.1 — DONE (Session 051).** `max_texture_size` raised 2048 → 4096 in `setup_adf_soldier.py`, and the
+texture assets re-saved. The cap was halving every ADFRC colour sheet: `T_ADF_crye_g3_shirt_amc_co`
+and `T_ADF_crye_g3_pants_amc_co` are 4096² and were reaching the screen at 1024². The report now
+carries a `textures` block listing each texture's size beside the cap actually set on the asset, plus
+`textures_halved`, which is **0** across all 89 textures, and `report["ok"]` now fails the run if
+that is ever non-zero. Verified by re-running the script, not asserted.
 
-1. **`max_texture_size = 2048` halves every ADFRC sheet.** `texture()` sets it at line ~136. The
-   ADFRC `_co` sheets are 4096²; every character texture in the project is being thrown away at half
-   resolution. This is most of "the textures look bad" on its own. Raise to 4096 (the sheets are
-   already resident, `never_stream = True`, so the cost is memory, not streaming).
+The cap can only ever downscale, so 4096 leaves the 1024 gloves and 2048 normals untouched.
+
+Still to do in P1:
+
 2. **The 64×64 flat fallback makes a failed lookup look like a finished material.**
    `T_ADF_Olive` (rgb 78,84,58) and `T_ADF_Coyote` (rgb 128,104,74) are still wired in for the
-   `MAF_FLAT` slots and for any `_mc` stem with no amcu/coyote variant. A garment whose texture failed
-   to resolve renders as a flat colour slab and **nothing is reported**. Delete the branch; make an
-   unbound `BaseColorMap` an error in `adf_soldier_setup.json` and fail the run.
+   `MAF_FLAT` slots and for any `_mc` stem with no amcu/coyote variant. **4 of the soldier's 31
+   material slots are flat colour slabs today** — `safariland` (multicam: flat coyote), and the MAF
+   `belt`, `tacgear` and `pasgt` (flat olive). Delete the branch and make an unbound `BaseColorMap` an
+   error. The `note` field in the report already names these slots, so the evidence is already there.
 3. **`verify_character_materials.py` proves nothing.** It calls
    `get_material_property_input_expression`, which does not exist in UE 5.8, and it reads textures
    with `get_material_default_texture_parameter_value`, which cannot see a texture wired through
@@ -193,6 +199,7 @@ Each of these has already cost time in this session.
 | Trap | Consequence |
 |---|---|
 | `unreal.load_asset("/SSExp_ObjectiveAssault/…")` returns **None** in a `-run=pythonscript` commandlet | The game-feature plugin is not mounted, so every probe over the ADF parts reads nothing and reports success. A skeleton probe built this way reported 26 "bones" that were the characters of an error string. Enable the experience, or read the FBX with Blender. |
+| **`EditorAssetLibrary.does_asset_exist()` answers False for those same plugin paths**, even though `unreal.load_asset()` and `find_asset_data()` both resolve them | The worst one, because it corrupts a script rather than failing loudly. Any `if does_asset_exist(p): load(p) else: create(p)` pattern takes the *create* branch for an asset that already exists; `create_asset` then returns `None` and the next line dies. `setup_adf_soldier.py` was **not idempotent** for exactly this reason and had never been re-run on a machine where it had already succeeded — the first re-run died on the MAF uniform slots and left `Build/adf_soldier_setup.json` with an empty `maf_uniform_slots`, which `setup_soldiers.py` reads. Fixed: branch on `load_asset()` returning `None`, not on `does_asset_exist`. |
 | `Skeleton.get_reference_skeleton()` returns a **`str`** in UE 5.8 Python, not a bone-name array | Iterating it yields characters. The working route is `skeleton.get_reference_pose().get_bone_names()` — see `Tools/Unreal/dump_quantum_skeleton.py:41-43`. |
 | `/Game/Characters/Heroes/Mannequin/Meshes/SK_Mannequin` loads as a **Skeleton**, not a SkeletalMesh | `get_editor_property("skeleton")` raises on it. |
 | `get_material_default_texture_parameter_value` cannot see graph-wired textures | Returns UNSET on correctly bound materials — this is why `verify_character_materials.py` proves nothing. |

@@ -4070,7 +4070,44 @@ L-0021 and invents no new pattern (ADR-033). Nothing added to the asset register
 body under ADFRC gear, with the arms belonging to neither — there is no single source of truth, which is
 why it reads as assembled rather than worn. Recommended: take the head from ADFRC too, so head, arms,
 torso and gear are one source. Then P1 of `Docs/PLAYER_MODEL_PLAN.md` (the 2048 texture cap, the 64×64
-fallback, and the broken material verifier).
+fallback, and the broken material verifier).### ADDENDUM — build verified, P1.1 done, and a latent bug in the gear script
+
+**Build:** `Build.bat SouthernSpearEditor Win64 Development` → **Result: Succeeded**, 10 actions, covering
+the other agent's callsign fix and the new `USSWeaponStatsSubsystem` fire-rate code.
+
+**Tests:** `Automation RunTests SouthernSpear` → **57 found, 57 Success, 0 Fail, 0 NotRun, exit code 0**,
+no crash. `SouthernSpear.Network.Gameplay.TwoPlayerAuthoritySmoke`, which killed the run at 20 last
+time, **passes**. Re-run a second time after the content change below: still 57/57.
+
+**P1.1 — texture cap 2048 → 4096, applied.** `max_texture_size` in `setup_adf_soldier.py:texture()`
+was halving every ADFRC colour sheet, so `T_ADF_crye_g3_shirt_amc_co` and `T_ADF_crye_g3_pants_amc_co`
+(4096²) reached the screen at 1024². The cap can only downscale, so 4096 leaves the 1024 gloves and
+2048 normals alone. The report now proves it rather than claiming it: a `textures` block lists every
+texture's size beside the cap set on the asset, and `report["ok"]` fails if `textures_halved != 0`.
+**89 textures, 0 downscaled.** ~140 `.uasset` files re-saved, which is the fix, not churn — the cap
+lives on the texture assets.
+
+**DEFECT FOUND — `setup_adf_soldier.py` was never idempotent.** `EditorAssetLibrary.does_asset_exist()`
+returns **False** for `/SSExp_ObjectiveAssault/…` paths (the game-feature plugin is not mounted in a
+commandlet) while `unreal.load_asset()` and `find_asset_data()` both resolve them. So
+`load_asset(p) if does_asset_exist(p) else create_asset(p)` took the **create** branch for assets that
+already existed; `create_asset` returned `None` and the run died on the MAF uniform slots, leaving
+`Build/adf_soldier_setup.json` with an empty `maf_uniform_slots` — which `setup_soldiers.py` reads, so
+a re-run of that script would have stripped the MAF soldier's green uniform. Fixed in `material_for()`
+and `fabric_master()` by branching on `load_asset()` returning `None`. The script now runs to
+completion: `ok: true`, 0 errors, all 31 material slots bound, `maf_uniform_slots` back to 4.
+`Build/` is gitignored, so the report could not be restored from git — it was regenerated.
+
+**Measured for P1.2:** 4 of the soldier's 31 material slots are flat 64×64 colour slabs —
+`safariland` (multicam → flat coyote) and the MAF `belt`, `tacgear` and `pasgt` (flat olive). The
+report's `note` field names them, so the evidence for deleting the fallback already exists.
+
+### NEXT ACTION (Session 051 addendum)
+
+**P1.2 — delete the 64×64 flat fallback** in `setup_adf_soldier.py` and make an unbound `BaseColorMap`
+an error, so a failed texture lookup can never again look like a finished garment. Then P1.3, the
+broken `verify_character_materials.py`. The producer's body decision (§5 of the plan) is still open and
+gates P2.
 
 ---
 
