@@ -2,7 +2,7 @@
 
 **Document ID:** `Docs/LICENCE_REGISTER.md`
 **Status:** Baseline — Phase 0
-**Last updated:** 2026-09-28
+**Last updated:** 2026-09-29
 
 > **Not endorsed, developed or approved by the Australian Defence Force, the Department of Defence or the Australian Army.**
 
@@ -394,11 +394,16 @@ Department of Defence, the Australian Defence Force or the Australian Army.
 | Barn (seller unrecorded) | `.../FabLibrary/Barn-eb4457bc` → prepped to `SS_Raven_barn` | Ravenshoe Crossing M-008j — barn on the north ridge | In use (M-008j). No `metadata` written by the Fab plugin; seller and AI flag unverified. See L-0016c |
 | Military Trenches — Pile Sandbag Canvas 01 (Quixel Megascans) | `.../Military_Trenches_Pile_Sandbag_Canvas_01-a08111c9` → prepped to `SS_Raven_sandbag_stack` | Ravenshoe Crossing M-008j — sandbag hard cover on both approaches | In use (M-008j). **`isAiForbidden: true` — see L-0016c** |
 | Military Trenches — Wall Metal Corrugated 04 (Quixel Megascans) | `.../Military_Trenches_Wall_Metal_Corrugated_04-e15620d3` → prepped to `SS_Raven_trench_wall` | Ravenshoe Crossing M-008j — improvised cover panels at the abutments | In use (M-008j). `metadata` absent; same Quixel series as the two above and assumed **AI-forbidden** — see L-0016c |
-| Old Abandoned Rusty Cars (OlegVerenko) | `.../Old_Abandoned_Rusty_Cars___...-ed740921` | — (4 car bodies, 75 MB FBX) | **Downloaded, not imported.** `isAiForbidden: false`. Held: the single Renault wreck covers the need at 1/3 the file size. Row added 2026-09-28, see L-0016c |
+| Old Abandoned Rusty Cars (OlegVerenko) | `.../Old_Abandoned_Rusty_Cars___...-ed740921` | — (4 car bodies, 75 MB FBX) | **Installed to `Content/RustyCarsFree/` 2026-09-29; still used by no map.** `isAiForbidden: false`. Held: the single Renault wreck covers the need at 1/3 the file size. Row added 2026-09-28, see L-0016c; status corrected 2026-09-29 (`ASSET_REGISTER.md` §4.9j) |
 | Rigged Cargo Container Red PBR (Vadim3dd) | `.../Rigged_Cargo_Container_Red_PBR-1db0b7e1` | — | **Downloaded, not imported. `isAiForbidden: true` — see L-0016c** |
 | Old Rustic Hand Water Pump (Sayan Paul) | `.../Old_Rustic_Hand_Water_Pump-0b2fc83d` | Held for the Ravenshoe approaches | **Downloaded, not imported.** `isAiForbidden: false`. Row added 2026-09-28 |
 | Water Tower (Chamod1999) | `.../Water_Tower-86b17984` | Held for the Ravenshoe approaches | **Downloaded, not imported.** `isAiForbidden: false`. Row added 2026-09-28 |
 | Red Tractor, Storage Unit nr5, Old Barn, Wooden Chicken Coop, Crushed Classic Raw Scan, Old Bath, Military Trenches Debris Pile Rock | `.../FabLibrary/*` | — | **Downloaded, not imported**, rows added 2026-09-28 so the sweep has a floor. Several are European/Baltic in origin and would need an ADR-016 look check before use |
+| **MOUT urban training kit** (Military Operation Urban Training; 2.1 GB, 507 files, 3 maps incl. a 4.26-era demo urban block) | `Content/Downloaded/VaultCache/ModularM6dfea54fd98cV5/` (staging) → `Content/MOUT_Civilian/` | Candidate training environment and additional urban map; candidate against `M-006` (`Docs/MAPS_TRAININGRANGE.md`) | **Installed, used by nothing.** Class **A**, same Fab Standard License as the rest of this table. **The Vault download wrote no `metadata` sidecar anywhere in the pack, so seller and `isAiForbidden` are both unverified** — recorded per the L-0016c standing action as unverified, never as clear. Authored in UE 4.26 and never opened in 5.8 (R-67). Row added 2026-09-29 |
+| Mega Moduler Apartment Building | `.../FabLibrary/Mega_Moduler_Apartment_Building-db1b80f5` | — | **Downloaded, not imported. `isAiForbidden: true`.** Seller karaman. Row added 2026-09-29 |
+| Modular 3D hospital environment | `.../FabLibrary/Modular_3D_hospital_environment-7e1574fd` | — | **Downloaded, not imported. `isAiForbidden: false`.** Seller Madd Game Art; listed under *Environments / Horror*, needs an ADR-016 look check before any consideration. Row added 2026-09-29 |
+| American Road with Parking Lot | `.../FabLibrary/American_Road_with_Parking_Lot-a629eb34` | — | **Downloaded, not imported. `isAiForbidden: false`.** Seller Jimbogies; GLB only, so it needs an import path in `prep_fab_props.py` before it can be onboarded at all. Row added 2026-09-29 |
+| Individual First Aid Medical Kit (IFAK) | `.../FabLibrary/Individual_First_Aid_Medical_Kit_IFAK-a628e3ba` | — | **Downloaded, not imported. `isAiForbidden: true`.** Seller SpatialNeglect; a medical prop for a Medic role that does not exist yet. Row added 2026-09-29 |
 
 | Field | Value |
 |---|---|

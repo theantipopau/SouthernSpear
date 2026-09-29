@@ -5708,6 +5708,367 @@ that viewpoint.
 
 ---
 
+## Session 068 — 2026-09-29 — The training environment that arrived on its own: MOUT, noted before it is used
+
+A producer note, not a build session. A Fab environment pack was downloaded and installed into `Content/`
+during the Ravenshoe work, nobody wrote it down, and it is the only new environment map in the project. This
+session finds it, measures what is actually on disk, and registers it as a **candidate** — deliberately
+without opening it in the editor, so nothing here is a claim about how it looks.
+
+### COMPLETED
+
+**The download is `Content/MOUT_Civilian/` — a MOUT ("Military Operation Urban Training") urban kit.**
+Staged at `Content/Downloaded/VaultCache/ModularM6dfea54fd98cV5/`, written 09:13–09:16 today, installed to
+`Content/MOUT_Civilian/`. **2.1 GB, 507 files** (504 `.uasset`, 3 `.umap`). Three maps, of which the only
+environment map is `Demo/FirstPersonBP/Maps/FirstPersonExampleMap` (8.5 MB + 14 MB `_BuiltData`); the other two
+are `LVL_AssetShowcase` and `LVL_Blueprints`. Contents: three modular mesh sets (Building, Church, Awning),
+thirteen prop sets (bus stop, bollards, park bench, playground, fire hydrant, clothes line, fencing, flag,
+fountain, police sign, post box, trash cans, electricity pole), nine building Blueprints, **five interactable
+door Blueprints**, 219 textures, and a first-person demo character and weapon.
+
+**Two findings that were not obvious from the filenames.**
+
+1. **The kit was authored in UE 4.26, not 5.x.** `++UE4+Release-4.26` sits in the demo map's header. Everything
+   in it upconverts on load, and none of it has been opened in 5.8. Raised as **R-67**.
+2. **The pack wrote no `metadata` sidecar anywhere** — `find -iname metadata` over all 2.1 GB returns nothing —
+   so the seller and `isAiForbidden` are **unverified**, not known-clear. Recorded per the L-0016c standing
+   action. Raised as **R-68**.
+
+**It does not fill `M-006` "Training range" as that entry is written.** The register and VS-17 both say *range*,
+which is open ground with long lanes, and Saltbush already covers that (built "to test engagement ranges past
+200 m"). This is a close-quarters **village**: doorways, rooms, awning-to-ground transitions, lookalike
+buildings. Scored against GDD §5 that makes it a strong fit for **Induction** (module 1) and **Field Skills**
+(module 4, where explicit identification training wants exactly this kind of geometry) and a weak fit for
+**Leadership** (module 5). Marksman lanes still have to come from elsewhere. Whether `M-006` is redefined or
+this becomes a second training map beside it is left open — that is a producer decision, and `MAPS_TRAININGRANGE.md`
+§6 lists it as the first of five.
+
+**Four register documents touched, in the same change as the install**, per the L-0016b standing rule that a
+pack's row is added *with* the import rather than after:
+
+- `MAPS_TRAININGRANGE.md` (new) — what arrived, what is in it, the two candidate uses with a per-module fit
+  table, provenance, what is not decided, the two risks, and the commands to re-verify every number
+- `ASSET_REGISTER.md` §4.9j (new) — the MOUT kit plus the four other listings downloaded today
+- `LICENCE_REGISTER.md` L-0016 table — the same five listings
+- `PROJECT_AUDIT.md` §7 — **R-67**, **R-68**
+
+**Two corrections to existing rows, both found by re-reading them against the disk.** §4.9i and the L-0016 row
+for *Old Abandoned Rusty Cars* both say "downloaded, not imported". It was installed to `Content/RustyCarsFree/`
+today (69 MB, and it ships its own `Overview/AssetsOverview.umap`). Both rows now say installed and still
+used by no map — the single Renault wreck on Ravenshoe remains the project's car.
+
+### FILES CHANGED
+
+Created: `Docs/MAPS_TRAININGRANGE.md`
+Modified: `Docs/ASSET_REGISTER.md` (§4.9j new, `M-006` row, header date), `Docs/LICENCE_REGISTER.md` (L-0016
+table, rusty-cars row, header date), `Docs/PROJECT_AUDIT.md` (§7 R-67/R-68, risks note), `Docs/CHANGELOG.md`
+
+### TESTING
+
+| Check | Command | Result |
+|---|---|---|
+| Pack identity and version | `strings -n 4 .../FirstPersonExampleMap.umap \| head` | **PASS** — `++UE4+Release-4.26`; the demo map's engine version read from the file, not inferred from the folder name |
+| Size and file counts | `du -sh`, `find … \| wc -l`, extension histogram | **PASS** — 2.1 GB, 507 files, 504 `.uasset` / 3 `.umap` |
+| Map inventory | `find Content/MOUT_Civilian -iname "*.umap" -printf "%s %p\n"` | **PASS** — 3 maps, sizes recorded |
+| Seller / AI flag | `find …/ModularM6dfea54fd98cV5 -iname metadata` | **PASS** — empty, sidecar absent; recorded as unverified. (The sibling `FabLibrary/listings_v1.db` was queried too and holds only the five *FabLibrary* listings, not this pack) |
+| Untracked, as intended | `git status --porcelain` | **PASS** — `Content/MOUT_Civilian/` untracked, raw pack stays git-ignored (ADR-021) |
+| Editor opened on any of the three maps | — | **NOT RUN** — deliberately. Nothing is claimed about how the kit looks or performs |
+| Navmesh, lighting, objectives, ADR-016 look check | — | **NOT RUN** — the kit has no layout and no name, so there is nothing to check it against yet |
+| `validate_architecture.py`, editor build, automation suite | — | **NOT RUN** — no source or content change. Documentation only |
+
+### ASSETS
+
+- No asset imported, modified, moved or deleted. The pack was already in `Content/` before this session and is
+  recorded, not touched.
+- Five listings registered that arrived today: the MOUT kit (installed, used by nothing), plus *Mega Moduler
+  Apartment Building*, *Modular 3D hospital environment*, *American Road with Parking Lot* and *IFAK* (cache
+  only). Two carry `isAiForbidden: true`; neither is installed in a map.
+- No new `M-` id opened, and no `L_*` map asset created. The kit is registered as a candidate against `M-006`.
+
+### RISKS
+
+- **R-67 (new):** UE 4.26 kit, never opened in 5.8, 2.1 GB, 219 legacy textures, unknown LOD/nav/texel cost.
+- **R-68 (new):** seller and `isAiForbidden` unverified for the whole pack (no `metadata` sidecar).
+- Neither blocks reading the kit; neither should hold up the decision about whether to design on it. No map
+  depends on it, so an upconversion failure costs an idea and nothing else.
+
+### DEFECTS FOUND
+
+- **A 2.1 GB environment kit sat in `Content/` with no row in any register** — the exact gap L-0016b was
+  opened to close, recurring two days later on a different pack. It survived because nothing referenced the
+  pack, so no failed build and no audit ever looked at it. The standing rule already covers this
+  (row added in the same change as the import); what is missing is a check that catches an *unreferenced*
+  installed pack, which is the failure mode L-0016b also could not catch.
+- **Two register rows were stale**: "downloaded, not imported" for the rusty-cars pack, which was installed
+  today. Corrected in both documents.
+
+### NEXT ACTION
+
+Open `MOUT_Civilian/Demo/FirstPersonBP/Maps/FirstPersonExampleMap` once, headless, and answer the three
+questions R-67 exists to ask — does the 4.26 content survive upconversion, what does the geometry measure, and
+what does it cost — so the producer can decide between "training range" and "urban training facility" on
+evidence instead of on a folder name.
+
+## Session 069 — 2026-09-29 — Ravenshoe gets the Session 041 world treatment; and the nav-bake doctrine, corrected by experiment
+
+The producer's ask: bring Ravenshoe up to how Dry River and Red Gum were actually made. This session
+ported the passes the map never inherited, then — chasing the frozen bots — tore apart the project's
+nav-bake doctrine and rebuilt it from measurements. The ground, the horizon and the audit are fixed.
+The bots are still frozen, and the session ends with the one action that fixes them, now known to be
+achievable.
+
+### COMPLETED
+
+- **The Dry River Session 041 world treatment, ported as `Tools/Unreal/expand_ravenshoe.py`** (idempotent,
+  report `Build/expand_ravenshoe_report.json`): outer skirt `SS_MAP_Ravenshoe_Skirt` (new
+  `Tools/Blender/ravenshoe_skirt.py` + `Tools/Common/ravenshoe_world.py`; 55,862 verts, z −25.9..+137.8 m,
+  **0.0 m edge-height error** against the terrain's 2 m grid — seamless by construction); the pack's
+  `MI_Ground_Dirt_01` on terrain and skirt (the terrain override had silently fallen back to the flat
+  `MI_SS_Raven_Road` — the white ground); four blocking volumes at terrain + 30 m; `SM_Horizon_01` ring
+  at ~2.6 km plus a VolumetricCloud (the black horizon band); nav bounds sized to the play space with
+  read-back correction (X ±130 m, Y ±180 m, Z −25..+40 m — asserts coverage of every deployment, both
+  ramp feet, bed and crest).
+- **The RecastNavMesh tile pool: 1024 → 4096**, persisted on the actor. The play space needs ~1,285
+  tiles at TileSizeUU 1000. The "2448" figure in the Session 045 fix history was the *required tile
+  count of the old oversized volume*, never the pool — the real pool was the 1024 default, which is
+  what capped the one interactive bake the map ever got.
+- **`build_ravenshoe_nav.py` repaired:** it was re-imposing 115/165/45 bounds on every build run —
+  silently reverting the §0 bounds fix; it now asserts bounds coverage and pool instead; single
+  BUILDPATHS (a second call rebuilds on live tiles); save via `LevelEditorSubsystem.save_current_level`
+  like `build_dryriver_nav.py` (`EditorLoadingAndSavingUtils.save_map` serialises no fresh tiles here).
+- **Audit repaired, 35/35:** the stale "two deployments placed" check counted the 16 Lyra starts as a
+  failure — a regression the starts fix introduced and nobody re-ran the audit on.
+- **The nav forensics** (logs `Saved/Logs/SS_probe_rav*.log`, `SS_probe_dr*.log`): a fresh cube gains
+  no nav poly after ten spaced BUILDPATHS on **either** map — headless generation consumes no new
+  geometry on this machine, so Dry River's "headless bake works" rode its persisted interactive tiles.
+  The editor with a real RHI builds (1.2 s passes) but consumes almost none of this map's geometry;
+  `bForceRebuildOnLoad=True` set and persisted, does not fire in game worlds. The pipeline's ini flag
+  (`bWaitForAsyncLoadingBeforeBuildingNavigationAutomatically=False`) makes the automatic load-time
+  build run **early, on partial geometry** — part of the fault, not the fix.
+- **`PLAYTEST_COMMANDS.md` compliance restored** after the producer's correction: own `-abslog` on every
+  engine invocation (the shared `SouthernSpear.log` had another agent's crash in it and produced a
+  false conclusion), scratch probes moved out of `Tools/`, screenshot re-taken properly next round.
+- **Both new Fab packs git-ignored** (`MOUT_Civilian`, `RustyCarsFree`) per ADR-021, complementing the
+  registration work in Session 068.
+
+### FILES CHANGED
+
+Created: `Tools/Common/ravenshoe_world.py`, `Tools/Blender/ravenshoe_skirt.py`, `Tools/Unreal/expand_ravenshoe.py`,
+`Content/Art/Blockout/SS_MAP_Ravenshoe_Skirt.fbx` + `.uasset`, `Docs/evidence/ravenshoe/SSShot_ground_skirt_0854.png`
+Modified: `Tools/Unreal/build_ravenshoe_nav.py`, `Tools/Unreal/audit_ravenshoe.py`, `Content/Maps/L_Ravenshoe_01.umap`
+(pool + flag + persisted fixes), `.gitignore`, `Docs/HANDOVER_RAVENSHOE.md` (§0b), `Docs/CHANGELOG.md`.
+Scratch (untracked, `Build/`): `probe_raven_*.py`, `probe_dr_*.py`, `fix_raven_rebuildonload.py` and their reports.
+
+### TESTING
+
+| Check | Command | Result |
+|---|---|---|
+| Skirt geometry | `blender -b --factory-startup -P Tools/Blender/ravenshoe_skirt.py` | **PASS** — `SS_SKIRT` 55,862 verts / 55,080 faces, `edge_height_error_m: 0.0` |
+| Spec verifier | `python Tools/Blender/verify_ravenshoe.py` | **PASS** — spec-only, 2/2 |
+| Expand pass | expand_ravenshoe.py | **PASS** — all steps ok, nav bounds ~1,285 tiles, pool 1024→4096 |
+| Map audit | audit_ravenshoe.py | **PASS 35/35** (was 32/33) |
+| Nav build (build mode) | build_ravenshoe_nav.py + env + ini flag | **RUN, exit 0, no crash**; report honest: 0/32 routes, ~12 persisted tiles |
+| Cube test, both maps | Build/probe_dr_cube.py, Build/probe_raven_cube.py | **FINDING** — 10 spaced builds, zero polys on a fresh cube |
+| Live game, bots | `-game` 6 bots, 210 s, own log | **RUN** — 0 spawn fails, rounds cycle, `Steered 0 idle bot(s)`, captures 0 |
+| Interactive editor bake (Build ▸ Build Paths, attended) | — | **NOT RUN** — needs a human at the editor; this is the one remaining action |
+| Look check in a real window | `UnrealEditor.exe ... -SSShotAt=40` (§3), `Docs/evidence/ravenshoe/SSShot_lookcheck_1011.png` | **PASS (measured)** — sky quarter RGB (135,151,163) vs ground quarter (178,128,91): the ground renders as red dirt, not white; 2163 distinct colours in frame. First capture attempt used `-Cmd -windowed` (§3 violation), re-taken with the full editor |
+| MOUT / RustyCars look checks (ADR-016) | — | **NOT RUN** — Session 068 scope |
+
+### ASSETS
+
+- `SS_MAP_Ravenshoe_Skirt` — class F, original, generated from `ravenshoe_world.height()` (which is
+  `ravenshoe_spec.ground_z()` inside the play area and authored hills/rim outside it).
+- Referenced in place, never modified: `MI_Ground_Dirt_01` + `SM_Horizon_01` (`RuralAustralia`, L-0016),
+  engine VolumetricCloud. New packs on disk registered in Session 068, not used by any map yet.
+
+### RISKS
+
+- **R-69 (new):** no scripted process on this machine — commandlet, `-RenderOffscreen`, or the
+  interactive editor unattended — consumes geometry in the nav generator. Every map bake requires the
+  attended editor. CI can build and audit maps but can never verify nav; the Dry River gate's nav
+  evidence is the exception that proves this rule.
+- **R-70 (new):** `PLAYTEST_COMMANDS.md` §5 and CLAUDE.md present the async-loading ini flag as part
+  of the working nav recipe. Measured this session: it makes the automatic load-time build run early,
+  on partial geometry. The docs need correcting once the interactive bake lands and the flag's role is
+  re-tested with data on disk.
+
+### DEFECTS FOUND
+
+- The audit had silently regressed to 32/33: the starts fix changed actor counts and the audit was
+  never re-run — the project's own rule ("re-run the verifier after every change") broken by the fix
+  that the verifier was checking.
+- `build_ravenshoe_nav.py` re-imposed stale bounds on every run, reverting the §0 fix. One owner per
+  piece of state, or two passes fight.
+- §0 #1's "navigation can be baked headless" was a misattribution: the underlying bake was Dry River's
+  persisted tiles; Ravenshoe's "success" was the early-build flag answering queries from a partial
+  in-memory mesh. The verify script's huge query extents (up to 50 m) made partial nav read as success.
+- Process defects, mine: read the shared `SouthernSpear.log` without `-abslog` (another agent's crash
+  nearly became my conclusion); used `UnrealEditor-Cmd -windowed` for a capture (§3 says full editor);
+  put probes in `Tools/`. All corrected after the producer pointed at `PLAYTEST_COMMANDS.md`.
+
+### NEXT ACTION
+
+**In the attended editor:** open `/Game/Maps/L_Ravenshoe_01`, run **Build ▸ Build Paths** (the pool is
+4096 and the bounds now cover the play space, so yesterday's cap and yesterday's bounds are both gone),
+save, then confirm `Build/ravenshoe_nav_report.json` reads 32/32 routes and a live `-game` run logs
+`Steered N idle bot(s)` with N > 0.
+
+## Session 070 — 2026-09-29 — The IK puts the hand on the weapon; the hand then turns to the grip
+
+R-65 asked whether the hand IK does what it claims. Measured first, as asked, and the measurement is
+clean: on the A88 the first-person left hand lands **exactly** on `LeftHandGrip`, with five centimetres of
+reach to spare. The same runs show why that is not yet "holding the weapon": the solve moves the *wrist*,
+the hand keeps whatever rotation the clip gave it, and the Fab arms' clip leaves the palm open. So the
+second half of this session adds a hand rotation behind the position solve, with its correction solved from
+the third-person body's own Lyra grip and kept in config.
+
+### COMPLETED
+
+**1. Where the IK actually puts the hand** (probe `-SSHandIKProbe`, one sample every 0.5 s for 5 s; arms =
+`SS_FirstPersonArms` / `SK_FP_Arms_Rifle`, weapon = `SS_ViewModel` / `SM_A88`; positions and distances in
+cm, component space; `gate` = arm length x `MaxReachFactor`):
+
+| t (s) | IK alpha | hand -> grip | shoulder -> grip | arm | gate | reach-limited |
+|---|---|---|---|---|---|---|
+| 0.40 | 0.00 | **8.37** | 47.98 | 51.80 | 54.39 | no |
+| 1.01 | 1.00 | **0.00** | 48.66 | 51.80 | 54.39 | no |
+| 1.52, 2.01, 2.50, 3.00, 3.51, 4.01, 4.51, 5.01 | 1.00 | **0.00** every sample | 48.66 | 51.80 | 54.39 | no |
+
+The wrist-only solve moves the hand **8.37 cm** onto the socket and holds it there exactly; the reach gate
+is never in play (48.66 wanted against 54.39, i.e. 89 % of a 51.80 cm arm at `MaxReachFactor` 1.05). The
+body's own `CharacterMesh0` (`SKM_Manny_Invis`) reaches the same 0.00 cm and is the mesh that *does* hit the
+gate: at alpha 0 it stands 42.39-42.94 cm off and logs `reach_limited=1 straight=1` for the first two
+samples. So the answer to the earlier "stop and report the weapon-frame offset" branch is **no**: the
+distance is under 3 cm, the position is right, and nothing in `Tools/Blender/adfrc_weapon.py`'s socket axes
+needs touching.
+
+**2. Every mesh component on the pawn in first person, with its mesh and material 0** (same probe, one-shot
+walk over 3 actors and 2 hand-IK components):
+
+| component | class | mesh | material 0 | visible | owner-no-see | only-owner-see |
+|---|---|---|---|---|---|---|
+| `CharacterMesh0` | `SSHandIKMeshComponent` | `SKM_Manny_Invis` | **none** | yes | yes | no |
+| `SS_FirstPersonArms` | `SSHandIKMeshComponent` | `SK_FP_Arms_Rifle` | `MID_MI_FP_Arms_Rifle` | yes | no | yes |
+| `SS_ViewModel` | `StaticMeshComponent` | `SM_A88` | `MID_MI_A88_adfrc_ef88_co` | yes | no | yes |
+| `B_SS_A88_Weapon_C_0.SSVisual` | `StaticMeshComponent` | `SM_A88` | `MID_MI_A88_adfrc_ef88_co` | yes | yes | no |
+| `B_SS_A88_Weapon_C_0.SkeletalMesh` | `SkeletalMeshComponent` | `SK_Rifle` | `MID_MI_Weapon_Rifle` | **no** | yes | no |
+| `B_SS_Soldier_C_0` x8 | `SkeletalMeshComponent` | 8 ADF/insurgent part meshes | `M_Eye_Source`, `MI_ADF_*`, `MI_MAF_*` | **no** | yes | no |
+
+(`CameraProxyMeshComponent_0` is the editor's `MatineeCam_SM`, visible=no.) **The walking tan block is not
+in this list** - every component that reaches the owner's camera has a real material, and the only untextured
+one (`CharacterMesh0`, no material 0 at all) is owner-no-see and hidden in first person. The two components
+that render to the owner are the arms and the view model, so the block is either part of `SM_A88`'s own
+texture/material state or a component the walk does not reach. The probe carries an ablation switch
+(`ss.Probe.Hide`) for exactly this and it was **not taken**, so the block stays **unidentified**.
+
+**3. The A89's reserve ammo: 200, and it comes from the loadout table.** `Config/DefaultGame.ini`,
+`[/Script/SouthernSpearLyraBridge.SSLoadoutSettings]` (line 308):
+`+Weapons=(Weapon=A89,RoundsPerMinute=750,MagazineSize=200,SpareMagazines=1,SpreadScale=1.74,bFullAuto=True)`
+- a 200-round magazine plus one spare magazine, so 200 in reserve and 400 on the pawn. The producer's A89
+shot reads 193/200. The row is applied through `SSWeaponStatsSubsystem` from `SSWeaponStats.h`; nothing else
+in config sets an A89 magazine count.
+
+**4. The hand rotation step (`FSSHandIK::RotateChain`).** After `Apply` has put the wrist on the socket, the
+hand bone's component-space rotation is set to **socket rotation x `HandRotationOffset`**, slerped by `Alpha`,
+and every descendant of the hand is rebuilt from its own local transform so fingers and wrist-twist bones
+follow. The offset is per skeleton and lives in config, not code:
+`[/Script/SouthernSpearLyraBridge.SSHandIKMeshComponent] HandRotationOffset=(Pitch=25.810,Yaw=146.002,Roll=-40.132)`
+(quat `[0.298391, 0.258492, 0.897973, 0.194394]`, 157.6 deg). It is not picked by eye: the body holds the
+same `SM_A88` with Lyra's own animation, so its hand's orientation in the weapon's frame is a known-good
+grip, and the offset that hands the arms that same grip is
+`offset = socketrot_arms^-1 * (weapon_in_cs_arms * hand_in_weapon_body)`, with the body's
+`hand_in_weapon = (-0.8980,-0.1944,0.2984,0.2585)`, the arms' `socketrot = (-0.7071,0.7071,0,0)` and
+`weapon_in_cs = (0,0,-0.7071,-0.7071)`. Predicted result 0.00 deg from the body's, and the live run after the
+config write reads the arms' `hand_in_weapon = (-0.8980,-0.1944,0.2984,0.2585)` with `hand_vs_socket = 157.6 deg`
+(it was 0.0 deg, i.e. the hand was simply left in the socket's orientation) while the body is untouched.
+`bRotateHandToGrip` defaults off, so this only ever applies to the first-person arms.
+
+**5. The solver is committed, not thrown away:** `Tools/Unreal/grip_solve.py` re-derives the offset from a
+grip log, and it validates its own quaternion-to-rotator conversion against the engine's printed pairs
+before it answers (0.00000 deg round-trip on all 44 logged pairs; the closed-form inverse was wrong and is
+gone).
+
+This change also carries the two documentation sessions that were sitting uncommitted on disk - **068** (the
+MOUT kit registered) and **069** (the Ravenshoe world treatment and nav doctrine) - in their own commit.
+
+### FILES CHANGED
+
+Created: `Docs/evidence/handik_pos/` (the five raw probe runs, committed as `.txt` because `.gitignore`
+ignores `*.log`), `Docs/evidence/handik_rot/` (`a88_off000.png`, `a88_fixed.png`),
+`Tools/Unreal/grip_solve.py`
+Modified: `Plugins/SouthernSpearLyraBridge/Source/SouthernSpearLyraBridge/Public/SSHandIKMeshComponent.h`
+(`bRotateHandToGrip`, `HandRotationOffset`, `RotateChain`), `.../Private/SSHandIKMeshComponent.cpp` (the pure
+`RotateChain`, the `GripCS` rotation and the call in `FinalizeBoneTransform`),
+`.../Private/SSFirstPersonSubsystem.cpp` (the arms component turns it on), `.../Private/Tests/SSHandIKTests.cpp`
+(`SouthernSpear.Bridge.HandIK.RotateHand`), `Config/DefaultGame.ini`, `Docs/CHANGELOG.md`
+Scratch (untracked, `Build/`): `handik_rot/{a88_off000,a88_fixed}.png`, `handik_pos` probes, `make_handik_evidence.py`.
+Also untracked and deliberately so: `SSHandIKProbeSubsystem.h/.cpp` (`-SSHandIKProbe`) - the throwaway measurement
+and ablation probe, self-labelled "not for commit", with the scratch probes rather than in the module.
+
+### TESTING
+
+| Check | Command | Result |
+|---|---|---|
+| Hand position, A88 | `-SSHandIKProbe` game run, `Saved/Logs/SS_handik_pos_a88*.log` | **PASS** - 8.37 -> 0.00 cm, 11/11 samples, `reach_limited=0` |
+| Reach gate honoured | same logs, body `CharacterMesh0` | **PASS (negative)** - the body trips the gate at alpha 0 (`reach_limited=1`) and the arms never do |
+| Hand rotation in the live game | `Saved/Logs/SS_grip_a88_fix.log`, 22 GRIP samples | **PASS** - arms' `hand_in_weapon` equals the body's on every steady-state sample; `hand_vs_socket` 0.0 -> 157.6 deg |
+| Offset solve | `python Tools/Unreal/grip_solve.py Saved/Logs/SS_grip_a88.log` | **PASS** - engine round-trip 0.00000 deg on all 4 pairs, predicted match 0.00 deg |
+| Rotation unit test | `Automation RunTests SouthernSpear.Bridge.HandIK.RotateHand` | **PASS** - alpha 1 matches the target, position kept, a finger keeps its local transform, alpha 0.5 is the slerp midpoint, zero offset takes the socket, 3 refusals leave the pose untouched |
+| Position unit test | `Automation RunTests SouthernSpear.Bridge.HandIK.Solve` | **PASS** - unchanged |
+| Full suite | `Automation RunTests SouthernSpear` | **61 pass, 1 fail** - `Network.Gameplay.TwoPlayerAuthoritySmoke` (`ViewportOverlayWidget.IsValid()`), reproducible in isolation, environmental and pre-existing |
+| Editor build | `Build.bat SouthernSpearEditor Win64 Development` | **PASS - Succeeded** |
+| A89 position probe | - | **NOT RUN** - only the A88 was sampled |
+| Tan-block ablation | `ss.Probe.Hide` | **NOT RUN** - component unidentified |
+| Finger-grip frames in `A_FP_Rifle_*` | - | **NOT RUN** - task stated as report-only |
+
+### ASSETS
+
+- No asset imported, modified or moved. The capture pair in `Docs/evidence/handik_rot/` is screenshot
+  evidence, not content.
+- The arms mesh does carry fingers: `LeftHandThumb1-4`, `LeftHandIndex1-4`, `LeftHandMiddle1-4`,
+  `LeftHandRing1-4`, `LeftHandPinky1-4` (and the right-hand mirror) are in the import sidecar
+  `Build/fp_arms/SK_FP_Arms_Rifle.fbx.json`, from the Fab **M4 - FPS Weapon Animations Pack FREE**, whose six
+  clips were cut from one FBX at the frame ranges that sidecar lists. A closed-hand grip pose is therefore
+  representable on this skeleton; whether any of the six clips contains one was **not measured**.
+
+### RISKS
+
+- **R-80 (new):** the arms' finger bones are **not** covered by any live measurement. `RotateChain`'s
+  propagation is proved by the unit test on a synthetic chain, and the grip logs' anatomy columns cannot
+  prove it on `SK_FP_Arms_Rifle` (see the defect below), so "the fingers follow the hand" is unverified in
+  the real mesh until the probe is re-run with a side-correct bone lookup.
+- **R-81 (new):** the walking tan block is still unidentified, and it is a *rendering* defect that no test
+  can see - it needs the ablation run (or a first-person capture with the view model hidden) to name the
+  component.
+
+### DEFECTS FOUND
+
+- **The probe measured the wrong hand.** `ProbeNamedBone` returns the first bone whose name *contains* the
+  stem, and `SK_FP_Arms_Rifle`'s bone order puts the right arm first (`M4_Root, FPS_Camera_j, Spine,
+  RightArm, RightForeArm, RightHand, RightHandThumb1-4, ...` before `LeftArm`), so the arms' `thumb`,
+  `index`, `palmraw` and `mid` columns are **`RightHandThumb1`/`RightHandIndex1`/`RightHandMiddle1` measured
+  against the left hand's position**. The `thumb_vs_barrel=137.6deg` printed for the arms in both grip logs
+  is therefore not the left thumb - it is the right thumb, and it is why the figure did not move when the
+  hand did. The pre-fix finding itself stands, because it was really carried by the hand quaternion
+  (`hand_vs_socket=0.0deg` against the body's 157.6deg, `hand_in_weapon=(0,1,0,0)` against the body's), and
+  the offset solve never used the thumb columns. The body's own `thumb_vs_barrel=12.9deg` is valid: Manny's
+  bone order puts `thumb_01_l` before any right-side thumb.
+- **The risk register in `PROJECT_AUDIT.md` now lags the changelog by eleven numbers**, and Session 069's entry
+  re-used two live ids: it introduces **R-69 and R-70** while this changelog already carries R-69 (the press
+  kit's 420 px logo, open) and R-70 (the rest-joint solve, open). R-69 and R-70 are therefore each claimed
+  twice. This session's new risks take **R-80/R-81**, the next numbers free in this file.
+- The position log's A88-only sampling is a gap against the ask, not a report of a failure: the A89 run simply
+  was not taken.
+
+### NEXT ACTION
+
+Fix the probe's bone lookup (match the whole bone name, or require the bone to be a descendant of the solved
+`Hand` index) and re-run `-SSHandIKProbe` on the **A89**, which answers three open things at once: the A89's
+hand-to-grip distance and reach headroom, the arms' real left-thumb/palm axes after the rotation step, and
+whether the fingers follow it. Then take the `ss.Probe.Hide` ablation on the same run to name the tan block.
+
+---
+
 ## Open Threads
 
 | Item | Blocked on | Owner |
