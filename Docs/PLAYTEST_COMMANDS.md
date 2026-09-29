@@ -141,3 +141,17 @@ python Tools/validate_architecture.py
 ```
 
 Count `Result={Success}` in the output.
+
+Running **one** test (e.g. after touching the hand IK) is the same command with the full path after
+`RunTests`, and it **still needs `-NoLoadingScreen`**:
+
+```bash
+"/e/Unreal/UE_5.8/Engine/Binaries/Win64/UnrealEditor-Cmd.exe" "E:/SouthernSpear/SouthernSpear.uproject" \
+  -nullrhi -unattended -nosplash -nosound -NoLoadingScreen \
+  "-ExecCmds=Automation RunTests SouthernSpear.Network.Gameplay.TwoPlayerAuthoritySmoke;Quit" \
+  -TestExit="Automation Test Queue Empty"
+```
+
+Without the flag `TwoPlayerAuthoritySmoke` reports `Fail` on **four** `ViewportOverlayWidget` ensures at
+`GameViewportClient.cpp:3378`. That is the loading screen's overlay outliving the test, not a
+regression: the same test is `Success` with the flag and on an unmodified tree (Session 074, R-88).

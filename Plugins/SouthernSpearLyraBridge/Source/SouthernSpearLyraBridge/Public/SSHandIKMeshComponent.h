@@ -38,6 +38,31 @@ struct SSBRIDGE_API FSSGripHold
 };
 
 /**
+ * How far the left wrist is moved off its grip socket, in centimetres, along the hold's own axes.
+ * The socket came from the ADFRC handAnim pose and has never been authored (Session 074, R-86): on
+ * the A88 it puts the wrist 10.3 cm off the bore, where a hand on a handguard belongs about 4-5 cm
+ * out - the tube's radius plus the palm's depth. Positive Right moves the hand towards the weapon's
+ * right, i.e. in under the tube; negative Up lifts it into the bore.
+ */
+USTRUCT(BlueprintType)
+struct SSBRIDGE_API FSSGripNudge
+{
+	GENERATED_BODY()
+
+	/** Along the bore, towards the muzzle. */
+	UPROPERTY(EditAnywhere, Config, Category = "Hand IK")
+	float Forward = 0.f;
+
+	/** Along the weapon's right - the shooter's right, where the ejection port is. */
+	UPROPERTY(EditAnywhere, Config, Category = "Hand IK")
+	float Right = 0.f;
+
+	/** Along the weapon's up. Negative drops the wrist below the bore. */
+	UPROPERTY(EditAnywhere, Config, Category = "Hand IK")
+	float Up = 0.f;
+};
+
+/**
  * Pure two-bone left-hand IK on a component-space pose (W2). Tested without a world
  * (SouthernSpear.Bridge.HandIK).
  */
@@ -51,6 +76,9 @@ struct SSBRIDGE_API FSSHandIK
 	 */
 	static bool BuildGripHold(const FVector& Muzzle, const FVector& RightHandGrip, const FVector& WeaponUp,
 		float PalmTiltDeg, FSSGripHold& Out);
+
+	/** Target moved by Nudge along the hold's own Forward, Right and Up. Pure: Nudge is centimetres. */
+	static FVector ApplyGripNudge(const FSSGripHold& Hold, const FVector& Target, const FSSGripNudge& Nudge);
 
 	/**
 	 * Moves Hand towards Target (component space) by Alpha, bending Upper and Lower in the plane of the
@@ -135,6 +163,20 @@ public:
 	UPROPERTY(Config, EditAnywhere, Category = "Hand IK")
 	float DefaultPalmTiltDeg = 30.f;
 
+	/**
+	 * How far the left wrist is moved off the grip socket, in the hold's own axes, per weapon
+	 * (Session 074, R-86). Keyed like GripPalmTiltDeg. The A88's socket is 10.3 cm off the bore, left
+	 * over from the ADFRC handAnim pose; a hand round a handguard belongs nearer. Unlisted weapons take
+	 * DefaultGripNudge, which is no nudge: an unauthored position stays unauthored rather than being
+	 * quietly improved by a number nobody measured.
+	 */
+	UPROPERTY(Config, EditAnywhere, Category = "Hand IK")
+	TMap<FName, FSSGripNudge> GripNudgeCm;
+
+	/** Nudge for a weapon with no row of its own. */
+	UPROPERTY(Config, EditAnywhere, Category = "Hand IK")
+	FSSGripNudge DefaultGripNudge;
+
 	/** Candidate bone names, first match wins (Manny, then the Fab first-person arms). */
 	UPROPERTY(EditAnywhere, Category = "Hand IK")
 	TArray<FName> UpperArmBones = { TEXT("upperarm_l"), TEXT("LeftArm") };
@@ -188,6 +230,9 @@ public:
 
 	/** The weapon's authored palm tilt: its own row in GripPalmTiltDeg, else DefaultPalmTiltDeg. */
 	float PalmTiltDeg(const UStaticMesh& WeaponMesh) const;
+
+	/** The weapon's authored wrist nudge: its own row in GripNudgeCm, else DefaultGripNudge. */
+	FSSGripNudge GripNudge(const UStaticMesh& WeaponMesh) const;
 
 	/** Current blend, 0..1 (diagnostics). */
 	float GetHandIKAlpha() const { return Alpha; }

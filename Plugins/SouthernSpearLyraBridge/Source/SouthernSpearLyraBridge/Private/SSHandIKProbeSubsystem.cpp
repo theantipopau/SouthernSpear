@@ -581,7 +581,48 @@ void USSHandIKProbeSubsystem::Sample(const TArray<USSHandIKMeshComponent*>& Arms
 			const FVector EjectCS = EjectSocket.IsNone()
 				? FVector::ZeroVector
 				: ToComponent.TransformPosition(Weapon->GetSocketLocation(EjectSocket));
-			Signs = EjectSocket.IsNone()
+			// Everything below is in the HOLD's own frame, in centimetres, measured from the
+			// RightHandGrip socket: +x along the bore, +y to the shooter's right, +z up. The bore line
+			// is then the x axis and a wrist's distance from it is sqrt(y*y + z*z) - which is what a
+			// GripNudge is judged on. A hand round a handguard belongs about 4-5 cm out: the tube's
+			// radius plus the palm's depth.
+			auto InHold = [&RightCS, &Hold](const FVector& P)
+			{
+				const FVector D = P - RightCS;
+				return FVector(FVector::DotProduct(D, Hold.Forward),
+					FVector::DotProduct(D, Hold.Right), FVector::DotProduct(D, Hold.Up));
+			};
+			const FVector WristCS = ToComponent.TransformPosition(HandWorld);
+			FVector OnBore;
+			const double WristToBore = FMath::PointDistToLine(WristCS, Hold.Forward, RightCS, OnBore);
+			// ...and this is the target the solver is ACTUALLY given: the socket plus its authored
+			// nudge. The line logged above the fold (hand_to_grip, shoulder_to_grip, reach_limited) is
+			// still measured from the socket, which a 6 cm nudge turns into a point the solver never
+			// sees - so the arm's own arithmetic is redone here against the real target. Reading the
+			// gate off the socket is what made an unreachable nudge look reachable.
+			const FSSGripNudge Nudge = Weapon->GetStaticMesh()
+				? ArmsMesh->GripNudge(*Weapon->GetStaticMesh())
+				: ArmsMesh->DefaultGripNudge;
+			const FVector TargetCS = FSSHandIK::ApplyGripNudge(Hold, GripCS, Nudge);
+			// The solver's two bone lengths, off the published chain: the solve preserves them, so
+			// these are the numbers it measured for itself before it solved.
+			const double L1 = FVector::Distance(UpperCS, LowerCS);
+			const double L2 = FVector::Distance(LowerCS, WristCS);
+			const double ShoulderToSolved = FVector::Distance(UpperCS, TargetCS);
+			const double Reach = L1 + L2;
+			Signs = FString::Printf(
+				TEXT("wrist_to_bore=%.2fcm along_bore=%.2fcm off_right=%.2fcm off_up=%.2fcm ")
+				TEXT("nudge=(F=%.2f,R=%.2f,U=%.2f) target=%s wrist=%s shoulder=%s ")
+				TEXT("wrist_to_target=%.2fcm shoulder_to_target=%.2fcm reach=%.2fcm short_by=%.2fcm ")
+				TEXT("gate=%.2fcm solved=%d "),
+				WristToBore, InHold(WristCS).X, InHold(WristCS).Y, InHold(WristCS).Z,
+				Nudge.Forward, Nudge.Right, Nudge.Up,
+				*ProbeVectorText(InHold(TargetCS)), *ProbeVectorText(InHold(WristCS)),
+				*ProbeVectorText(InHold(UpperCS)),
+				FVector::Distance(WristCS, TargetCS), ShoulderToSolved, Reach,
+				ShoulderToSolved - Reach, Reach * ArmsMesh->MaxReachFactor,
+				ShoulderToSolved <= Reach * ArmsMesh->MaxReachFactor ? 1 : 0);
+			Signs += EjectSocket.IsNone()
 				? FString::Printf(TEXT("left_grip_on_left=%d grip_dot_right=%.3f"),
 					FVector::DotProduct(GripCS - RightCS, Hold.Right) < 0.f ? 1 : 0,
 					FVector::DotProduct(GripCS - RightCS, Hold.Right))

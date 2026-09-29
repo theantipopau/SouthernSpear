@@ -315,9 +315,10 @@ bpy.context.scene.collection.objects.link(sock)
 sock.parent = obj
 
 # W2: hand IK targets (wrist positions), carried through the same transforms as the mesh. Position only:
-# the exporter transposes an empty's rotation on the way out, and a handAnim pose is too uncertain a
-# target anyway, so the game builds the hold from the socket positions instead (W2b below is the record
-# of what that hold is, for checking the export against).
+# a handAnim pose is too uncertain a target (its finger rest joints disagree by ~50 deg), and a hold
+# carried through the export is worse still - Session 073 found the inverse we were reading in game
+# came from our own .transposed() here, not from the exporter. So the game builds the hold from the
+# socket positions at run time instead (W2b below is the record of what that hold is).
 hold_report = None
 hold_spec = json.loads(GRIP_HOLD) if GRIP_HOLD else None
 if hold_spec is not None:

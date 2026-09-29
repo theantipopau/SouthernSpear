@@ -6435,6 +6435,68 @@ Private/SSHandIKMeshComponent.cpp, Private/SSHandIKProbeSubsystem.cpp, Private/T
 `Tools/Unreal/probe_weapon_socket.py`, evidence `Docs/evidence/handik_hold/SS_hold_frame.txt`.
 
 
+## Session 075 — 2026-09-29 — The grip socket's position gets authored too, and the arm turns out to be the constraint
+
+R-86 answered. `GripNudgeCm` joins `GripPalmTiltDeg` as per-weapon data: `(Forward, Right, Up)` in
+centimetres, in the hold's own axes, applied to the wrist target in `UpdateGrip`. The A88 takes
+`(Forward=-4.7, Right=5.4, Up=2.1)` and its wrist lands 4.5 cm off the bore, in the 4–5 cm band a
+hand round a handguard belongs in.
+
+The interesting part is not the number, it is that the number **cannot** be chosen by eye, and the
+first two attempts were wrong in a way that looked like the code was broken.
+
+### COMPLETED
+
+**Point 1 — the probe was measuring the wrong point.** It reported `hand_to_grip`, `shoulder_to_grip`
+and `reach_limited` against the **grip socket**, which is correct only while the nudge is zero. A
+6 cm nudge turns the socket into a point the solver is never handed, and the arm's own arithmetic
+(`reach_limited=0`, `shoulder_to_grip=48.66`) went on describing it. The probe now reads the realised
+target — `FSSHandIK::ApplyGripNudge(Hold, GripCS, Nudge)` — and redoes the reach figures against that,
+logging the shoulder, the target and the wrist all in the hold's frame so the numbers can be compared
+offline. The old line is left in place, still honestly labelled as the socket's.
+
+**Point 2 — the arm was at full extension, and that is why the nudge moved the wrist the WRONG way.**
+`FSSHandIK::Apply` puts the wrist at `A + Dir * clamp(|Target-A|, …, L1+L2-0.001)`. Past `L1+L2` the
+arm goes straight and the wrist can only ever sit on that sphere. The first nudge put the target
+53.7 cm from the shoulder against a 51.8 cm arm: out of reach by 1.9 cm. The `reach_limited` flag read
+`0` the whole time, because it was reading the socket. Sliding the target around the sphere is not
+moving it — raising `Right` from 5.5 to 6.0 moved the wrist 0.5 cm *further left*, which looked like
+a sign error and was not.
+
+**Point 3 — reach is why `Forward` is negative.** The first-person shoulder's own bone sits 44.4 cm
+left of the bore and the whole arm is 51.8 cm, so the socket is already 48.7 cm out: **3.1 cm from
+straight before any nudge at all.** Every centimetre the wrist moves in towards the tube is a
+centimetre of arm spent, and it has to be paid back somewhere. Back along the tube is the only
+somewhere that keeps the hand on the handguard (+9 to +30 cm), so the row pulls the wrist 4.7 cm back
+as well as 5.4 cm in. Enumerating the whole 4–5 cm ring across the handguard: every point on it needs
+the entire arm. 1.2 cm of elbow was spent on purpose — 0 cm reads as a pole, not an arm.
+
+**Point 4 — solved, then verified.** `Saved/tmp/solve_nudge.py` reproduces the measured run to 0.01 cm
+(wrist-to-bore 5.54 predicted vs 5.55 logged, `short_by` 1.93 vs 1.92) before it is allowed to
+predict anything. The live run with the new row: `wrist_to_bore=4.54cm along_bore=17.17cm
+off_right=-4.09 off_up=-1.96`, `wrist_to_target=0.00cm` (the wrist now lands **on** the target rather
+than 1.9 cm short of it), `shoulder_to_target=50.60` against `reach=51.80`. Screenshot
+`Saved/tmp/nudge_a88.png`.
+
+**Point 5 — R-88 recorded.** `-NoLoadingScreen` was already written down for the whole-suite command
+(`PLAYTEST_COMMANDS.md` §7) but not for running a **single** test, which is how the hand-IK work
+actually runs them. Both forms are now there, with the correct test path
+(`SouthernSpear.Network.Gameplay.TwoPlayerAuthoritySmoke`, verified against this run's log — not
+`LyraGame`) and the four `ViewportOverlayWidget` ensures named.
+
+**Tests.** 63/63 `Result={Success}`, 0 failures, with the change. `test_adfrc_grip`, `test_adfrc_reload`,
+`test_rtm_rigs`, `test_architecture_guard`, `test_check_unity_names`: 0 failures each.
+`validate_architecture.py`: PASS. New pure assertions in `HandIK.GripHold` cover `ApplyGripNudge`
+(a zero nudge is the identity, the three axes are independent, and a hold is not left stale by one).
+
+### FILES
+
+`Plugins/SouthernSpearLyraBridge/Source/SouthernSpearLyraBridge/{Public/SSHandIKMeshComponent.h,
+Private/SSHandIKMeshComponent.cpp, Private/SSHandIKProbeSubsystem.cpp, Private/Tests/SSHandIKTests.cpp}`,
+`Config/DefaultGame.ini`, `Docs/PLAYTEST_COMMANDS.md`,
+evidence `Docs/evidence/handik_hold/SS_hold_frame.txt` (points 9–11).
+
+
 ## Open Threads
 
 | Item | Blocked on | Owner |

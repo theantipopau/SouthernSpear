@@ -119,3 +119,51 @@ Session 074 - the hold is authored at run time from the weapon's sockets
    own pose at t=0.4, halfway at t=1.0, and settled from t=1.5. They are the blend, not an error, and
    they are the reason a "every sample" claim needs the blend named. The settled figure - the one the
    offset is judged on - is 0.0 / 0.0 / 0.0.
+
+9. The grip nudge, and the probe that was measuring the wrong point.
+
+   The probe logged hand_to_grip, shoulder_to_grip and reach_limited against the GRIP SOCKET.
+   That is right while the nudge is zero and wrong the moment it is not: a 6 cm nudge turns the
+   socket into a point the solver is never handed, so the arm's arithmetic went on describing a
+   target that did not exist. Saved/Logs/SS_nudge3.log, FP arms, Alpha=1.00:
+
+       wrist_to_bore=5.51cm  along_bore=20.75cm  off_right=-4.95cm  off_up=-2.40cm
+       nudge=(F=0.00,R=6.00,U=2.20)  target=(21.9,-3.5,-1.9)  wrist=(20.7,-5.0,-2.4)
+       shoulder=(-9.5,-44.4,-17.0)  wrist_to_target=1.92cm
+       shoulder_to_target=53.71cm  reach=51.80cm  short_by=1.92cm  gate=54.39cm  solved=1
+
+   All three coordinates are centimetres in the hold's own frame, from the RightHandGrip socket:
+   +x along the bore, +y to the shooter's right, +z up. The bore line is then the x axis, so a
+   wrist's distance from it is sqrt(y*y + z*z) and that is what the 4-5 cm band means.
+
+   Reading it: shoulder_to_target 53.71 against reach 51.80. The arm was STRAIGHT and 1.92 cm short
+   of a target it could not reach, and reach_limited read 0 because it was reading the socket.
+   That is the whole of the "the nudge moves the wrist the wrong way" mystery: FSSHandIK::Apply
+   puts the wrist at A + Dir*clamp(|Target-A|, ..., L1+L2-0.001), so past full extension the wrist
+   can only slide around the sphere. Raising Right from 5.5 to 6.0 rotated that sphere and the wrist
+   went 0.5 cm further LEFT. Not a sign error.
+
+10. Reach is why the A88's row has a NEGATIVE Forward.
+
+   The shoulder bone is 44.4 cm left of the bore (shoulder y = -44.4) and the whole arm is
+   51.8 cm, so the un-nudged socket is already 48.7 cm out: 3.1 cm from straight before any nudge.
+   Every centimetre the wrist comes in towards the tube is a centimetre of arm spent, and it has to
+   be paid back. Back along the tube is the only direction that keeps the hand on the handguard
+   (+9 to +30 cm ahead of the trigger), which is why Forward is -4.7 and not 0.
+
+   Saved/tmp/solve_nudge.py enumerates the 4-5 cm ring across the handguard. Every point on it
+   needs the entire arm at 51.80/51.80. 1.2 cm of elbow was spent deliberately: 0 cm of bend reads
+   as a pole, and the socket only had 3.1 to give. The script asserts it reproduces the measured run
+   (5.54 predicted vs 5.55 logged, short_by 1.93 vs 1.92) before it is allowed to predict anything.
+
+11. The settled result. Saved/Logs/SS_nudge4.log, FP arms, Alpha=1.00, all eight settled samples:
+
+       wrist_to_bore=4.54cm  along_bore=17.17cm  off_right=-4.09cm  off_up=-1.96cm
+       nudge=(F=-4.70,R=5.40,U=2.10)  target=(17.2,-4.1,-2.0)  wrist=(17.2,-4.1,-2.0)
+       wrist_to_target=0.00cm  shoulder_to_target=50.60cm  reach=51.80cm
+
+   wrist_to_target=0.00 is the figure that matters: the wrist lands exactly on the target instead
+   of 1.9 cm short of it, so from here the nudge means what it says. wrist_to_bore 4.54 is in the
+   4-5 cm band. 50.60 of 51.80 cm of reach is 1.2 cm of elbow. Screenshot Saved/tmp/nudge_a88.png.
+   The other samples in that run are the Alpha ramp again (point 8): Alpha=0.00 sits at the clip's
+   own 6.81 cm and is not a result.

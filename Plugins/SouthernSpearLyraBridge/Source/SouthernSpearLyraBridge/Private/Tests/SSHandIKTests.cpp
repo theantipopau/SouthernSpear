@@ -177,6 +177,28 @@ bool FSSGripHoldTest::RunTest(const FString& Parameters)
 		FVector::CrossProduct(Slanted.Thumb, Slanted.Finger).Equals(Slanted.Palm, 1e-3f));
 	TestEqual(TEXT("the slanted hand basis is a proper rotation"), Det3(Slanted.Palm, Slanted.Finger, -Slanted.Thumb), 1.0, 1e-3);
 
+	// The nudge: the wrist target moves along the hold's OWN axes, so a per-weapon centimetre value
+	// means the same thing whatever the mesh is doing (Session 074, R-86).
+	const FVector Target(0.0, -12.0, 1.0);          // a socket well off the bore, on the weapon's left
+	FSSGripNudge Nudge;
+	TestTrue(TEXT("a zero nudge leaves the target alone"),
+		FSSHandIK::ApplyGripNudge(Hold, Target, Nudge).Equals(Target, 1e-4f));
+	Nudge.Forward = 1.f;
+	Nudge.Right = 2.f;
+	Nudge.Up = -3.f;
+	const FVector Nudged = FSSHandIK::ApplyGripNudge(Hold, Target, Nudge);
+	TestTrue(TEXT("the nudge moves the target along forward, right and up"),
+		Nudged.Equals(Target + Hold.Forward * 1.f + Hold.Right * 2.f + Hold.Up * -3.f, 1e-4f));
+	// Against the synthetic hold (forward +X, right +Y, up +Z) the nudge is read straight off.
+	TestTrue(TEXT("right moves towards the weapon's right, up moves along its up"),
+		Nudged.Equals(FVector(1.f, -10.0, -2.0), 1e-4f));
+	TestEqual(TEXT("the nudge's length is the centimetres asked for"),
+		FVector::Distance(Nudged, Target), FMath::Sqrt(14.0), 1e-3);
+	// The nudge is position only: it must not touch the hold's rotation, or the solved offset drifts.
+	TestTrue(TEXT("a nudge leaves the hold's own frame untouched"),
+		Hold.Forward.Equals(FVector(1, 0, 0), 1e-4f) && Hold.Right.Equals(FVector(0, 1, 0), 1e-4f)
+		&& Hold.Up.Equals(FVector(0, 0, 1), 1e-4f) && Hold.Thumb.Equals(FVector(1, 0, 0), 1e-4f));
+
 	// Refusals: no bore, or the weapon's up along it, leave no frame to hold, and the caller is told.
 	Hold = Vertical;   // a hold the caller already had, which a refusal must not leave behind
 	TestFalse(TEXT("coincident sockets are refused"),

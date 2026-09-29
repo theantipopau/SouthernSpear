@@ -96,6 +96,12 @@ bool FSSHandIK::BuildGripHold(const FVector& Muzzle, const FVector& RightHandGri
 	return true;
 }
 
+FVector FSSHandIK::ApplyGripNudge(const FSSGripHold& Hold, const FVector& Target, const FSSGripNudge& Nudge)
+{
+	// The hold's own axes, so a nudge means the same thing on every weapon whatever the mesh is doing.
+	return Target + Hold.Forward * Nudge.Forward + Hold.Right * Nudge.Right + Hold.Up * Nudge.Up;
+}
+
 // --------------------------------------------------------------------------- pure IK
 
 bool FSSHandIK::IsAncestor(TConstArrayView<int32> Parents, int32 Ancestor, int32 Bone)
@@ -302,6 +308,16 @@ float USSHandIKMeshComponent::PalmTiltDeg(const UStaticMesh& WeaponMesh) const
 	return DefaultPalmTiltDeg;
 }
 
+FSSGripNudge USSHandIKMeshComponent::GripNudge(const UStaticMesh& WeaponMesh) const
+{
+	// Per-weapon position as data (Session 074, R-86): the weapon's own row, or no nudge at all.
+	if (const FSSGripNudge* Nudge = GripNudgeCm.Find(WeaponKeyOf(WeaponMesh)))
+	{
+		return *Nudge;
+	}
+	return DefaultGripNudge;
+}
+
 bool USSHandIKMeshComponent::IsSuppressingAnimationName(const FString& Name) const
 {
 	for (const FString& Word : SuppressingAnimationWords)
@@ -380,11 +396,18 @@ void USSHandIKMeshComponent::UpdateGrip(float DeltaTime)
 						// weapon's own rotation, which is the weapon's up whatever the sockets say.
 						const FVector UpInAttach = WeaponInAttach.GetRotation().RotateVector(FVector::UpVector);
 						FSSGripHold Hold;
-						const float Tilt = Weapon->GetStaticMesh() ? PalmTiltDeg(*Weapon->GetStaticMesh()) : DefaultPalmTiltDeg;
+						const UStaticMesh* WeaponMesh = Weapon->GetStaticMesh();
+						const float Tilt = WeaponMesh ? PalmTiltDeg(*WeaponMesh) : DefaultPalmTiltDeg;
 						if (FSSHandIK::BuildGripHold(MuzzleInAttach, RightInAttach, UpInAttach, Tilt, Hold))
 						{
 							HoldInAttach = Hold.ToHandRotation();
 							bHasHold = true;
+							// The wrist target moves with the hold, in its own axes: the socket is a borrowed
+							// handAnim wrist, and how far a hand belongs off a handguard's bore is a fact
+							// about the weapon, so it is per-weapon data (Session 074, R-86).
+							const FSSGripNudge Nudge = WeaponMesh ? GripNudge(*WeaponMesh) : DefaultGripNudge;
+							GripInAttach.SetLocation(
+								FSSHandIK::ApplyGripNudge(Hold, GripInAttach.GetLocation(), Nudge));
 						}
 					}
 					bHasGrip = true;
