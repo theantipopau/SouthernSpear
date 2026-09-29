@@ -2,7 +2,7 @@
 
 **Document ID:** `Docs/MAPS_WANDARRA.md`
 **Status:** Built greybox, in Unreal — **navmesh not yet baked (R-82)**, spawns not yet laid;
-dressing pass (awnings + gate doors, Session 083) queued behind a rebuild that applies the Session
+dressing pass (awnings + gate doors, Session 084) queued behind a rebuild that applies the Session
 083 yaw correction below
 **Last updated:** 2026-09-30 (Session 082)
 **Map asset:** `/Game/Maps/L_Wandarra_01`
@@ -84,7 +84,7 @@ The `SSObjectives` director is placed, `NavMeshBoundsVolume` scaled to the site 
 ×4-on-reload factor from R-10 is already accounted), a `RecastNavMesh` actor is saved into the map,
 and WorldSettings.DefaultGameplayExperience is `B_SS_ObjectiveAssault`.
 
-### 3.1 Dressings: awnings and gate doors (Session 083, ADR-041)
+### 3.1 Dressings: awnings and gate doors (Session 084, ADR-041)
 
 Six government awnings (four vendor Blueprint types, `BP_GovernmentAwning_01a/b`, `02a/b`) dress the civic face
 and the row buildings' footpath sides as shopfront verandahs — a covered edge that breaks street
@@ -141,7 +141,7 @@ a south-west-origin site frame; the builder writes `(x·100, −y·100, z·100)`
 is site-frame degrees clockwise from north and converts as **`yaw − 90`** (site north = Unreal −Y =
 Unreal yaw −90; site east = +X = 0; site south = +Y = 90). The first build shipped `-yaw`, which
 put every rotated actor one cardinal direction off — found on 2026-09-30 while deriving the
-awning push-out vector (Session 083), fixed in `build_wandarra_level.py`; **the map on disk still
+awning push-out vector (Session 084), fixed in `build_wandarra_level.py`; **the map on disk still
 carries the defective rotations and the pre-083 wide gate gaps until the level pass is re-run**,
 after which the bake must be redone.
 
@@ -168,7 +168,7 @@ this map is real, and none is claimed.
 | R-67 (existing) | 4.26 upconversion — first load now measured **silent**; texture/LOD/draw cost still unmeasured | remains OPEN until the map is inspected in a rendered editor |
 | R-82 (existing) | headless nav bake consumes no geometry on this machine | applies; attended bake is the documented next step |
 | **R-89** (new) | the ADR-016 look check **deferred, not passed**: bungalows, awnings, bus stop, playground and clothes lines read ordinary-suburban rather than specifically European, and the beech forest is placed as scattered township trees — but the check is an editor-eyeball act and no one has eyeballed it | before the map is shown or played beyond a bot smoke test, the look verdict gets recorded here and in ADR-016 |
-| **R-90** (new) | vendor building Blueprints arrive at their authored pivot/footprint; the 1 m grid in the spec assumed 5 m wall modules, so a building's actual extent may overlap a footpath or fence line — unmeasured until bounds are dumped in the editor | `dress_wandarra_awnings.py` performs the dump (Session 083) and reports road-corridor overlaps; fix by moving spec rows, never by nudging actors |
+| **R-90** (new) | vendor building Blueprints arrive at their authored pivot/footprint; the 1 m grid in the spec assumed 5 m wall modules, so a building's actual extent may overlap a footpath or fence line — unmeasured until bounds are dumped in the editor | `dress_wandarra_awnings.py` performs the dump (Session 084) and reports road-corridor overlaps; fix by moving spec rows, never by nudging actors |
 
 ## 8. How to re-verify every number above
 

@@ -1,4 +1,4 @@
-# Southern Spear - Wandarra awnings + doors pass (Session 083, ADR-041).
+# Southern Spear - Wandarra awnings + doors pass (Session 084, ADR-041).
 #
 # Places the vendor GovernmentAwning Blueprints and interactable door
 # Blueprints from Tools/Common/wandarra_spec.py on the saved L_Wandarra_01.
@@ -49,7 +49,7 @@ def cm(x_m, y_m, z_m=0.0):
 
 def yaw_unreal(yaw_deg):
     """Site degrees clockwise from north -> Unreal yaw. Must match
-    build_wandarra_level.py's corrected transform (yaw - 90; Session 083)."""
+    build_wandarra_level.py's corrected transform (yaw - 90; Session 084)."""
     return yaw_deg - 90.0
 
 

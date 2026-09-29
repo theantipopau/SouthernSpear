@@ -7000,7 +7000,7 @@ The callsign feature is verified; the Session 080 handover's "watch" items are a
 handover: Wandarra's attended nav bake (Session 082), and the casualty-care work still awaits a live test of
 the Lyra death-chain hooks documented in `Docs/evidence/casualty_lyra_hooks.md`.
 
-## Session 083 — 2026-09-30 — Wandarra dressed in design: awnings and gate doors queued behind a yaw-defect rebuild; vendor doors ruled scenery (ADR-041)
+## Session 084 — 2026-09-30 — Wandarra dressed in design: awnings and gate doors queued behind a yaw-defect rebuild; vendor doors ruled scenery (ADR-041)
 
 ### COMPLETED
 
@@ -7086,7 +7086,7 @@ sequence:
 Attend the editor once the current session closes it: re-run `build_wandarra_level.py` (applies
 the yaw fix and the 2.4 m gate gaps), run `dress_wandarra_awnings.py` for the R-90 dump, correct
 spec rows if the dump demands, then Build ▸ Build Paths, `build_wandarra_nav.py`,
-`layout_spawns.py` with `SS_MAPS=L_Wandarra_01`. Evidence to `Docs/evidence/session082-083/`.
+`layout_spawns.py` with `SS_MAPS=L_Wandarra_01`. Evidence to `Docs/evidence/wandarra_bake/`.
 
 ## Open Threads
 
