@@ -6946,6 +6946,60 @@ Attend the editor: open `L_Wandarra_01`, Build ▸ Build Paths, save (the R-82 a
 re-run `build_wandarra_nav.py` to verify the designed legs and run `layout_spawns.py` with
 `SS_MAPS=L_Wandarra_01`. Evidence to `Docs/evidence/session082/`.
 
+## Session 083 — 2026-09-30 — The callsign field verified live: Dingo 2-1 accepted, rejected in red, and on the scoreboard
+
+The Interface-tab field the cloud added in Session 080 and this shop compiled in Session 081 was exercised in the
+real front end, end to end, with captures at every step (`Docs/evidence/ui_session083/`, 1920x1080).
+
+**What was measured.** SETTINGS opens from the top bar; the INTERFACE tab activates; the CALLSIGN block renders
+(label, 300 px box with the Sand100 text and engine-default field, SET, rule line). Typing `Dingo 2-1` over a
+Ctrl+A selection and pressing SET turns the rule line **brass** — measured 855 pixels matching Brass300
+`D6C49D` (first sampled pixel exactly `(214,196,157)`) — with the "Callsign set to ..." text. Typing `x` and
+pressing SET turns it **red** — 758 pixels matching Opfor300 `C98A7C`, zero brass/sage contamination — the
+"Not accepted." reject. Re-setting the good name returns the brass accept. The game log carries the server-side
+receipt twice: `LogSSProgression: Service profile: Dingo 2-1 level 2.`
+(`Saved/Logs/SS_load_s081h.log:2224-2225`).
+
+**Scoreboard.** DEPLOY → `Browse: "/Game/Maps/L_RedGum_01?NumBots=8"` → spawned; holding Tab shows the local row
+highlighted at rank 2, named **Dingo 2-1**, ping 0 ms, between the bots (`06_scoreboard_dingo_2_1.png`). The
+Session 080 comment "shows on the scoreboard from the next match" is true, and the in-match ChangeName path
+(`SSServiceRelay::ServerReportProfile`) makes it immediate.
+
+**The six-item Interface page fits.** Measured text bands on the 1080p client: FRAME RATE COUNTER y≈359-373,
+DEVELOPER MESSAGES y≈417-431, CALLSIGN label y≈475-489, box row y≈512-553, rule line y≈570-584; BACK/APPLY at
+y≈787-843; panel bottom ≈880. Roughly 300 px of spare room below the rule line — no clipping, no scroll.
+
+### DEFECTS FOUND
+
+None in the callsign feature. Three environment notes, none actionable here: the engine's AI-toolset Python
+spams `AttributeError` at boot (engine-side, pre-existing); one D3D12 GPU device loss ended a match mid-session
+(`D3D12Util.TerminateOnGPUCrash`, crash dir `UECC-Windows-038C...` — the game was closed cleanly afterwards);
+automation clicks on tab labels only registered a few pixels below centre while every manual click worked, so
+the driver now finds live hit pixels by hover-scanning (capture-side quirk, recorded in `Saved/tmp`, not a
+product bug).
+
+### TESTING
+
+| Command | Exit | Result |
+| --- | --- | --- |
+| `python Saved/tmp/loadshots/csign/boot.py s081h` | 0 | Front end up, client 1920x1080 at (8,31) |
+| SETTINGS click, INTERFACE tab (hover-verified) | — | Underline moved to x 1082-1176; callsign block present |
+| Ctrl+A, `Dingo 2-1`, SET | — | Brass accept (855 px `D6C49D`); log line :2224 |
+| Ctrl+A, `x`, SET | — | Red reject (758 px `C98A7C`, 0 brass) |
+| Ctrl+A, `Dingo 2-1`, SET (restore) | — | Brass accept; log line :2225 |
+| DEPLOY → hold TAB in match | — | `Browse: "/Game/Maps/L_RedGum_01?NumBots=8"`; scoreboard shows Dingo 2-1 |
+
+### FILES
+
+- `Docs/evidence/ui_session083/01..06` — field, typed states, brass accept, red reject, scoreboard.
+- `Docs/CHANGELOG.md` — this entry. Capture drivers stay in gitignored `Saved/tmp/loadshots/csign/`.
+
+### NEXT ACTION
+
+The callsign feature is verified; the Session 080 handover's "watch" items are all closed. Remaining from the
+handover: Wandarra's attended nav bake (Session 082), and the casualty-care work still awaits a live test of
+the Lyra death-chain hooks documented in `Docs/evidence/casualty_lyra_hooks.md`.
+
 ## Open Threads
 
 | Item | Blocked on | Owner |
