@@ -1,4 +1,4 @@
-Session 072 - the hold is authored at run time from the weapon's sockets
+Session 074 - the hold is authored at run time from the weapon's sockets
 =================================================================================
 
 1. Does SM_A88 have a vertical foregrip?  NO.
@@ -20,10 +20,14 @@ Session 072 - the hold is authored at run time from the weapon's sockets
 
 2. The frame is built at RUN TIME, not carried through the FBX.
 
-   The socket-rotation route failed and was reverted: Blender's FBX exporter returns an
-   empty's rotation transposed, so SOCKET_LeftHandGrip's authored frame came back with the
-   thumb on (0,0,-1) while the bore at that socket is (0.874,0.388,0.291). Positions survive
-   the round trip exactly, so FSSHandIK::BuildGripHold builds the frame from those:
+   The socket-rotation route was reverted. Its authored frame came back in game with the thumb on
+   (0,0,-1) while the bore at that socket is (0.874,0.388,0.291). This file first blamed the FBX
+   exporter for transposing the empty's rotation; that was wrong. Session 073 (the parallel session)
+   read the matrix layout and found the transpose was OURS: adfrc_grip.hold_frame_rotation returns
+   rows whose columns are the hand axes, mathutils.Matrix() also takes rows, and the .transposed()
+   added in 520dc043 turned an already-correct rotation into its inverse. No rotation crosses the
+   export in this design, so the question is moot here - but the blame was wrong and is corrected.
+   Positions survive the round trip exactly, so FSSHandIK::BuildGripHold builds the frame from them:
        forward = muzzle - RightHandGrip
        up      = the weapon component's own up, orthogonalised against forward
        right   = up x forward            (UE satisfies F x R = U, so U x F = R)
