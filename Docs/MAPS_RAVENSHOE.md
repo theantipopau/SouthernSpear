@@ -206,38 +206,31 @@ setup_ravenshoe_surfaces.py
 dress_ravenshoe_groundcover.py
 light_ravenshoe.py
 wire_ravenshoe_experience.py
-build_ravenshoe_nav.py           (VERIFY headless; BUILD needs an editor - §7.1)
+expand_ravenshoe.py              (skirt, ground material, boundary, horizon, nav bounds, tile pool)
+fix_ravenshoe_starts.py          (LyraPlayerStart deployments; import places plain starts Lyra ignores)
+fix_ravenshoe_collision.py       (complex-as-simple on the three originals; terrain ground material)
+build_ravenshoe_nav.py           (build mode: asserts bounds+pool, one BUILDPATHS, LES save)
 audit_ravenshoe.py
 ```
 
 ## 7. Open items
 
-### 7.1 Navigation — the one launch blocker
+### 7.1 Navigation — corrected 2026-09-29
 
-`build_ravenshoe_nav.py` in **verify** mode, run headlessly, reports:
+Measured after the second round: the bounds volume is play-space correct (X ±130 m, Y ±180 m, Z −25..+40 m,
+asserted by both the expand and nav passes) and the RecastNavMesh `TilePoolSize` is 4096 (the play space
+needs ~1,285 tiles at TileSizeUU 1000; the actor carried the 1024 default, which capped the map's one
+interactive bake). What remains true is that **the bake itself must happen in the attended editor**:
+headless BUILDPATHS — commandlet, `-RenderOffscreen`, or the editor unattended — serialises ~8 KB of nav
+against Dry River's megabytes, and a freshly spawned cube gains no poly on either map after ten spaced
+builds (`Build/dr_cube.json`, `Build/raven_cube.json`). The async-loading ini flag earlier passes used
+(`bWaitForAsyncLoadingBeforeBuildingNavigationAutomatically=False`) makes the automatic load-time build
+run **early, on partial geometry**; it is not part of the fix. Details and the full evidence trail:
+`Docs/HANDOVER_RAVENSHOE.md` §0b and CHANGELOG Session 069 (R-69).
 
-```
-nav_baked              false
-objectives reachable   0/4
-creek bed navigable    false
-deck navigable         false
-```
-
-Everything the bake *needs* is already correct and verified: one `RecastNavMesh` present, one
-`NavMeshBoundsVolume` present with scale `[115, 165, 45]` cm, covering the 200 × 300 m map. **Only the
-build itself is missing.**
-
-It cannot be done headlessly. `BUILDPATHS` is a **no-op without a real rendering device** — it does
-not crash and does not warn, it silently leaves a navmesh covering nothing. Both workarounds were
-tried and both fail on this machine: `-nullrhi` has no RHI, and `-RenderOffscreen` still logs
-`rhiname="Null"` before crashing on exit. `Tools/Unreal/redgum_nav_build.py` documents the same
-constraint for Red Gum.
-
-**To bake:** open the editor with `/Game/Maps/L_Ravenshoe_01` loaded, and either press **Build ▸ Build
-Paths**, or run `build_ravenshoe_nav.py` in the Python console with `SS_RAVENSHOE_NAV_BUILD=1`. The
-map is already saved, so the bounds volume registers on load and the first pass will not be skipped.
-Then re-run the script in verify mode: it must report `nav_baked: true`, `4/4` routes, and both the
-deck and the creek bed navigable.
+**To bake:** open the editor with `/Game/Maps/L_Ravenshoe_01` loaded, **Build ▸ Build Paths**, save.
+Then re-run `build_ravenshoe_nav.py` in verify mode — it must report 32/32 routes — and a live `-game`
+run must log `Steered N idle bot(s)` with N > 0.
 
 **Map count.** This is a candidate **fifth** map. It is not a replacement for Dry River and does not
 supersede Red Gum; it is an addition to the §4.9 table as `M-008`.

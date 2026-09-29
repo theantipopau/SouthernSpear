@@ -55,6 +55,56 @@ None of this is committed. Ravenshoe files remain uncommitted per §8, plus the 
 
 ---
 
+## 0b. Second round — 2026-09-29: the world treatment landed, the nav truth, and the one thing only an attended editor can do
+
+Supersedes parts of §0–§3. Everything below is measured; logs under `Saved/Logs/SS_probe_rav*.log`,
+reports under `Build/`, evidence screenshot `Docs/evidence/ravenshoe/SSShot_ground_skirt_0854.png`.
+
+**Fixed and persisted (audit back to 35/35; it had silently slipped to 32/33):**
+
+- **White ground:** the terrain override had fallen back to the flat `MI_SS_Raven_Road`. Terrain and the
+  new outer skirt now carry the pack's `MI_Ground_Dirt_01` — `Tools/Unreal/expand_ravenshoe.py`, the
+  Dry River Session 041 treatment this map never inherited.
+- **Horizon band:** gone. A grid-seamed outer skirt (`Tools/Blender/ravenshoe_skirt.py` →
+  `SS_MAP_Ravenshoe_Skirt`, **0.0 m edge-height error** against the terrain grid, 55,862 verts), the
+  `SM_Horizon_01` ring at ~2.6 km, a VolumetricCloud, and four blocking volumes at terrain + 30 m.
+- **Nav infrastructure, finally correct:** bounds volume sized to the play space with read-back
+  correction (X ±130 m, Y ±180 m, Z −25..+40 m — covers every deployment, both ramp feet, bed and
+  crest), and `RecastNavMesh.TilePoolSize` **1024 → 4096**. The play space needs ~1,285 tiles at
+  TileSizeUU 1000; the "2448" figure in §0's history was the required count of the old oversized
+  volume, **never the pool** — the real pool was the 1024 default, which is what capped yesterday's bake.
+- **Pass fixes:** `build_ravenshoe_nav.py` no longer re-imposes 115/165/45 bounds on every run (which
+  had silently reverted the §0 bounds fix) and saves the way `build_dryriver_nav.py` does
+  (`LevelEditorSubsystem.save_current_level`). `audit_ravenshoe.py` now expects the 16 Lyra starts
+  (2 primaries + 14 extras) that `fix_ravenshoe_starts.py` legitimately leaves.
+- **Run order gains one pass:** import → dress_props → setup_surfaces → groundcover → light →
+  wire_experience → **expand_ravenshoe** → fix_starts → fix_collision → build_ravenshoe_nav (build mode).
+
+**Still broken, and now actually understood: bots cannot path because the map has never had a full
+nav bake, and no scripted path on this machine can produce one.**
+
+After every headless build (commandlet under `-nullrhi`, commandlet under `-RenderOffscreen`, and the
+full editor with a real RHI) the map serialises ~8 KB of nav against Dry River's megabytes; the only
+polys anywhere are ~12 persisted tiles around the ramp cuttings; and a freshly spawned cube gains
+none after ten spaced BUILDPATHS — on **either** map (`Build/dr_cube.json`, `Build/raven_cube.json`).
+The §0 #1 claim that "navigation can be baked headless" rode Dry River's *persisted* tiles from its
+one real interactive bake, and the ini flag that "fix" named
+(`bWaitForAsyncLoadingBeforeBuildingNavigationAutomatically=False`) makes the automatic load-time
+build run **early — before async loading completes — on partial geometry**. It was part of the fault,
+not the fix. `bForceRebuildOnLoad=True` was set and persisted on the Recast actor and does not fire
+in game worlds either. What remains is exactly what §2 prescribes — **Build ▸ Build Paths in the
+attended editor** — and it can now actually succeed, because the pool no longer caps the bake. After
+it: the verify run must print `True 32 / 32`, and a live game must log `Steered N idle bot(s)` with
+N > 0.
+
+**New packs on disk** (inventoried and registered in CHANGELOG Session 068 / `MAPS_TRAININGRANGE.md`,
+both git-ignored as of today): `Content/MOUT_Civilian/` — 504 assets, authored UE 4.26 (R-67), no
+metadata sidecar (R-68), Middle-East vernacular: an ADR-016 look check is required before any use on
+an Australian map. `Content/RustyCarsFree/` — 56 assets of rusty car shells and ivy: the natural
+replacement for the L-0016c AI-flagged wreck set on this map's deck and bed.
+
+---
+
 ## 1. State in one paragraph
 
 `/Game/Maps/L_Ravenshoe_01` is **complete and verified at 665 actors with 35/35 audit checks
