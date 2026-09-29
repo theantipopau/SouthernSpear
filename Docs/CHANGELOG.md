@@ -6434,6 +6434,59 @@ Private/SSHandIKMeshComponent.cpp, Private/SSHandIKProbeSubsystem.cpp, Private/T
 `Art/Weapons/A88/ADFRC/SM_A88.fbx` (rebuilt, position-only sockets again), deleted
 `Tools/Unreal/probe_weapon_socket.py`, evidence `Docs/evidence/handik_hold/SS_hold_frame.txt`.
 
+---
+
+## Session 075 — 2026-09-29 — Casualty care, step 1: the rules, and every asset usable whatever its AI flag
+
+### COMPLETED
+
+- **ADR-040 accepted** by the producer, with its build order: rules, then component and kit, then the bridge, then the HUD.
+- **`isAiForbidden` overruled for every asset (L-0016d, producer).** Recorded in the licence register, CLAUDE.md's content
+  rules and ADR-040. The flag is still recorded at import time; it no longer holds anything back. The Fab IFAK is now
+  `PLANNED` as the medic's kit.
+- **New module `SouthernSpearCasualty`** (Core only), enabled in the `.uproject`. Step 1 is its rules:
+  `Public/SSCasualtyRules.h`, engine-free like `SSInsigniaRaster.h`. It covers hit zones and bleeding, the downed state and
+  bleed-out, being finished, every treatment row in ADR-040 (who may do it, how long, the outcome), dressings, the medic's
+  kit (charges, lifetime, carry limits) and `Tick`, which never raises health.
+- **One set of checks, run twice.** `Private/Tests/SSCasualtyRuleChecks.h` runs in the automation suite
+  (`SouthernSpear.Casualty.Rules`) and outside Unreal (`Tools/Casualty/check_casualty_rules.py`, g++ with `-Wall -Wextra -Werror`).
+
+### FILES CHANGED
+
+New: `Plugins/SouthernSpearCasualty/` (`.uplugin`, `Build.cs`, `SSCasualtyModule.cpp`, `Public/SSCasualtyRules.h`,
+`Private/Tests/SSCasualtyRuleChecks.h`, `Private/Tests/SSCasualtyTests.cpp`), `Tools/Casualty/check_casualty_rules.py`.
+Modified: `SouthernSpear.uproject`, `CLAUDE.md`, `Docs/DECISION_LOG.md` (ADR-040 accepted), `Docs/LICENCE_REGISTER.md`
+(L-0016d), `Docs/ASSET_REGISTER.md` (IFAK row), `Docs/CHANGELOG.md`.
+
+### TESTING
+
+- `python Tools/Casualty/check_casualty_rules.py` → exit 0, "53 checks, 0 failure(s)".
+- Mutation check (scratch copy, four separate mutations; each caught): head hits never kill → 2 failures; `Tick` regenerates
+  → 3; self-dressing faster than a teammate's → 2; kit treatment costs no charge → 1.
+- `python Tools/validate_architecture.py` → exit 0 (the new module passes SS001/SS002/SS005).
+- `python Tools/check_unity_names.py` → exit 1, but the same on `main` without this change: two shadows in
+  `SSHandIKProbeSubsystem.cpp` (`GHaveBodyFrame`, `GBodyFrameInWeapon`) from 520dc043. Not this change's; see DEFECTS.
+- NOT RUN: the editor build and `SouthernSpear.Casualty.Rules` in the automation suite (producer's machine).
+
+### ASSETS
+
+None imported.
+
+### RISKS
+
+- R-89: until the bridge wires it (step 3), the rules are inert in play. Lyra's own death still applies.
+
+### DEFECTS FOUND
+
+- `check_unity_names.py` fails on `main` in `SSHandIKProbeSubsystem.cpp` (found by running the guard before committing).
+  The parallel session's unpushed 024b9f0d rewrites that file, so it is left to that merge.
+
+### NEXT ACTION
+
+Build the editor and run `SouthernSpear.Casualty.Rules` (expect 1 more test, and all to pass with `-NoLoadingScreen`). Then step 2:
+`USSCasualtySettings` (the `FTuning` numbers in `DefaultGame.ini`), the replicated `USSCasualtyComponent`, and `ASSMedicalKit`.
+
+---
 
 ## Open Threads
 

@@ -1,0 +1,31 @@
+{
+	"FileVersion": 3,
+	"Version": 1,
+	"VersionName": "0.1",
+	"FriendlyName": "Southern Spear Casualty",
+	"Description": "Casualty care (ADR-040): location-sensitive wounds, bleeding, the downed state, treatment by self, teammate and medic, and the medic's kit. Depends on SouthernSpearCore only; no Lyra dependency.",
+	"Category": "Gameplay",
+	"CreatedBy": "Southern Spear",
+	"CreatedByURL": "",
+	"DocsURL": "",
+	"MarketplaceURL": "",
+	"SupportURL": "",
+	"EnabledByDefault": true,
+	"CanContainContent": false,
+	"IsBetaVersion": false,
+	"IsExperimentalVersion": false,
+	"Installed": false,
+	"Modules": [
+		{
+			"Name": "SouthernSpearCasualty",
+			"Type": "Runtime",
+			"LoadingPhase": "Default"
+		}
+	],
+	"Plugins": [
+		{
+			"Name": "SouthernSpearCore",
+			"Enabled": true
+		}
+	]
+}

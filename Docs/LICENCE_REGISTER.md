@@ -437,6 +437,13 @@ Department of Defence, the Australian Defence Force or the Australian Army.
 | **Mitigation applied** | Every affected asset was **prepped in Blender** (`Tools/Blender/prep_fab_props.py`) — rescaled, ground plane removed, re-pivoted and decimated — before import, and is referenced by path. The project holds a working copy, not a link to the seller's listing, so a takedown or a licence change on the Fab side does not silently break the map. The producer's own originals (`SS_RedGum_Windmill`, `SS_Dressing_Barrel`) remain in the project and cover the same dressing needs without the flag; they were not displaced because the producer chose the pack assets |
 | **Standing action** | Any future Fab import must read the `metadata` sidecar **recursively** and record the `isAiForbidden` value in this register at import time, including when it is `true` and including when the file is **absent** — an absent sidecar is recorded as *unverified*, never as *clear* |
 
+### L-0016d — `isAiForbidden` overruled for every asset (producer, 2026-09-29)
+
+| Field | Value |
+|---|---|
+| **Producer's decision** | **Every asset the project holds may be used, whatever its `isAiForbidden` flag** — true, false or unverified. This extends L-0016c from the four Ravenshoe props to all present and future assets, so no asset is held back or swapped for a placeholder on account of the flag. First application: the Fab *Individual First Aid Medical Kit (IFAK)* as the medic's kit (ADR-040) |
+| **What stays** | The bookkeeping: record the flag's value at import time (L-0016c's standing action), so the credits and any later audit can see it. L-0016c's residual-risk statement applies to every flagged asset, not just the four it named |
+
 ### L-0017 — A88 textured model (producer-supplied download)
 
 | Field | Value |
