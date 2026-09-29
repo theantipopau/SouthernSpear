@@ -212,19 +212,46 @@ which currently says "Healing is not in the game yet."
 
 ## 5. Paste-ready prompts for local agents
 
-**A. Build and verify what the cloud pushed (Sessions 075–076):**
+**A. Build and verify what the cloud pushed (Sessions 075–077) — the full version, sent 2026-09-29:**
 ```text
-Pull main. Then:
-1. python Tools/check_unity_names.py: it fails on SSHandIKProbeSubsystem.cpp (locals GHaveBodyFrame and
-   GBodyFrameInWeapon shadow file-scope names, C4459). Rename the locals and re-run; expect exit 0.
-2. Build the editor. The new plugins/files (SouthernSpearCasualty, SSOperations.h, the loading screen) should compile
-   with no warnings.
-3. Full automation suite with -NoLoadingScreen. Expect one more test than before (SouthernSpear.Casualty.Rules), all
-   passing. Also run python Tools/Casualty/check_casualty_rules.py (needs g++ or clang on PATH; say if there's none).
-4. From the front end, deploy to Red Gum Station once with OBJECTIVE ASSAULT and once with SECTION ASSAULT. Capture the
-   loading screen each time (the load is short: a High Resolution Screenshot during it, or slow the load).
-   Also capture the front end at 1920x1080: the RULES row must be fully visible above the disclaimer.
-Commit only what you change with git commit --only, plus a changelog entry.
+Pull main (04fa827e or later). You are verifying code that was written WITHOUT a compiler or Unreal, so expect
+small first-build errors (a missing include, a signature). Fix compile errors in the cloud's files minimally and
+say exactly what you changed. Do not redesign anything. Do not touch animation, hand-IK or weapon files except
+step 1 below, and only when the animation work is committed or you have asked the animation agent first.
+
+Report format: for each step, the command, the exit code, the observed result, and the evidence path. Never write
+PASS for something you did not execute.
+
+1. python Tools/check_unity_names.py fails on SSHandIKProbeSubsystem.cpp (locals GHaveBodyFrame and
+   GBodyFrameInWeapon shadow file-scope names; C4459 is an error on MSVC). Rename the locals. If someone is editing
+   that file now, do this LAST and tell me. Expect exit 0 afterwards.
+2. python Tools/validate_architecture.py and python Tools/Casualty/check_casualty_rules.py (needs g++ or clang on
+   PATH; if there is none, say so and skip). Expect exit 0 and "53 checks, 0 failure(s)".
+3. Build SouthernSpearEditor. New code to watch: Plugins/SouthernSpearCasualty (new plugin, enabled in the
+   .uproject), SouthernSpearUI (SSOperations.h, SSLoadingScreenWidget, SSMenuWidget). Zero warnings expected;
+   paste any.
+4. Full automation suite WITH -NoLoadingScreen. Expect the previous total plus 4 tests:
+   SouthernSpear.Casualty.Rules, .Settings, .Component, .Kit. Paste the Result= line for each of the four, and any
+   failure's log lines. If Component or Kit fail, check the test fixture first (FBareWorld in
+   SSCasualtyRuntimeTests.cpp builds a world by hand and ticks components manually), and report whether
+   HasAuthority() was true before changing the rules.
+   Settings: if it fails on the bone lists, the DefaultGame.ini [/Script/SouthernSpearCasualty.SSCasualtySettings]
+   section did not import: report the "import failed" line.
+5. Front end at 1920x1080: capture it (-SSShotAt or your usual method). The RULES row and its buttons must be fully
+   visible above the disclaimer, and the five map cards must be three across (3 + 2).
+6. Loading screens: run Tools/Unreal/setup_ui.py with SS_UI_LOADING_ONLY=1 (imports Docs/images/loadingscreens/
+   dryriver.png as T_SS_Load_DryRiver; the other four keys report "no file yet"). Then deploy to Dry River from the
+   front end once with OBJECTIVE ASSAULT and once with SECTION ASSAULT and capture the loading screen each time (a
+   High Resolution Screenshot during the load, or hold the load open). Also deploy to Red Gum once (no art yet: it
+   must show the key art with the map's text, not crash or go black). Check each screen shows: "LOADING OPERATION",
+   the map name, its objectives/terrain line, its description, the rule set name and summary, and a tip. Report
+   anything clipped, overlapping or unreadable.
+7. Save captures under Docs/evidence/ui_session077/ and write a changelog session entry.
+
+Git: only one agent writes git. Commit only your own paths with git commit --only -- <paths>. New LFS objects (the
+imported texture is not in git, but captures are PNGs) need "git lfs push origin main" before
+"GIT_LFS_SKIP_PUSH=1 git push". git fetch first: the cloud pushes to main too, and changelog conflicts are
+resolved by keeping both entries in order.
 ```
 
 **B. R-86, the left-hand position:**
