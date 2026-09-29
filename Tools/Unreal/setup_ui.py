@@ -6,7 +6,7 @@
 #    ASSFrontEndGameMode (the title menu). Config/DefaultEngine.ini boots into it.
 # 3. Drops Lyra's LAS_ShooterGame_StandardHUD from B_SS_ObjectiveAssault: the
 #    Southern Spear HUD (SouthernSpearUI + SouthernSpearObjectivesUI) replaces it.
-# 4. Imports each operation's loading art, Docs/images/loading/<ArtKey>.png (or .jpg), as
+# 4. Imports each operation's loading art, Docs/images/loadingscreens/<artkey>.png (or .jpg, any case), as
 #    /SouthernSpearUI/Textures/T_SS_Load_<ArtKey>. The keys are read from SSOperations.h, the one list the
 #    front end and the loading screen share; an operation without a file keeps the key art.
 #    SS_UI_LOADING_ONLY=1 runs this step alone (the others rebuild the front-end map).
@@ -58,7 +58,7 @@ def import_key_art(source=None, name="T_SS_KeyArt"):
 
 
 OPERATIONS_H = os.path.join(PROJECT_DIR, "Plugins", "SouthernSpearUI", "Source", "SouthernSpearUI", "Private", "SSOperations.h")
-LOADING_DIR = os.path.join(PROJECT_DIR, "Docs", "images", "loading")
+LOADING_DIR = os.path.join(PROJECT_DIR, "Docs", "images", "loadingscreens")
 
 
 def operation_art_keys():
@@ -70,9 +70,11 @@ def operation_art_keys():
 def import_loading_art():
     keys = operation_art_keys()
     step("loading_art_keys", len(keys) > 0, keys)
+    # File names are matched case-insensitively: the producer's file is dryriver.png for the key DryRiver.
+    present = {name.lower(): name for name in os.listdir(LOADING_DIR)} if os.path.isdir(LOADING_DIR) else {}
     for key in keys:
-        source = next((os.path.join(LOADING_DIR, key + ext) for ext in (".png", ".jpg", ".jpeg")
-                       if os.path.isfile(os.path.join(LOADING_DIR, key + ext))), None)
+        found = next((present[key.lower() + ext] for ext in (".png", ".jpg", ".jpeg") if key.lower() + ext in present), None)
+        source = os.path.join(LOADING_DIR, found) if found else None
         if source:
             import_key_art(source, "T_SS_Load_" + key)
         else:

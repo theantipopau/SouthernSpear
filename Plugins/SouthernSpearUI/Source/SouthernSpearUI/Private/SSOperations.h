@@ -8,7 +8,7 @@
 /**
  * The operations the front end offers and the loading screen names: one list, so a map is added in one
  * place. The loading art for an operation is /SouthernSpearUI/Textures/T_SS_Load_<ArtKey>, imported by
- * Tools/Unreal/setup_ui.py from Docs/images/loading/<ArtKey>.png when that file exists; without it the
+ * Tools/Unreal/setup_ui.py from Docs/images/loadingscreens/<ArtKey>.png (any case) when that file exists; without it the
  * loading screen shows the key art.
  */
 namespace SSOperations

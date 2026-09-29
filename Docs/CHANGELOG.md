@@ -6504,7 +6504,7 @@ Build the editor and run `SouthernSpear.Casualty.Rules` (expect 1 more test, and
   - otherwise the engine's `TravelURL`/`LastURL`, where `Rules=Section` selects the rules.
 - **One operation list.** `Private/SSOperations.h` holds the maps, art keys, titles, descriptions and meta lines. The
   front-end cards, their handlers, the loading screen and `setup_ui.py` all read it.
-- **Drone shots drop in without code.** Place `Docs/images/loading/<Key>.png` (keys listed in its README), then run
+- **Drone shots drop in without code.** Place `Docs/images/loadingscreens/<Key>.png` (keys listed in its README), then run
   `setup_ui.py` with `SS_UI_LOADING_ONLY=1`.
 - **Front end fits at 1080p.** The operation grid is 3 columns (was 2). In the producer's screenshot the RULES row sat
   under the disclaimer and its buttons were cut off. Cards are 6 px taller so a three-line description no longer
@@ -6513,7 +6513,7 @@ Build the editor and run `SouthernSpear.Casualty.Rules` (expect 1 more test, and
 
 ### FILES CHANGED
 
-New: `Plugins/SouthernSpearUI/Source/SouthernSpearUI/Private/SSOperations.h`, `Docs/images/loading/README.md`.
+New: `Plugins/SouthernSpearUI/Source/SouthernSpearUI/Private/SSOperations.h`, `Docs/images/loadingscreens/README.md`.
 Modified: `SSLoadingScreenWidget.h/.cpp`, `SSMenuWidget.h/.cpp`, `SSScoreboardWidget.cpp`, `SSUIAssets.h`,
 `Tools/Unreal/setup_ui.py`, `Docs/CHANGELOG.md`.
 
@@ -6545,6 +6545,60 @@ None new.
 
 Build the editor. Deploy to Red Gum from the front end once with each rule set, and screenshot the loading screen
 (`-SSShotAt` is too late for a load; use the editor's High Resolution Screenshot during the load, or a paused run).
+
+---
+
+## Session 077 — 2026-09-29 — Casualty care, step 2: settings, component and kit; loading art path
+
+### COMPLETED
+
+- **Loading art path corrected** to `Docs/images/loadingscreens/` (the producer's folder; `dryriver.png` is already there).
+  `setup_ui.py` now matches file names to art keys **case-insensitively**, so `dryriver.png` is the DryRiver art.
+- **Casualty step 2 (ADR-040), written blind, not compiled:**
+  - `USSCasualtySettings`: every `FTuning` number, plus the treat range, the kit mesh, `bEveryoneIsMedic`, and the bone-name
+    lists behind `ZoneForBone`. The values are in `Config/DefaultGame.ini`.
+  - `USSCasualtyComponent`: replicated state, bleed, bleed-out, dressings and treatment progress. Server-only entry points
+    for hits, treatments, kit dressings and reset. `OnTransition` (Downed/Died) is for the bridge. Damage cancels treatment
+    both ways, and the patient has to stay in range.
+  - `ASSMedicalKit`: replicated charges and age, self-destroying when spent or old, mesh loaded from settings.
+  - Health only rises inside `FinishTreatment`, through the rules' `Complete`.
+- **Tests added:** `SouthernSpear.Casualty.Settings` (the ini really imported: empty bone lists mean it failed; zones for
+  Manny's bone names), `.Component` (hit, self-dressing, no regeneration over 60 s, stabilise, finish, cancel), `.Kit`
+  (range, no passive heal, dressing, kit self-treat, charges).
+
+### FILES CHANGED
+
+New: `Public/SSCasualtySettings.h`, `SSCasualtyComponent.h`, `SSMedicalKit.h`; `Private/SSCasualtySettings.cpp`,
+`SSCasualtyComponent.cpp`, `SSMedicalKit.cpp`, `Private/Tests/SSCasualtyRuntimeTests.cpp` (all under
+`Plugins/SouthernSpearCasualty/Source/SouthernSpearCasualty/`).
+Modified: `SouthernSpearCasualty.Build.cs` (DeveloperSettings), `Config/DefaultGame.ini`, `Tools/Unreal/setup_ui.py`,
+`SSOperations.h`/`SSUIAssets.h` comments, `Docs/images/loadingscreens/README.md` (moved), the handover and CLAUDE.md.
+
+### TESTING
+
+- `python Tools/Casualty/check_casualty_rules.py` → exit 0, 53 checks, 0 failures (the rules are unchanged).
+- `python Tools/validate_architecture.py` → exit 0. `python Tools/check_unity_names.py` → the same two pre-existing shadows in
+  `SSHandIKProbeSubsystem.cpp`; nothing from this change.
+- NOT RUN: the editor build. **None of this C++ has been compiled.** Expect a first-build fix or two (an include, a signature).
+  The three runtime tests have never run.
+
+### ASSETS
+
+None. The kit mesh is the engine cube until the Fab IFAK is imported.
+
+### RISKS
+
+- R-90: step 2 has not been compiled. The runtime tests build a bare world by hand and tick components manually; if the
+  first run shows `HasAuthority()` false or components not registering, fix the fixture before suspecting the rules.
+
+### DEFECTS FOUND
+
+None new.
+
+### NEXT ACTION
+
+Build, and run `SouthernSpear.Casualty.*` (expect 4 tests). Then step 3: read Lyra's health and death code (prompt C in
+`Docs/HANDOVER_CLAUDE_CLOUD.md`) before writing any bridge code.
 
 ---
 

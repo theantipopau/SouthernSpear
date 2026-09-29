@@ -24,6 +24,7 @@ public class SouthernSpearCasualty : ModuleRules
 				"Core",
 				"CoreUObject",
 				"Engine",
+				"DeveloperSettings",
 				"SouthernSpearCore",
 			}
 		);

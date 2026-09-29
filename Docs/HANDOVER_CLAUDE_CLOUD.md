@@ -45,7 +45,7 @@ Agents over-claim. Check their numbers against the code, and ask for measurement
 
 | Area | State | Next |
 |---|---|---|
-| Casualty care (ADR-040) | **Step 1 done:** module `SouthernSpearCasualty`, rules in `SSCasualtyRules.h`, 53 checks passing in g++, mutation-tested. Not yet built in Unreal | Build and test; then step 2 (§3.2) |
+| Casualty care (ADR-040) | **Steps 1 and 2 written:** rules (53 checks in g++, mutation-tested), then settings, replicated component and kit (Session 077). **Step 2 has never been compiled** | Build and run `SouthernSpear.Casualty.*` (4 tests); then step 3 (§3.2) |
 | Loading screens / front end | **Done in code, not built:** per-operation loading screen, one operation list, 3-column front end, "KILLS" label | Build, capture a load (§3.3) |
 | Hand IK (W2) | Works in game: the wrist is on the socket, and the hold is built at runtime from the weapon's sockets plus `GripPalmTiltDeg`. Fingers wrap | R-86 socket position (§3.4) |
 | Reload (W5) | Tooling exists; **Arma's AUG reload clips decode to impossible poses**; the magazine is welded into the mesh | An authored path, after R-86 (§3.5) |
@@ -76,7 +76,7 @@ Design: `Docs/DECISION_LOG.md` ADR-040. Rules: `Plugins/SouthernSpearCasualty/So
 `SouthernSpear.Casualty.Rules` and `python Tools/Casualty/check_casualty_rules.py`. **Add every new rule check there,
 not in the UE test**, so it stays provable from the cloud.
 
-**Step 2 (module side, no Lyra):**
+**Step 2 (module side, no Lyra) — WRITTEN in Session 077, uncompiled.** The list below is what it was; kept as the spec to check the code against:
 - `USSCasualtySettings` (`UDeveloperSettings`, config `Game`, section `/Script/SouthernSpearCasualty.SSCasualtySettings`):
   one `UPROPERTY(Config)` per `FTuning` field, and `ToTuning()`. Add `DeveloperSettings` to the Build.cs.
   **Warning (Session 074):** an ini array written in the wrong struct syntax "imports" as empty, silently. Read a
@@ -114,8 +114,8 @@ which currently says "Healing is not in the game yet."
 
 - Loading screen: `SSLoadingScreenWidget.cpp`; the destination comes from `USSMenuWidget::PendingMap()`, else the engine's
   travel URL.
-- **Map art:** the producer will supply drone shots. Put them at `Docs/images/loading/<Key>.png` (keys: RedGum,
-  DryRiver, Saltbush, SelatCanal, Bluestone). Then `SS_UI_LOADING_ONLY=1` with `-ExecutePythonScript=.../setup_ui.py`.
+- **Map art:** the producer supplies drone shots in `Docs/images/loadingscreens/` (`dryriver.png` is already there; any letter
+  case matches, keys: RedGum, DryRiver, Saltbush, SelatCanal, Bluestone). Then `SS_UI_LOADING_ONLY=1` with `-ExecutePythonScript=.../setup_ui.py`.
   The same shots could later replace the front-end background per selected card (not done).
 - **Operations list:** `Private/SSOperations.h` is the single list. Adding a map means adding it there **and** a handler in
   `SSMenuWidget` (the `ensure` catches a mismatch). Ravenshoe is not on the front end, deliberately, until its nav is baked.

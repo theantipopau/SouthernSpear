@@ -1,6 +1,6 @@
 # Loading-screen art, one image per operation
 
-Drop an image here named for the operation's art key, then run `Tools/Unreal/setup_ui.py` with
+Drop an image here named for the operation's art key (any letter case: `dryriver.png` is fine for DryRiver), then run `Tools/Unreal/setup_ui.py` with
 `SS_UI_LOADING_ONLY=1`. It is imported as `/SouthernSpearUI/Textures/T_SS_Load_<key>`, and the loading
 screen shows it whenever that map loads. An operation without an image shows the key art.
 

@@ -22,7 +22,7 @@ namespace SSUIAssets
 
 	/**
 	 * An operation's loading art, /SouthernSpearUI/Textures/T_SS_Load_<Key> (setup_ui.py imports
-	 * Docs/images/loading/<Key>.png). Null, quietly, when there is none yet: the caller shows the key art.
+	 * Docs/images/loadingscreens/<Key>.png). Null, quietly, when there is none yet: the caller shows the key art.
 	 */
 	inline UTexture2D* OperationArt(const TCHAR* Key)
 	{
