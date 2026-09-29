@@ -1,0 +1,26 @@
+{
+ "ok": false,
+ "steps": [
+  {
+   "step": "load_map",
+   "ok": true,
+   "detail": "/Game/Maps/L_Wandarra_01"
+  },
+  {
+   "step": "navmesh_present",
+   "ok": false,
+   "detail": "headless bake produced no navmesh; attended bake required"
+  }
+ ],
+ "errors": [],
+ "nav_coverage": {
+  "grid_points": 3721,
+  "projected": 0,
+  "pct": 0.0
+ },
+ "nav_baked": false,
+ "notes": [
+  "navmesh empty: BUILDPATHS is a no-op under -nullrhi (R-82).",
+  "open L_Wandarra_01 in the editor, Build - Build Paths, save, then re-run this pass."
+ ]
+}

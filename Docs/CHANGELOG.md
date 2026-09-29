@@ -6851,6 +6851,101 @@ In game, Settings > INTERFACE: capture the CALLSIGN field; type `Dingo 2-1`, pre
 text; boot a match and read the scoreboard name; try `x` and require the rule text in red. Evidence to
 `Docs/evidence/ui_session081/`.
 
+## Session 082 — 2026-09-30 — Wandarra (M-009): the MOUT village built from three packs, nav bake pending
+
+### COMPLETED
+
+The producer's 2026-09-29 decision — one big map from the MOUT kit and the other installed-but-unused
+packs — is now built. `L_Wandarra_01` exists (1,050,985 bytes), laid out by a new single-source spec
+and placed by a new Dry River-pattern pipeline:
+
+- **`Tools/Common/wandarra_spec.py`** — pure-Python layout spec (no unreal): 300 × 300 m site,
+  two crossing streets (7 m + 1.5 m footpaths), 11 building rows, church assembly, 35 furniture
+  rows, 5 fence runs with gate gaps, 10 cars, 6 tree rows, two deployments, three objectives,
+  PROTECTED zones and `run_clears_protected` (corner + Liang–Barsky interior check — the corner-only
+  version first written let a segment pass through a zone interior untouched, caught by unit check
+  before any editor run).
+- **`Tools/Unreal/build_wandarra_level.py`** — level pass. `LevelEditorSubsystem.new_level` (the
+  proven call), ground slab under `MI_SS_WorldGround_Wandarra` (Ravenshoe gravel on
+  `M_SS_WorldGroundVT`, world-mapped 3 m tile), 11 vendor building Blueprints, 17 ChurchKit parts
+  (nave walls/windows/roof, west tower + cross, east door — the vendor set has no church), 168 fence
+  segments, 35 props, 10 RustyCars wrecks, 38 EuropeanBeech SimpleWind trees (seeded jitter), two
+  tagged deployments (TeamOne depot NW, TeamTwo green SE), three sequential objectives with 900 cm
+  discs, director, NavMeshBoundsVolume (75/75/15 — the ×4 reload factor from R-10 pre-accounted),
+  RecastNavMesh saved into the map, WorldSettings experience set, light_dryriver lighting rig.
+- **`Tools/Unreal/build_wandarra_nav.py`** — nav pass that verifies the *designed*
+  Depot→A→B→C→Green chain and repairs only what cannot walk it (the spec is the layout authority,
+  not a computed path). BUILDPATHS ×1 per run (a second issue access-violates on this machine).
+- **`Tools/Unreal/light_wandarra.py`** — idempotent `SS_Light_*` re-light pass, as `light_dryriver.py`.
+- **Name**: Wandarra — invented locality, "place of the crow", same bird-name convention as
+  Ravenshoe. No real locality is reproduced; `MAPS_TRAININGRANGE.md` §6's three blockers (author,
+  name, layout) are all resolved, so **M-009 opened**.
+- **Register/audit/licence updates**: `ASSET_REGISTER.md` M-009 row; MOUT kit and RustyCars rows
+  `CANDIDATE`/`NOT_USED` → `IN_USE`; new EuropeanBeech row (§4.9k); M-006 note updated (village
+  committed beside it, range question stays the producer's). `LICENCE_REGISTER.md`: MOUT row in
+  use, RustyCars row in use, new beech row — all three recorded with the L-0016c unverified
+  posture (neither Vault pack wrote a `metadata` sidecar; the beech chunk carries a manifest only).
+  `PROJECT_AUDIT.md`: R-67 first-load half measured, new **R-89** (ADR-016 look check deferred,
+  not passed) and **R-90** (vendor building footprints unmeasured against the 1 m spec grid).
+- **`.gitignore`**: `Content/EuropeanBeech/` added — the 7 GB pack was installed but unignored
+  (would have been committable; ADR-021/R-14 class defect caught on session-open status).
+
+### FILES CHANGED
+
+- `Tools/Common/wandarra_spec.py`, `Tools/Unreal/build_wandarra_level.py`,
+  `Tools/Unreal/build_wandarra_nav.py`, `Tools/Unreal/light_wandarra.py` — new (Class F original).
+- `Content/Maps/L_Wandarra_01.umap`, `Content/Art/Environment/Fab/MI_SS_WorldGround_Wandarra.uasset`
+  — new build products (LFS).
+- `Docs/MAPS_WANDARRA.md`, `Docs/evidence/S082_wandarra_level_report.json`,
+  `Docs/evidence/S082_wandarra_nav_report.json` — new.
+- `Docs/ASSET_REGISTER.md`, `Docs/LICENCE_REGISTER.md`, `Docs/PROJECT_AUDIT.md`, `Docs/CHANGELOG.md`,
+  `.gitignore` — modified.
+- `Content/MOUT_Civilian/`, `Content/RustyCarsFree/`, `Content/EuropeanBeech/` — raw packs, git-ignored,
+  referenced in place (ADR-021).
+
+### TESTING
+
+| # | Command | Exit | Result |
+|---|---|---|---|
+| 1 | `python -m py_compile Tools/Common/wandarra_spec.py Tools/Unreal/build_wandarra_*.py Tools/Unreal/light_wandarra.py` | 0 | all four compile |
+| 2 | spec unit checks (`seg_point_distance`, protected-zone blocking, street clearance) | 0 | 3/3 pass after the Liang–Barsky fix |
+| 3 | `UnrealEditor-Cmd … -ExecutePythonScript=…build_wandarra_level.py` (`Saved/Logs/SS_wandarra_level.log`) | 0 | report `ok: true`, 12/12 steps, **0 missing assets, 0 Python errors, 0 fatals** (`Docs/evidence/S082_wandarra_level_report.json`) |
+| 4 | `UnrealEditor-Cmd … -ExecutePythonScript=…build_wandarra_nav.py` | 0 | **expected fail recorded honestly**: 0/3721 grid points on navmesh — headless BUILDPATHS is a no-op under -nullrhi (R-82) (`Docs/evidence/S082_wandarra_nav_report.json`) |
+| 5 | `layout_spawns.py`, `audit_map_playability.py`, bot match | — | **NOT RUN** — all three need the navmesh bake |
+
+### ASSETS
+
+- Created: `L_Wandarra_01` (map), `MI_SS_WorldGround_Wandarra` (material instance).
+- Referenced in place, unmodified: MOUT kit (4.26 → first 5.8 load **silent**, R-67 evidence),
+  RustyCars `SM_asset_00–04`, EuropeanBeech SimpleWind statics (5.1 native).
+- Licence rows updated as above; both Vault packs remain seller/AI-flag **unverified** (L-0016c).
+- Excluded by rule: MOUT `Demo/` character and weapon (ADR-020), Flag skeletal mesh, AwningKit
+  Blueprints, beech PivotPainter/WIG variants, ivy meshes.
+
+### RISKS
+
+- **R-89** (new): Wandarra's ADR-016 look check deferred, not passed — nothing has eyeballed the
+  built map.
+- **R-90** (new): vendor building footprints unmeasured against the spec's 1 m grid; a building may
+  overlap a footpath or fence until bounds are dumped.
+- R-67 updated: first 5.8 load of the 4.26 kit measured silent; render-cost half still open — and
+  the map now *depends* on the kit, so an upconversion failure is no longer free.
+- R-82 unchanged: the attended bake is the only way this map gets a navmesh.
+
+### DEFECTS FOUND
+
+- The spec's first `run_clears_protected` checked zone corners and endpoints only; a segment could
+  pass through a zone interior without touching a corner. Found by the pre-editor unit check
+  (through-objective-B test returned False-blocked incorrectly); fixed with Liang–Barsky.
+- `Content/EuropeanBeech/` was installed without a `.gitignore` row — 7 GB of raw pack sat untracked
+  but committable. Found on session-open `git status`; fixed in this change.
+
+### NEXT ACTION
+
+Attend the editor: open `L_Wandarra_01`, Build ▸ Build Paths, save (the R-82 attended bake), then
+re-run `build_wandarra_nav.py` to verify the designed legs and run `layout_spawns.py` with
+`SS_MAPS=L_Wandarra_01`. Evidence to `Docs/evidence/session082/`.
+
 ## Open Threads
 
 | Item | Blocked on | Owner |

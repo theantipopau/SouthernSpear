@@ -208,9 +208,10 @@ All maps `PLACEHOLDER` unless marked. **Greybox only in Phase 1.** No final maps
 | M-003 | **Selat Canal** — urban canal district: walkable canal core, buildings and interiors | Objective Assault (three objectives), Day | `PLACEHOLDER` — **built, in production** | The only Special Forces map. Best close-quarters geometry measured in the project (2 m open crossings) and the worst objective placement: all three objectives 42–75% walk-imbalanced. `MAPS_PLAYABILITY_AUDIT.md` scores 5 pass / 5 fail. `Docs/MAPS_SELATCANAL.md` |
 | M-004 | **Saltbush** — open semi-arid range, built to test engagement ranges past 200 m | Objective Assault, Secure and Hold, Day, Low-light | `PLACEHOLDER` — **built, in production** | Deployment and objective layout rebuilt for fairness; has produced a capture in a bot match. Measured at 7 pass / 3 fail by `MAPS_PLAYABILITY_AUDIT.md` — the strongest of the four audited maps. `Docs/MAPS_SALTBUSH.md` |
 | M-005 | **Bluestone** — flooded slate pit converted from a studio diorama: loading bay, cutting face, spoil heaps | Objective Assault, Day | `PLACEHOLDER` — **built, on the operations menu** | Built 2026-09-28 from the slate-pit diorama by `Tools/Unreal/build_objective_map.py` (`quarry`); showroom and light bars stripped, open daylight, complex collision, boundary rim and three objectives, all legs connecting. Paused for fine-tuning; no design document yet, and not yet audited |
-| M-006 | Training range | Training | `PLACEHOLDER` | Vertical slice. **Candidate source identified 2026-09-29**: the MOUT urban training kit (4.9j) is a *close-quarters village*, not an open firing range, so it may suit a redefinition of this entry rather than fill it as written. See `MAPS_TRAININGRANGE.md` |
+| M-006 | Training range | Training | `PLACEHOLDER` | Vertical slice. The MOUT kit (4.9j) is a *close-quarters village*, not an open firing range, and as of 2026-09-30 it is committed to **Wandarra (M-009)** as the urban half of training; what fills this entry — an open range on Saltbush's pattern or a redefinition — is still the producer's call. See `MAPS_TRAININGRANGE.md`, `MAPS_WANDARRA.md` |
 | M-007 | Front end | — | `VENDORED` (Lyra) | L-0001 |
 | M-008 | **Ravenshoe Crossing** — high-country gorge crossed by a wrought-iron lattice-girder road bridge; stone road-gate house on the far abutment; playable creek bed beneath giving a second lane | Objective Assault (sequential A→B), Day | `IN_PRODUCTION` — **in Unreal, 467 actors, 32/32 audit checks** | `/Game/Maps/L_Ravenshoe_01`; `Docs/MAPS_RAVENSHOE.md`, ADR-027. Original layout and original structures; dressed with already-installed Class A packs referenced in place |
+| M-009 | **Wandarra** — invented urban training village: two crossing streets, lookalike bungalows and two-storey houses, a fenced depot compound, civic block, park and green, church terminating the cross street | Objective Assault (sequential A→B→C), Day | `PLACEHOLDER` — **built greybox, navmesh not yet baked (R-82)** | `/Game/Maps/L_Wandarra_01`; `Docs/MAPS_WANDARRA.md`. Built (not copied) by the Dry River pipeline pattern from the MOUT kit (4.9j), RustyCars wrecks (4.9j) and EuropeanBeech trees (4.9k); layout spec `Tools/Common/wandarra_spec.py`. Producer decision 2026-09-29: one big map from these packs |
 
 > **Layout rule:** no map may reproduce a real military base, sensitive installation, or any operationally useful site. Layouts are designed from gameplay requirements, not surveyed from any real location.
 >
@@ -380,20 +381,23 @@ moved or deleted**, and no licence class changed. All are Fab Standard License, 
 
 | Listing | Folder | Seller | `isAiForbidden` | Installed as | Status |
 |---|---|---|---|---|---|
-| **MOUT urban training kit** (vendor abbreviation for Military Operation Urban Training) | `VaultCache/ModularM6dfea54fd98cV5/` | **unverified** — Vault pack wrote no `metadata` sidecar | **unverified** | `Content/MOUT_Civilian/` — 2.1 GB, 507 files, 3 maps | `CANDIDATE` — **not used in any map.** Candidate for `M-006` Training range / an additional urban map; `Docs/MAPS_TRAININGRANGE.md`. Authored in **UE 4.26**, upconverted on load, never opened (R-67) |
-| Old Abandoned Rusty Cars | `FabLibrary/Old_Abandoned_Rusty_Cars___...-ed740921` | OlegVerenko | `false` | `Content/RustyCarsFree/` — 69 MB | `NOT_USED` — **row status corrected 2026-09-29.** 4.9i says "downloaded, not imported"; the pack was installed into `Content/RustyCarsFree/` on 2026-09-29 (it ships its own `Overview/AssetsOverview.umap`). Still referenced by no map; the single Renault wreck on Ravenshoe (M-008j) remains the car the project uses |
+| **MOUT urban training kit** (vendor abbreviation for Military Operation Urban Training) | `VaultCache/ModularM6dfea54fd98cV5/` | **unverified** — Vault pack wrote no `metadata` sidecar | **unverified** | `Content/MOUT_Civilian/` — 2.1 GB, 507 files, 3 maps | `IN_USE` — **Wandarra (M-009) since 2026-09-30**: 11 building Blueprints, ChurchKit assembly, FenceSetA, 13 prop sets placed by `build_wandarra_level.py`. First 5.8 load measured **silent** (no upconversion error lines) — R-67's texture/LOD/draw questions remain open. `Docs/MAPS_WANDARRA.md` |
+| Old Abandoned Rusty Cars | `FabLibrary/Old_Abandoned_Rusty_Cars___...-ed740921` | OlegVerenko | `false` | `Content/RustyCarsFree/` — 69 MB | `IN_USE` — **Wandarra (M-009) since 2026-09-30**: 10 wrecks (`SM_asset_00–04`) as traffic-width cover, depot hulks and green-side parking. Row corrected 2026-09-29 to `NOT_USED`, corrected again 2026-09-30 on first map use |
 | Mega Moduler Apartment Building | `FabLibrary/Mega_Moduler_Apartment_Building-db1b80f5` | karaman | **`true`** | — | `NOT_USED` — cache only |
 | Modular 3D hospital environment | `FabLibrary/Modular_3D_hospital_environment-7e1574fd` | Madd Game Art | `false` | — | `NOT_USED` — cache only. Listed under *Environments / Horror*; needs an ADR-016 look check before any consideration |
 | American Road with Parking Lot | `FabLibrary/American_Road_with_Parking_Lot-a629eb34` | Jimbogies | `false` | — | `NOT_USED` — cache only. GLB, not Unreal content; needs an FBX/GLB import path in the prep pipeline before it can be onboarded |
 | Individual First Aid Medical Kit (IFAK) | `FabLibrary/Individual_First_Aid_Medical_Kit_IFAK-a628e3ba` | SpatialNeglect | **`true`** | — | `PLANNED` — the medic's kit (ADR-040). The flag is overruled for every asset (L-0016d) |
 
-> **AI-use flags.** Two of these five carry `isAiForbidden: true` and neither is installed in a map. The MOUT
-> kit's flag is **unverified**, not clear: it arrived through the Vault route, which wrote no `metadata`
-> sidecar anywhere in the pack. An absent sidecar is recorded as unverified, never as clear (L-0016c).
+| European Beech trees | `VaultCache/MS_Beech_UE51_V2/` | **unverified** — Vault chunk carries a build manifest only, no `metadata` sidecar | **unverified** | `Content/EuropeanBeech/` — 7.0 GB, 258 files | `IN_USE` — **Wandarra (M-009) since 2026-09-30**: 38 `SimpleWind` static meshes as verge rows, park cluster and depot screen. Authored **UE 5.1 native** (no upconversion). Row added 2026-09-30 (`L-0016c` posture: unverified, never clear) |
+
+> **AI-use flags.** Two of these packs carry `isAiForbidden: true` and neither is installed in a map. The MOUT
+> kit's and the beech pack's flags are **unverified**, not clear: both arrived through the Vault route, which
+> wrote no `metadata` sidecar anywhere in either pack. An absent sidecar is recorded as unverified, never as
+> clear (L-0016c).
 >
-> **Why no map ID was opened.** The MOUT kit is registered as a *candidate* against `M-006`, not as a new
-> map. It has no layout, no author and no agreed Southern Spear name, and opening an `M-` id would commit
-> the project to all three by implication.
+> **Why M-009 opened 2026-09-30.** The producer's "one big map" decision of 2026-09-29 supplied the three
+> things the 2026-09-29 note lacked: an author (Session 082), an agreed name (Wandarra) and a layout
+> (`Tools/Common/wandarra_spec.py`). The candidate became a map, so the id opened in the same change.
 
 ### 4.10 Data Assets (no licence dependency — original data)
 

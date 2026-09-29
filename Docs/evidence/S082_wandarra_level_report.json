@@ -1,0 +1,95 @@
+{
+ "ok": true,
+ "steps": [
+  {
+   "step": "new_level",
+   "ok": true,
+   "detail": "/Game/Maps/L_Wandarra_01"
+  },
+  {
+   "step": "ground",
+   "ok": true,
+   "detail": "MI_SS_WorldGround_Wandarra (Ravenshoe gravel)"
+  },
+  {
+   "step": "buildings",
+   "ok": true,
+   "detail": "11 vendor blueprints"
+  },
+  {
+   "step": "church",
+   "ok": true,
+   "detail": "17 ChurchKit parts"
+  },
+  {
+   "step": "fences",
+   "ok": true,
+   "detail": "168 kit segments"
+  },
+  {
+   "step": "furniture",
+   "ok": true,
+   "detail": "35 props"
+  },
+  {
+   "step": "cars",
+   "ok": true,
+   "detail": "10 RustyCars wrecks"
+  },
+  {
+   "step": "trees",
+   "ok": true,
+   "detail": "38 EuropeanBeech"
+  },
+  {
+   "step": "objectives",
+   "ok": true,
+   "detail": "['Bus Stop Corner', 'The Crossing', 'Church Square']"
+  },
+  {
+   "step": "world_experience",
+   "ok": true,
+   "detail": "/SSExp_ObjectiveAssault/Experiences/B_SS_ObjectiveAssault.B_SS_ObjectiveAssault_C"
+  },
+  {
+   "step": "lighting",
+   "ok": true,
+   "detail": "sun, atmosphere, skylight, fog, PPV"
+  },
+  {
+   "step": "assets_all_found",
+   "ok": true,
+   "detail": "every spec asset resolved"
+  },
+  {
+   "step": "save_map",
+   "ok": true,
+   "detail": "/Game/Maps/L_Wandarra_01"
+  }
+ ],
+ "counts": {
+  "deployments": 2,
+  "missing_assets": [],
+  "Bungalow": 6,
+  "House": 4,
+  "Government": 1,
+  "Church": 17,
+  "Fence": 168,
+  "Bollard": 6,
+  "Hydrant": 3,
+  "Bin": 4,
+  "Postbox": 3,
+  "Bus": 2,
+  "Power": 4,
+  "Bench": 6,
+  "Police": 1,
+  "Clothesline": 2,
+  "Fountain": 1,
+  "Swing": 1,
+  "Slide": 1,
+  "Climbing": 1,
+  "Car": 10,
+  "Tree": 38
+ },
+ "errors": []
+}
