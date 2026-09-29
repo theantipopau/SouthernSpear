@@ -1424,3 +1424,78 @@ every asset (L-0016d). The rules and component don't depend on the art, so a mis
   settings; (3) the bridge wiring into Lyra's health and interaction; (4) the HUD — bleed marker, downed
   bleed-out bar, "stabilising…" bar, and the kit's charges when near it.
 - Out of scope here: friendly fire (IC-15), role limits (IC-14), carrying or dragging the wounded.
+
+---
+
+## ADR-041 — Wandarra's vendor doors are scenery until a server-owned door component exists
+
+**Status:** Accepted
+**Date:** 2026-09-30
+
+**Context.** The MOUT kit's interactable door Blueprints (`BP_GlassDoors_Interactable`,
+`BP_GreenDoors_Interactable`, `BP_WoodenDoor_Interactable`) are the only interactive content in any
+installed pack, and Wandarra (M-009) is built from that kit. Wiring them up or not is a design
+decision the map's first dressing pass had to make. Evidence gathered before deciding:
+
+- The vendor Blueprints are **not clean**. `BP_GlassDoors_Interactable` ships with embedded compile
+  errors referencing variables of its sibling (`Could not find a variable named "Left Door
+  Rotation" in 'BP_GreenDoors_Interactable_C'` — strings read from the compiled asset). They are
+  timeline-driven, client-local animations with no ownership model, which is exactly what ADR-004
+  exists to keep out of gameplay: authority is a server property, and "doors that open for whoever
+  asks locally" are a fairness hole on a tactical shooter (a defending player behind a door that is
+  open on one client and closed on another).
+- The project's interact input is **already claimed**. Lyra's `LyraGameplayAbility_Interact` /
+  `IInteractableTarget` stack routes one interact action, and ADR-040 assigns it to casualty care
+  (hold-interact to dress and stabilise). Two meanings on one input needs a priority scheme the
+  project has not designed.
+- What the doors are *for* on a training village is compound clearing: door control (open, clear,
+  close behind) as a teachable skill. That needs the door's state to be server-known only where it
+  matters for play — it does not need vendor timelines, sounds or handle animations.
+
+**Decision.**
+
+1. **This phase: the doors are placed as scenery, at two of the three compound/picket gates, never on
+   building walls.** Two doors stand in the depot's side gate and the green's picket gate, where
+   openings already exist in the fence lines (gate gaps narrowed to 2.4 m personnel width in
+   `wandarra_spec.py`). The depot's main gate keeps an **open** 2.4 m gap on purpose: TeamOne spawns
+   inside the compound and the navmesh bakes a closed door as a blocker, so the compound's walkable
+   exit must never depend on an unwired scenery door. The doors are NOT placed on vendor buildings:
+   the buildings have their doorways meshed in, their footprints are unmeasured (R-90), and a
+   wall-mounted door BP can block a real doorway.
+
+2. **Not wired into gameplay.** No input binding, no `IInteractableTarget` implementation, no
+   interaction option. The vendor door BPs are referenced as placeable actors only, and the map
+   must not depend on their script logic: any door that gameplay later needs is a thin
+   **`USSDoorComponent`** (server-authoritative open state, replicated, `SouthernSpearObjectives`
+   or Core module, Core-only dependencies per SS001/SS002) attached to a simple door actor the
+   project owns. The vendor BPs' timelines, sounds and handles are presentation and stay out
+   (ADR-004).
+
+3. **Phase 2 path, if the training design asks for it:** build `SSDoorComponent` + a project-owned
+   door actor that references the vendor door *meshes*, place those at the gates and building
+   doors, resolve the interact-input conflict with casualty care explicitly (context by target
+   type, or a modifier key), and gate it on a bot smoke test asserting door state replicates. The
+   vendor BPs themselves remain unreferenced by gameplay code forever.
+
+**Alternatives.**
+
+- *Wire the vendor BPs into Lyra's interaction now* — rejected: places unowned vendor script
+  inside the gameplay path (ADR-004's exact failure mode), ships known-broken Blueprints, and
+  collides with the claimed interact input before casualty care has even landed its HUD.
+- *Skip the doors entirely this phase* — rejected: door control is the compound-clearing skill the
+  kit was chosen for; scenery doors at the gates teach the shape of the action in bot matches and
+  cost nothing.
+- *Keep the wide vehicle gates* — rejected for the two side gates: a 1–2 m door in an 8–10 m gap
+  reads as a mistake. The main depot gate keeps its vehicle width; the personnel gates are 2.4 m.
+
+**Consequences.**
+
+- Wandarra's doors open for nothing this phase — recorded in `MAPS_WANDARRA.md` so no one reads
+  the shut doors as a bug.
+- The dressing pass (`dress_wandarra_awnings.py`) performs the R-90 bounds dump as it places, so
+  footprint corrections land in the spec and a rebuild, not in actor nudges.
+- The AwningKit meshes stay unused (the government-awning Blueprints cover the shopfront need); if
+  a later pass wants awning *meshes*, they are referenced in place per ADR-021 like everything
+  else in the pack.
+- R-67 extends one line: vendor Blueprint logic (doors) is now load-bearing for nothing; if a
+  future phase wires doors, the component path above is the only sanctioned route.

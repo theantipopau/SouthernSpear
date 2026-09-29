@@ -180,7 +180,7 @@ FURNITURE = [
 # the gates open. Depot compound walls compound clearing; the picket row gives
 # the green a low front boundary you can shoot and see over.
 FENCE_RUNS = [
-    (20, 205, 85, 205, [(48.8, 51.2)], False, "depot south wall; main gate narrowed to a 2.4 m personnel gate for door control (ADR-041)"),
+    (20, 205, 85, 205, [(48.8, 51.2)], False, "depot south wall; main gate = an OPEN 2.4 m personnel gap - no door, because TeamOne spawns inside and the navmesh must never route through an unwired door (ADR-041)"),
     (20, 285, 85, 285, [], False, "depot north wall"),
     (20, 205, 20, 285, [], False, "depot west wall"),
     (85, 205, 85, 285, [(41.4, 43.8)], False, "depot east wall; side gate 2.4 m, absolute y 246.4-248.8"),

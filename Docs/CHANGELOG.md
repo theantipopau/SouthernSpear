@@ -7000,6 +7000,94 @@ The callsign feature is verified; the Session 080 handover's "watch" items are a
 handover: Wandarra's attended nav bake (Session 082), and the casualty-care work still awaits a live test of
 the Lyra death-chain hooks documented in `Docs/evidence/casualty_lyra_hooks.md`.
 
+## Session 083 — 2026-09-30 — Wandarra dressed in design: awnings and gate doors queued behind a yaw-defect rebuild; vendor doors ruled scenery (ADR-041)
+
+### COMPLETED
+
+The producer's "bring the awnings in" direction, executed as design + code + a recorded decision.
+The interactive editor was open on the project all session (one-writer rule), so **no headless pass
+ran against the map** — everything below is written, checked, and queued behind one attended
+sequence:
+
+- **`Tools/Common/wandarra_spec.py` extended**: `AWNING_BPS`/`AWNING_ROWS` (6 verandahs from the
+  four `BP_GovernmentAwning_*` types — civic face ×2, west row main-street footpath, east row
+  park side, cross-street store, depot-lane corner) and `DOOR_BPS`/`DOOR_ROWS` (2 scenery doors:
+  depot side gate, green picket gate). Depot gate gaps narrowed to **2.4 m personnel width**; the
+  main gate deliberately keeps an **open** gap, no door — see the defect below.
+- **`Tools/Unreal/dress_wandarra_awnings.py`** — new pass: idempotent `SS_Dress_*` placement,
+  ground-snapped doors, and the **R-90 measurement** riding along: dumps all 11 vendor building
+  boxes to site coordinates, reports road-corridor overlaps, and pushes each awning out of its
+  building's *measured* box by 40 cm (spec row = intent, footprint = evidence).
+- **ADR-041 recorded** (`DECISION_LOG.md`): the vendor interactable door Blueprints are **scenery,
+  not gameplay**. Evidence: the shipped BPs carry embedded compile errors (`Could not find a
+  variable named "Left Door Rotation" in 'BP_GreenDoors_Interactable_C'`, read from the compiled
+  asset) and client-local timelines; Lyra's interact input is already assigned to casualty care
+  (ADR-040). Any future gameplay door is a server-owned `USSDoorComponent` on a project-owned
+  actor referencing the vendor *meshes* — the vendor BPs stay unreferenced by gameplay code forever.
+- **Yaw defect found and fixed (map pending rebuild)**: the site→Unreal rotation shipped as
+  `-yaw`; the correct transform is **`yaw − 90`** (site north = Unreal −Y = Unreal yaw −90; site
+  east = +X = 0; site south = +Y = 90). Every rotated actor in the built `L_Wandarra_01` —
+  building facings, church walls, fence runs, furniture — sits one cardinal direction off, the
+  exact silent-failure class MAPS_DRYRIVER §11.2 documents. Found while deriving the awning
+  push-out vector, not by an editor look. `build_wandarra_level.py` fixed; the on-disk map keeps
+  the defective rotations until the level pass re-runs, and **the nav bake must come after that
+  rebuild**, not before.
+- **Door-seals-spawn flaw caught pre-placement**: a closed door actor bakes into the navmesh as a
+  blocker, and TeamOne spawns inside the depot compound — a door on the main gate would have made
+  the team's only walkable exit depend on an unwired scenery door. Main gate = open 2.4 m gap;
+  doors only at the side gate and the green gate (no one spawns inside that yard).
+- Docs: `MAPS_WANDARRA.md` §3.1 (dressings), corrected transform section, R-90 remedy line;
+  ADR-041 in `DECISION_LOG.md`.
+
+### FILES CHANGED
+
+- `Tools/Common/wandarra_spec.py` — modified (awning/door tables, gate gaps, main-gate rule).
+- `Tools/Unreal/build_wandarra_level.py` — modified (yaw transform corrected).
+- `Tools/Unreal/dress_wandarra_awnings.py` — new (Class F original).
+- `Docs/DECISION_LOG.md` (ADR-041), `Docs/MAPS_WANDARRA.md`, `Docs/CHANGELOG.md` — modified.
+
+### TESTING
+
+| # | Command | Exit | Result |
+|---|---|---|---|
+| 1 | `python -m py_compile` (spec, builder, dressing pass) | 0 | compile clean |
+| 2 | spec table checks (row shapes, gap arithmetic, door/awning coordinates inside fence gaps) | 0 | pass — two coordinate errors caught and fixed pre-commit |
+| 3 | `dress_wandarra_awnings.py` headless run, level rebuild, R-90 bounds dump | — | **NOT RUN** — interactive editor open (one-writer rule); queued |
+| 4 | nav bake + verify, `layout_spawns.py`, playability audit | — | **NOT RUN** — still gated on the attended bake, which is now gated on the rebuild |
+
+### ASSETS
+
+- Referenced in place, unmodified: `BP_GovernmentAwning_01a/b`, `02a/b`; `BP_WoodenDoor_Interactable`
+  (2 placements). `BP_GlassDoors_Interactable` / `BP_GreenDoors_Interactable` / AwningKit loose
+  meshes: **not used** (glass/green BPs broken; meshes unneeded — ADR-041 consequences).
+- No new project assets created this session.
+
+### RISKS
+
+- **Yaw defect (new, in code fixed / in map pending):** until the rebuild, every rotation in
+  `L_Wandarra_01` is one cardinal off; any measurement taken on the current map is invalid. The
+  queued sequence must be rebuild → dress → bake → verify → spawns.
+- R-90's dump is now wired into the dressing pass but has produced no numbers yet.
+- R-89 (ADR-016 look check) unchanged — still no eyes on the map; R-82 unchanged.
+
+### DEFECTS FOUND
+
+- **Yaw transform** (above) — found by derivation while coding the awning push-out, not by
+  inspection; the class of failure MAPS_DRYRIVER §11.2 warns about, caught at the second build
+  instead of the first because the spec's own self-checks verify positions, not rotations.
+- Awning yaw sign error in the first spec draft (a west-row verandah faced away from the street)
+  and three door coordinates that did not sit in their gate gaps — all caught by re-deriving the
+  geometry before commit, none by tooling; the spec should get a rotation-aware self-check.
+- **Door-seals-spawn** (above) — found by asking "what does the navmesh bake see?" before placing,
+  not after; recorded in ADR-041 so the main-gate rule survives future edits.
+
+### NEXT ACTION
+
+Attend the editor once the current session closes it: re-run `build_wandarra_level.py` (applies
+the yaw fix and the 2.4 m gate gaps), run `dress_wandarra_awnings.py` for the R-90 dump, correct
+spec rows if the dump demands, then Build ▸ Build Paths, `build_wandarra_nav.py`,
+`layout_spawns.py` with `SS_MAPS=L_Wandarra_01`. Evidence to `Docs/evidence/session082-083/`.
+
 ## Open Threads
 
 | Item | Blocked on | Owner |

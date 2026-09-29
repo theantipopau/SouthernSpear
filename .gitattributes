@@ -115,3 +115,7 @@ Site/fonts/**   -text -diff -filter -merge
 *.avif          -text -diff -filter -merge
 *.webp          -text -diff -filter -merge
 *.woff2         -text -diff -filter -merge
+
+# Vendor source archives: pure binaries, never normalise
+*.zip binary
+*.rar binary

@@ -498,3 +498,18 @@ Department of Defence, the Australian Defence Force or the Australian Army.
 | Military Trenches Wall Metal Corrugated 04 | Fab (Megascans) | `MI_SS_CorrugatedIron` texture set | In use |
 | Gloves for fps game (Bobeer) | Fab, CC BY 4.0 | — | Not used; credit "Bobeer" if used |
 | VibeUE (Kevin Buckley) | github.com/kevinpbuckley/VibeUE, MIT | Editor-only dev tooling, git-ignored clone | Not shipped |
+
+### L-0024 — Ghost gum tree and kangaroo models (registered 2026-09-30)
+
+| Field | Value |
+|---|---|
+| **Component** | `Content/ghostgum/` (ghost gum tree FBX + TGA/PNG texture set, 20 MB) and `Content/kangaroo/` (kangaroo FBX/OBJ + JPG/TGA textures, 24 MB); original vendor archives kept alongside (`TH_Ghoast_Gum.zip.zip`, `kangaroo.rar`) |
+| **Publisher** | **Unverified** — the downloads arrived with no `metadata` sidecar, no licence file and no seller page record; "TH_" prefix and filenames suggest a marketplace/archive source, but which one is not established |
+| **Source** | Local files as received; no URL recorded |
+| **Licence** | **Unknown** |
+| **Class** | **E — treated as D until clarified** |
+| **Status** | 🟡 **In use under producer risk acceptance (ADR-035 posture), with R-90a open** |
+| **Use** | Kangaroo: static easter-egg dressing only (2 individuals per map on Dry River and Red Gum Station, collision off). Ghost gum: staged for a future canopy-variety dressing pass; not yet imported |
+| **Producer decision (2026-09-30)** | Producer supplied both models with the direction to place the kangaroos as an easter egg and use the ghost gum for the maps, and accepts the provenance risk — same posture as L-0016c: recorded, producer-owned, not a licence clearance |
+| **Required before release (R-90a)** | Locate the original listings and record their licence terms, or replace both with cleared assets (Fab Australian fauna/flora, or original Blender work). Unverified provenance must not ship in a release build |
+| **Git handling** | Tracked via LFS (`.fbx`, `.obj`, `.tga`, `.png`, `.jpg`, `.jpeg` patterns); archives tracked as plain binaries (`-filter -diff -merge text`) |

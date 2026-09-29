@@ -448,3 +448,25 @@ moved or deleted**, and no licence class changed. All are Fab Standard License, 
 This register is updated **in the same commit** as any asset addition or status change. An asset that appears in the repository but not in this register is a build-review failure.
 
 Each entry needs: a stable ID, the asset's name, its status, its licence dependency (or "original"), and where the source `.blend` lives if it is original production.
+
+### 4.9k Animal and native flora models registered 2026-09-30 (L-0024) — easter-egg dressing
+
+Two vendor model sets arrived in `Content/ghostgum/` and `Content/kangaroo/` on 2026-09-30 with no provenance
+metadata. Registered here in the same change per the standing rule in §4.9i. Neither is a Fab listing — the
+sources look like marketplace/archives downloads gathered manually — so provenance is **unverified** and both
+carry the L-0016c posture: **unverified, never clear**, producer risk-accepted (ADR-035 posture). Neither has
+been imported into the engine yet in this change except as noted in the Status column.
+
+| ID | Asset | Path | Contents | Status | Licence dep. | Notes |
+|---|---|---|---|---|---|---|
+| ENV-003 | Ghost gum tree model + texture set | `Content/ghostgum/` | `source/TH_Complete_Full_Ghoast_Gum.fbx` (full tree), 8 TGA source textures (diffuse, normals, spec, branch alpha set), `textures/` PNG derivatives. 20 MB. `source/TH_Ghoast_Gum.zip.zip` is the original archive, kept for provenance | `VENDORED` — staged; UE import pending (queued: dressing pass for Dry River / Red Gum Station canopy variety alongside the RuralAustralia gums) | **L-0024** — provenance unverified (no licence text, no seller metadata); producer risk-accepted | "Ghoast" [sic] spelling is the vendor's. Australian ghost gum look fits ADR-016. Textures need power-of-two check and sRGB audit at import; the FBX axis/scale conventions must be measured before first placement (same intake discipline as M-008k) |
+| ENV-004 | Kangaroo model + texture set | `Content/kangaroo/` | `source/source/kangaroo.FBX` (+ `.obj`/`.mtl` twins), 8 JPG + 1 TGA textures. 24 MB. `source/kangaroo.rar` is the original archive, kept for provenance | `VENDORED` — staged; **imported this change for the easter egg** (see below) | **L-0024** — provenance unverified; producer risk-accepted | Static prop — no rig, no animation in the source. Producer intent: 2–3 individuals as an easter egg under trees on Dry River (M-001) and Red Gum Station (M-RG-01) |
+
+> **R-90a (new).** Both sources arrived without licence files or seller metadata. Before any release build:
+> find the original listing and its licence, or replace both with cleared equivalents (Fab Australian fauna
+> packs, or original Blender work like the homestead). The easter egg is low-risk dressing, but the same
+> release gate applies: **unverified provenance must not ship.**
+
+**Easter-egg placement (this change):** kangaroos placed as static meshes under existing tree canopies —
+2 on Red Gum Station, 2 on Dry River — by `Tools/Unreal/dress_kangaroo_easteregg.py`, labels
+`SS_EasterEgg_Kangaroo_N`, terrain-snapped, collision off (decoration only, never blocks nav or shots).

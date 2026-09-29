@@ -1,0 +1,167 @@
+# 3ds Max Wavefront OBJ Exporter v0.97b - (c)2007 guruware
+# 创建的文件:09.06.2023 16:00:31
+
+newmtl KGROsup
+	Ns 0.0000
+	Ni 1.5000
+	d 1.0000
+	Tr 0.0000
+	Tf 1.0000 1.0000 1.0000 
+	illum 2
+	Ka 0.0353 0.0353 0.0314
+	Kd 0.5098 0.3961 0.2980
+	Ks 0.0000 0.0000 0.0000
+	Ke 0.0000 0.0000 0.0000
+	map_Ka D:\source material\pet\kangaroo\model\texture\znzmoModel-1132355448-0278.jpg
+	map_Kd D:\source material\pet\kangaroo\model\texture\znzmoModel-1132355448-0278.jpg
+	map_bump D:\source material\pet\kangaroo\model\texture\znzmoModel-1132355448-0278.jpg
+	bump D:\source material\pet\kangaroo\model\texture\znzmoModel-1132355448-0278.jpg
+
+newmtl KGROmain
+	Ns 0.0000
+	Ni 1.5000
+	d 1.0000
+	Tr 0.0000
+	Tf 1.0000 1.0000 1.0000 
+	illum 2
+	Ka 0.0353 0.0353 0.0314
+	Kd 0.5098 0.3961 0.2980
+	Ks 0.0000 0.0000 0.0000
+	Ke 0.0000 0.0000 0.0000
+	map_Ka D:\source material\pet\kangaroo\model\texture\znzmoModel-1132355448-0277.jpg
+	map_Kd D:\source material\pet\kangaroo\model\texture\znzmoModel-1132355448-0277.jpg
+	map_bump D:\source material\pet\kangaroo\model\texture\znzmoModel-1132355448-0277.jpg
+	bump D:\source material\pet\kangaroo\model\texture\znzmoModel-1132355448-0277.jpg
+
+newmtl KGRObttm
+	Ns 0.0000
+	Ni 1.5000
+	d 1.0000
+	Tr 0.0000
+	Tf 1.0000 1.0000 1.0000 
+	illum 2
+	Ka 0.0353 0.0353 0.0314
+	Kd 0.5098 0.3961 0.2980
+	Ks 0.0000 0.0000 0.0000
+	Ke 0.0000 0.0000 0.0000
+	map_Ka D:\source material\pet\kangaroo\model\texture\znzmoModel-1132355448-0272.jpg
+	map_Kd D:\source material\pet\kangaroo\model\texture\znzmoModel-1132355448-0272.jpg
+	map_bump D:\source material\pet\kangaroo\model\texture\znzmoModel-1132355448-0272.jpg
+	bump D:\source material\pet\kangaroo\model\texture\znzmoModel-1132355448-0272.jpg
+
+newmtl KGROintr
+	Ns 0.0000
+	Ni 1.5000
+	d 1.0000
+	Tr 0.0000
+	Tf 1.0000 1.0000 1.0000 
+	illum 2
+	Ka 0.0353 0.0353 0.0314
+	Kd 0.5098 0.3961 0.2980
+	Ks 0.0000 0.0000 0.0000
+	Ke 0.0000 0.0000 0.0000
+	map_Ka D:\source material\pet\kangaroo\model\texture\znzmoModel-1132355448-0276.jpg
+	map_Kd D:\source material\pet\kangaroo\model\texture\znzmoModel-1132355448-0276.jpg
+	map_bump D:\source material\pet\kangaroo\model\texture\znzmoModel-1132355448-0276.jpg
+	bump D:\source material\pet\kangaroo\model\texture\znzmoModel-1132355448-0276.jpg
+
+newmtl KGROfrt
+	Ns 0.0000
+	Ni 1.5000
+	d 1.0000
+	Tr 0.0000
+	Tf 1.0000 1.0000 1.0000 
+	illum 2
+	Ka 0.0353 0.0353 0.0314
+	Kd 0.5098 0.3961 0.2980
+	Ks 0.0000 0.0000 0.0000
+	Ke 0.0000 0.0000 0.0000
+	map_Ka D:\source material\pet\kangaroo\model\texture\znzmoModel-1132355448-0274.jpg
+	map_Kd D:\source material\pet\kangaroo\model\texture\znzmoModel-1132355448-0274.jpg
+	map_bump D:\source material\pet\kangaroo\model\texture\znzmoModel-1132355448-0274.jpg
+	bump D:\source material\pet\kangaroo\model\texture\znzmoModel-1132355448-0274.jpg
+
+newmtl KGROback
+	Ns 0.0000
+	Ni 1.5000
+	d 1.0000
+	Tr 0.0000
+	Tf 1.0000 1.0000 1.0000 
+	illum 2
+	Ka 0.0353 0.0353 0.0314
+	Kd 0.5098 0.3961 0.2980
+	Ks 0.0000 0.0000 0.0000
+	Ke 0.0000 0.0000 0.0000
+	map_Ka D:\source material\pet\kangaroo\model\texture\znzmoModel-1132355448-0271.jpg
+	map_Kd D:\source material\pet\kangaroo\model\texture\znzmoModel-1132355448-0271.jpg
+	map_bump D:\source material\pet\kangaroo\model\texture\znzmoModel-1132355448-0271.jpg
+	bump D:\source material\pet\kangaroo\model\texture\znzmoModel-1132355448-0271.jpg
+
+newmtl KGROear
+	Ns 0.0000
+	Ni 1.5000
+	d 1.0000
+	Tr 0.0000
+	Tf 1.0000 1.0000 1.0000 
+	illum 2
+	Ka 0.0353 0.0353 0.0314
+	Kd 0.5098 0.3961 0.2980
+	Ks 0.0000 0.0000 0.0000
+	Ke 0.0000 0.0000 0.0000
+	map_Ka D:\source material\pet\kangaroo\model\texture\znzmoModel-1132355448-0273.jpg
+	map_Kd D:\source material\pet\kangaroo\model\texture\znzmoModel-1132355448-0273.jpg
+	map_bump D:\source material\pet\kangaroo\model\texture\znzmoModel-1132355448-0273.jpg
+	bump D:\source material\pet\kangaroo\model\texture\znzmoModel-1132355448-0273.jpg
+
+newmtl KGROeyes
+	Ns 55.0000
+	Ni 1.5000
+	d 1.0000
+	Tr 0.0000
+	Tf 1.0000 1.0000 1.0000 
+	illum 2
+	Ka 0.0000 0.0000 0.0000
+	Kd 0.1490 0.0667 0.0275
+	Ks 1.0000 1.0000 1.0000
+	Ke 0.0000 0.0000 0.0000
+
+newmtl KGROhr01
+	Ns 47.0000
+	Ni 1.5000
+	d 1.0000
+	Tr 0.0000
+	Tf 1.0000 1.0000 1.0000 
+	illum 2
+	Ka 0.1000 0.1000 0.1000
+	Kd 0.8667 0.8667 0.8667
+	Ks 0.5618 0.5618 0.5618
+	Ke 0.0000 0.0000 0.0000
+	map_Ka D:\source material\pet\kangaroo\model\texture\znzmoModel-1132355448-0275.jpg
+	map_Kd D:\source material\pet\kangaroo\model\texture\znzmoModel-1132355448-0275.jpg
+
+newmtl KGROhr02
+	Ns 37.0000
+	Ni 1.5000
+	d 1.0000
+	Tr 0.0000
+	Tf 1.0000 1.0000 1.0000 
+	illum 2
+	Ka 0.1843 0.1765 0.1686
+	Kd 0.6941 0.6039 0.5059
+	Ks 0.5800 0.5527 0.5527
+	Ke 0.0000 0.0000 0.0000
+
+newmtl KGROnail
+	Ns 36.0000
+	Ni 1.5000
+	d 1.0000
+	Tr 0.0000
+	Tf 1.0000 1.0000 1.0000 
+	illum 2
+	Ka 0.1000 0.1000 0.1000
+	Kd 0.8667 0.8667 0.8667
+	Ks 0.0872 0.0872 0.0872
+	Ke 0.0000 0.0000 0.0000
+	map_Ka Tex__1_Noise.tga
+	map_Kd Tex__1_Noise.tga
+	map_bump -bm 53.7429 Tex__1_Noise.tga
