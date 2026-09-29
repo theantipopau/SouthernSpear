@@ -6015,7 +6015,7 @@ and ablation probe, self-labelled "not for commit", with the scratch probes rath
 | Offset solve | `python Tools/Unreal/grip_solve.py Saved/Logs/SS_grip_a88.log` | **PASS** - engine round-trip 0.00000 deg on all 4 pairs, predicted match 0.00 deg |
 | Rotation unit test | `Automation RunTests SouthernSpear.Bridge.HandIK.RotateHand` | **PASS** - alpha 1 matches the target, position kept, a finger keeps its local transform, alpha 0.5 is the slerp midpoint, zero offset takes the socket, 3 refusals leave the pose untouched |
 | Position unit test | `Automation RunTests SouthernSpear.Bridge.HandIK.Solve` | **PASS** - unchanged |
-| Full suite | `Automation RunTests SouthernSpear` | **61 pass, 1 fail** - `Network.Gameplay.TwoPlayerAuthoritySmoke` (`ViewportOverlayWidget.IsValid()`), reproducible in isolation, environmental and pre-existing |
+| Full suite | `Automation RunTests SouthernSpear` | 61 pass, 1 fail - `Network.Gameplay.TwoPlayerAuthoritySmoke` (`ViewportOverlayWidget.IsValid()`). Called environmental here; **corrected in Session 071** - the run that produced it left out `-NoLoadingScreen`, which is the flag the test needs in a headless world. Not an environmental fault. |
 | Editor build | `Build.bat SouthernSpearEditor Win64 Development` | **PASS - Succeeded** |
 | A89 position probe | - | **NOT RUN** - only the A88 was sampled |
 | Tan-block ablation | `ss.Probe.Hide` | **NOT RUN** - component unidentified |
@@ -6066,6 +6066,123 @@ Fix the probe's bone lookup (match the whole bone name, or require the bone to b
 `Hand` index) and re-run `-SSHandIKProbe` on the **A89**, which answers three open things at once: the A89's
 hand-to-grip distance and reach headroom, the arms' real left-thumb/palm axes after the rotation step, and
 whether the fingers follow it. Then take the `ss.Probe.Hide` ablation on the same run to name the tan block.
+
+## Session 071 — 2026-09-29 — The hand is turned by its own anatomy, not by the body's hand bone
+
+The producer's correction: Session 070 wrote "the transfer is exact", and it was exact only in the bone
+language. Copying the body's hand-relative-to-weapon quaternion onto the first-person arms assumes both
+hands point their bone axes the same way, and Manny's `hand_l` and the Fab arms' `LeftHand` do not - which
+is the ~90 deg roll that stayed in the render. This session measures each hand from its finger bones
+instead, solves the arms' angle from that directly, and prints the three axis errors at every step.
+
+### COMPLETED
+
+**The defect, measured instead of argued.** Each hand is now read off its own finger bones - the distal
+thumb, index and middle bones *under the solved hand index*, palm normal = thumb x finger, then
+re-orthogonalised - and both hands' frames are expressed in the weapon's frame, which is the only language
+two rigs can be compared in. On the A88, before any correction:
+
+| hand | thumb vs the socket->muzzle line | frame vs the body's measured frame |
+|---|---|---|
+| Manny body (`thumb_03_l`, `index_03_l`) | 11.3 deg | - (the reference) |
+| FP arms (`LeftHandThumb4`, `LeftHandIndex4`, animated) | **15.0 deg** | palm **82.8 deg**, thumb 11.5, finger **82.1** |
+
+So the arms' *animation* already has the thumb down the barrel (15.0 against the body's 11.3). What it is
+missing is not the thumb at all but **83 deg of roll about it**: the palm normal and the finger direction
+are both ~82 deg out. A hand-bone-quaternion transfer cannot see that axis, and did not: it reported the
+arms matching the body while the palm stayed sideways.
+
+**The solve, and where it lives.** The arms' measured frame is aligned to the body's measured frame (both
+taken in the weapon's frame) with `align = twist * swing` - a shortest arc onto the palm normal, then the
+twist about it that brings the thumb across - and the config offset is
+`offset = socketrot^-1 * (align * hand)`. Logged by the probe as a ready config line, and written to
+`[/Script/SouthernSpearLyraBridge.SSHandIKMeshComponent] HandRotationOffset=(Pitch=70.599,Yaw=-79.336,Roll=19.550)`
+(align magnitude 83.0 deg). In-run residual after the alignment: **0.0 / 0.0 / 0.0 deg**.
+
+**Verified live, in the engine's own pose** (full run, rotation step on, the probe reading the published
+bone transforms): the arms' palm, thumb and finger now sit **0.0-0.2 deg** from the body's measured grip on
+every steady-state sample, and `thumb_vs_barrel` reads 11.3 deg against the body's 11.3. The body is
+unchanged to the digit (`hand_in_weapon=(-0.8980,-0.1944,0.2984,0.2585)`, `thumb_vs_barrel=11.3`,
+`hand_vs_socket=157.6`) because `bRotateHandToGrip` stays off for it.
+
+**Composition order mattered, and is now pinned by evidence, not by assumption.** Three angle errors of
+6-9 deg remained when the arcs were composed the other way. UE's `A * B` applies **B first**, checked
+against the engine's own logged triple (`weapon_in_cs * hand_in_weapon` reproduces that mesh's `handrot`
+exactly), so the probe composes `twist * swing` and `align * hand`; the residual went to 0.0.
+
+**Which fore-end the A88 actually has.** `Tools/build_adfrc_weapons.py` takes the A88's grip from the ADFRC
+pose **`EF88_Vg_static`** (`GRIP_CLIPS`), i.e. the EF88 *with a vertical grip*, and
+`SOCKET_LeftHandGrip` is that pose's own left wrist (report: `Docs/evidence/w2_grip_clips/EF88_Vg_static.json`).
+So the hand is placed on a **vertical foregrip**, while both candidate orientations - the body's Lyra hold
+and the arms' own Fab M4 hold - are *horizontal handguard* holds: in both, the thumb runs within 11-15 deg
+of the socket->muzzle line and the palm normal is perpendicular to it. Aligning the arms to the body is
+therefore right in the project's own reference terms and **not yet proven right for this fore-end**: a
+vertical post wants the palm across the post, not across a handguard.
+
+**The smoke-test failure was not environmental.** Asked to check it before calling it environmental, and it
+does not survive the check. With this change reverted and rebuilt, the single test passes; on the same tree
+restored, with the change in place, `-NoLoadingScreen` decided it: **without the flag `Result={Fail}` with 4
+`ViewportOverlayWidget` ensures, with the flag `Result={Success}` and 0**. The full-suite run that produced
+"61 pass, 1 fail" omitted the flag, which `CLAUDE.md`'s recipe and commit `ac9b642b` both call for. Session
+070's TESTING row is corrected above.
+
+### FILES CHANGED
+
+Modified: `Config/DefaultGame.ini` (the offset, 70.599/-79.336/19.550, and what it is solved from),
+`Docs/CHANGELOG.md`. The measurement instrument is the untracked dev probe
+`SSHandIKProbeSubsystem.h/.cpp`: this session added the descendant-correct finger lookup, the per-hand frame,
+the `-SSHandIKProbeNoRotate` measurement pose and the `OFFSET` line that prints the config value.
+
+### TESTING
+
+| Check | Command | Result |
+|---|---|---|
+| Arms vs body, measured, before | `-SSHandIKProbe -SSHandIKProbeNoRotate` (`Saved/Logs/SS_anat_a88_v3.log`) | **FINDING** - palm 82.8, thumb 11.5, finger 82.1 deg; thumb vs the barrel line 15.0 against the body's 11.3 |
+| Offset solve | same run, `OFFSET` line | **PASS** - align 83.0 deg, residual 0.0/0.0/0.0, `HandRotationOffset=(Pitch=70.599,Yaw=-79.336,Roll=19.550)` |
+| Arms vs body, measured, after | probe run with the offset in config (`Saved/Logs/SS_anat_a88_fixed.log`) | **PASS** - 0.0-0.2 deg on all three axes, every steady-state sample |
+| Body untouched | same log, `CharacterMesh0` | **PASS** - `hand_in_weapon` and `thumb_vs_barrel` identical to Session 070 |
+| Hand position | same log | **PASS** - held from Session 070: 8.37 cm -> 0.00 cm, gate never fired |
+| Composition order | engine's own logged triple, `weapon_in_cs * hand_in_weapon == handrot` | **PASS** - `A * B` applies B first; the probe's arcs corrected accordingly |
+| `TwoPlayerAuthoritySmoke`, change present | `UnrealEditor-Cmd -nullrhi ... -ExecCmds="Automation RunTests SouthernSpear.Network.Gameplay.TwoPlayerAuthoritySmoke"` | **FAIL without `-NoLoadingScreen`** (4 ensures), **PASS with it** - the invocation, not the machine |
+| `TwoPlayerAuthoritySmoke`, change reverted and rebuilt | same command | **PASS** with the flag - the change is not implicated either way |
+| A88 grip pose / fore-end | `Tools/build_adfrc_weapons.py` `GRIP_CLIPS`, `Docs/evidence/w2_grip_clips/EF88_Vg_static.json` | **FINDING** - the A88's socket is the `EF88_Vg_static` left wrist: a vertical foregrip |
+| A89 run | - | **NOT RUN** - the probe's finger lookup is only now correct; the A89 should be re-measured with it |
+
+### ASSETS
+
+- No asset imported, modified or moved. `Docs/evidence/w2_grip_clips/EF88_Vg_static.json` predates this
+  session; it is the ADFRC pose the A88's grip socket is fitted from, and it is what names the fore-end.
+
+### RISKS
+
+- **R-82 (new):** the correction targets the **body's** grip, and the A88's fore-end is a vertical grip. For
+  this weapon the authoritative reference is the asset's own pose (`EF88_Vg_static`), not Lyra's hold; until
+  that is measured, the arms hold the A88 the way Lyra holds its own rifle, to 0.2 deg.
+- **R-83 (new):** the probe's `barrel` is the grip socket -> muzzle socket line, and on this asset that line
+  is ~26 deg off the mesh's own +X (`barrel_local=(0.9,0.4,0.3)`), because the socket is the left wrist, not
+  a point on the bore. `thumb_vs_barrel` is therefore a comparison between hands, not a measurement of the
+  thumb against the barrel.
+
+### DEFECTS FOUND
+
+- **The probe's perpendicular was degenerate in every earlier run.** `axis_socket_to_barrel` was always
+  `(0,0,0)`, because it was built from the grip socket and the muzzle, and the grip socket lies on that line
+  by definition. The palm was being tested against a zero vector.
+- **The probe's finger lookup was measuring the wrong hand** (raised in Session 070 as R-80, fixed here at
+  the source): `SK_FP_Arms_Rifle` lists `RightHandThumb1` before `LeftHandThumb1`, so every `thumb`/`index`
+  number the arms printed before this session was the right hand's, relative to the left hand's position.
+- **Session 070's "the transfer is exact"** was exact only in the bone-frame language; the axis mismatch
+  between two rigs is invisible to a quaternion transfer and was worth 83 deg of roll on this pair.
+- **The smoke-test failure was misdiagnosed as environmental in Session 070**, and the fix was a missing
+  command-line flag in the run, not a machine fault.
+
+### NEXT ACTION
+
+Measure the A88's own pose - the left hand in `EF88_Vg_static` (`Docs/evidence/w2_grip_clips/EF88_Vg_static.json`,
+via `Tools/Common/adfrc_grip.py`) - in the same three axes, and decide the target on that evidence: if the
+asset's own hold differs from the body's by the roll a vertical foregrip implies, solve the offset to the
+asset's pose instead and change one config line. Then re-run `-SSHandIKProbe` on the **A89** (its fingers are
+now found correctly) together with the `ss.Probe.Hide` ablation for the tan block.
 
 ---
 

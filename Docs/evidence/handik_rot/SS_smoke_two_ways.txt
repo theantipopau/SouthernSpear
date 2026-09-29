@@ -1,0 +1,38 @@
+TwoPlayerAuthoritySmoke, the same tree, the flag as the only difference (Session 071)
+====================================================================================
+
+Both runs: the built editor, the hand-IK change present, the throwaway probe on disk,
+same command line except for -NoLoadingScreen.
+
+  UnrealEditor-Cmd.exe "E:/SouthernSpear/SouthernSpear.uproject" -nullrhi -unattended
+    -nosplash -nosound [-NoLoadingScreen] -FORCELOGFLUSH
+    -abslog=E:/SouthernSpear/Saved/Logs/SS_smoke_<mode>.log
+    "-ExecCmds=Automation RunTests SouthernSpear.Network.Gameplay.TwoPlayerAuthoritySmoke;Quit"
+    -TestExit="Automation Test Queue Empty"
+
+without -NoLoadingScreen  (Saved/Logs/SS_smoke_noflag.log)
+---------------------------------------------------------
+LogOutputDevice: Error: Ensure condition failed: ViewportOverlayWidget.IsValid()
+  [File:...GameViewportClient.cpp] [Line: 3378]
+EnsureFailed: Error: Ensure condition failed: ViewportOverlayWidget.IsValid()
+LogAutomationController: Error: Test Completed. Result={Fail} Name={TwoPlayerAuthoritySmoke}
+  Path={SouthernSpear.Network.Gameplay.TwoPlayerAuthoritySmoke}
+ViewportOverlayWidget occurrences in the log: 4
+
+with -NoLoadingScreen  (Saved/Logs/SS_smoke_flag.log)
+-----------------------------------------------------
+LogAutomationController: Display: Test Completed. Result={Success} Name={TwoPlayerAuthoritySmoke}
+  Path={SouthernSpear.Network.Gameplay.TwoPlayerAuthoritySmoke}
+ViewportOverlayWidget occurrences in the log: 0
+
+Control: the same test on the tree with this session's change reverted and rebuilt
+---------------------------------------------------------------------------------
+Saved/Logs/SS_smoke_control.log: Result={Success} (with -NoLoadingScreen), so the change is
+neither the cause nor the cure.
+
+Reading
+-------
+The ensure comes from CommonLoadingScreen during the test's client connect, which a headless
+world has no viewport for: -NoLoadingScreen is what suppresses it, and CLAUDE.md's suite
+recipe and commit ac9b642b both call for it. The suite run that reported "61 pass, 1 fail"
+in Session 070 omitted it, which is why one test failed there and passes here.
