@@ -27,13 +27,14 @@ The map was launched and played for the first time (windowed `-game`, 6 bots; pr
 
 | # | Defect (how found) | Fix |
 |---|---|---|
-| 1 | **Navigation *can* be baked headless.** §2's "needs an editor" was wrong: the missing piece was the ini flag Dry River's nav pass uses. | `SS_RAVENSHOE_NAV_BUILD=1 UnrealEditor-Cmd ... -nullrhi "-ini:Engine:[/Script/NavigationSystem.NavigationSystemV1]:bWaitForAsyncLoadingBeforeBuildingNavigationAutomatically=False" -ExecutePythonScript=.../build_ravenshoe_nav.py` → `nav_baked: true`, deck and creek bed project onto nav. |
+| 1 | ~~**Navigation *can* be baked headless.**~~ **Superseded — see §0b:** the "success" answered path queries from Dry River's *persisted* tiles; no headless run on this machine bakes nav (R-82). | ~~ini-flag command~~ **Retired (R-83):** the flag starts the load-time build early, on partial geometry. The real bake is **Build ▸ Build Paths in the attended editor**, per §0b and §2. |
 | 2 | **Everyone spawned at the world origin** (in the gorge under the deck; black void on screen; 270 `SpawnActor failed ... [X=0 Y=0 Z=0]`). `import_ravenshoe.py` placed plain `PlayerStart`s; Lyra only uses `ALyraPlayerStart`. | New `Tools/Unreal/fix_ravenshoe_starts.py`: 2 × 8 `LyraPlayerStart` (primary + 7 extras, 150 cm apart) on each ridge at `y = ±13000`, ground + 1 m, facing the bridge (`Build/ravenshoe_starts.json`). `import_ravenshoe.py` now spawns `LyraPlayerStart`. Retest: 0 failed spawns. |
 | 3 | **Players and bots ran ~50 m above the ground.** Terrain, bridge and gate house were imported with an auto-generated convex hull and `CTF_USE_DEFAULT`, so the game collided with the hull (a lid over the gorge, a solid box for the bridge). | New `Tools/Unreal/fix_ravenshoe_collision.py`: `CTF_USE_COMPLEX_AS_SIMPLE`, hulls removed, on all three meshes (`Build/ravenshoe_collision.json`). `import_ravenshoe.py` now imports with `auto_generate_collision=False` and complex-as-simple. Retest: player stands on the ground. |
 | 4 | Terrain rendered flat white: its slot held the FBX importer's `FBXLegacyPhongSurfaceMaterial` (0.8 grey). | Same script sets the terrain actor's material to `MI_SS_Raven_Road` (gravel). **Still renders near-white in play — open, see below.** |
 
 Order after any rebuild: `import_ravenshoe` → … → `wire_ravenshoe_experience` → `fix_ravenshoe_starts` →
-`fix_ravenshoe_collision` → `build_ravenshoe_nav` (build mode, with the ini flag above).
+`fix_ravenshoe_collision` → `build_ravenshoe_nav` (build mode; no ini overrides — the async-loading
+flag was retired, R-83).
 
 **Still open (observed in the third launch, not yet fixed):**
 
@@ -101,7 +102,32 @@ N > 0.
 both git-ignored as of today): `Content/MOUT_Civilian/` — 504 assets, authored UE 4.26 (R-67), no
 metadata sidecar (R-68), Middle-East vernacular: an ADR-016 look check is required before any use on
 an Australian map. `Content/RustyCarsFree/` — 56 assets of rusty car shells and ivy: the natural
-replacement for the L-0016c AI-flagged wreck set on this map's deck and bed.
+replacement for the deck wreck `SS_Raven_wreck_car`, whose Fab folder wrote no
+`metadata` at all (flag unknown, not known-good — L-0016c).
+
+**Look check, done 2026-09-29 (desk-level, against the register precedent; the
+editor views below are still owed):**
+
+- **MOUT kit — REJECTED for this map; stays a candidate for an urban/CQB map.**
+  The `MAPS_TRAININGRANGE.md` inventory already names the disqualifiers: church,
+  playground, police signage, bus stop, clothes lines and a European-influenced
+  bungalow/terrace vernacular. Per the Singapore Canal precedent
+  (`LICENCE_REGISTER.md`, Singapore Canal row), region-coded architecture and
+  civic signage stay off an Australian map, and nothing in an urban training
+  village dresses a gorge crossing. The R-67 upconversion measurement is still
+  owed once before any use on its own map.
+- **RustyCars — RECOMMENDED as the deck/bed wreck replacement when the map is
+  next touched.** Four car shells (`SM_asset_00..04`) plus twelve ivy pieces;
+  seller OlegVerenko verified, `isAiForbidden: false` — whereas the incumbent
+  red Renault's flag is **unknown** (no metadata). ADR-028 clears both, so this
+  is provenance hardening, not a licence change; the ivy doubles as creek-bed
+  foliage. UE-native, so the M-008i route applies — referenced in place, never
+  modified, no Blender round-trip. Import needs the register rows updated
+  (L-0016 status, ASSET_REGISTER §4.9j) and a rendered look at the shells for
+  scale, poly cost and rust-palette fit against `MI_Ground_Dirt_01`.
+- **Owed editor work before either pack touches the map:** open the MOUT demo
+  map once (R-67), and render/inspect the RustyCars shells (their shipped
+  `Overview/AssetsOverview.umap` or an editor window).
 
 ---
 

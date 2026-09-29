@@ -39,6 +39,14 @@
 # the two deployment points, 170 m apart across the whole map.
 #
 # See Docs/MAPS_DRYRIVER.md for the design and Docs/CHANGELOG.md for evidence.
+#
+# 2026-09-29 CORRECTION (R-82/R-83): the flag above is retired. It does release
+# the 0x20 lock, but it makes the AUTOMATIC load-time navigation build run
+# early, on partial geometry, and headless BUILDPATHS consumes no new geometry
+# on this machine either way (fresh-cube tests, both maps). The gate-G1.1 tiles
+# were baked once in the attended editor and persist in the saved map. The
+# engine-source reading above stands; the "deterministic headless bake"
+# conclusion does not. See Docs/MAPS_DRYRIVER.md §11.6.
 
 import csv
 import json

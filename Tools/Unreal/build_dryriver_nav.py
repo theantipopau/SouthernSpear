@@ -4,7 +4,8 @@
 #
 #   UnrealEditor-Cmd.exe SouthernSpear.uproject -nullrhi -unattended -nosplash \
 #       -nosound \
-#       -ini:Engine:[/Script/NavigationSystem.NavigationSystemV1]:bWaitForAsyncLoadingBeforeBuildingNavigationAutomatically=False \
+#       (no ini overrides — the async-loading nav flag was retired 2026-09-29,
+#       R-83; see Docs/MAPS_DRYRIVER.md §11.6) \
 #       -ExecutePythonScript=Tools/Unreal/build_dryriver_nav.py
 #
 # WHY THIS IS A SEPARATE PASS — this is the whole reason the pipeline is split.
@@ -25,6 +26,11 @@
 #
 # See build_dryriver_level.py for the construction pass and Docs/CHANGELOG.md
 # for the evidence trail.
+#
+# 2026-09-29 CORRECTION (R-82/R-83): headless BUILDPATHS here consumes no new
+# geometry on this machine; the map's tiles are persisted data from gate G1.1's
+# one attended bake. The ini flag in the command above is retired — it starts
+# the load-time build early, on partial geometry. Docs/MAPS_DRYRIVER.md §11.6.
 
 import csv
 import json

@@ -209,25 +209,19 @@ The level is built by two headless editor passes, not by hand. Both are version-
 
 ### 11.1 Running it
 
-Both passes need one command-line override, explained in §11.4:
-
-```
--ini:Engine:[/Script/NavigationSystem.NavigationSystemV1]:bWaitForAsyncLoadingBeforeBuildingNavigationAutomatically=False
-```
+Neither pass needs command-line overrides. The override earlier passes taught was retired 2026-09-29; see §11.6.
 
 **Pass 1 — construct** (`Tools/Unreal/build_dryriver_level.py`): creates `L_DryRiver_01`, imports the FBX, sets collision, places the gameplay actors from the layout CSV, creates the nav bounds volume, saves.
 
 ```
-Engine\Binaries\Win64\UnrealEditor-Cmd.exe SouthernSpear.uproject -nullrhi -unattended -nosplash -nosound -stdout \
-  -ini:Engine:[/Script/NavigationSystem.NavigationSystemV1]:bWaitForAsyncLoadingBeforeBuildingNavigationAutomatically=False \
+Engine\Binaries\Win64\UnrealEditor-Cmd.exe SouthernSpear.uproject -nullrhi -unattended -nosplash -nosound -stdout \ \
   -ExecutePythonScript=Tools\Unreal\build_dryriver_level.py
 ```
 
 **Pass 2 — navigate** (`Tools/Unreal/build_dryriver_nav.py`): loads the saved map, runs the editor's blocking *Build Paths*, and verifies a path between the deployments.
 
 ```
-Engine\Binaries\Win64\UnrealEditor-Cmd.exe SouthernSpear.uproject -nullrhi -unattended -nosplash -nosound -stdout \
-  -ini:Engine:[/Script/NavigationSystem.NavigationSystemV1]:bWaitForAsyncLoadingBeforeBuildingNavigationAutomatically=False \
+Engine\Binaries\Win64\UnrealEditor-Cmd.exe SouthernSpear.uproject -nullrhi -unattended -nosplash -nosound -stdout \ \
   -ExecutePythonScript=Tools\Unreal\build_dryriver_nav.py
 ```
 
@@ -291,6 +285,12 @@ Confirmed result (gate G1.1):
 Evidence: `Docs/evidence/G011_*`.
 
 Note the 14 m of relief in §1 is *not* symmetric about the deployments, so OBJ B's approach distances in §6 were derived in Blender space and are unchanged by the mirror: Bravo remains 51.9 m from OBJ B against Alpha's 142.7 m. The map is mirrored, not altered, so the sequential OBJ A → OBJ B ordering that makes the round fair still holds.
+
+### 11.6 The nav ini flag, retired (2026-09-29)
+
+Sessions 041–045 taught both passes with `-ini:Engine:[/Script/NavigationSystem.NavigationSystemV1]:bWaitForAsyncLoadingBeforeBuildingNavigationAutomatically=False`. Measured later on Ravenshoe (Session 069, R-83): the flag makes the *automatic load-time* navigation build run **early, before async loading completes — on partial geometry**, and it holds the navigation build lock (flags 0x20) that refuses a build fired shortly after load. Headless `BUILDPATHS` consumes no new geometry on this machine with or without it (R-82: fresh-cube tests on both maps, ten spaced builds, zero polys). In headless CI the flag is inert; in a documented recipe it is harmful, so it is retired from every doc. Dry River's 560 tiles are **persisted data from gate G1.1's one interactive bake** — that, not the flag, is why its headless passes kept "working".
+
+The rule now: **a map's nav bake happens once, in the attended editor (Build ▸ Build Paths), and is verified by path query** — `find_path_to_location_synchronously` across the whole map, exactly as §11.5 prescribes.
 
 ---
 

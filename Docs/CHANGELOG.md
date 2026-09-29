@@ -5883,14 +5883,16 @@ Scratch (untracked, `Build/`): `probe_raven_*.py`, `probe_dr_*.py`, `fix_raven_r
 
 ### RISKS
 
-- **R-69 (new):** no scripted process on this machine — commandlet, `-RenderOffscreen`, or the
-  interactive editor unattended — consumes geometry in the nav generator. Every map bake requires the
-  attended editor. CI can build and audit maps but can never verify nav; the Dry River gate's nav
-  evidence is the exception that proves this rule.
-- **R-70 (new):** `PLAYTEST_COMMANDS.md` §5 and CLAUDE.md present the async-loading ini flag as part
-  of the working nav recipe. Measured this session: it makes the automatic load-time build run early,
-  on partial geometry. The docs need correcting once the interactive bake lands and the flag's role is
-  re-tested with data on disk.
+- **R-82 (new; first written as "R-69", renumbered by Session 070's finding):** no scripted process on
+  this machine — commandlet, `-RenderOffscreen`, or the interactive editor unattended — consumes
+  geometry in the nav generator. Every map bake requires the attended editor. CI can build and audit
+  maps but can never verify nav; the Dry River gate's nav evidence is the exception that proves this
+  rule.
+- **R-83 (new; first written as "R-70", renumbered likewise):** `PLAYTEST_COMMANDS.md` §5 and
+  CLAUDE.md present the async-loading ini flag as part of the working nav recipe. Measured this
+  session: it makes the automatic load-time build run early, on partial geometry. The docs were
+  corrected on 2026-09-29 in the same change; the flag's remaining role (inert in headless CI, harmful
+  as a documented recipe) is stated in `MAPS_DRYRIVER.md` §11.6.
 
 ### DEFECTS FOUND
 
@@ -6183,6 +6185,74 @@ via `Tools/Common/adfrc_grip.py`) - in the same three axes, and decide the targe
 asset's own hold differs from the body's by the roll a vertical foregrip implies, solve the offset to the
 asset's pose instead and change one config line. Then re-run `-SSHandIKProbe` on the **A89** (its fingers are
 now found correctly) together with the `ss.Probe.Hide` ablation for the tan block.
+
+---
+
+## Session 072 — 2026-09-29 — The nav docs stopped teaching a measured fault; and the two packs get a look-check verdict
+
+Continuation of Session 069's Ravenshoe work. Two items: close the documentation half of the nav
+forensics (the docs half of the fault, now that the bake is the one action still owed), and give the
+producer the desk-level look-check verdict on the two packs Session 068 registered, so the decision
+about them is grounded before any editor work.
+
+### COMPLETED
+
+- **Risk renumbering, correcting Session 069's entry:** its risks were written as "R-69"/"R-70", numbers
+  Session 070 then found already claimed (press-kit logo; rest-joint solve). They take **R-82/R-83**;
+  the changelog entry now says so inline, `PROJECT_AUDIT.md` carries the two rows (R-82 OPEN as a
+  machine/attendant constraint, R-83 CLOSED with the doc correction), and `MAPS_RAVENSHOE.md` §7.1's
+  pointer cites R-82.
+- **The retired ini flag removed from every working doc and recipe (closes the doc half of R-83):**
+  `PLAYTEST_COMMANDS.md` §5 now says plainly that no headless run bakes nav (R-82) and marks the flag
+  retired; `MAPS_DRYRIVER.md` §11.1 teaches no overrides and gains **§11.6**, the full correction — what
+  the flag actually does (early load-time build on partial geometry; holds the 0x20 lock), why Dry
+  River's headless passes kept "working" (the persisted gate-G1.1 tiles), and the rule now (bake once
+  attended, verify by path query); `CLAUDE.md`'s pipeline block drops the override and points at §11.6;
+  `HANDOVER_RAVENSHOE.md` §0 #1 and the rebuild order are corrected in place; `bake_ravenshoe_nav.py`
+  (superseded, referenced nowhere) gains a do-not-run banner; both `build_dryriver_*.py` headers gain
+  dated corrections; and `.github/workflows/build.yml` stops passing the flag (three sites) — inert in
+  CI, but CI should not teach the fault either.
+- **Pack look check, desk-level, in `HANDOVER_RAVENSHOE.md` §0b:** MOUT kit **rejected for Ravenshoe**
+  (church/playground/police-signage/European-vernacular per the Singapore Canal precedent; stays a
+  candidate for an urban/CQB map, R-67 measurement still owed); RustyCars **recommended as the deck/bed
+  wreck replacement** — four shells + ivy, seller verified, `isAiForbidden: false`, against the
+  incumbent Renault whose flag is unknown (no metadata) — provenance hardening under ADR-028, UE-native
+  so the M-008i in-place route applies. No content was imported; only the §0b assessment was written.
+- Session 069's testing table said "look checks NOT RUN — Session 068 scope"; this session records the
+  desk half of that scope. The editor views (MOUT demo map once; RustyCars shells before import) stay
+  owed.
+
+### FILES CHANGED
+
+Modified: `Docs/CHANGELOG.md` (this entry + renumbering), `Docs/PROJECT_AUDIT.md` (R-82/R-83 rows +
+provenance note), `Docs/MAPS_RAVENSHOE.md` (R-82 pointer), `Docs/HANDOVER_RAVENSHOE.md` (§0 corrections,
+§0b look-check verdicts), `Docs/MAPS_DRYRIVER.md` (§11.1 de-taught, §11.6 added), `Docs/PLAYTEST_COMMANDS.md`
+(§5 rewritten), `CLAUDE.md` (pipeline block), `.github/workflows/build.yml` (flag removed ×3, comment),
+`Tools/Unreal/bake_ravenshoe_nav.py` (superseded banner), `Tools/Unreal/build_dryriver_level.py` +
+`build_dryriver_nav.py` (header corrections).
+
+### TESTING
+
+| Check | Command | Result |
+|---|---|---|
+| Retired-flag sweep | `grep -rn bWaitForAsyncLoading` across docs, CLAUDE.md, Tools, CI | **PASS** — every remaining mention is inside a retirement/correction context; CI has zero |
+| Workflow validity | `yaml.safe_load` on build.yml | **PASS** — parses, 22 steps |
+| Script syntax | `ast.parse` on the three touched Python files | **PASS** |
+| Line-ending safety | `git diff --numstat` per file | **PASS** — each touched CRLF file shows only its own lines changed; no whole-file churn |
+| Attended editor bake | — | **NOT RUN** — unchanged from Session 069; still the one action that un-freezes the bots |
+| MOUT demo map opened (R-67) | — | **NOT RUN** — needs the editor; recorded as owed |
+| RustyCars shells rendered/inspected | — | **NOT RUN** — needs the editor or a Blender probe; recorded as owed |
+
+### RISKS
+
+- No new risks. R-82 stays OPEN (machine/attendant constraint); R-83 is CLOSED by this change. The
+  renumbering itself removes the standing double-claim of R-69/R-70 that Session 070 flagged.
+
+### NEXT ACTION
+
+Unchanged and singular: **the attended editor bake** — open `/Game/Maps/L_Ravenshoe_01`, Build ▸ Build
+Paths, save — then `build_ravenshoe_nav.py` verify mode must read 32/32 and a live `-game` run must log
+`Steered N idle bot(s)` with N > 0. The RustyCars swap rides the next map-touching session after that.
 
 ---
 

@@ -108,9 +108,15 @@ Known noise: Engine Toolset Python import errors, `Lyra.Automation` CS0579 dupli
 - Scripts get no useful stdout: **write a JSON report** to `Build/<name>.json` and read that.
 - One-off probes go in your scratchpad, not `Tools/`.
 - Skinned-mesh FBX export crashes under `-nullrhi`; use `-RenderOffscreen` for that one case.
-- Navigation bake works headless with this extra flag (both Dry River and Ravenshoe):
-  `"-ini:Engine:[/Script/NavigationSystem.NavigationSystemV1]:bWaitForAsyncLoadingBeforeBuildingNavigationAutomatically=False"`
-  (Ravenshoe also needs `SS_RAVENSHOE_NAV_BUILD=1` in the environment).
+- Navigation is NOT baked by any headless run on this machine: commandlet, `-RenderOffscreen` and the
+  unattended editor all consume no new geometry (R-82; cube tests on both maps, `MAPS_DRYRIVER.md`
+  §11.6). The bake is attended-editor work — open the map, **Build ▸ Build Paths**, save — then verify
+  with `build_ravenshoe_nav.py` in verify mode.
+- The async-loading ini flag older passes documented
+  (`"-ini:Engine:[/Script/NavigationSystem.NavigationSystemV1]:bWaitForAsyncLoadingBeforeBuildingNavigationAutomatically=False"`)
+  was retired 2026-09-29 (R-83): it makes the automatic load-time build run **early, on partial
+  geometry**, and must not be cited as part of the recipe. (Ravenshoe build mode also needs
+  `SS_RAVENSHOE_NAV_BUILD=1` in the environment.)
 
 ## 6. First-launch checklist for a new map
 

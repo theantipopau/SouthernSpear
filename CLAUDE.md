@@ -117,14 +117,14 @@ python Tools/verify_dressing.py
 ## Dry River pipeline (order matters; see `Docs/MAPS_DRYRIVER.md`)
 
 Each is `UnrealEditor-Cmd ... -nullrhi -unattended -nosplash -nosound -stdout
-"-ini:Engine:[/Script/NavigationSystem.NavigationSystemV1]:bWaitForAsyncLoadingBeforeBuildingNavigationAutomatically=False"
-"-ExecutePythonScript=E:/SouthernSpear/Tools/Unreal/<script>.py"`:
+"-ExecutePythonScript=E:/SouthernSpear/Tools/Unreal/<script>.py"` (no ini overrides — the
+async-loading nav flag was retired 2026-09-29, see `Docs/MAPS_DRYRIVER.md` §11.6):
 
 1. `build_dryriver_level.py` (its own pass-1 `ok=False` path check is known, R-15)
 2. `dress_dryriver.py`
 3. `light_dryriver.py` (sun, sky atmosphere, sky light, fog, post-process; `SS_Light_*`, idempotent) → `Build/dryriver_lighting_report.json`
 4. `setup_objective_assault.py` (GFD, experience, objectives, director, extra starts, default experience) → `Build/objective_assault_setup.json`
-5. `build_dryriver_nav.py` (authoritative: path + dressing solidity; re-saves the map by design) → `Build/dryriver_nav_report.json`
+5. `build_dryriver_nav.py` (authoritative: path + dressing solidity; re-saves the map by design) → `Build/dryriver_nav_report.json`. The bake itself is attended-editor work on this machine (R-82): headless `BUILDPATHS` consumes no new geometry; Dry River's tiles are persisted data from its one interactive bake
 
 Blender source: `Tools/Blender/dryriver_blockout.py`, `dryriver_dressing.py`; shared spec `Tools/Common/dryriver_spec.py`.
 

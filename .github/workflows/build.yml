@@ -142,14 +142,15 @@ jobs:
       # The -ini override releases ENavigationBuildLock::AsyncLoadLock, which
       # otherwise refuses every build in a one-shot script. It is applied here
       # rather than in DefaultEngine.ini so the editor default is untouched.
-      # See Docs/MAPS_DRYRIVER.md section 11.
+      # See Docs/MAPS_DRYRIVER.md section 11 (§11.6: the async-loading nav ini
+      # flag was retired 2026-09-29 — headless runs never bake nav, R-82; the
+      # tiles these passes read are the persisted gate-G1.1 data).
       - name: Build Dry River level (construct)
         shell: cmd
         run: |
           "%UE_ROOT%\Engine\Binaries\Win64\UnrealEditor-Cmd.exe" ^
               "%PROJECT_DIR%\%PROJECT_NAME%.uproject" ^
               -nullrhi -unattended -nosplash -nosound -stdout ^
-              -ini:Engine:[/Script/NavigationSystem.NavigationSystemV1]:bWaitForAsyncLoadingBeforeBuildingNavigationAutomatically=False ^
               -ExecutePythonScript="%PROJECT_DIR%\Tools\Unreal\build_dryriver_level.py"
 
       # Dressing runs BEFORE navigation, or the fences and wrecks are invisible
@@ -160,7 +161,6 @@ jobs:
           "%UE_ROOT%\Engine\Binaries\Win64\UnrealEditor-Cmd.exe" ^
               "%PROJECT_DIR%\%PROJECT_NAME%.uproject" ^
               -nullrhi -unattended -nosplash -nosound -stdout ^
-              -ini:Engine:[/Script/NavigationSystem.NavigationSystemV1]:bWaitForAsyncLoadingBeforeBuildingNavigationAutomatically=False ^
               -ExecutePythonScript="%PROJECT_DIR%\Tools\Unreal\dress_dryriver.py"
 
       # Daylight rig (sun, sky, fog). Movable lights, so no light build.
@@ -190,7 +190,6 @@ jobs:
           "%UE_ROOT%\Engine\Binaries\Win64\UnrealEditor-Cmd.exe" ^
               "%PROJECT_DIR%\%PROJECT_NAME%.uproject" ^
               -nullrhi -unattended -nosplash -nosound -stdout ^
-              -ini:Engine:[/Script/NavigationSystem.NavigationSystemV1]:bWaitForAsyncLoadingBeforeBuildingNavigationAutomatically=False ^
               -ExecutePythonScript="%PROJECT_DIR%\Tools\Unreal\build_dryriver_nav.py"
 
       - name: Assert Dry River gate G1.1 result

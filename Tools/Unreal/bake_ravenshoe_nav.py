@@ -1,4 +1,13 @@
-"""Bake the Ravenshoe navmesh headlessly, clearing stale data first.
+"""SUPERSEDED — do not run. Kept as the record of the crash diagnosis only.
+
+The headless bake this script attempted is now known never to consume geometry on
+this machine (Session 069 forensics, R-82), and the ini flag in its run recipe is
+retired (R-83): it starts the load-time build early, on partial geometry. The real
+bake is Build > Build Paths in the attended editor; see
+Docs/MAPS_RAVENSHOE.md §7.1 and Tools/Unreal/build_ravenshoe_nav.py.
+
+--- original docstring ---
+Bake the Ravenshoe navmesh headlessly, clearing stale data first.
 
 Every previous attempt crashed in UnrealEd immediately after the build
 completed, with:

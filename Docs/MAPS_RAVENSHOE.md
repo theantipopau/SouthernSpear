@@ -226,7 +226,7 @@ against Dry River's megabytes, and a freshly spawned cube gains no poly on eithe
 builds (`Build/dr_cube.json`, `Build/raven_cube.json`). The async-loading ini flag earlier passes used
 (`bWaitForAsyncLoadingBeforeBuildingNavigationAutomatically=False`) makes the automatic load-time build
 run **early, on partial geometry**; it is not part of the fix. Details and the full evidence trail:
-`Docs/HANDOVER_RAVENSHOE.md` §0b and CHANGELOG Session 069 (R-69).
+`Docs/HANDOVER_RAVENSHOE.md` §0b and CHANGELOG Session 069 (R-82).
 
 **To bake:** open the editor with `/Game/Maps/L_Ravenshoe_01` loaded, **Build ▸ Build Paths**, save.
 Then re-run `build_ravenshoe_nav.py` in verify mode — it must report 32/32 routes — and a live `-game`
