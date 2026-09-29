@@ -127,6 +127,39 @@ bool FSSHandIK::Apply(TArray<FTransform>& ComponentSpace, TConstArrayView<int32>
 	return true;
 }
 
+// --------------------------------------------------------------------------- pure rotation
+
+bool FSSHandIK::RotateChain(TArray<FTransform>& ComponentSpace, TConstArrayView<int32> Parents, int32 Hand,
+	const FQuat& Target, float InAlpha)
+{
+	const int32 Num = ComponentSpace.Num();
+	if (InAlpha <= 0.f || Parents.Num() != Num || !ComponentSpace.IsValidIndex(Hand) || Target.ContainsNaN())
+	{
+		return false;
+	}
+	const TArray<FTransform> Old = ComponentSpace;
+	// The hand has already been moved onto the grip by Apply: keep that location, turn only the rotation.
+	FTransform NewHand = Old[Hand];
+	NewHand.SetRotation(FQuat::Slerp(Old[Hand].GetRotation(), Target.GetNormalized(), FMath::Clamp(InAlpha, 0.f, 1.f)).GetNormalized());
+
+	ComponentSpace[Hand] = NewHand;
+	// Descendants keep their local (parent-relative) transforms, so the whole hand turns with it.
+	TArray<bool> Moved;
+	Moved.Init(false, Num);
+	Moved[Hand] = true;
+	for (int32 Bone = Hand + 1; Bone < Num; ++Bone)
+	{
+		const int32 Parent = Parents[Bone];
+		if (Parent == INDEX_NONE || !Moved[Parent])
+		{
+			continue;
+		}
+		Moved[Bone] = true;
+		ComponentSpace[Bone] = Old[Bone].GetRelativeTransform(Old[Parent]) * ComponentSpace[Parent];
+	}
+	return true;
+}
+
 // --------------------------------------------------------------------------- component
 
 USSHandIKMeshComponent::USSHandIKMeshComponent(const FObjectInitializer& ObjectInitializer)
@@ -307,12 +340,19 @@ void USSHandIKMeshComponent::FinalizeBoneTransform()
 			}
 			if (bAttach)
 			{
-				const FVector Target = (GripInAttach * AttachCS).GetLocation();
+				const FTransform GripCS = GripInAttach * AttachCS;
+				const FVector Target = GripCS.GetLocation();
 				const double ArmLength = FVector::Distance(Pose[Upper].GetLocation(), Pose[Lower].GetLocation())
 					+ FVector::Distance(Pose[Lower].GetLocation(), Pose[Hand].GetLocation());
 				if (FVector::Distance(Pose[Upper].GetLocation(), Target) <= ArmLength * MaxReachFactor)
 				{
-					FSSHandIK::Apply(Pose, Parents, Upper, Lower, Hand, Target, Alpha);
+					// The wrist lands on the socket first; then the hand itself turns to the socket's
+					// rotation, corrected by HandRotationOffset, so the palm is on the handguard.
+					if (FSSHandIK::Apply(Pose, Parents, Upper, Lower, Hand, Target, Alpha) && bRotateHandToGrip)
+					{
+						const FQuat GripRotation = GripCS.GetRotation() * HandRotationOffset.Quaternion();
+						FSSHandIK::RotateChain(Pose, Parents, Hand, GripRotation, Alpha);
+					}
 				}
 			}
 		}

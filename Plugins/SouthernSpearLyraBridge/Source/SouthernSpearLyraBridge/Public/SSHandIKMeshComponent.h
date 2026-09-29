@@ -22,6 +22,15 @@ struct SSBRIDGE_API FSSHandIK
 	static bool Apply(TArray<FTransform>& ComponentSpace, TConstArrayView<int32> Parents,
 		int32 Upper, int32 Lower, int32 Hand, const FVector& Target, float Alpha);
 
+	/**
+	 * Turns Hand to Target (component space) by Alpha (shortest-arc slerp) and carries every descendant
+	 * with it: each one keeps the local (parent-relative) transform it has, so fingers and twist bones
+	 * follow the hand instead of being left behind. The hand's location is untouched, because the
+	 * position solve (Apply) has already put it there. False (pose untouched) for a bad index or Alpha 0.
+	 */
+	static bool RotateChain(TArray<FTransform>& ComponentSpace, TConstArrayView<int32> Parents, int32 Hand,
+		const FQuat& Target, float Alpha);
+
 	/** True when Ancestor is Bone or one of its ancestors. */
 	static bool IsAncestor(TConstArrayView<int32> Parents, int32 Ancestor, int32 Bone);
 };
@@ -40,13 +49,17 @@ struct SSBRIDGE_API FSSHandIK
  * the first-person arms (USSFirstPersonSubsystem; the Fab arms' LeftArm / LeftForeArm / LeftHand). The
  * bones are found by name from a candidate list, so one class serves both skeletons.
  *
+ * The wrist solve places the hand; HandRotationOffset then turns the hand itself to the grip socket's
+ * rotation (a wrist-only solve leaves the palm open and flat, Session 070), and the hand's descendants
+ * follow it. The offset is per skeleton, so it lives in config.
+ *
  * The IK fades out (BlendSpeed) while a reload, draw, holster or equip plays (the body's active montage
  * name contains one of SuppressingAnimationWords; the first-person arms, which play single clips, are
  * told through SetHandIKSuppressed), while Lyra's
  * DisableLHandIK curve is up, while ragdolled, when the target is out of reach, and when the weapon has
  * no grip socket (pistols, until they get one). Presentation only (ADR-004). ss.HandIK 0 turns it off.
  */
-UCLASS(ClassGroup = (SouthernSpear), meta = (BlueprintSpawnableComponent))
+UCLASS(config = Game, ClassGroup = (SouthernSpear), meta = (BlueprintSpawnableComponent))
 class SSBRIDGE_API USSHandIKMeshComponent : public USkeletalMeshComponent
 {
 	GENERATED_BODY()
@@ -84,6 +97,23 @@ public:
 	/** The target may be at most this factor of the arm's length from the shoulder. */
 	UPROPERTY(EditAnywhere, Category = "Hand IK")
 	float MaxReachFactor = 1.05f;
+
+	/**
+	 * Turn the hand itself to the grip socket's rotation (socket rotation * HandRotationOffset) once the
+	 * wrist solve has put it there, carrying the fingers and wrist-twist bones with it. A wrist-only solve
+	 * leaves the palm however the animation had it (flat on the receiver for the first-person arms).
+	 *
+	 * Off by default: the third-person body's own Lyra hold already gives it a gripping hand, so only the
+	 * first-person arms, which have no grip animation, turn it on. The correction is per skeleton, so the
+	 * value lives in config: [/Script/SouthernSpearLyraBridge.SSHandIKMeshComponent]
+	 * HandRotationOffset=(Pitch=,Yaw=,Roll=). A zero offset takes the socket's own rotation.
+	 */
+	UPROPERTY(EditAnywhere, Category = "Hand IK")
+	bool bRotateHandToGrip = false;
+
+	/** With bRotateHandToGrip: correction between the grip socket's rotation and this skeleton's hand bone. */
+	UPROPERTY(Config, EditAnywhere, Category = "Hand IK")
+	FRotator HandRotationOffset = FRotator::ZeroRotator;
 
 	/** For meshes driven by single clips (the first-person arms): true while the clip moves the left hand. */
 	void SetHandIKSuppressed(bool bSuppressed) { bSuppressedExternally = bSuppressed; }

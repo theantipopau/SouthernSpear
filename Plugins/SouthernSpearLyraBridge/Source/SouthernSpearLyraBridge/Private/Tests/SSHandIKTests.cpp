@@ -2,7 +2,9 @@
 //
 // Left-hand IK (W2): the pure two-bone solve on a component-space arm puts the hand on a reachable
 // target, keeps bone lengths, keeps the hand's rotation, carries fingers and twist bones with their
-// bones, stops at full reach, blends by alpha, and refuses a broken chain.
+// bones, stops at full reach, blends by alpha, and refuses a broken chain. The rotation step (Session
+// 070) then turns the hand to the target's rotation and carries its descendants, so the palm follows
+// the grip socket instead of lying open on the receiver.
 
 #include "Misc/AutomationTest.h"
 
@@ -81,6 +83,67 @@ bool FSSHandIKSolveTest::RunTest(const FString& Parameters)
 	TestFalse(TEXT("alpha 0 does nothing"), FSSHandIK::Apply(Pose, Parents, 2, 3, 4, Target, 0.f));
 	TestFalse(TEXT("a broken chain is refused"), FSSHandIK::Apply(Pose, Parents, 2, 6, 4, Target, 1.f));
 	TestFalse(TEXT("mismatched parents are refused"), FSSHandIK::Apply(Pose, TArray<int32>{ INDEX_NONE }, 2, 3, 4, Target, 1.f));
+	bool bSame = true;
+	for (int32 Bone = 0; Bone < Pose.Num(); ++Bone)
+	{
+		bSame &= Pose[Bone].Equals(Before[Bone], 1e-6f);
+	}
+	TestTrue(TEXT("refusals leave the pose as it was"), bSame);
+	return true;
+}
+
+// The hand's rotation step: a wrist-only solve leaves the palm open, so the hand is turned to the
+// grip socket's rotation (socket rotation * per-skeleton offset) and everything under the hand follows.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FSSHandIKRotateTest, "SouthernSpear.Bridge.HandIK.RotateHand",
+	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+bool FSSHandIKRotateTest::RunTest(const FString& Parameters)
+{
+	TArray<FTransform> Pose;
+	TArray<int32> Parents;
+	const FQuat Target = FRotator(35.f, -20.f, 70.f).Quaternion();
+
+	// At alpha 1 the hand's rotation is the target's, and its position is left alone.
+	MakeArm(Pose, Parents);
+	const TArray<FTransform> Before = Pose;
+	TestTrue(TEXT("rotate applies"), FSSHandIK::RotateChain(Pose, Parents, 4, Target, 1.f));
+	TestTrue(TEXT("the hand matches the target at alpha 1"), Pose[4].GetRotation().Equals(Target, 1e-4f));
+	TestTrue(TEXT("the hand keeps the position the solve gave it"), Pose[4].GetLocation().Equals(Before[4].GetLocation(), 1e-6f));
+	TestTrue(TEXT("a finger follows with its own local transform"),
+		Pose[5].GetRelativeTransform(Pose[4]).Equals(Before[5].GetRelativeTransform(Before[4]), 1e-5f));
+	TestTrue(TEXT("bones outside the hand are untouched"),
+		Pose[0].Equals(Before[0], 1e-6f) && Pose[1].Equals(Before[1], 1e-6f)
+			&& Pose[2].Equals(Before[2], 1e-6f) && Pose[3].Equals(Before[3], 1e-6f)
+			&& Pose[6].Equals(Before[6], 1e-6f));
+
+	// Both steps together: the hand is on the grip with the grip's rotation (what the component does).
+	MakeArm(Pose, Parents);
+	const FVector TargetLocation(35.f, 30.f, 125.f);
+	TestTrue(TEXT("solve then rotate both apply"),
+		FSSHandIK::Apply(Pose, Parents, 2, 3, 4, TargetLocation, 1.f)
+			&& FSSHandIK::RotateChain(Pose, Parents, 4, Target, 1.f));
+	TestTrue(TEXT("hand on the grip"), Pose[4].GetLocation().Equals(TargetLocation, 0.05f));
+	TestTrue(TEXT("hand turned to the grip"), Pose[4].GetRotation().Equals(Target, 1e-4f));
+
+	// Alpha blends the rotation the same way it blends the position.
+	MakeArm(Pose, Parents);
+	FSSHandIK::RotateChain(Pose, Parents, 4, Target, 0.5f);
+	TestTrue(TEXT("alpha 0.5 is half-way round"),
+		Pose[4].GetRotation().Equals(FQuat::Slerp(Before[4].GetRotation(), Target, 0.5f), 1e-4f));
+
+	// A zero offset (the config default) reproduces the socket's rotation exactly.
+	MakeArm(Pose, Parents);
+	const FQuat SocketRotation = FRotator(12.f, 88.f, -3.f).Quaternion();
+	const FQuat WithOffset = SocketRotation * FRotator::ZeroRotator.Quaternion();
+	FSSHandIK::RotateChain(Pose, Parents, 4, WithOffset, 1.f);
+	TestTrue(TEXT("a zero offset keeps the socket's own rotation"), Pose[4].GetRotation().Equals(SocketRotation, 1e-4f));
+
+	// Refusals leave the pose untouched.
+	MakeArm(Pose, Parents);
+	TestFalse(TEXT("alpha 0 does nothing"), FSSHandIK::RotateChain(Pose, Parents, 4, Target, 0.f));
+	TestFalse(TEXT("a bad hand index is refused"), FSSHandIK::RotateChain(Pose, Parents, 99, Target, 1.f));
+	TestFalse(TEXT("mismatched parents are refused"),
+		FSSHandIK::RotateChain(Pose, TArray<int32>{ INDEX_NONE }, 4, Target, 1.f));
 	bool bSame = true;
 	for (int32 Bone = 0; Bone < Pose.Num(); ++Bone)
 	{

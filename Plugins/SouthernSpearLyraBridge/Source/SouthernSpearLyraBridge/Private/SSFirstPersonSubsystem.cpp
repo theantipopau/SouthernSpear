@@ -250,7 +250,11 @@ void USSFirstPersonSubsystem::Tick(float DeltaTime)
 	{
 		// The arms put their left hand on the held weapon's grip socket (W2): the Fab pack's own left hand
 		// sits where its M4 handguard was.
-		Arms = NewObject<USSHandIKMeshComponent>(Pawn, TEXT("SS_FirstPersonArms"));
+		USSHandIKMeshComponent* HandIKArms = NewObject<USSHandIKMeshComponent>(Pawn, TEXT("SS_FirstPersonArms"));
+		// These arms have no grip animation of their own: the wrist solve puts the hand on the weapon, and
+		// the hand itself is then turned to the grip socket (W2, Session 070) so the palm is not left open.
+		HandIKArms->bRotateHandToGrip = true;
+		Arms = HandIKArms;
 		Arms->SetupAttachment(Camera);
 		Arms->SetSkeletalMesh(ArmsMesh);
 		Arms->SetOnlyOwnerSee(true);
