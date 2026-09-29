@@ -6,6 +6,7 @@ Tools/Blender/fix_weapon_optics.py (which edited the exported FBX and compounded
 
 Blender: $BLENDER or the default install path.
 """
+import json
 import os
 import subprocess
 import sys
@@ -20,9 +21,22 @@ OPTICS = os.path.join(B, "adfrc_optics")
 OPTIC_X = {"A88": 0.01, "A88G": 0.01}
 
 # W2: each weapon's ADFRC handAnim pose (Docs/WEAPON_SOURCE_DATA.md) -> SOCKET_LeftHandGrip / RightHandGrip.
-# The A9 has none (pistols carry no handAnim in the pack).
+# The A9 has none (pistols carry no handAnim in the pack). EF88_Vg_static supplies position only; the A88
+# mesh has no vertical grip, so the hold below is the plain handguard - "Vg" names the clip, not the gun.
 GRIP_CLIPS = {"A88": "EF88_Vg_static", "A88G": "AUG_GL", "A4": "ar15_8in_cgrip_static",
               "A416": "hk416_cgrip_static", "A25": "ar15_10in_cgrip_static", "A89": "Minimi_Standard"}
+
+# W2b: the hold the left hand takes on each weapon, as SOCKET_LeftHandGrip's rotation, authored from the
+# weapon's own axes (forward = trigger -> muzzle, up = model up, right = forward x up). A profile name
+# from adfrc_grip.HOLD_PROFILES, optionally with per-axis overrides of the form
+# ("tilt", base, towards, degrees) or a plain (forward, right, up) triple. Data, not code: the choice
+# and the angles live here and are resolved into manifest.json -> "hold".
+#
+# Only the A88 is authored. Its mesh was measured (Session 072): no geometry below the bore line
+# beyond 9.1 cm ahead of the trigger, so the hand goes under the handguard, and the handguard runs
+# from +9 cm to the front sight. The others keep their bare socket until someone measures their mesh
+# the same way - a hold guessed from the weapon's real-world type is exactly the borrow this replaced.
+GRIP_HOLDS = {"A88": "plain_handguard"}
 
 # name -> (source MLOD blend, optic blend or None). Optics as the ADF fits them: Spectr on the EF88 family,
 # TA31 ACOG on the M4 / HK416 types, TA648 on the marksman rifle, C79 (ELCAN) on the F89.
@@ -48,12 +62,17 @@ def main(names):
             env["SS_OPTIC_X"] = str(OPTIC_X[name])
         if name in GRIP_CLIPS:
             env["SS_GRIP_CLIP"] = GRIP_CLIPS[name]
+        if name in GRIP_HOLDS:
+            env["SS_GRIP_HOLD"] = json.dumps(GRIP_HOLDS[name])
         run = subprocess.run(args, capture_output=True, text=True, errors="replace", env=env)
         line = next((l for l in run.stdout.splitlines() if l.startswith("[ADFRC weapon]")), None)
         grip = next((l for l in run.stdout.splitlines() if l.startswith("[ADFRC grip]")), None)
+        hold = next((l for l in run.stdout.splitlines() if l.startswith("[ADFRC hold]")), None)
         print(name, "OK" if line else "FAILED", line or run.stdout[-600:] + run.stderr[-600:])
         if grip:
             print("   ", grip)
+        if hold:
+            print("   ", hold)
         if not line:
             failed.append(name)
     return 1 if failed else 0

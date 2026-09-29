@@ -137,9 +137,134 @@ def main():
     for stem in pose_of.values():
         check("manifest has " + stem, stem + ".json" in names)
 
+    # W2b: the authored hold. The socket's basis is the hand on every weapon, and it is a proper
+    # rotation, so the one HandRotationOffset the game solves from SK_FP_Arms_Rifle's finger bones
+    # fits every weapon. A hold is a rotation in the weapon's own axes, not a borrowed pose.
+    #
+    # `report` rounds its vectors to 4 dp, so a value compared against it is compared at 1e-3; the
+    # rotation itself is checked at 1e-9.
+    trig, muz = (0.0, 0.0, 0.0), (0.42, 0.0, 0.049)          # the A88's own trigger -> muzzle
+    world_up = (0.0, 0.0, 1.0)
+    fwd = g.unit(g.sub(muz, trig))
+    up = g.unit(g.sub(world_up, tuple(fwd[i] * g.dot(fwd, world_up) for i in range(3))))
+    basis = (fwd, g.cross(fwd, up), up)                      # as adfrc_reload.weapon_axes defines it
+    check("the test basis is orthonormal, like weapon_axes",
+          all(abs(g.norm(b) - 1.0) < 1e-9 for b in basis) and abs(g.dot(basis[0], basis[1])) < 1e-9
+          and abs(g.dot(basis[0], basis[2])) < 1e-9 and abs(g.dot(basis[1], basis[2])) < 1e-9
+          and g.dot(g.cross(basis[0], basis[1]), basis[2]) < -0.999,
+          str([round(g.norm(b), 9) for b in basis]))
+
+    # The change of coordinates itself, checked against the basis it is given. Written out longhand
+    # here on purpose: a test that recomputes the expression it is testing agrees with its bugs.
+    for j, name in enumerate(("forward", "right", "up")):
+        unit_fru = [0.0, 0.0, 0.0]
+        unit_fru[j] = 1.0
+        check("+{} in the hold's axes is the weapon's {}".format(name, name),
+              close(g.hold_axis(tuple(unit_fru), basis), basis[j], 1e-12),
+              "{} vs {}".format([round(c, 6) for c in g.hold_axis(tuple(unit_fru), basis)],
+                                [round(c, 6) for c in basis[j]]))
+    # A tilt rotates inside the plane its two axes span, so the result stays perpendicular to the
+    # remaining axis (forward), and lands 30 deg from the base towards the target.
+    tilted = g.hold_axis(("tilt", (0.0, 0.0, 1.0), (0.0, 1.0, 0.0), 30.0), basis)
+    check("a tilt rotates inside its own plane, 30 deg from base towards target",
+          abs(g.dot(tilted, fwd)) < 1e-12
+          and abs(math.degrees(math.acos(max(-1.0, min(1.0, g.dot(tilted, up))))) - 30.0) < 1e-9
+          and abs(g.dot(tilted, basis[1]) - math.sin(math.radians(30.0))) < 1e-9,
+          str([round(c, 6) for c in tilted]))
+
+    def col_of(m, k):
+        return (m[0][k], m[1][k], m[2][k])
+
+    for name in ("plain_handguard", "vertical_grip"):
+        rot, rep = g.resolve_hold(name, trig, muz)
+        cols = [col_of(rot, k) for k in range(3)]
+        check("{} is orthonormal".format(name),
+              all(abs(g.norm(c) - 1.0) < 1e-9 for c in cols) and
+              all(abs(g.dot(cols[a], cols[b])) < 1e-9 for a in range(3) for b in range(3) if a != b),
+              str([round(g.dot(cols[0], cols[1]), 9), round(g.dot(cols[0], cols[2]), 9)]))
+        check("{} is right-handed (det +1)".format(name),
+              abs(g.dot(cols[0], g.cross(cols[1], cols[2])) - 1.0) < 1e-9)
+        check("{}: the socket's axes are +X palm, +Y finger, +Z thumb".format(name),
+              close(cols[0], rep["palm"], 1e-3) and close(cols[1], rep["finger"], 1e-3)
+              and close(cols[2], rep["thumb_derived"], 1e-3),
+              "X={} Y={} Z={}".format([round(c, 4) for c in cols[0]], [round(c, 4) for c in cols[1]],
+                                       [round(c, 4) for c in cols[2]]))
+        # The palm normal, measured against the weapon's own axes rather than recomputed from them.
+        tilt = 30.0 if name == "plain_handguard" else 90.0
+        check("{}: the palm normal is {:.0f} deg off the bore's up, towards +right".format(name, tilt),
+              abs(math.degrees(math.acos(max(-1.0, min(1.0, g.dot(rep["palm"], up))))) - tilt) < 0.05
+              and abs(g.dot(rep["palm"], basis[1]) - math.sin(math.radians(tilt))) < 0.001,
+              "palm.up={:.4f} palm.right={:.4f}".format(g.dot(rep["palm"], up), g.dot(rep["palm"], basis[1])))
+        # A left hand obeys palm x finger = thumb, so a self-consistent hold needs no correction;
+        # the vertical grip's 30 deg finger tilt is an authored deviation and is reported, not hidden.
+        expect = 0.0 if name == "plain_handguard" else 30.0
+        check("{}: thumb deviation is the authored {}".format(name, expect),
+              abs(rep["thumb_deviation_deg"] - expect) < 0.05,
+              "thumb_deviation_deg={}".format(rep["thumb_deviation_deg"]))
+
+    # The A88's hold specifically: palm under-left of the tube, fingers wrapping over, thumb at the muzzle.
+    rot, rep = g.resolve_hold("plain_handguard", trig, muz)
+    check("the A88's thumb points at the muzzle", close(rep["thumb_derived"], fwd, 1e-3),
+          "thumb={} muzzle_dir={}".format([round(c, 4) for c in rep["thumb_derived"]],
+                                           [round(c, 4) for c in fwd]))
+    check("the A88's fingers wrap towards +right, rolled 30 deg by the palm tilt",
+          abs(g.dot(rep["finger"], basis[1]) - math.cos(math.radians(30.0))) < 0.001,
+          "finger.right={:.4f} (cos30={:.4f})".format(g.dot(rep["finger"], basis[1]),
+                                                        math.cos(math.radians(30.0))))
+    finger_vs_palm = math.degrees(math.acos(max(-1.0, min(1.0, g.dot(rep["finger"], rep["palm"])))))
+    check("the A88's fingers are square to the palm, as a hand's are", abs(finger_vs_palm - 90.0) < 0.05,
+          "finger.palm={:.2f} deg".format(finger_vs_palm))
+
+    # A weapon with no row gets no rotation and a reason, not a bare socket.
+    nothing = g.resolve_hold(None, trig, muz)
+    check("an unauthored hold is refused, with a reason", nothing[0] is None and "reason" in nothing[1],
+          json.dumps(nothing[1]))
+    try:
+        g.resolve_hold("no_such_hold", trig, muz)
+        check("an unknown profile name is refused", False)
+    except ValueError as error:
+        check("an unknown profile name is refused", "plain_handguard" in str(error), str(error))
+
+    # Per-weapon choices and angles are data, and they beat the profile.
+    _, rep = g.resolve_hold({"profile": "plain_handguard", "palm": (0.0, 0.0, 1.0)}, trig, muz)
+    check("a per-weapon palm override is honoured",
+              rep["thumb_deviation_deg"] < 0.05 and abs(g.dot(rep["palm"], basis[1])) < 0.001,
+              "palm={} thumb_deviation_deg={}".format([round(c, 4) for c in rep["palm"]],
+                                                      rep["thumb_deviation_deg"]))
+    _, rep = g.resolve_hold({"profile": "plain_handguard",
+                             "palm": ("tilt", (0.0, 0.0, 1.0), (0.0, 1.0, 0.0), 45.0)}, trig, muz)
+    check("a per-weapon tilt is honoured",
+              abs(g.dot(rep["palm"], basis[1]) - math.sin(math.radians(45.0))) < 0.001,
+              "palm.right={:.4f} (sin45={:.4f})".format(g.dot(rep["palm"], basis[1]),
+                                                         math.sin(math.radians(45.0))))
+
+    # A folded hold (the finger onto the palm normal) is an error, not a NaN rotation.
+    try:
+        g.resolve_hold({"profile": "plain_handguard", "palm": (0.0, 0.0, 1.0), "finger": (0.0, 0.0, 1.0)},
+                       trig, muz)
+        check("a folded hold is refused", False)
+    except ValueError as error:
+        check("a folded hold is refused", "parallel" in str(error), str(error))
+
+    # The shipped A88 manifest carries the hold, and the socket's position is untouched by it.
+    with open(os.path.join(g.ROOT, "Art", "Weapons", "A88", "ADFRC", "manifest.json"), encoding="utf-8") as fh:
+        a88 = json.load(fh)
+    check("the A88 manifest records the hold", a88.get("hold", {}).get("hold") == "plain_handguard",
+          json.dumps(a88.get("hold", {}).get("hold")))
+    check("the A88 manifest records the socket axes the offset is solved against",
+          a88.get("hold", {}).get("socket_axes") == {"x": "palm normal", "y": "finger direction",
+                                                      "z": "thumb direction"},
+          json.dumps(a88.get("hold", {}).get("socket_axes")))
+    check("the hold did not move the socket: the wrist is where the clip put it",
+          close(a88["grip"]["left_m"], [0.2223, 0.094, -0.0151], 1e-4)
+          and abs(a88["grip"]["left_hand_forward_m"] - 0.2187) < 1e-4,
+          "left_m={} forward={}".format(a88["grip"]["left_m"], a88["grip"]["left_hand_forward_m"]))
+
     print("{} failure(s)".format(len(FAILURES)))
     return 1 if FAILURES else 0
 
 
 if __name__ == "__main__":
     sys.exit(main())
+
+

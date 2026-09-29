@@ -154,6 +154,52 @@
    0.0
   ]
  },
+ "hold": {
+  "palm": [
+   -0.1022,
+   -0.4996,
+   0.8602
+  ],
+  "finger": [
+   0.0541,
+   -0.8663,
+   -0.4967
+  ],
+  "thumb_derived": [
+   0.9933,
+   -0.0042,
+   0.1155
+  ],
+  "thumb_authored": [
+   0.9933,
+   -0.0042,
+   0.1155
+  ],
+  "thumb_deviation_deg": 0.0,
+  "hold": "plain_handguard",
+  "basis": {
+   "forward": [
+    0.9933,
+    -0.0042,
+    0.1155
+   ],
+   "right": [
+    -0.0043,
+    -1.0,
+    0.0
+   ],
+   "up": [
+    -0.1155,
+    0.0005,
+    0.9933
+   ]
+  },
+  "socket_axes": {
+   "x": "palm normal",
+   "y": "finger direction",
+   "z": "thumb direction"
+  }
+ },
  "eject": {
   "port_m": [
    -0.1844,

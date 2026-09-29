@@ -19,6 +19,11 @@
 # - SS_GRIP_CLIP=<handAnim pose> (W2): SOCKET_LeftHandGrip / SOCKET_RightHandGrip where the ADFRC
 #   pose puts the wrists on this weapon (Tools/Common/adfrc_grip.py, calibrated on trigger_axis and
 #   muzzle_pos). No sockets, and the reason in the manifest, when the pose does not fit.
+# - SS_GRIP_HOLD=<json> (W2b): the hold SOCKET_LeftHandGrip's rotation authors, from the weapon's
+#   own axes (forward = trigger -> muzzle, up = model up, right = forward x up) and the named profile
+#   in adfrc_grip.HOLD_PROFILES. The handAnim poses are not a target for this: their finger rest
+#   joints disagree by ~50 deg. The socket's basis is the hand (+X palm, +Y finger, +Z thumb) on
+#   every weapon, so one HandRotationOffset fits them all. Position untouched; manifest "hold".
 # - W3: SOCKET_Eject at the ejection port (nabojnicestart) and SOCKET_EjectEnd where the case is thrown
 #   (nabojniceend); manifest "eject".
 #
@@ -124,9 +129,13 @@ points = dict(memory)
 # W2: the hands, from the weapon's own handAnim pose, in this MLOD's space (before any transform below).
 grip_report = None
 GRIP_CLIP = os.environ.get("SS_GRIP_CLIP")
-if GRIP_CLIP:
+# W2b: SS_GRIP_HOLD names the hold profile the left hand takes on this weapon, as JSON so the choice
+# and any angle overrides stay data (GRIP_HOLDS in build_adfrc_weapons.py), not a branch here.
+GRIP_HOLD = os.environ.get("SS_GRIP_HOLD")
+if GRIP_CLIP or GRIP_HOLD:
     sys.path.insert(0, os.path.join(ROOT, "Tools", "Common"))
     import adfrc_grip
+if GRIP_CLIP:
     if "trigger_axis" in memory and "muzzle_pos" in memory:
         try:
             left_hand, right_hand, grip_report = adfrc_grip.grip_points(
@@ -305,12 +314,32 @@ bpy.context.scene.collection.objects.link(sock)
 sock.parent = obj
 
 # W2: hand IK targets (wrist positions), carried through the same transforms as the mesh.
+# W2b: the left one also gets an explicit rotation - the hold, authored from the weapon's own axes
+# (see adfrc_grip.HOLD_PROFILES). The socket's local basis is the hand: +X palm normal, +Y finger
+# direction, +Z thumb direction, the same convention on every weapon, so the one HandRotationOffset
+# the game solves from SK_FP_Arms_Rifle's finger bones fits them all. The position is untouched.
+hold_report = None
+hold_rotation = None
+hold_spec = json.loads(GRIP_HOLD) if GRIP_HOLD else None
+if hold_spec is not None:
+    try:
+        hold_rotation, hold_report = adfrc_grip.resolve_hold(
+            hold_spec, tuple(points["trigger_axis"]), tuple(points["muzzle_pos"]))
+    except ValueError as error:
+        hold_rotation, hold_report = None, {"hold": hold_spec, "reason": str(error)}
+    print("[ADFRC hold]", NAME, json.dumps(hold_report))
+
 for key, socket_name in (("grip_left", "SOCKET_LeftHandGrip"), ("grip_right", "SOCKET_RightHandGrip")):
     if key in points:
         hand = bpy.data.objects.new(socket_name, None)
         hand.location = points[key]
         bpy.context.scene.collection.objects.link(hand)
         hand.parent = obj
+        if key == "grip_left" and hold_rotation is not None:
+            # adfrc_grip's matrix has the hand's axes as COLUMNS (+X palm, +Y finger, +Z thumb);
+            # mathutils.Matrix() is row-major, so transpose to put them back as columns.
+            hand.rotation_mode = "QUATERNION"
+            hand.rotation_quaternion = mathutils.Matrix(hold_rotation).transposed().to_quaternion()
 # W3: the ejection port (nabojnicestart) and where the case is thrown to (nabojniceend), as two sockets so
 # the throw direction survives the FBX axis conversion; the game takes the direction between them at runtime.
 eject_report = None
@@ -342,7 +371,7 @@ report = {"source": SRC, "fbx": fbx, "dimensions_m": list(obj.dimensions),
           "triangles": sum(len(p.vertices) - 2 for p in obj.data.polygons), "parts": len(keep),
           "dropped": sorted(set(dropped)), "textures": manifest, "muzzle_m": list(muzzle),
           "memory_points": sorted(memory), "origin": "trigger_axis" if "trigger_axis" in memory else "bbox centre",
-          "optic": optic_report, "grip": grip_report, "eject": eject_report}
+          "optic": optic_report, "grip": grip_report, "hold": hold_report, "eject": eject_report}
 with open(os.path.join(OUT_DIR, "manifest.json"), "w") as fh:
     json.dump(report, fh, indent=1)
 print("[ADFRC weapon]", NAME, json.dumps({k: report[k] for k in ("dimensions_m", "triangles", "parts", "dropped")}))

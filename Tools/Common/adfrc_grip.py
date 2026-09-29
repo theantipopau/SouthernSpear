@@ -86,6 +86,12 @@ def norm(a):
     return math.sqrt(dot(a, a))
 
 
+def unit(a):
+    """`a` scaled to length 1; the zero vector is returned unchanged."""
+    n = norm(a)
+    return tuple(c / n for c in a) if n > 1e-12 else tuple(a)
+
+
 def mat_vec(m, v):
     return tuple(sum(m[r][c] * v[c] for c in range(3)) for r in range(3))
 
@@ -248,6 +254,124 @@ def place_hands(left, right, trigger, muzzle):
             bore, forward, along)
         return None, None, report
     return left_m, right_m, report
+
+
+# --------------------------------------------------------------------------- the hold (W2b)
+
+# Where the left hand goes is a *position* the handAnim poses measured well; how the hand sits on the
+# grip is not. The rest joints of one pose disagree with each other by ~50 deg between the finger
+# estimates, so they are not a target to copy (Session 072). The hold is authored instead, from the
+# weapon's own axes - the same basis adfrc_reload.weapon_axes uses:
+#
+#     forward  trigger -> muzzle
+#     up       the model's up
+#     right    forward x up
+#
+# The socket's local basis is the hand, and is the SAME for every weapon:
+#
+#     +X  the palm normal, out of the palm
+#     +Y  the finger direction
+#     +Z  the thumb direction
+#
+# A left hand obeys palm x finger = thumb, so that triad is a proper rotation (adfrc_grip's frame
+# maths and the game's FRotator agree on it). Because the convention never changes, the one
+# HandRotationOffset solved from SK_FP_Arms_Rifle's own finger bones fits every weapon: it is the
+# arms' anatomy expressed in the socket's own frame, and the socket carries the per-weapon part.
+#
+# A hold axis is either a unit (forward, right, up) triple, or ("tilt", base, towards, degrees) -
+# `base` rotated towards `towards`, for the angles a hold is authored with. Per-weapon choices and
+# angle overrides are data: GRIP_HOLDS in Tools/build_adfrc_weapons.py, passed as SS_GRIP_HOLD.
+#
+# palm x finger is trusted over the thumb, because those two are what lay the hand on the grip; a
+# thumb that disagrees is the authored deviation and is reported, not silently averaged away.
+HOLD_PROFILES = {
+    # Under a plain handguard: the palm faces up into the tube, the fingers wrap over the far
+    # (shooter's right) side, the thumb lies along the handguard pointing at the muzzle. The palm
+    # is +up tilted 30 deg towards +right, not square: the hand sits under the LEFT of the tube.
+    # Tilted, the triad stays exactly self-consistent (palm x finger = thumb, 0 deg), because the
+    # tilt carries the finger with it once it is projected square.
+    "plain_handguard": {
+        "palm": ("tilt", (0.0, 0.0, 1.0), (0.0, 1.0, 0.0), 30.0),
+        "finger": (0.0, 1.0, 0.0),    # +right, wrapping over the tube
+        "thumb": (1.0, 0.0, 0.0),     # +forward, along the handguard
+    },
+    # A vertical foregrip: the palm faces in from the shooter's left onto the grip, the fingers
+    # wrap down its front, the thumb lies up the grip. The 30 deg forward tilt is the cocked wrist
+    # of a foregrip hold; it is a deliberate authored deviation, so the derived thumb sits 30 deg
+    # off the one written below.
+    "vertical_grip": {
+        "palm": (0.0, 1.0, 0.0),      # +right
+        "finger": ("tilt", (0.0, 0.0, -1.0), (-1.0, 0.0, 0.0), 30.0),
+        "thumb": (1.0, 0.0, 0.0),     # +forward
+    },
+}
+
+# The arms' HandRotationOffset is solved against the socket's axes, so a weapon that carries no hold
+# must not be given one: adfrc_weapon.py reports the reason instead of a bare socket.
+NO_HOLD = "no hold authored (GRIP_HOLDS has no row for this weapon)"
+
+
+def hold_axis(spec, basis):
+    """One hold axis as a unit vector in world space. `basis` is (forward, right, up).
+
+    A spec is either a (forward, right, up) triple, or ("tilt", base, towards, degrees): `base`
+    rotated towards `towards` by that many degrees, so a hold carries its own angles as data.
+    """
+    if isinstance(spec, tuple) and spec and spec[0] == "tilt":
+        _, base, towards, degrees = spec
+        a = math.radians(degrees)
+        axis = tuple(unit(base)[i] * math.cos(a) + unit(towards)[i] * math.sin(a) for i in range(3))
+    else:
+        axis = tuple(spec)
+    # axis is in (forward, right, up): the world vector is the weighted sum of those three axes.
+    return unit(tuple(sum(axis[i] * basis[i][j] for i in range(3)) for j in range(3)))
+
+
+def hold_frame_rotation(profile, basis):
+    """(rotation, report) for a hold profile. The rotation's columns are the socket's local axes
+    (+X palm, +Y finger, +Z thumb) in world space; the report carries the authored thumb's
+    disagreement, which is 0 for a self-consistent hold."""
+    palm = hold_axis(profile["palm"], basis)
+    finger = hold_axis(profile["finger"], basis)
+    thumb = hold_axis(profile["thumb"], basis)
+    x_axis = unit(palm)
+    y_axis = unit(sub(finger, tuple(x_axis[i] * dot(x_axis, finger) for i in range(3))))
+    if norm(y_axis) < 1e-6:                      # the hold folded the finger onto the palm normal
+        raise ValueError("hold profile: the finger direction is parallel to the palm normal")
+    z_axis = cross(x_axis, y_axis)
+    rotation = tuple(tuple((x_axis, y_axis, z_axis)[c][r] for c in range(3)) for r in range(3))
+    report = {"palm": [round(c, 4) for c in x_axis], "finger": [round(c, 4) for c in y_axis],
+              "thumb_derived": [round(c, 4) for c in z_axis],
+              "thumb_authored": [round(c, 4) for c in thumb],
+              "thumb_deviation_deg": round(math.degrees(math.acos(max(-1.0, min(1.0, dot(z_axis, thumb))))), 2)}
+    return rotation, report
+
+
+def resolve_hold(spec, trigger, muzzle):
+    """(rotation, report) for a per-weapon hold spec - a profile name, optionally with per-axis
+    overrides - in this weapon's own axes. None when the weapon has no hold."""
+    if not spec:
+        return None, {"hold": None, "reason": NO_HOLD}
+    spec = {"profile": spec} if isinstance(spec, str) else dict(spec)
+    name = spec.get("profile")
+    if name not in HOLD_PROFILES:
+        raise ValueError("unknown hold profile {!r}; known: {}".format(name, sorted(HOLD_PROFILES)))
+    profile = dict(HOLD_PROFILES[name])
+    for axis in ("palm", "finger", "thumb"):
+        if axis in spec:
+            profile[axis] = spec[axis]
+    bore = sub(tuple(muzzle), tuple(trigger))
+    forward = unit(bore)
+    up = unit((0.0, 0.0, 1.0))
+    up = unit(sub(up, tuple(forward[i] * dot(forward, up) for i in range(3))))
+    basis = (forward, cross(forward, up), up)
+    rotation, report = hold_frame_rotation(profile, basis)
+    report["hold"] = name
+    report["basis"] = {"forward": [round(c, 4) for c in basis[0]],
+                       "right": [round(c, 4) for c in basis[1]],
+                       "up": [round(c, 4) for c in basis[2]]}
+    report["socket_axes"] = {"x": "palm normal", "y": "finger direction", "z": "thumb direction"}
+    return rotation, report
 
 
 # --------------------------------------------------------------------------- files
