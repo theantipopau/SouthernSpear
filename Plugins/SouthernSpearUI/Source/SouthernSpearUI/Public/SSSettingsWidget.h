@@ -65,6 +65,7 @@ private:
 	UFUNCTION() void OnTab4() { SelectTab(4); }
 
 	UFUNCTION() void OnBack();
+	UFUNCTION() void OnSetCallsign();
 
 	USSSettingRow* AddRow(class UVerticalBox* Box, const FText& Label, TArray<FText> Options, int32 Current, TFunction<void(int32)> OnChanged);
 
@@ -76,6 +77,8 @@ private:
 	UPROPERTY(Transient) TArray<TObjectPtr<class UBorder>> TabUnderlines;
 	UPROPERTY(Transient) TArray<TObjectPtr<USSSettingRow>> QualityRows;
 	UPROPERTY(Transient) TObjectPtr<USSSettingRow> PresetRow;
+	UPROPERTY(Transient) TObjectPtr<class UEditableTextBox> CallsignBox;
+	UPROPERTY(Transient) TObjectPtr<UTextBlock> CallsignFeedback;
 
 	TArray<FIntPoint> Resolutions;
 	float Elapsed = 0.f;

@@ -248,6 +248,20 @@ void USSPlayerProfileSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 	Provider = MakeUnique<FSSLocalDevPersistence>(FPaths::Combine(FPaths::ProjectSavedDir(), TEXT("SouthernSpear"), TEXT("Profiles")));
 	LoadOrCreate();
 	Publish();
+	// The front end sets a callsign through Core's state, which cannot see this module.
+	if (USSLocalProfileState* State = GetGameInstance() ? GetGameInstance()->GetSubsystem<USSLocalProfileState>() : nullptr)
+	{
+		State->CallsignSetter = [this](const FString& Name) { return SetCallsign(Name); };
+	}
+}
+
+void USSPlayerProfileSubsystem::Deinitialize()
+{
+	if (USSLocalProfileState* State = GetGameInstance() ? GetGameInstance()->GetSubsystem<USSLocalProfileState>() : nullptr)
+	{
+		State->CallsignSetter = nullptr; // it captured this
+	}
+	Super::Deinitialize();
 }
 
 int32 USSPlayerProfileSubsystem::GetServiceLevel() const

@@ -3,6 +3,9 @@
 #include "SSSettingsWidget.h"
 
 #include "Components/BackgroundBlur.h"
+#include "Components/EditableTextBox.h"
+#include "Engine/GameInstance.h"
+#include "SSLocalProfileState.h"
 #include "Components/ScrollBox.h"
 #include "GameFramework/GameUserSettings.h"
 #include "Kismet/KismetSystemLibrary.h"
@@ -331,6 +334,35 @@ bool USSSettingsWidget::Initialize()
 	AddRow(InterfacePage, NSLOCTEXT("SSSettings", "DevMessages", "Developer messages"), OffOn,
 		FSSUserPrefs::GetInt(FSSUserPrefs::DevMessages(), 0), IntPref(FSSUserPrefs::DevMessages()));
 
+	// INTERFACE: the callsign. Only shown once a service record has loaded (there is nothing to name before).
+	{
+		const USSLocalProfileState* Profile = GetGameInstance() ? GetGameInstance()->GetSubsystem<USSLocalProfileState>() : nullptr;
+		if (Profile && Profile->bLoaded)
+		{
+			UTextBlock* CallsignLabel = Text(T, 13, true, SSPalette::Brass300(), 200);
+			CallsignLabel->SetText(NSLOCTEXT("SSSettings", "Callsign", "CALLSIGN"));
+			AddV(InterfacePage, CallsignLabel, 22.f);
+			UHorizontalBox* CallsignRow = T->ConstructWidget<UHorizontalBox>();
+			AddV(InterfacePage, CallsignRow, 6.f);
+			CallsignBox = T->ConstructWidget<UEditableTextBox>();
+			CallsignBox->SetText(FText::FromString(Profile->Callsign));
+			CallsignBox->SetHintText(NSLOCTEXT("SSSettings", "CallsignHint", "Your name on the scoreboard"));
+			CallsignBox->SetForegroundColor(SSPalette::Sand100());
+			USizeBox* BoxWidth = T->ConstructWidget<USizeBox>();
+			BoxWidth->SetWidthOverride(300.f);
+			BoxWidth->AddChild(CallsignBox);
+			AddH(CallsignRow, BoxWidth)->SetPadding(FMargin(0.f, 0.f, 10.f, 0.f));
+			UButton* SetButton = MenuButton(T, NSLOCTEXT("SSSettings", "SetCallsign", "SET"), 110.f);
+			FScriptDelegate SetDelegate;
+			SetDelegate.BindUFunction(this, GET_FUNCTION_NAME_CHECKED(USSSettingsWidget, OnSetCallsign));
+			SetButton->OnClicked.Add(SetDelegate);
+			AddH(CallsignRow, SetButton);
+			CallsignFeedback = Text(T, 12, false, SSPalette::Sage400());
+			CallsignFeedback->SetText(USSLocalProfileState::CallsignRule());
+			AddV(InterfacePage, CallsignFeedback, 6.f);
+		}
+	}
+
 	SelectTab(0);
 
 	// Buttons.
@@ -358,6 +390,27 @@ void USSSettingsWidget::NativeTick(const FGeometry& MyGeometry, float InDeltaTim
 	for (int32 Index = 0; Index < Animated.Num(); ++Index)
 	{
 		Reveal(Animated[Index], Ease(Elapsed, 0.08f + 0.04f * Index, 0.3f), 16.f);
+	}
+}
+
+void USSSettingsWidget::OnSetCallsign()
+{
+	USSLocalProfileState* Profile = GetGameInstance() ? GetGameInstance()->GetSubsystem<USSLocalProfileState>() : nullptr;
+	if (!Profile || !CallsignBox || !CallsignFeedback)
+	{
+		return;
+	}
+	const FString Name = CallsignBox->GetText().ToString().TrimStartAndEnd();
+	if (Profile->RequestCallsign(Name))
+	{
+		CallsignFeedback->SetColorAndOpacity(SSPalette::Brass300());
+		CallsignFeedback->SetText(FText::Format(NSLOCTEXT("SSSettings", "CallsignSet", "Callsign set to {0}. It shows on the scoreboard from the next match."),
+			FText::FromString(Name)));
+	}
+	else
+	{
+		CallsignFeedback->SetColorAndOpacity(SSPalette::Opfor300());
+		CallsignFeedback->SetText(FText::Format(NSLOCTEXT("SSSettings", "CallsignBad", "Not accepted. {0}"), USSLocalProfileState::CallsignRule()));
 	}
 }
 

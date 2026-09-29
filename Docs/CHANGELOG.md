@@ -6762,6 +6762,47 @@ that already builds should be opened before it is acted on.
 Read the flagged line first. The checker's output is a pointer at a place to look, not a verdict on it.
 
 
+## Session 080 — 2026-09-29 — A callsign field on the Interface tab (cloud; uncompiled)
+
+### COMPLETED
+
+- **Callsign setting.** Scoreboards showed the platform name ("hurleym-CB9A…") because the only way to set a callsign was the
+  `ss.Callsign` console command. The Settings screen's INTERFACE tab now has CALLSIGN: a text field, SET, and feedback (the rule
+  in words on entry; "Callsign set to X…" or "Not accepted…" after). It shows only once a service record has loaded.
+- **Layering respected (SS001).** UI can't depend on Progression, so Core's `USSLocalProfileState` gained `CallsignSetter` and
+  `RequestCallsign()`; `USSPlayerProfileSubsystem` installs the setter in `Initialize` and clears it in the new `Deinitialize`
+  (the lambda captures `this`). The rule itself is still `FSSProgressionRules::IsValidCallsign`; the field calls `SetCallsign`,
+  which saves, publishes and reports the name to the server (`ChangeName`), so an in-match change shows straight away.
+
+### FILES CHANGED
+
+`SSLocalProfileState.h` (Core), `SSProgressionSubsystems.h/.cpp`, `SSSettingsWidget.h/.cpp`, `Docs/CHANGELOG.md`, the handover.
+
+### TESTING
+
+- `python Tools/validate_architecture.py` → exit 0. `python Tools/check_unity_names.py` → exit 0 (after the Session 079 checker fix).
+- NOT RUN: the editor build; the field in game. **Uncompiled.** Watch: `UEditableTextBox` styling on the dark panel (foreground
+  set to Sand100; the box's own background is the engine default), and that the six-word INTERFACE page still fits.
+
+### ASSETS
+
+None.
+
+### RISKS
+
+- R-91: the callsign is local and unauthenticated by design (R-53). Anyone can pick any valid name, including another player's.
+  Fine for the offline-with-bots slice; a real name policy belongs with real accounts.
+
+### DEFECTS FOUND
+
+None new.
+
+### NEXT ACTION
+
+Casualty step 3 from `Docs/evidence/casualty_lyra_hooks.md` once it is committed (it is still untracked on the producer's machine).
+
+---
+
 ## Open Threads
 
 | Item | Blocked on | Owner |

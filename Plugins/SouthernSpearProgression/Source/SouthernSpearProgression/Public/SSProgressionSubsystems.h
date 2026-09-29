@@ -92,6 +92,7 @@ class SSPROG_API USSPlayerProfileSubsystem : public UGameInstanceSubsystem
 public:
 	virtual bool ShouldCreateSubsystem(UObject* Outer) const override;
 	virtual void Initialize(FSubsystemCollectionBase& Collection) override;
+	virtual void Deinitialize() override;
 
 	/** Record one award from the server and save. */
 	void ApplyServiceAward(ESSServiceEvent Event, int32 XpDelta);

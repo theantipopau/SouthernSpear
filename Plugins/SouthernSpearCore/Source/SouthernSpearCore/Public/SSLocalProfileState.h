@@ -70,6 +70,22 @@ public:
 	UPROPERTY(Transient, BlueprintReadOnly, Category = "Profile")
 	double LastAwardTime = -1.0;
 
+	/**
+	 * Set by Progression (which owns the record): validates a callsign, saves it and shows it to the server.
+	 * The UI calls RequestCallsign, because a UI module may depend on Core alone (guard SS001).
+	 * Not a UPROPERTY: Progression clears it when it shuts down.
+	 */
+	TFunction<bool(const FString&)> CallsignSetter;
+
+	/** False, changing nothing, when there is no record yet or the callsign is not allowed. */
+	bool RequestCallsign(const FString& Name) const { return CallsignSetter && CallsignSetter(Name); }
+
+	/** The callsign rule in words, for the UI beside the field. Progression's IsValidCallsign is the rule itself. */
+	static FText CallsignRule()
+	{
+		return NSLOCTEXT("SSProfile", "CallsignRule", "2 to 16 letters, digits, spaces, - or _.");
+	}
+
 	/** 0..1 through the current level; 1 at the top level. */
 	float GetLevelProgress() const
 	{

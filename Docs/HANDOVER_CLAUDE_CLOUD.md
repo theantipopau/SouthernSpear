@@ -53,8 +53,10 @@ Agents over-claim. Check their numbers against the code, and ask for measurement
 | Player model / uniforms | Plan written: `Docs/PLAYER_MODEL_PLAN.md`. ADR-036 (G3 body) stands; ADR-037–039 cover Quantum | **The producer's next focus** (§3.7) |
 | Grenade | A local agent was moving throw-grenade off **Q** (lean) to **G** and adding a model | Check it landed; ADFRC F1 grenade is available (§3.8) |
 | Ravenshoe map | Built, dressed, lit; **nav not baked** (needs an attended editor bake, R-82) | Producer or local agent, attended |
-| Unity-name check | **Still fails on main:** two local shadows in `SSHandIKProbeSubsystem.cpp` (`GHaveBodyFrame`, `GBodyFrameInWeapon`). The animation work is now committed, so the rename is safe | Local agent (prompt A step 1) |
-| UI verification (Session 076) | **Not yet seen in game:** front end at 1080p, per-map loading screens | Local agent (prompt A steps 5-6) |
+| Unity-name check | **Fixed (Session 079):** the two "shadows" were false positives from the checker (assignments, not declarations); the checker now needs a type and a name. The cloud's earlier claim that this would break the Windows build was wrong | — |
+| UI verification (Session 076) | **Verified by the local agent:** front end fits at 1080p (RULES row clear, cards 3+2); loading screens show the operation, rules and tip for Dry River (both rule sets) and Red Gum, with their own art. Captures are untracked on the producer's machine | Commit captures + `dryriver.png`/`redgum.png` + the two imported textures (LFS) |
+| Callsign field | Written, uncompiled (Session 080): Settings > INTERFACE | Build; look at it in game |
+| Casualty step 3 research | Done by the local agent: `Docs/evidence/casualty_lyra_hooks.md` (301 lines) — **untracked, not on GitHub** | Commit it; then the cloud designs the bridge from it |
 | Assets | **Every asset is usable whatever its `isAiForbidden` flag** (L-0016d, producer). Record the flag, never hold back | — |
 
 ---
