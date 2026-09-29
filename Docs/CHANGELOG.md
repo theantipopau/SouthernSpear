@@ -6664,6 +6664,104 @@ Private/SSHandIKMeshComponent.cpp, Private/SSHandIKProbeSubsystem.cpp, Private/T
 evidence `Docs/evidence/handik_hold/SS_hold_frame.txt` (points 9–11).
 
 
+## Session 079 — 2026-09-29 — The two "shadows" were the checker reading a name's own assignment as a declaration
+
+`Tools/check_unity_names.py` reported two shadows in `SSHandIKProbeSubsystem.cpp`:
+
+```
+shadow GBodyFrameInWeapon line 692
+shadow GHaveBodyFrame line 693
+```
+
+**Both are false positives, and the C++ was never at fault.** Lines 692-693 are assignments, not
+declarations:
+
+```cpp
+GBodyFrameInWeapon = InWeapon;   // file-scope FProbeHandFrame, declared line 244
+GHaveBodyFrame = true;           // file-scope bool, declared line 245
+```
+
+A file-scope variable being assigned is not shadowed by anything. The name it is written under is the
+name it already has, in the same scope, so there is nothing to hide and no C4459 to raise. The build
+succeeded before this report and succeeded again afterwards with the probe source untouched
+(`Result: Succeeded`), which is the measurement that settles it.
+
+**The earlier cloud claim that C4459 would break the build was wrong.** It read a checker finding as a
+compiler diagnostic. A real C4459 is a compiler error and would have been in the build output; it was
+not, and it could not have been, because the two lines are not declarations. Recording this so the
+next reader does not spend a session renaming correct code.
+
+### DEFECTS FOUND
+
+**`declared_name()` treated any identifier before a delimiter as a declaration**
+(`Tools/check_unity_names.py:162`). It cut the line at the first `[`, `=` or `;` and read whatever
+identifier sat in front of it as a declared name. Measured directly against the function:
+
+| Line | Read as | Correct? |
+|---|---|---|
+| `GBodyFrameInWeapon = InWeapon;` | `GBodyFrameInWeapon` | no — an assignment |
+| `GHaveBodyFrame = true;` | `GHaveBodyFrame` | no — an assignment |
+| `Alpha += 1;` | `Alpha` | no — a compound assignment |
+| `Foo[0] = 3;` | `Foo` | no — an element assignment |
+| `FString Text(GBodyFrameInWeapon);` | `None` | yes — it is a call |
+
+A C++ declaration is a **type and a name**: two identifiers before the delimiter. A lone identifier is
+a use of something declared elsewhere. Found by reading the two flagged lines instead of renaming
+them.
+
+### COMPLETED
+
+**The checker.** One guard after the `if not names: return None` early-out:
+
+```python
+if len(names) < 2 and delimiter != "(":
+    return None
+```
+
+Function definitions (`Type Name(...)`) are kept by the `delimiter != "("` arm, so the anonymous-namespace
+check the shadow rule relies on is unchanged. Documented in `declared_name()`'s docstring with the three
+assignment forms it now rejects and the `GBodyFrameInWeapon` case that motivated it.
+
+**The regression fixture.** `Tools/test_check_unity_names.py` gains an `ETA` fixture — file-scope
+`FVector GFrame;` and `bool GHaveFrame = false;` in an anonymous namespace, then a function that only
+ever assigns them (`=`, `+=`, `[0] =`). The new assertion *"assigning to a file-scope name is not a
+shadow of it"* fails against the old checker and passes against the new one, and the existing *"only the
+two real shadows are reported"* assertion still holds at exactly 2, so the guard did not blunt the check
+it exists to perform.
+
+**The probe source is unchanged.** `GBodyFrameInWeapon` / `GHaveBodyFrame` keep their names. The fix
+belongs in the tool that was wrong, not in the code it misread.
+
+### TESTING
+
+| Command | Exit | Result |
+|---|---|---|
+| `python Tools/check_unity_names.py` | 0 | `PASS - no name clash across 9 module(s).` |
+| `python Tools/test_check_unity_names.py` | 0 | 13 PASS, `0 failure(s)`, including the new assignment case |
+| `python Tools/validate_architecture.py` | 0 | PASS (pre-existing SS010 note for `SSFonts.h`, R-75) |
+| `Build.bat SouthernSpearEditor Win64 Development -WaitMutex` | 0 | `Result: Succeeded` (no C++ change, so a no-op link) |
+| `UnrealEditor-Cmd.exe ... -nullrhi -unattended -nosplash -nosound -NoLoadingScreen -ExecCmds="Automation RunTests SouthernSpear;Quit"` | 0 | **67 passed, 0 failed** (63 + 4 casualty) |
+
+### FILES
+
+`Tools/check_unity_names.py`, `Tools/test_check_unity_names.py`, `Docs/CHANGELOG.md`.
+
+### ASSETS
+
+None. Two loading-screen PNGs (`Docs/images/loadingscreens/dryriver.png`, `redgum.png`) are present in
+the tree and LFS-matched but still untracked; they are left as found.
+
+### RISKS
+
+None new. The real defect here was in the guard, and the lesson generalises: every finding this checker
+produces is a hypothesis until the flagged line has been read. A finding that asks for a rename in code
+that already builds should be opened before it is acted on.
+
+### NEXT ACTION
+
+Read the flagged line first. The checker's output is a pointer at a place to look, not a verdict on it.
+
+
 ## Open Threads
 
 | Item | Blocked on | Owner |

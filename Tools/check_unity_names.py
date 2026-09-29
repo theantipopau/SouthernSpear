@@ -164,7 +164,13 @@ def declared_name(line, allow_function=True):
 
     `allow_function` accepts `Type Name(...)` as a function declaration, which is what an anonymous
     namespace holds.  The shadow check turns it off, so `Super::BeginPlay()` and `AddRow(...)` - calls
-    - are not mistaken for the locals that would shadow those names.
+    -    are not mistaken for the locals that would shadow those names.
+
+    A declaration needs a type and a name, so a lone identifier before the delimiter is a USE of
+    something, not a declaration of it: `Shared = 1;`, `Shared += 1;` and `Shared[0] = 1;` all
+    assign to a file-scope variable, which hides nothing - there is no C4459 for that, the name is
+    the one it already had.  Reading them as declarations made the real `GBodyFrameInWeapon` in
+    SSHandIKProbeSubsystem.cpp look like it was shadowed by its own assignment.
     """
     stripped = line.strip()
     if not stripped or stripped[0] in "}#;":
@@ -177,6 +183,8 @@ def declared_name(line, allow_function=True):
         return None
     names = IDENT.findall(stripped[:match.start()].split("::")[-1])
     if not names:
+        return None
+    if len(names) < 2 and delimiter != "(":
         return None
     name = names[-1]
     first = IDENT.match(stripped)

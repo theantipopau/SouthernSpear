@@ -119,6 +119,25 @@ void FZetaEntry()
 """
 
 
+ETA = """// fixture: a file-scope name that is only ever ASSIGNED hides nothing. `GFrame = X;` declares
+// nothing, so it is not a shadow of itself - reading it as a declaration is what made the real
+// GBodyFrameInWeapon in SSHandIKProbeSubsystem.cpp look like it was shadowed by its own assignment.
+namespace
+{
+	FVector GFrame;
+	bool GHaveFrame = false;
+}
+
+void EtaEntry(const FVector& X)
+{
+	GFrame = X;
+	GHaveFrame = true;
+	GFrame += X;
+	GFrame[0] = 1.0;
+}
+"""
+
+
 def write(root, name, text):
     path = os.path.join(root, "Plugins", "SouthernSpearFixture", "Source",
                         "SouthernSpearFixture", "Private", name)
@@ -136,6 +155,7 @@ def main():
         write(root, "Delta.cpp", DELTA)
         write(root, "Epsilon.cpp", EPSILON)
         write(root, "Zeta.cpp", ZETA)
+        write(root, "Eta.cpp", ETA)
 
         findings = c.check_tree(root)
         found = {(f["kind"], f["name"]) for f in findings}
@@ -149,6 +169,9 @@ def main():
         check("a local does not hide a member of another class",
               not any(f["name"] == "Step" for f in findings),
               str([f["detail"] for f in findings if f["name"] == "Step"]))
+        check("assigning to a file-scope name is not a shadow of it",
+              not any(f["name"] in ("GFrame", "GHaveFrame") for f in findings),
+              str([f["detail"] for f in findings if f["name"].startswith("G")]))
         check("only the two real shadows are reported", len(shadows) == 2,
               "{0}".format([f["name"] for f in shadows]))
         check("a name unique to one file is not flagged",
