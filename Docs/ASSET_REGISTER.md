@@ -385,7 +385,7 @@ moved or deleted**, and no licence class changed. All are Fab Standard License, 
 | Mega Moduler Apartment Building | `FabLibrary/Mega_Moduler_Apartment_Building-db1b80f5` | karaman | **`true`** | — | `NOT_USED` — cache only |
 | Modular 3D hospital environment | `FabLibrary/Modular_3D_hospital_environment-7e1574fd` | Madd Game Art | `false` | — | `NOT_USED` — cache only. Listed under *Environments / Horror*; needs an ADR-016 look check before any consideration |
 | American Road with Parking Lot | `FabLibrary/American_Road_with_Parking_Lot-a629eb34` | Jimbogies | `false` | — | `NOT_USED` — cache only. GLB, not Unreal content; needs an FBX/GLB import path in the prep pipeline before it can be onboarded |
-| Individual First Aid Medical Kit (IFAK) | `FabLibrary/Individual_First_Aid_Medical_Kit_IFAK-a628e3ba` | SpatialNeglect | **`true`** | — | `NOT_USED` — cache only. A medical prop for a Medic role that does not exist yet (GDD §5 module 4) |
+| Individual First Aid Medical Kit (IFAK) | `FabLibrary/Individual_First_Aid_Medical_Kit_IFAK-a628e3ba` | SpatialNeglect | **`true`** | — | `PLANNED` — the medic's kit (ADR-040). The flag is overruled for every asset (L-0016d) |
 
 > **AI-use flags.** Two of these five carry `isAiForbidden: true` and neither is installed in a map. The MOUT
 > kit's flag is **unverified**, not clear: it arrived through the Vault route, which wrote no `metadata`

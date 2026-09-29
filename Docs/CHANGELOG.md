@@ -6434,6 +6434,173 @@ Private/SSHandIKMeshComponent.cpp, Private/SSHandIKProbeSubsystem.cpp, Private/T
 `Art/Weapons/A88/ADFRC/SM_A88.fbx` (rebuilt, position-only sockets again), deleted
 `Tools/Unreal/probe_weapon_socket.py`, evidence `Docs/evidence/handik_hold/SS_hold_frame.txt`.
 
+---
+
+## Session 075 — 2026-09-29 — Casualty care, step 1: the rules, and every asset usable whatever its AI flag
+
+### COMPLETED
+
+- **ADR-040 accepted** by the producer, with its build order: rules, then component and kit, then the bridge, then the HUD.
+- **`isAiForbidden` overruled for every asset (L-0016d, producer).** Recorded in the licence register, CLAUDE.md's content
+  rules and ADR-040. The flag is still recorded at import time; it no longer holds anything back. The Fab IFAK is now
+  `PLANNED` as the medic's kit.
+- **New module `SouthernSpearCasualty`** (Core only), enabled in the `.uproject`. Step 1 is its rules:
+  `Public/SSCasualtyRules.h`, engine-free like `SSInsigniaRaster.h`. It covers hit zones and bleeding, the downed state and
+  bleed-out, being finished, every treatment row in ADR-040 (who may do it, how long, the outcome), dressings, the medic's
+  kit (charges, lifetime, carry limits) and `Tick`, which never raises health.
+- **One set of checks, run twice.** `Private/Tests/SSCasualtyRuleChecks.h` runs in the automation suite
+  (`SouthernSpear.Casualty.Rules`) and outside Unreal (`Tools/Casualty/check_casualty_rules.py`, g++ with `-Wall -Wextra -Werror`).
+
+### FILES CHANGED
+
+New: `Plugins/SouthernSpearCasualty/` (`.uplugin`, `Build.cs`, `SSCasualtyModule.cpp`, `Public/SSCasualtyRules.h`,
+`Private/Tests/SSCasualtyRuleChecks.h`, `Private/Tests/SSCasualtyTests.cpp`), `Tools/Casualty/check_casualty_rules.py`.
+Modified: `SouthernSpear.uproject`, `CLAUDE.md`, `Docs/DECISION_LOG.md` (ADR-040 accepted), `Docs/LICENCE_REGISTER.md`
+(L-0016d), `Docs/ASSET_REGISTER.md` (IFAK row), `Docs/CHANGELOG.md`.
+
+### TESTING
+
+- `python Tools/Casualty/check_casualty_rules.py` → exit 0, "53 checks, 0 failure(s)".
+- Mutation check (scratch copy, four separate mutations; each caught): head hits never kill → 2 failures; `Tick` regenerates
+  → 3; self-dressing faster than a teammate's → 2; kit treatment costs no charge → 1.
+- `python Tools/validate_architecture.py` → exit 0 (the new module passes SS001/SS002/SS005).
+- `python Tools/check_unity_names.py` → exit 1, but the same on `main` without this change: two shadows in
+  `SSHandIKProbeSubsystem.cpp` (`GHaveBodyFrame`, `GBodyFrameInWeapon`) from 520dc043. Not this change's; see DEFECTS.
+- NOT RUN: the editor build and `SouthernSpear.Casualty.Rules` in the automation suite (producer's machine).
+
+### ASSETS
+
+None imported.
+
+### RISKS
+
+- R-89: until the bridge wires it (step 3), the rules are inert in play. Lyra's own death still applies.
+
+### DEFECTS FOUND
+
+- `check_unity_names.py` fails on `main` in `SSHandIKProbeSubsystem.cpp` (found by running the guard before committing).
+  The parallel session's unpushed 024b9f0d rewrites that file, so it is left to that merge.
+
+### NEXT ACTION
+
+Build the editor and run `SouthernSpear.Casualty.Rules` (expect 1 more test, and all to pass with `-NoLoadingScreen`). Then step 2:
+`USSCasualtySettings` (the `FTuning` numbers in `DefaultGame.ini`), the replicated `USSCasualtyComponent`, and `ASSMedicalKit`.
+
+---
+
+## Session 076 — 2026-09-29 — Loading screens name the operation and its rules; the front end fits at 1080p
+
+### COMPLETED
+
+- **Loading screen per operation.** When the destination is an operation, the screen shows:
+  - "LOADING OPERATION" and the map's name, e.g. RED GUM STATION;
+  - its objective count and terrain line, and its description;
+  - the rule set's name, with a short summary written from ADR-018/ADR-031 of what the rules ask of you;
+  - a tip.
+
+  It shows the map's own art when `T_SS_Load_<Key>` exists, else the key art. The front end and unlisted maps get the
+  plain screen, as before. Where the destination comes from:
+  - the front end's request (`USSMenuWidget::PendingMap`, set just before `OpenLevel`);
+  - otherwise the engine's `TravelURL`/`LastURL`, where `Rules=Section` selects the rules.
+- **One operation list.** `Private/SSOperations.h` holds the maps, art keys, titles, descriptions and meta lines. The
+  front-end cards, their handlers, the loading screen and `setup_ui.py` all read it.
+- **Drone shots drop in without code.** Place `Docs/images/loadingscreens/<Key>.png` (keys listed in its README), then run
+  `setup_ui.py` with `SS_UI_LOADING_ONLY=1`.
+- **Front end fits at 1080p.** The operation grid is 3 columns (was 2). In the producer's screenshot the RULES row sat
+  under the disclaimer and its buttons were cut off. Cards are 6 px taller so a three-line description no longer
+  touches DEPLOY.
+- **Scoreboard:** the team total reads "3 KILLS", not the ambiguous "3K".
+
+### FILES CHANGED
+
+New: `Plugins/SouthernSpearUI/Source/SouthernSpearUI/Private/SSOperations.h`, `Docs/images/loadingscreens/README.md`.
+Modified: `SSLoadingScreenWidget.h/.cpp`, `SSMenuWidget.h/.cpp`, `SSScoreboardWidget.cpp`, `SSUIAssets.h`,
+`Tools/Unreal/setup_ui.py`, `Docs/CHANGELOG.md`.
+
+### TESTING
+
+- `python Tools/validate_architecture.py` → exit 0.
+- `python Tools/check_unity_names.py` → exit 1, the same two pre-existing shadows in `SSHandIKProbeSubsystem.cpp` as in
+  Session 075. Nothing from this change.
+- `python -m py_compile Tools/Unreal/setup_ui.py` → ok. The art-key regex returns the five keys from `SSOperations.h`.
+- NOT RUN: the editor build; a front-end deploy to see the new loading screen; a 1080p front-end capture.
+
+### ASSETS
+
+None yet. Per-map loading art is waiting on the producer's drone shots.
+
+### RISKS
+
+None new.
+
+### DEFECTS FOUND
+
+- The front end's RULES row was clipped at 1080p (found from the producer's screenshot).
+- Scoreboard names show the platform default ("hurleym-…") because no callsign is set, and the only way to set one is
+  the `ss.Callsign` console command. A callsign field on the front end needs a request path through Core, because UI
+  may not depend on Progression (SS001). Not done here.
+- The class-selection preview holds an M4-pattern rifle while the card says A88. Not investigated.
+
+### NEXT ACTION
+
+Build the editor. Deploy to Red Gum from the front end once with each rule set, and screenshot the loading screen
+(`-SSShotAt` is too late for a load; use the editor's High Resolution Screenshot during the load, or a paused run).
+
+---
+
+## Session 077 — 2026-09-29 — Casualty care, step 2: settings, component and kit; loading art path
+
+### COMPLETED
+
+- **Loading art path corrected** to `Docs/images/loadingscreens/` (the producer's folder; `dryriver.png` is already there).
+  `setup_ui.py` now matches file names to art keys **case-insensitively**, so `dryriver.png` is the DryRiver art.
+- **Casualty step 2 (ADR-040), written blind, not compiled:**
+  - `USSCasualtySettings`: every `FTuning` number, plus the treat range, the kit mesh, `bEveryoneIsMedic`, and the bone-name
+    lists behind `ZoneForBone`. The values are in `Config/DefaultGame.ini`.
+  - `USSCasualtyComponent`: replicated state, bleed, bleed-out, dressings and treatment progress. Server-only entry points
+    for hits, treatments, kit dressings and reset. `OnTransition` (Downed/Died) is for the bridge. Damage cancels treatment
+    both ways, and the patient has to stay in range.
+  - `ASSMedicalKit`: replicated charges and age, self-destroying when spent or old, mesh loaded from settings.
+  - Health only rises inside `FinishTreatment`, through the rules' `Complete`.
+- **Tests added:** `SouthernSpear.Casualty.Settings` (the ini really imported: empty bone lists mean it failed; zones for
+  Manny's bone names), `.Component` (hit, self-dressing, no regeneration over 60 s, stabilise, finish, cancel), `.Kit`
+  (range, no passive heal, dressing, kit self-treat, charges).
+
+### FILES CHANGED
+
+New: `Public/SSCasualtySettings.h`, `SSCasualtyComponent.h`, `SSMedicalKit.h`; `Private/SSCasualtySettings.cpp`,
+`SSCasualtyComponent.cpp`, `SSMedicalKit.cpp`, `Private/Tests/SSCasualtyRuntimeTests.cpp` (all under
+`Plugins/SouthernSpearCasualty/Source/SouthernSpearCasualty/`).
+Modified: `SouthernSpearCasualty.Build.cs` (DeveloperSettings), `Config/DefaultGame.ini`, `Tools/Unreal/setup_ui.py`,
+`SSOperations.h`/`SSUIAssets.h` comments, `Docs/images/loadingscreens/README.md` (moved), the handover and CLAUDE.md.
+
+### TESTING
+
+- `python Tools/Casualty/check_casualty_rules.py` → exit 0, 53 checks, 0 failures (the rules are unchanged).
+- `python Tools/validate_architecture.py` → exit 0. `python Tools/check_unity_names.py` → the same two pre-existing shadows in
+  `SSHandIKProbeSubsystem.cpp`; nothing from this change.
+- NOT RUN: the editor build. **None of this C++ has been compiled.** Expect a first-build fix or two (an include, a signature).
+  The three runtime tests have never run.
+
+### ASSETS
+
+None. The kit mesh is the engine cube until the Fab IFAK is imported.
+
+### RISKS
+
+- R-90: step 2 has not been compiled. The runtime tests build a bare world by hand and tick components manually; if the
+  first run shows `HasAuthority()` false or components not registering, fix the fixture before suspecting the rules.
+
+### DEFECTS FOUND
+
+None new.
+
+### NEXT ACTION
+
+Build, and run `SouthernSpear.Casualty.*` (expect 4 tests). Then step 3: read Lyra's health and death code (prompt C in
+`Docs/HANDOVER_CLAUDE_CLOUD.md`) before writing any bridge code.
+
+---
 
 ## Session 075 — 2026-09-29 — The grip socket's position gets authored too, and the arm turns out to be the constraint
 

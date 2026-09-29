@@ -1349,7 +1349,7 @@ ADR adds the pose lever it needs and does not claim it.
 
 ## ADR-040 — Casualty care: wounds, downed state, treatment, and the medic's kit
 
-**Status:** PROPOSED (2026-09-29). Needs producer sign-off: it adds a module (an architecture change under
+**Status:** ACCEPTED (producer, 2026-09-29), with the build order below. Adds a module (an architecture change under
 CLAUDE.md) and sets the medical design numbers. Implements GDD §4.3 and roadmap IC-08 to IC-11.
 
 **Context.** A fatal hit today is Lyra's: health reaches zero, the pawn dies, the respawn gate records an
@@ -1413,9 +1413,8 @@ asked for a medic-dropped kit that players heal around.
    seconds, with and without a kit nearby, and asserts health never rises without a treatment event. Lyra's
    own health component has no regeneration; the test keeps it that way.
 
-**Asset.** The IFAK listing carries `isAiForbidden: true`, so using it needs the same producer call recorded in
-L-0016c for the windmill and wreck. Until then, the kit is an engine placeholder mesh and the system doesn't
-depend on the art.
+**Asset.** The kit is the Fab IFAK. Its listing carries `isAiForbidden: true`, which the producer has overruled for
+every asset (L-0016d). The rules and component don't depend on the art, so a missing mesh never blocks the system.
 
 **Consequences.**
 - The architecture guard gains the module (SS001/SS002: Core only). `validate_architecture.py` and CLAUDE.md are

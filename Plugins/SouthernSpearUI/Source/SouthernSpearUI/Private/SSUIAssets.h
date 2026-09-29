@@ -20,6 +20,16 @@ namespace SSUIAssets
 		return LoadObject<UTexture2D>(nullptr, TEXT("/SouthernSpearUI/Textures/T_SS_KeyArt.T_SS_KeyArt"));
 	}
 
+	/**
+	 * An operation's loading art, /SouthernSpearUI/Textures/T_SS_Load_<Key> (setup_ui.py imports
+	 * Docs/images/loadingscreens/<Key>.png). Null, quietly, when there is none yet: the caller shows the key art.
+	 */
+	inline UTexture2D* OperationArt(const TCHAR* Key)
+	{
+		const FString Path = FString::Printf(TEXT("/SouthernSpearUI/Textures/T_SS_Load_%s.T_SS_Load_%s"), Key, Key);
+		return LoadObject<UTexture2D>(nullptr, *Path, nullptr, LOAD_NoWarn | LOAD_Quiet);
+	}
+
 	/** The Southern Spear badge (Docs/images/logo.png), for the front-end top bar. */
 	inline UTexture2D* Logo()
 	{

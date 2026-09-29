@@ -407,6 +407,10 @@
 			"Enabled": true
 		},
 		{
+			"Name": "SouthernSpearCasualty",
+			"Enabled": true
+		},
+		{
 			"Name": "SSExp_ObjectiveAssault",
 			"Enabled": true
 		},

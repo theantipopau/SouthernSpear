@@ -6,6 +6,10 @@
 #    ASSFrontEndGameMode (the title menu). Config/DefaultEngine.ini boots into it.
 # 3. Drops Lyra's LAS_ShooterGame_StandardHUD from B_SS_ObjectiveAssault: the
 #    Southern Spear HUD (SouthernSpearUI + SouthernSpearObjectivesUI) replaces it.
+# 4. Imports each operation's loading art, Docs/images/loadingscreens/<artkey>.png (or .jpg, any case), as
+#    /SouthernSpearUI/Textures/T_SS_Load_<ArtKey>. The keys are read from SSOperations.h, the one list the
+#    front end and the loading screen share; an operation without a file keeps the key art.
+#    SS_UI_LOADING_ONLY=1 runs this step alone (the others rebuild the front-end map).
 # Idempotent. Writes Build/ui_setup.json.
 
 import json
@@ -53,6 +57,30 @@ def import_key_art(source=None, name="T_SS_KeyArt"):
     step("key_art_" + name, tex is not None, TEX_DIR + "/" + name)
 
 
+OPERATIONS_H = os.path.join(PROJECT_DIR, "Plugins", "SouthernSpearUI", "Source", "SouthernSpearUI", "Private", "SSOperations.h")
+LOADING_DIR = os.path.join(PROJECT_DIR, "Docs", "images", "loadingscreens")
+
+
+def operation_art_keys():
+    import re
+    with open(OPERATIONS_H, encoding="utf-8") as fh:
+        return re.findall(r'\{ TEXT\("/Game/Maps/[^"]+"\), TEXT\("([A-Za-z0-9_]+)"\)', fh.read())
+
+
+def import_loading_art():
+    keys = operation_art_keys()
+    step("loading_art_keys", len(keys) > 0, keys)
+    # File names are matched case-insensitively: the producer's file is dryriver.png for the key DryRiver.
+    present = {name.lower(): name for name in os.listdir(LOADING_DIR)} if os.path.isdir(LOADING_DIR) else {}
+    for key in keys:
+        found = next((present[key.lower() + ext] for ext in (".png", ".jpg", ".jpeg") if key.lower() + ext in present), None)
+        source = os.path.join(LOADING_DIR, found) if found else None
+        if source:
+            import_key_art(source, "T_SS_Load_" + key)
+        else:
+            report["steps"].append({"step": "loading_art_" + key, "ok": True, "detail": "no file yet; the key art stands in"})
+
+
 def front_end_map():
     if asset_exists(FRONT_END):
         eal.delete_asset(FRONT_END)
@@ -78,11 +106,15 @@ def drop_lyra_hud():
 
 
 try:
-    import_key_art()
-    import_key_art(os.path.join(PROJECT_DIR, "Docs", "images", "mainmenu.png"), "T_SS_MainMenu")
-    import_key_art(os.path.join(PROJECT_DIR, "Docs", "images", "logo.png"), "T_SS_Logo")
-    drop_lyra_hud()
-    front_end_map()
+    if os.environ.get("SS_UI_LOADING_ONLY"):
+        import_loading_art()
+    else:
+        import_key_art()
+        import_key_art(os.path.join(PROJECT_DIR, "Docs", "images", "mainmenu.png"), "T_SS_MainMenu")
+        import_key_art(os.path.join(PROJECT_DIR, "Docs", "images", "logo.png"), "T_SS_Logo")
+        drop_lyra_hud()
+        front_end_map()
+        import_loading_art()
     report["ok"] = all(s["ok"] for s in report["steps"])
 except Exception:
     report["errors"].append(traceback.format_exc())

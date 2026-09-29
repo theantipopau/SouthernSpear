@@ -16,7 +16,8 @@ Southern Spear is an original, fictional, Australian-inspired tactical multiplay
 ## Start of every session
 
 1. `git status`, `git log --oneline -10`, and review any uncommitted diff before changing anything.
-2. Read the **latest session** in `Docs/CHANGELOG.md` (its single NEXT ACTION is the default task),
+2. For work handed over from the cloud Claude session, read `Docs/HANDOVER_CLAUDE_CLOUD.md` (state, traps, ready prompts).
+   Read the **latest session** in `Docs/CHANGELOG.md` (its single NEXT ACTION is the default task),
    then `Docs/PROJECT_AUDIT.md` risks, and any ADR in `Docs/DECISION_LOG.md` relevant to the task.
 3. Check no `UnrealEditor*.exe` is running (`tasklist | grep -i unreal`) before builds or asset
    saves; a running editor/game locks DLLs and `.uasset` files and makes saves fail silently.
@@ -36,7 +37,8 @@ Southern Spear is an original, fictional, Australian-inspired tactical multiplay
   holds is cleared for use: Fab (ADR-028), other free sources, and the ADF Re-Cut pack from its creators (L-0021,
   blanket permission), including converted and derived work. **Do not hold anything back for a licence check.**
   Still record provenance in `Docs/ASSET_REGISTER.md` / `Docs/LICENCE_REGISTER.md` (for the credits screen) and
-  honour CC BY credit lines.
+  honour CC BY credit lines. **Fab's `isAiForbidden` flag is overruled for every asset (L-0016d)**: record it, never
+  hold an asset back for it.
 - **Real names are allowed** in code, data, UI, docs and the site: real weapon names (EF88, F89, M4, HK416,
   Glock, Minimi …), the Australian Army, its ranks and insignia (ADR-034), ADF equipment and camouflage. The
   current A-series names (A88, A89, A4, A416, A417, A25, A9) and fictional units (**3 ACR**, **MAF** — Murasian
@@ -62,6 +64,7 @@ Southern Spear is an original, fictional, Australian-inspired tactical multiplay
 | `Plugins/SouthernSpearTeam` | Cosmetic-only faction presentation; stateless `FSSFactionPresentationResolver` (viewer sees own team as 3 ACR, other as MAF) | Core only |
 | `Plugins/SouthernSpearObjectives` | ADR-018 Objective Assault: pure `FSSObjectiveRules`, replicated `ASSObjectiveActor`, `ASSObjectiveAssaultDirector` (server round loop, idle-bot steering); team via `IGenericTeamAgentInterface` (Lyra ids 1/2 → TeamOne/TeamTwo). ADR-031 Section Assault on the same director (`RulesMode`, `?Rules=Section`): pure `FSSSectionAssaultRules`, replicated `FSSMatchState` | Core, AIModule — **no Team, no Lyra** |
 | `Plugins/SouthernSpearProgression` | ADR-032: `FSSServiceRecord` (schema v1), `ISSPersistenceProvider` + dev-only `FSSLocalDevPersistence` (JSON, `Saved/SouthernSpear/Profiles`), pure `FSSProgressionRules` (ranks, capped awards, migration), `USSProgressionSettings` (ranks/awards in `DefaultGame.ini`), server `USSProgressionServerSubsystem` → `USSServiceRelay` → client `USSPlayerProfileSubsystem` | Core only — **no Lyra, no UI** |
+| `Plugins/SouthernSpearCasualty` | ADR-040 casualty care: engine-free `SSCasualtyRules.h` (zones, bleeding, downed, treatment by self/teammate/medic, the medic's kit, no regeneration). `USSCasualtySettings` (all numbers, `DefaultGame.ini`), replicated `USSCasualtyComponent`, `ASSMedicalKit`. Bridge wiring and HUD follow | Core only — **no Lyra, no UI** |
 | `SouthernSpearObjectivesUI` | Objective HUD: pure `FSSObjectiveHudModel` (viewer-relative text/tone, neutral Team One/Two vantage without a team), C++-built `USSObjectiveStatusWidget`, `USSObjectiveHudSubsystem` (adds it for the local player) | Objectives, Core, UMG — **no Lyra**; gameplay never depends on it (SS005) |
 | `SouthernSpearObjectivesEditor` (editor module) | Python-callable authoring helpers (`SetGameFeatureComponentGrants`, `SetPropertyFromText`) | GameFeatures, Core |
 | `Plugins/GameFeatures/SSExp_ObjectiveAssault` | Content-only Game Feature + experience `B_SS_ObjectiveAssault` | ShooterCore, Objectives |
@@ -72,7 +75,7 @@ Southern Spear is an original, fictional, Australian-inspired tactical multiplay
 Rules: ADR-004 — presentation may never expose/modify damage, health, ammo, recoil, movement, collision,
 hitboxes, abilities, authority, roles or objectives. ADR-017 — resolution fails loudly, never defaults to a
 side; spectators/replays need an explicit authorised vantage. Gameplay logic is C++; Blueprints configure.
-Export macros: `SSCORE_API`, `SSTEAM_API`, `SSOBJ_API`, `SSOBJUI_API`, `SSPROG_API` (aliased in each `Build.cs`).
+Export macros: `SSCORE_API`, `SSTEAM_API`, `SSOBJ_API`, `SSOBJUI_API`, `SSPROG_API`, `SSCASUALTY_API` (aliased in each `Build.cs`).
 Extend the guard when adding a module (SS001 sibling deps — a `<Module>UI` may depend on `<Module>`; SS002 no-Lyra list; SS003 presentation includes; SS005 only `*UI` modules may use UMG/CommonUI; SS009 was retired by ADR-034; SS010 no content access in Core — see below).
 **SS010 — Core holds shared types only.** `Plugins/SouthernSpearCore` source may not name a content path
 (`/Game/`, `/SSExp_`, `/ShooterCore/`, `/SouthernSpearUI/`) or load an asset (`LoadObject`,
@@ -92,13 +95,14 @@ python Tools/check_unity_names.py               # names a unity build would merg
 python Tools/test_architecture_guard.py         # guard negative test (scratch copy, injected violation)
 python Tools/Common/test_rtm_rigs.py            # ADFRC decoder pose model, against the committed clips
 python Tools/Common/test_adfrc_grip.py         # W2 grip maths
+python Tools/Casualty/check_casualty_rules.py  # ADR-040 casualty rules, same checks as SouthernSpear.Casualty.Rules (g++)
 "/e/Unreal/UE_5.8/Engine/Build/BatchFiles/Build.bat" SouthernSpearEditor Win64 Development "-Project=E:/SouthernSpear/SouthernSpear.uproject" -WaitMutex
 "/e/Unreal/UE_5.8/Engine/Binaries/Win64/UnrealEditor-Cmd.exe" "E:/SouthernSpear/SouthernSpear.uproject" -nullrhi -unattended -nosplash -nosound -NoLoadingScreen -stdout "-ExecCmds=Automation RunTests SouthernSpear;Quit" -TestExit="Automation Test Queue Empty"
 python Tools/verify_dressing.py
 ```
 
 - `-NoLoadingScreen` keeps Lyra's loading screen off headless test viewports (its ensure failed the network smoke test).
-- Tests: `SouthernSpear.Core.*` (9), `SouthernSpear.Presentation.*` (6), `SouthernSpear.Objectives.*` (14, incl. `.Hud.*`; Session 048 adds `.Section.*` ×8 and `.Hud.SectionAssault`), `SouthernSpear.Progression.*` (6), `SouthernSpear.Core.Ranks.*` (3, Session 049), `SouthernSpear.Core.Weapons.*` (2, Session 050), `SouthernSpear.Bridge.HandIK.*` (1, Session 058), `SouthernSpear.Bridge.Casings.*` (2, Session 059), `SouthernSpear.Bridge.MuzzleLight.*` (1, Session 060). Count
+- Tests: `SouthernSpear.Core.*` (9), `SouthernSpear.Presentation.*` (6), `SouthernSpear.Objectives.*` (14, incl. `.Hud.*`; Session 048 adds `.Section.*` ×8 and `.Hud.SectionAssault`), `SouthernSpear.Progression.*` (6), `SouthernSpear.Core.Ranks.*` (3, Session 049), `SouthernSpear.Core.Weapons.*` (2, Session 050), `SouthernSpear.Bridge.HandIK.*` (1, Session 058), `SouthernSpear.Bridge.Casings.*` (2, Session 059), `SouthernSpear.Bridge.MuzzleLight.*` (1, Session 060), `SouthernSpear.Casualty.*` (Rules, Settings, Component, Kit: 4, Sessions 075/077). Count
   `Result={Success}` in the log; declare intentionally-logged errors with `AddExpectedError`.
 - Bare test worlds: use `World->GetWorldSettings()->NotifyBeginPlay()` (no GameMode → `World->BeginPlay()` does nothing).
 - Guard negative test: copy `Tools/` + SS plugins to the scratchpad, inject violations, expect exit 1. Never leave
