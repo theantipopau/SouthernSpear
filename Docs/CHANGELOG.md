@@ -6803,6 +6803,54 @@ Casualty step 3 from `Docs/evidence/casualty_lyra_hooks.md` once it is committed
 
 ---
 
+## Session 081 — 2026-09-30 — Cloud's callsign field compiles first try; the loading art and the Lyra research are committed
+
+Pulled main first thing: `7da97511..6bdfb4c8`, fast-forward, no conflicts. The cloud's Session 080 added the
+CALLSIGN field (`SSLocalProfileState.h` gains `CallsignSetter`/`RequestCallsign`/`CallsignRule`; Progression
+wires `SetCallsign` into the setter and clears it in a new `Deinitialize`; `SSSettingsWidget.cpp` builds the
+Interface-tab block). Its commit message says "uncompiled".
+
+**It compiles as committed.** `Build.bat SouthernSpearEditor Win64 Development -WaitMutex`: exit 0, 10 actions
+(Core, Progression, UI each compile and link), `Result: Succeeded`, 37 s. This session changed nothing in the
+callsign code — there was nothing to fix. Full suite afterwards with `-NoLoadingScreen`: exit 0,
+`**** TEST COMPLETE. EXIT CODE: 0 ****`, **passed=67, failed=0** (`Saved/Logs/SS_suite_callsign.log`).
+
+### COMPLETED
+
+- Committed last session's untracked work, LFS first: `git lfs push origin main` before the commit and again
+  after it, then `GIT_LFS_SKIP_PUSH=1 git push`. The four binaries — two paintings, two imported textures —
+  are `filter: lfs` per `git check-attr`.
+- `Content/EuropeanBeech/` (7 GB foliage, not this session's) left untracked and untouched.
+
+### TESTING
+
+| Command | Exit | Result |
+| --- | --- | --- |
+| `git fetch origin` | 0 | `7da97511..6bdfb4c8 main`, 0 ahead / 1 behind |
+| `git merge origin/main --no-edit` | 0 | Fast-forward, 7 files +132/−2, no conflicts |
+| `Build.bat SouthernSpearEditor Win64 Development -Project=... -WaitMutex` | 0 | 10/10 actions, `Result: Succeeded` |
+| `UnrealEditor-Cmd ... -nullrhi -NoLoadingScreen "Automation RunTests SouthernSpear;Quit"` | 0 | `TEST COMPLETE. EXIT CODE: 0`; 67 `Result={Success}`, 0 `Result={Fail}` |
+
+### FILES
+
+- `Docs/evidence/casualty_lyra_hooks.md` — Lyra death-chain and interact research, 301 lines, every file:line verified last session.
+- `Docs/evidence/ui_session078/` — six 1080p captures (front end, 3+2 card crop, rules-caption crop, three loading screens).
+- `Docs/images/loadingscreens/dryriver.png`, `redgum.png` — the two paintings (3.6 / 3.8 MB, LFS).
+- `Plugins/SouthernSpearUI/Content/Textures/T_SS_Load_DryRiver.uasset`, `T_SS_Load_RedGum.uasset` — imported textures (LFS).
+- `Docs/CHANGELOG.md` — this entry.
+
+### RISKS
+
+- The Interface page grew by four widgets (label, 300 px box + SET button row, feedback line). Whether the
+  six-item page still fits 1080p without clipping is not yet measured — that, the live typing behaviour and
+  the scoreboard name are this session's next measurements.
+
+### NEXT ACTION
+
+In game, Settings > INTERFACE: capture the CALLSIGN field; type `Dingo 2-1`, press SET, report the feedback
+text; boot a match and read the scoreboard name; try `x` and require the rule text in red. Evidence to
+`Docs/evidence/ui_session081/`.
+
 ## Open Threads
 
 | Item | Blocked on | Owner |
