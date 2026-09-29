@@ -1344,3 +1344,84 @@ into constant arithmetic (MSVC C4756). Replaced with `std::numeric_limits<float>
 main financial argument for switching. ADR-037 moves from "blocked" to "buildable, not via an asset,
 not yet proven". ADR-038 is unaffected. Left-hand IK is the other agent's work and is untouched: this
 ADR adds the pose lever it needs and does not claim it.
+
+---
+
+## ADR-040 — Casualty care: wounds, downed state, treatment, and the medic's kit
+
+**Status:** PROPOSED (2026-09-29). Needs producer sign-off: it adds a module (an architecture change under
+CLAUDE.md) and sets the medical design numbers. Implements GDD §4.3 and roadmap IC-08 to IC-11.
+
+**Context.** A fatal hit today is Lyra's: health reaches zero, the pawn dies, the respawn gate records an
+elimination. GDD §4.3 asks for location-sensitive damage, incapacitation instead of instant death, bleeding,
+stabilisation, limited field dressings, self-treatment strictly worse than a medic's, and **no health
+regeneration during a round**. The producer holds a Fab first-aid kit (the IFAK, ASSET_REGISTER, `NOT_USED`) and
+asked for a medic-dropped kit that players heal around.
+
+**Decision.**
+
+1. **A new gameplay module, `Plugins/SouthernSpearCasualty`** (`SSCASUALTY_API`), depending on Core only (no Lyra,
+   no UI), like Objectives and Progression. It holds:
+   - `FSSCasualtyRules`: pure, engine-light, fully unit-tested. States, zone multipliers, bleed, bleed-out,
+     treatment outcomes.
+   - `USSCasualtyComponent`: server-authoritative and replicated on the pawn. It holds the state, bleed rate,
+     bleed-out remaining, dressings carried, and who is treating.
+   - `ASSMedicalKit`: the dropped kit, replicated, with charges.
+   - `USSCasualtySettings`: every number below, in `DefaultGame.ini`, so tuning never recompiles.
+
+   The Lyra bridge is the only place that touches Lyra. It reads damage from `ULyraHealthComponent` and
+   the hit bone from the hit result, holds Lyra's death at zero health while the casualty rules say "downed",
+   and routes the interact input. `SouthernSpearUI` shows the state, and only shows it (ADR-004).
+
+2. **States.** `Healthy → Wounded (bleeding) → Downed → {Stabilised → back up | Dead}`, all transitions on the
+   server.
+   - **Wounded:** a limb or torso hit adds bleed, and health drains at the bleed rate until it is dressed.
+   - **Downed:** damage that would kill, or bleeding to zero, puts the soldier down instead. They can't move or
+     fire, and a bleed-out timer runs. A head hit, or damage while already downed, kills outright ("finished").
+   - **Dead:** the timer runs out or the soldier is finished. Only here does `USSRespawnGate::ReportElimination`
+     fire. Being downed is not an elimination, so Section Assault's single-life rule counts deaths, not downs.
+
+3. **Zones (IC-08), data:** head ×4.0 (and never downs: it kills), torso ×1.0, arms ×0.6, legs ×0.7. Limb hits
+   add more bleed than torso hits.
+
+4. **Treatment.** A hold-interact that the server times and that cancels on movement or damage. **Self-treatment
+   is strictly worse**, so every outcome below is a property of *who* treats:
+
+   | Action | Who | Time | Result |
+   |---|---|---|---|
+   | Field dressing | self | 6 s, walk speed, not while sprinting | stops bleeding; **no health returned** |
+   | Field dressing | teammate | 4 s | stops bleeding; no health returned |
+   | Stabilise a downed soldier | any teammate | 8 s | back up at 25 health, still bleeding lightly |
+   | Stabilise a downed soldier | medic | 5 s | back up at 50 health, bleeding stopped |
+   | Treat a wounded soldier | medic | 5 s | stops bleeding, restores to 75 health |
+
+   Two dressings per soldier (medics carry six). "Medic" means the role, from its qualification (GDD §4.5). Until
+   roles exist, a config flag makes every player a medic for testing.
+
+5. **The medic's kit (producer request, reconciled with "no regeneration").** A medic can drop one kit: the Fab
+   IFAK mesh, one per medic, 8 charges, removed after 3 minutes or when empty. It is a **treatment point, not a
+   healing aura.** Health never rises passively near it. Within 2 m, a soldier can:
+   - take a field dressing from it (1 charge; up to their carry limit), and
+   - **treat themselves at the kit** (hold 8 s, 1 charge): stops bleeding and restores up to 60 health, which is
+     still worse than a medic's 75.
+
+   Every point of health still comes from an action someone takes, so GDD §4.3's rule holds, and the kit makes the
+   medic valuable even while they're somewhere else. A passive heal aura was considered and rejected because it is
+   regeneration by another name.
+
+6. **No regeneration (IC-11) is tested.** An automated test runs a wounded, dressed soldier for 120 simulated
+   seconds, with and without a kit nearby, and asserts health never rises without a treatment event. Lyra's
+   own health component has no regeneration; the test keeps it that way.
+
+**Asset.** The IFAK listing carries `isAiForbidden: true`, so using it needs the same producer call recorded in
+L-0016c for the windmill and wreck. Until then, the kit is an engine placeholder mesh and the system doesn't
+depend on the art.
+
+**Consequences.**
+- The architecture guard gains the module (SS001/SS002: Core only). `validate_architecture.py` and CLAUDE.md are
+  updated in the same change.
+- New tests: `SouthernSpear.Casualty.*` (the rules: states, zones, each treatment row, kit charges, no regeneration).
+- Build order: (1) the rules and tests, which can be written and checked remotely; (2) the component, kit and
+  settings; (3) the bridge wiring into Lyra's health and interaction; (4) the HUD — bleed marker, downed
+  bleed-out bar, "stabilising…" bar, and the kit's charges when near it.
+- Out of scope here: friendly fire (IC-15), role limits (IC-14), carrying or dragging the wounded.
