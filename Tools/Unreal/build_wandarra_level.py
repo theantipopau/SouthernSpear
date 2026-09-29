@@ -48,8 +48,15 @@ def cm(x_m, y_m, z_m=0.0):
 
 
 def yaw_unreal(yaw_deg):
-    """Site-frame degrees clockwise from north -> Unreal Z yaw."""
-    return -yaw_deg
+    """Site-frame degrees clockwise from north -> Unreal Z yaw.
+
+    Derivation (Session 083 defect, was wrongly `-yaw`): Unreal yaw is CCW from
+    +X when viewed top-down (yaw 90 forward = +Y), and Unreal Y mirrors site Y.
+    Site north (yaw 0) = Unreal (0,-1) = Unreal yaw -90; site east (90) = +X =
+    0; site south (180) = +Y = 90. Hence yaw - 90. The shipped `-yaw` put every
+    rotated actor one cardinal direction off; the map must be rebuilt to apply.
+    """
+    return yaw_deg - 90.0
 
 
 class Builder(object):

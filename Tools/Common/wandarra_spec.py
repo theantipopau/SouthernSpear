@@ -180,11 +180,51 @@ FURNITURE = [
 # the gates open. Depot compound walls compound clearing; the picket row gives
 # the green a low front boundary you can shoot and see over.
 FENCE_RUNS = [
-    (20, 205, 85, 205, [(46, 56)], False, "depot south wall with the main gate"),
+    (20, 205, 85, 205, [(48.8, 51.2)], False, "depot south wall; main gate narrowed to a 2.4 m personnel gate for door control (ADR-041)"),
     (20, 285, 85, 285, [], False, "depot north wall"),
     (20, 205, 20, 285, [], False, "depot west wall"),
-    (85, 205, 85, 285, [(38, 46)], False, "depot east wall with a side gate"),
-    (212, 15, 212, 85, [(42, 50)], True, "green picket boundary with a gate"),
+    (85, 205, 85, 285, [(41.4, 43.8)], False, "depot east wall; side gate 2.4 m, absolute y 246.4-248.8"),
+    (212, 15, 212, 85, [(44.4, 46.8)], True, "green picket boundary; gate 2.4 m, absolute y 59.4-61.8"),
+]
+
+# ---- Awnings and doors (Session 083: ADR-041) ----
+# Government awnings (vendor BPs with pillars and roofs) dress the civic face
+# and the row buildings' footpath sides as shopfront verandahs: a covered edge
+# that breaks a street sightline at torso height and gives crouch cover where
+# the buildings meet the footpath. The dressing pass pushes each awning out
+# along its facing until it clears the (unmeasured) vendor building box by 40 cm
+# - the spec row is the intent, the pass reconciles with the real footprint.
+AWNING_BPS = {
+    "awning_01a": MOUT + "/Blueprints/GovernmentAwnings/BP_GovernmentAwning_01a",
+    "awning_01b": MOUT + "/Blueprints/GovernmentAwnings/BP_GovernmentAwning_01b",
+    "awning_02a": MOUT + "/Blueprints/GovernmentAwnings/BP_GovernmentAwning_02a",
+    "awning_02b": MOUT + "/Blueprints/GovernmentAwnings/BP_GovernmentAwning_02b",
+}
+AWNING_ROWS = [
+    ("awning_01a", 103.5, 194.5, 180, "civic face west awning: the post office verandah"),
+    ("awning_02a", 109.5, 194.5, 180, "civic face east awning: the store verandah"),
+    ("awning_01b", 100.5, 95, 90, "west row verandah over the main-street footpath (east side)"),
+    ("awning_02b", 199.5, 195, 90, "east row park-side verandah"),
+    ("awning_01a", 234, 194.5, 180, "the park-facing store's verandah on the cross street"),
+    ("awning_02a", 234, 104.5, 0, "the corner building's north verandah over the depot lane"),
+]
+
+# Interactable door Blueprints as SCENERY ONLY (ADR-041: not wired into
+# gameplay this phase). They stand in existing fence-line openings - the depot
+# gates and the green's picket gate - so compound-clearing gets door control
+# (open, clear, close behind) where a gap already exists. They are NOT placed
+# on building walls: vendor buildings have their doorways meshed in, and the
+# footprints are unmeasured (R-90), so a wall-mounted door could block a real
+# doorway. Building-mounted doors wait for the bounds dump and, per ADR-041,
+# a server-owned SSDoorComponent.
+DOOR_BPS = {
+    "door_wood": MOUT + "/Blueprints/Doors/BP_WoodenDoor_Interactable",
+    "door_glass": MOUT + "/Blueprints/Doors/BP_GlassDoors_Interactable",
+    "door_green": MOUT + "/Blueprints/Doors/BP_GreenDoors_Interactable",
+}
+DOOR_ROWS = [
+    ("door_wood", 85, 247.6, 90, "depot side gate: door plane along the N-S wall, normal east. The MAIN gate stays an open 2.4 m gap: TeamOne spawns inside the compound and the navmesh bakes a closed door as a blocker, so the compound's walkable exit must never depend on an unwired scenery door (ADR-041)"),
+    ("door_wood", 212, 60.6, 90, "the green's picket gate: normal east off the south lane; nobody spawns inside this yard"),
 ]
 
 # ---- Cars: RustyCars wrecks ----
