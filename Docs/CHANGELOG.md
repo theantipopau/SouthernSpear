@@ -6256,6 +6256,50 @@ Paths, save — then `build_ravenshoe_nav.py` verify mode must read 32/32 and a 
 
 ---
 
+## Session 073 — 2026-09-29 — The hold socket's rotation was inverted by our own transpose, not by the FBX export
+
+### COMPLETED
+
+- **Found the cause of the upside-down hold socket.** Session 071's probe read `SOCKET_LeftHandGrip` in game with its thumb axis
+  pointing down, not along the bore, and put that down to the FBX exporter applying its axis change on the wrong side. The fault is in
+  `Tools/Blender/adfrc_weapon.py`. `adfrc_grip.hold_frame_rotation` returns a tuple of rows whose columns are the hand axes
+  (checked: column 0 = the report's palm, [0.1024, 0.5, 0.86] on an A88-like weapon). `mathutils.Matrix()` also takes rows, so it
+  already builds the rotation, and the `.transposed()` added in 520dc043 turned it into the inverse. The transpose is removed.
+- **The fore-end question is settled.** Session 071 raised it as a risk; that number was renumbered to Ravenshoe in Session 072. The A88
+  has no vertical foregrip. The `gl*` memory points mark an under-barrel launcher that isn't modelled, and nothing more than 0.9 cm below
+  the bore runs from 9 cm to 42 cm ahead of the trigger. So the hold is the plain handguard; `EF88_Vg_static` supplies position only.
+
+### FILES CHANGED
+
+`Tools/Blender/adfrc_weapon.py`, `Docs/CHANGELOG.md`.
+
+### TESTING
+
+- `python Tools/Common/test_adfrc_grip.py` → exit 0, 0 failures (no pure code changed).
+- The layout check that `resolve_hold`'s column 0 equals its reported palm: done in Python, output above.
+- NOT RUN: the Blender rebuild, the Unreal import, the in-game probe, the automation suite (all on the producer's machine).
+
+### ASSETS
+
+`Art/Weapons/A88/ADFRC/SM_A88.fbx` as committed in 520dc043 carries the inverted socket rotation. It must be rebuilt.
+
+### RISKS
+
+- R-84: `HandRotationOffset` in `DefaultGame.ini` was solved against the socket's old rotation (before the hold basis). Once the rebuilt
+  socket carries the hold basis, the offset has to be re-solved, or the hand turns by both.
+
+### DEFECTS FOUND
+
+- The transpose in `adfrc_weapon.py`, found by reading the matrix layout against `hold_frame_rotation`'s docstring and report.
+
+### NEXT ACTION
+
+Rebuild the A88 (`python Tools/build_adfrc_weapons.py`, then `setup_weapons.py`). Confirm with `probe_weapon_socket.py` that the socket's
++Z (thumb) lies along the bore. Re-solve `HandRotationOffset` against the new socket, log the three angles (each < 15°), then take a
+screenshot.
+
+---
+
 ## Open Threads
 
 | Item | Blocked on | Owner |

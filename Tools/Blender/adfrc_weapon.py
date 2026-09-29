@@ -336,10 +336,11 @@ for key, socket_name in (("grip_left", "SOCKET_LeftHandGrip"), ("grip_right", "S
         bpy.context.scene.collection.objects.link(hand)
         hand.parent = obj
         if key == "grip_left" and hold_rotation is not None:
-            # adfrc_grip's matrix has the hand's axes as COLUMNS (+X palm, +Y finger, +Z thumb);
-            # mathutils.Matrix() is row-major, so transpose to put them back as columns.
+            # adfrc_grip's matrix is a tuple of ROWS whose COLUMNS are the hand's axes (+X palm, +Y finger,
+            # +Z thumb). mathutils.Matrix() also takes rows, so it is already the rotation; transposing it
+            # (Session 071) gave the inverse, which read in game as the thumb pointing down, not the FBX export.
             hand.rotation_mode = "QUATERNION"
-            hand.rotation_quaternion = mathutils.Matrix(hold_rotation).transposed().to_quaternion()
+            hand.rotation_quaternion = mathutils.Matrix(hold_rotation).to_quaternion()
 # W3: the ejection port (nabojnicestart) and where the case is thrown to (nabojniceend), as two sockets so
 # the throw direction survives the FBX axis conversion; the game takes the direction between them at runtime.
 eject_report = None
