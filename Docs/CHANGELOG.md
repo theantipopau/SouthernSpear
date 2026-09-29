@@ -6602,7 +6602,7 @@ Build, and run `SouthernSpear.Casualty.*` (expect 4 tests). Then step 3: read Ly
 
 ---
 
-## Session 075 — 2026-09-29 — The grip socket's position gets authored too, and the arm turns out to be the constraint
+## Session 078 — 2026-09-29 — The grip socket's position gets authored too, and the arm turns out to be the constraint
 
 R-86 answered. `GripNudgeCm` joins `GripPalmTiltDeg` as per-weapon data: `(Forward, Right, Up)` in
 centimetres, in the hold's own axes, applied to the wrist target in `UpdateGrip`. The A88 takes
