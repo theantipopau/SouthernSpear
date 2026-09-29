@@ -1,0 +1,259 @@
+# Handover — Claude (cloud) → whoever picks this up next
+
+Written 2026-09-29 at the end of the cloud session that ran Sessions 055–076 (with the local agents' sessions interleaved).
+It's for the next Claude cloud session, or any agent taking over the work this session was doing. Read it after
+`CLAUDE.md`. Everything here is either measured and committed, or marked as not verified.
+
+---
+
+## 1. How the work is split
+
+| Who | Where | Does |
+|---|---|---|
+| **Producer (Matt)** | Windows, `E:\SouthernSpear` | Decides, plays, screenshots, relays reports between agents |
+| **Cloud Claude** (this role) | Linux container with a clone of the repo; **no Unreal, no Blender, no raw packs** | Design, ADRs, C++ and Python written blind, pure-logic checks (g++/Python), reviewing the other agents' reports, prompts for them |
+| **Local agents** (Copilot/Codebuff/Claude on the producer's machine) | `E:\SouthernSpear` | Builds, automation tests, Blender and Unreal commandlets, in-game captures, LFS pushes |
+
+The loop that works:
+1. Cloud Claude writes the change, with checks it can run here.
+2. It pushes to `main` and gives the producer a **paste-ready prompt** for a local agent: build, test, capture, report numbers.
+3. The producer pastes back the agent's report and screenshots.
+4. Cloud Claude reads the evidence critically and either fixes, redirects, or accepts.
+
+Agents over-claim. Check their numbers against the code, and ask for measurements, not adjectives.
+
+### Working rules from the cloud
+
+- **Pull first, every time.** Local agents push to `main` while you work. Before pushing, `git fetch origin main`. If main has
+  moved, rebase and resolve; changelog conflicts are almost always "keep both entries, in order".
+- **`git commit --only -- <paths>`**, never `git add -A`. The checkout also has other sessions' files.
+- **Push with `GIT_LFS_SKIP_PUSH=1 git push origin HEAD:main`.** From the cloud you never create LFS objects, so this always
+  works. Also push to the designated branch (`claude/fervent-galileo-n6pfss` for this session) if one was given.
+- **Session numbers collide.** Before writing a changelog entry, `grep -n "^## Session" Docs/CHANGELOG.md | tail`, and take
+  the next number. Risk IDs likewise: check the latest `R-` in the changelog **and** `Docs/PROJECT_AUDIT.md`.
+- **Line endings:** `.gitattributes` is `eol=lf`, but some files are CRLF in the working tree. When editing with Python,
+  detect `\r\n` and keep it.
+- **What you can prove here:** `validate_architecture.py`, `check_unity_names.py`, `test_architecture_guard.py`, all
+  `Tools/Common/test_*.py`, `Tools/Casualty/check_casualty_rules.py`, `Tools/Progression/rank_preview.py`. For new C++
+  logic, **put the rules in an engine-free header and check it with g++ here** (see §3.2). It's the one way to prove C++
+  from the cloud.
+- **What you can't:** compile Unreal code, run the automation suite, see the game. Say so in the changelog's NOT RUN.
+
+---
+
+## 2. Where things stand (2026-09-29)
+
+| Area | State | Next |
+|---|---|---|
+| Casualty care (ADR-040) | **Step 1 done:** module `SouthernSpearCasualty`, rules in `SSCasualtyRules.h`, 53 checks passing in g++, mutation-tested. Not yet built in Unreal | Build and test; then step 2 (§3.2) |
+| Loading screens / front end | **Done in code, not built:** per-operation loading screen, one operation list, 3-column front end, "KILLS" label | Build, capture a load (§3.3) |
+| Hand IK (W2) | Works in game: the wrist is on the socket, and the hold is built at runtime from the weapon's sockets plus `GripPalmTiltDeg`. Fingers wrap | R-86 socket position (§3.4) |
+| Reload (W5) | Tooling exists; **Arma's AUG reload clips decode to impossible poses**; the magazine is welded into the mesh | An authored path, after R-86 (§3.5) |
+| Casings / muzzle light (W3) | Code and tests pass (61/61 then 63/63 suites) | Muzzle flash: `NS_WeaponFire_MuzzleFlash_Rifle` (§3.6) |
+| Player model / uniforms | Plan written: `Docs/PLAYER_MODEL_PLAN.md`. ADR-036 (G3 body) stands; ADR-037–039 cover Quantum | **The producer's next focus** (§3.7) |
+| Grenade | A local agent was moving throw-grenade off **Q** (lean) to **G** and adding a model | Check it landed; ADFRC F1 grenade is available (§3.8) |
+| Ravenshoe map | Built, dressed, lit; **nav not baked** (needs an attended editor bake, R-82) | Producer or local agent, attended |
+| Unity-name check | **Fails on main:** two local shadows in `SSHandIKProbeSubsystem.cpp` (`GHaveBodyFrame`, `GBodyFrameInWeapon`) | A local agent renames them (prompt in §5) |
+| Assets | **Every asset is usable whatever its `isAiForbidden` flag** (L-0016d, producer). Record the flag, never hold back | — |
+
+---
+
+## 3. Workstreams in detail
+
+### 3.1 Decisions the producer has made this session (don't re-ask)
+
+- ADR-040 casualty care **accepted**, with its build order. The medic's kit is a **treatment point, not a heal aura**
+  (GDD §4.3: no passive regeneration).
+- `isAiForbidden` overruled for all assets (L-0016d).
+- ADR-036 stands (the G3 body) unless the Quantum route is proven better with a screenshot.
+- Grenade on **G**, lean on Q/E.
+- The LFS storage quota is a cost the producer is aware of. The repo must stay **private** (Lyra-derived copies are in it).
+
+### 3.2 Casualty care — steps 2 to 4
+
+Design: `Docs/DECISION_LOG.md` ADR-040. Rules: `Plugins/SouthernSpearCasualty/Source/SouthernSpearCasualty/Public/SSCasualtyRules.h`
+(namespace `SSCasualty`, engine-free, std only). Checks: `Private/Tests/SSCasualtyRuleChecks.h`, run by both
+`SouthernSpear.Casualty.Rules` and `python Tools/Casualty/check_casualty_rules.py`. **Add every new rule check there,
+not in the UE test**, so it stays provable from the cloud.
+
+**Step 2 (module side, no Lyra):**
+- `USSCasualtySettings` (`UDeveloperSettings`, config `Game`, section `/Script/SouthernSpearCasualty.SSCasualtySettings`):
+  one `UPROPERTY(Config)` per `FTuning` field, and `ToTuning()`. Add `DeveloperSettings` to the Build.cs.
+  **Warning (Session 074):** an ini array written in the wrong struct syntax "imports" as empty, silently. Read a
+  distinctive value back in a test.
+- `USSCasualtyComponent` (`UActorComponent` on the pawn, replicated):
+  - Server-only mutators: `ApplyHit(EZone, RawDamage)`, `TickCasualty`, `BeginTreatment(Patient, Action)`,
+    `CancelTreatment`, `CompleteTreatment`.
+  - Replicated: state, bleed (quantised), bleed-out remaining, dressings, the treating instigator, treatment progress.
+  - Make the rule enums `UENUM(BlueprintType)` mirrors in the component header, or static-cast them. Don't put `UENUM`s
+    in the engine-free header.
+- `ASSMedicalKit`: replicated actor holding an `FKit`. A mesh component that loads the IFAK mesh (path in settings, soft
+  pointer). Charges replicated; destroys itself when `TickKit` returns false. One per medic (the server tracks the owner).
+- **Where's the "no regeneration" guard?** Nothing in the component may raise health except `CompleteTreatment`. Add a UE
+  test that ticks a component 120 s and asserts that.
+
+**Step 3 (bridge, the only Lyra-touching part) — investigate before writing:**
+- How to keep Lyra from killing the pawn at zero health while the casualty rules say Downed. Look at
+  `ULyraHealthComponent` (`OnOutOfHealth`, `StartDeath`) and `ULyraHealthSet` (clamping in
+  `PostGameplayEffectExecute` / `PreAttributeChange`).
+  - Likely route: the bridge listens for damage, feeds the casualty component, and while Downed keeps Lyra's health above
+    zero (or blocks the death ability) until the component says Dead. Then Lyra's normal death runs, and
+    `USSRespawnGate::ReportElimination` fires **only** on Dead.
+  - Ask a local agent to read the 5.8 Lyra source and report the exact hooks before you write it. Blind assumptions
+    about Lyra/engine call paths have been wrong twice this session (R-65's "never runs", the FBX "transpose").
+- Hit zone from the hit bone: map `head`/`neck_01` → Head, `spine_*`/`pelvis` → Torso, `*arm*`/`hand*` → Arm, `thigh*`/`calf*`/`foot*` → Leg.
+  Put the table in settings.
+- Interaction: hold-to-treat on the interact input; cancel on movement input or damage; a medic flag from the role
+  (until roles exist, a settings flag `bEveryoneIsMedic` for testing).
+
+**Step 4 (UI, `SouthernSpearUI`, through a Core state object like `USSLocalHudState`):** a bleed marker, the downed
+bleed-out bar, "STABILISING…" progress, and kit charges when near a kit. Then **update the class-select Medic text**,
+which currently says "Healing is not in the game yet."
+
+### 3.3 UI
+
+- Loading screen: `SSLoadingScreenWidget.cpp`; the destination comes from `USSMenuWidget::PendingMap()`, else the engine's
+  travel URL.
+- **Map art:** the producer will supply drone shots. Put them at `Docs/images/loading/<Key>.png` (keys: RedGum,
+  DryRiver, Saltbush, SelatCanal, Bluestone). Then `SS_UI_LOADING_ONLY=1` with `-ExecutePythonScript=.../setup_ui.py`.
+  The same shots could later replace the front-end background per selected card (not done).
+- **Operations list:** `Private/SSOperations.h` is the single list. Adding a map means adding it there **and** a handler in
+  `SSMenuWidget` (the `ensure` catches a mismatch). Ravenshoe is not on the front end, deliberately, until its nav is baked.
+- **Not done, worth doing:**
+  - A **callsign field** on the front end. Today it's console only (`ss.Callsign`), so the scoreboard shows
+    "hurleym-CB9A5F2A0CAF". UI can't depend on Progression (SS001), so it needs a request field or delegate on Core's
+    `USSLocalProfileState` that Progression listens to.
+  - The class-select preview holds an M4-pattern rifle while the card says A88.
+  - **Motion blur** is Lyra's default and very strong. Turn it off or down in our post-process or settings.
+
+### 3.4 Hand IK / weapon holds
+
+- The hard-won facts are in Sessions 070–074 of the changelog. Short version:
+  - **The hook does run**: `FinalizeBoneTransform` is called every evaluated frame, via `PhysAnim.cpp:468`.
+  - The two-bone solve places the wrist.
+  - `RotateChain` turns the hand to a frame built **at runtime** from the Muzzle and RightHandGrip sockets and the weapon's
+    up.
+  - The palm tilt comes from `GripPalmTiltDeg` in `DefaultGame.ini`, keyed by mesh name.
+  - The arms' per-skeleton correction is `HandRotationOffset`.
+- **A left hand's (palm, finger, thumb) triad is left-handed**: `palm = thumb × finger`. Getting this wrong gives a
+  mirrored frame that still "matches" a mirrored target with 0.0° residual (Session 074). Any new hand maths needs a test
+  asserting the handedness.
+- **R-86 (next):** the A88's `LeftHandGrip` sits 10.3 cm left of the bore. The hand floats beside the handguard.
+  - Fix as data: a per-weapon nudge in the hold frame (forward, right, up cm), next to `GripPalmTiltDeg`.
+  - Start near (0, +5.5, −1.5), then measure the realised wrist-to-bore distance (target ~4–5 cm).
+- **Pistol arms (A9):** `SK_FP_Arms_Pistol` fills the lower screen with untextured tan forearms. Get the component scale,
+  location and materials from a local agent first.
+- **Right hand / bare hands** are flat tan with no glove material. That's a material job.
+
+### 3.5 Reload (W5)
+
+- `Tools/Common/adfrc_reload.py` turns a decoded clip into a left-hand path in the weapon's axes. It **refuses** any clip
+  where the wrists end up more than 0.9 m apart.
+- `GestureReloadAUG`/`…Prone` fail that check: the wrists come out 1.5–3.2 m apart, so Arma's gestures don't pose under
+  our model (R-78). `MPP_Slow_Reload` passes but isn't the AUG.
+- **Plan:** author the path from the weapon's own points: grip → `magazine_axis` memory point → a pouch point on the body
+  → back to grip. Time it to Lyra's reload montage, with the magazine swap at 0.48.
+- **The ADFRC magazine is welded into the gun mesh.** No named selections survived the conversion. A magazine that leaves
+  in the hand needs a Blender split; for a first version, keep the magazine on the gun.
+
+### 3.6 Effects
+
+- Casings (`SSShellEjectSubsystem`) and the muzzle light (`SSMuzzleLightSubsystem`) are in, with `ss.Casings` and
+  `ss.MuzzleLight` cvars.
+- **Muzzle flash:** the Realistic Starter VFX pack has none. The candidates in the project are
+  `NS_WeaponFire_MuzzleFlash_Rifle` (Lyra's own) and `P_AssaultRifle_MuzzleFlash` (the AK-47 pack), listed in
+  `Docs/evidence/vfx_muzzle_candidates.json`.
+
+### 3.7 Player model / uniforms (the producer's next focus)
+
+- Start with `Docs/PLAYER_MODEL_PLAN.md`. It's measured, not guessed, and gives the ordered plan.
+- Then ADR-036 (G3 body), ADR-037–039 (Quantum: leader pose works; retarget via `UPoseableMeshComponent`; the plate
+  carrier fits Quantum within 1.6 cm).
+- **The open decision is the head:** it comes from a Fab "Modern Insurgent 7" pack on an ADFRC body, which is why the
+  soldier reads as "assembled".
+- Known issues:
+  - the flat olive patch between webbing and waist, which is baked into the vendor texture (53% of the sheet is flat fill);
+  - R-58, the soldier welded to the Manny skeleton;
+  - R-59, ~90k verts with no LODs.
+- Remember: **the uniform carries the arms** (the G3 mesh is a whole character, not a garment on a body).
+
+### 3.8 Grenade
+
+- Q was bound to both lean and throw-grenade. A local agent was moving the grenade to G, in our input config, not Lyra's.
+- There's an **Australian F1 grenade** in the ADFRC pack (`Workshop/ADF_Weapons/adfrc_f1grenade`; its config didn't
+  decode). Check `Art/ADFRC_BLEND/adfrc_f1grenade/` before modelling one.
+- Change only the look: Lyra's ability, damage and explosion stay (ADR-004). The MAF grenade is a cosmetic variant (W-105).
+
+---
+
+## 4. Traps that cost time this session (read before touching the same areas)
+
+1. **Quaternion conventions in ADFRC data:** the stored quaternions are read as (−x, −y, z, w). Decoder schema
+   `adfrc-anim-local/2` writes standard quaternions; `/1` and unlabelled files use the stored convention. Mixing them
+   double-flips silently. `adfrc_grip.to_stored_convention` handles it.
+2. **Matrix layout:** `adfrc_grip` returns tuples of **rows** whose **columns** are axes; `mathutils.Matrix()` also
+   takes rows. A stray `.transposed()` inverted the socket (Session 073). Blame your own code before the exporter.
+3. **FBX export isn't reproducible:** `CreationTimeStamp` changes each rebuild, costing ~21 MB of new LFS per rebuild
+   with no mesh change. Don't commit rebuilt FBX unless the mesh changed.
+4. **GH008 on push:** new LFS objects need `git lfs push origin main` before `GIT_LFS_SKIP_PUSH=1 git push`. From the
+   cloud this never arises.
+5. **`-NoLoadingScreen`** is required for the automation suite. Without it, `TwoPlayerAuthoritySmoke` fails with
+   `ViewportOverlayWidget` ensures (R-88). It's not a regression.
+6. **Unity-build shadows** are compile errors on Windows (C4459). Run `check_unity_names.py` before pushing C++.
+7. **Ini arrays of structs** can import as empty with only an `import failed` log line (Session 074). Verify with a
+   distinctive value.
+8. **Screenshots as evidence:** a single A/B pair is noisy (the camera and the world move between runs). Session 067
+   used repeated runs, a per-tile noise floor, and checked which weapon was held.
+9. **The decoder** (`Docs/Sourced/ADFRC/rtm_rigs.py`) now skips its own `Rig/` output, so it can be re-run.
+10. **Engine behaviour claims:** verify in the 5.8 source via a local agent before building on them. Two confident
+    claims this session were wrong.
+
+---
+
+## 5. Paste-ready prompts for local agents
+
+**A. Build and verify what the cloud pushed (Sessions 075–076):**
+```text
+Pull main. Then:
+1. python Tools/check_unity_names.py: it fails on SSHandIKProbeSubsystem.cpp (locals GHaveBodyFrame and
+   GBodyFrameInWeapon shadow file-scope names, C4459). Rename the locals and re-run; expect exit 0.
+2. Build the editor. The new plugins/files (SouthernSpearCasualty, SSOperations.h, the loading screen) should compile
+   with no warnings.
+3. Full automation suite with -NoLoadingScreen. Expect one more test than before (SouthernSpear.Casualty.Rules), all
+   passing. Also run python Tools/Casualty/check_casualty_rules.py (needs g++ or clang on PATH; say if there's none).
+4. From the front end, deploy to Red Gum Station once with OBJECTIVE ASSAULT and once with SECTION ASSAULT. Capture the
+   loading screen each time (the load is short: a High Resolution Screenshot during it, or slow the load).
+   Also capture the front end at 1920x1080: the RULES row must be fully visible above the disclaimer.
+Commit only what you change with git commit --only, plus a changelog entry.
+```
+
+**B. R-86, the left-hand position:**
+```text
+Add a per-weapon GripNudgeCm (forward, right, up in the hold frame) in Config/DefaultGame.ini next to GripPalmTiltDeg,
+applied to the IK target in USSHandIKMeshComponent. Start with A88 = (0, +5.5, -1.5). Log the realised wrist-to-bore
+distance (target 4-5 cm), and screenshot. Verify the ini value actually imports (read back a distinctive value, as in
+Session 074). Add a test.
+```
+
+**C. Casualty step 3 investigation (before any bridge code):**
+```text
+Read the Lyra 5.8 source and report, with file:line: how ULyraHealthComponent decides death (OnOutOfHealth,
+StartDeath, the death ability), where health is clamped in ULyraHealthSet, and how to keep a pawn alive at zero health
+until our code says otherwise, without editing Lyra. Also report how damage events expose the hit bone (the
+GameplayEffect context's hit result). Don't write code.
+```
+
+---
+
+## 6. Open risks worth knowing (full list: `Docs/PROJECT_AUDIT.md`)
+
+- R-09: no dedicated-server target on this engine install. Phase 1 criterion 1 is blocked until the engine is built
+  from source.
+- R-58/R-59: soldier skeleton and vertex budget.
+- R-60: W1 reaches Lyra by reflection.
+- R-78: ADFRC gesture clips don't pose.
+- R-82: Ravenshoe nav needs an attended bake.
+- R-84: the arms offset was solved against the old socket frame. Session 074 re-solved it against the runtime frame.
+- R-85–R-88 (Session 074): hold tilt A88-only, grip socket position, hold fallback, the `-NoLoadingScreen` flag.
+- R-89: casualty rules inert in play until the bridge wiring (step 3).
+- **Audit hygiene:** `PROJECT_AUDIT.md` doesn't yet list R-78, R-84 or R-89. Add them the next time the audit is touched.
