@@ -13,6 +13,7 @@
 #include "Kismet/KismetSystemLibrary.h"
 #include "SSLocalHudState.h"
 #include "SSLocalProfileState.h"
+#include "SSOperations.h"
 #include "SSServiceRanks.h"
 #include "SSSettingsWidget.h"
 #include "SSUIAssets.h"
@@ -23,6 +24,7 @@ using namespace SSWidgetKit;
 const TCHAR* USSMenuWidget::FrontEndMap = TEXT("/Game/Maps/L_SS_FrontEnd");
 int32 USSMenuWidget::SelectedBots = 8;
 bool USSMenuWidget::bSelectedSectionRules = false;
+FString USSMenuWidget::PendingMapPath;
 
 namespace
 {
@@ -69,7 +71,7 @@ namespace
 		Button->AddChild(Inner);
 		USizeBox* Size = T->ConstructWidget<USizeBox>();
 		Size->SetWidthOverride(300.f);
-		Size->SetHeightOverride(144.f);
+		Size->SetHeightOverride(150.f);
 		Inner->SetContent(Size);
 		UVerticalBox* Body = T->ConstructWidget<UVerticalBox>();
 		Size->AddChild(Body);
@@ -264,28 +266,19 @@ void USSMenuWidget::Setup(ESSMenuMode InMode)
 		UUniformGridPanel* Grid = T->ConstructWidget<UUniformGridPanel>();
 		Grid->SetSlotPadding(FMargin(4.f));
 		AddV(Col, Stagger(Grid), 8.f, HAlign_Left);
-		struct FOp { FText Title, Description, Meta; FName Handler; };
-		const FOp Ops[] = {
-			{ NSLOCTEXT("SSMenu", "RedGum", "Red Gum Station"),
-			  NSLOCTEXT("SSMenu", "RedGumDesc", "An outback cattle station: the north paddock, the homestead, the south paddock."),
-			  NSLOCTEXT("SSMenu", "RedGumMeta", "3 OBJECTIVES  ·  OPEN PADDOCKS"), GET_FUNCTION_NAME_CHECKED(USSMenuWidget, OnRedGum) },
-			{ NSLOCTEXT("SSMenu", "DryRiver", "Dry River"),
-			  NSLOCTEXT("SSMenu", "DryRiverDesc", "A dry creek line between a water point and a farmstead."),
-			  NSLOCTEXT("SSMenu", "DryRiverMeta", "2 OBJECTIVES  ·  CREEK BED"), GET_FUNCTION_NAME_CHECKED(USSMenuWidget, OnDryRiver) },
-			{ NSLOCTEXT("SSMenu", "Saltbush", "Saltbush Flats"),
-			  NSLOCTEXT("SSMenu", "SaltbushDesc", "Arid scrub and stone country: a windmill, the stock yards, a dry dam."),
-			  NSLOCTEXT("SSMenu", "SaltbushMeta", "3 OBJECTIVES  ·  ROCKY COVER"), GET_FUNCTION_NAME_CHECKED(USSMenuWidget, OnSaltbush) },
-			{ NSLOCTEXT("SSMenu", "SelatCanal", "Selat Canal"),
-			  NSLOCTEXT("SSMenu", "SelatCanalDesc", "A Murasian canal district: the footbridge, market row, the pump house."),
-			  NSLOCTEXT("SSMenu", "SelatCanalMeta", "SPECIAL FORCES  ·  CLOSE QUARTERS"), GET_FUNCTION_NAME_CHECKED(USSMenuWidget, OnSelatCanal) },
-			{ NSLOCTEXT("SSMenu", "Bluestone", "Bluestone Quarry"),
-			  NSLOCTEXT("SSMenu", "BluestoneDesc", "A flooded slate pit: the loading bay, the cutting face, the spoil heaps."),
-			  NSLOCTEXT("SSMenu", "BluestoneMeta", "3 OBJECTIVES  ·  CLOSE QUARTERS"), GET_FUNCTION_NAME_CHECKED(USSMenuWidget, OnBluestone) },
-		};
-		for (int32 Index = 0; Index < UE_ARRAY_COUNT(Ops); ++Index)
+		// SSOperations::All() order: one handler per operation.
+		const FName Handlers[] = {
+			GET_FUNCTION_NAME_CHECKED(USSMenuWidget, OnRedGum), GET_FUNCTION_NAME_CHECKED(USSMenuWidget, OnDryRiver),
+			GET_FUNCTION_NAME_CHECKED(USSMenuWidget, OnSaltbush), GET_FUNCTION_NAME_CHECKED(USSMenuWidget, OnSelatCanal),
+			GET_FUNCTION_NAME_CHECKED(USSMenuWidget, OnBluestone) };
+		const TConstArrayView<SSOperations::FOperation> Ops = SSOperations::All();
+		ensureMsgf(Ops.Num() == UE_ARRAY_COUNT(Handlers), TEXT("SSOperations and the menu's handlers disagree"));
+		// Three columns, so all five fit above the bots and rules rows at 1080p.
+		constexpr int32 Columns = 3;
+		for (int32 Index = 0; Index < FMath::Min(Ops.Num(), static_cast<int32>(UE_ARRAY_COUNT(Handlers))); ++Index)
 		{
-			Grid->AddChildToUniformGrid(AddHandler(MapCard(T, Ops[Index].Title, Ops[Index].Description, Ops[Index].Meta), Ops[Index].Handler),
-				Index / 2, Index % 2);
+			Grid->AddChildToUniformGrid(AddHandler(MapCard(T, Ops[Index].Title, Ops[Index].Description, Ops[Index].Meta), Handlers[Index]),
+				Index / Columns, Index % Columns);
 		}
 
 		// Bots: 4 / 8 / 12.
@@ -466,6 +459,7 @@ void USSMenuWidget::PlayMap(const UObject* Context, const TCHAR* Map)
 		Player->SetInputMode(FInputModeGameOnly());
 		Player->SetShowMouseCursor(false);
 	}
+	PendingMapPath = Map;
 	UGameplayStatics::OpenLevel(Context, FName(Map), /*bAbsolute=*/ true,
 		FString::Printf(TEXT("NumBots=%d%s"), SelectedBots, bSelectedSectionRules ? TEXT("?Rules=Section") : TEXT("")));
 }
@@ -481,11 +475,11 @@ void USSMenuWidget::SetSectionRules(bool bSection)
 	}
 }
 
-void USSMenuWidget::OnRedGum()   { PlayMap(this, TEXT("/Game/Maps/L_RedGum_01")); }
-void USSMenuWidget::OnDryRiver() { PlayMap(this, TEXT("/Game/Maps/L_DryRiver_01")); }
-void USSMenuWidget::OnSaltbush()  { PlayMap(this, TEXT("/Game/Maps/L_Saltbush_01")); }
-void USSMenuWidget::OnSelatCanal() { PlayMap(this, TEXT("/Game/Maps/L_SelatCanal_01")); }
-void USSMenuWidget::OnBluestone()  { PlayMap(this, TEXT("/Game/Maps/L_Bluestone_01")); }
+void USSMenuWidget::OnRedGum() { PlayMap(this, SSOperations::All()[0].Map); }
+void USSMenuWidget::OnDryRiver() { PlayMap(this, SSOperations::All()[1].Map); }
+void USSMenuWidget::OnSaltbush() { PlayMap(this, SSOperations::All()[2].Map); }
+void USSMenuWidget::OnSelatCanal() { PlayMap(this, SSOperations::All()[3].Map); }
+void USSMenuWidget::OnBluestone() { PlayMap(this, SSOperations::All()[4].Map); }
 void USSMenuWidget::OnBots4()    { SetBots(4); }
 void USSMenuWidget::OnBots8()    { SetBots(8); }
 void USSMenuWidget::OnBots12()   { SetBots(12); }
@@ -544,6 +538,7 @@ void USSMenuWidget::OnRedeploy()
 
 void USSMenuWidget::OnMainMenu()
 {
+	PendingMapPath = FrontEndMap;
 	UGameplayStatics::OpenLevel(this, FName(FrontEndMap), /*bAbsolute=*/ true);
 }
 

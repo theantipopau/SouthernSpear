@@ -195,7 +195,7 @@ void USSScoreboardWidget::Refresh()
 			Widgets.Assists->SetText(FText::AsNumber(Row->Assists));
 			Widgets.Ping->SetText(Row->PingMs < 0 ? FText::FromString(TEXT("—")) : FText::FromString(FString::Printf(TEXT("%d ms"), Row->PingMs)));
 		}
-		Totals[Side]->SetText(FText::Format(NSLOCTEXT("SSScore", "Total", "{0} K"), FText::AsNumber(Kills)));
+		Totals[Side]->SetText(FText::Format(NSLOCTEXT("SSScore", "Total", "{0} KILLS"), FText::AsNumber(Kills)));
 	}
 }
 

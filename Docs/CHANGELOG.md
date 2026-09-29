@@ -6488,6 +6488,66 @@ Build the editor and run `SouthernSpear.Casualty.Rules` (expect 1 more test, and
 
 ---
 
+## Session 076 — 2026-09-29 — Loading screens name the operation and its rules; the front end fits at 1080p
+
+### COMPLETED
+
+- **Loading screen per operation.** When the destination is an operation, the screen shows:
+  - "LOADING OPERATION" and the map's name, e.g. RED GUM STATION;
+  - its objective count and terrain line, and its description;
+  - the rule set's name, with a short summary written from ADR-018/ADR-031 of what the rules ask of you;
+  - a tip.
+
+  It shows the map's own art when `T_SS_Load_<Key>` exists, else the key art. The front end and unlisted maps get the
+  plain screen, as before. Where the destination comes from:
+  - the front end's request (`USSMenuWidget::PendingMap`, set just before `OpenLevel`);
+  - otherwise the engine's `TravelURL`/`LastURL`, where `Rules=Section` selects the rules.
+- **One operation list.** `Private/SSOperations.h` holds the maps, art keys, titles, descriptions and meta lines. The
+  front-end cards, their handlers, the loading screen and `setup_ui.py` all read it.
+- **Drone shots drop in without code.** Place `Docs/images/loading/<Key>.png` (keys listed in its README), then run
+  `setup_ui.py` with `SS_UI_LOADING_ONLY=1`.
+- **Front end fits at 1080p.** The operation grid is 3 columns (was 2). In the producer's screenshot the RULES row sat
+  under the disclaimer and its buttons were cut off. Cards are 6 px taller so a three-line description no longer
+  touches DEPLOY.
+- **Scoreboard:** the team total reads "3 KILLS", not the ambiguous "3K".
+
+### FILES CHANGED
+
+New: `Plugins/SouthernSpearUI/Source/SouthernSpearUI/Private/SSOperations.h`, `Docs/images/loading/README.md`.
+Modified: `SSLoadingScreenWidget.h/.cpp`, `SSMenuWidget.h/.cpp`, `SSScoreboardWidget.cpp`, `SSUIAssets.h`,
+`Tools/Unreal/setup_ui.py`, `Docs/CHANGELOG.md`.
+
+### TESTING
+
+- `python Tools/validate_architecture.py` → exit 0.
+- `python Tools/check_unity_names.py` → exit 1, the same two pre-existing shadows in `SSHandIKProbeSubsystem.cpp` as in
+  Session 075. Nothing from this change.
+- `python -m py_compile Tools/Unreal/setup_ui.py` → ok. The art-key regex returns the five keys from `SSOperations.h`.
+- NOT RUN: the editor build; a front-end deploy to see the new loading screen; a 1080p front-end capture.
+
+### ASSETS
+
+None yet. Per-map loading art is waiting on the producer's drone shots.
+
+### RISKS
+
+None new.
+
+### DEFECTS FOUND
+
+- The front end's RULES row was clipped at 1080p (found from the producer's screenshot).
+- Scoreboard names show the platform default ("hurleym-…") because no callsign is set, and the only way to set one is
+  the `ss.Callsign` console command. A callsign field on the front end needs a request path through Core, because UI
+  may not depend on Progression (SS001). Not done here.
+- The class-selection preview holds an M4-pattern rifle while the card says A88. Not investigated.
+
+### NEXT ACTION
+
+Build the editor. Deploy to Red Gum from the front end once with each rule set, and screenshot the loading screen
+(`-SSShotAt` is too late for a load; use the editor's High Resolution Screenshot during the load, or a paused run).
+
+---
+
 ## Open Threads
 
 | Item | Blocked on | Owner |

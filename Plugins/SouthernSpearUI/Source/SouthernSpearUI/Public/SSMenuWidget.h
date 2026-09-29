@@ -46,6 +46,12 @@ public:
 
 	static const TCHAR* FrontEndMap;
 
+	/** The map the last PlayMap or main-menu request is opening, for the loading screen. Empty before the first. */
+	static const FString& PendingMap() { return PendingMapPath; }
+
+	/** Whether the next match opens with Section Assault rules (the front end's RULES choice). */
+	static bool IsSectionRulesSelected() { return bSelectedSectionRules; }
+
 private:
 	UFUNCTION() void OnRedGum();
 	UFUNCTION() void OnDryRiver();
@@ -88,4 +94,6 @@ private:
 
 	/** Section Assault chosen on the front end: the map opens with ?Rules=Section. */
 	static bool bSelectedSectionRules;
+
+	static FString PendingMapPath;
 };
