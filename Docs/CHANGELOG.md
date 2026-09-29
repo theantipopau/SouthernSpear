@@ -6256,6 +6256,135 @@ Paths, save — then `build_ravenshoe_nav.py` verify mode must read 32/32 and a 
 
 ---
 
+## Session 073 — 2026-09-29 — The hold is authored from the weapon, and the weapon says which hand it is
+
+The producer's correction, twice over. The Arma-pose derivation is dropped: the finger rest joints of
+that pose disagree with each other by ~50 deg, so it was never a measurement, only a shape. And a hold
+carried through the FBX is not a measurement either — Blender's exporter returns an empty's rotation
+transposed, so the frame authored on `SOCKET_LeftHandGrip` came back with the thumb on `(0,0,-1)` while
+the bore at that socket is `(0.874,0.388,0.291)`. Socket *positions* survive the round trip exactly, so
+the hold is now built at run time from the sockets, with its per-weapon angle as data in config.
+
+### COMPLETED
+
+**Point 1 — does `SM_A88` have a vertical foregrip? No.** Two independent measurements of the shipped
+asset agree. The `ADFRC_EF88_MLOD.blend` memory points `gl` (+17.3 cm), `gl_axis` (+27.2),
+`gl_cartridge_axis` (+21.9), `gl_lock_axis` (+12.7) and `muzzle_ugl_pos` (+31.6) all sit 4–5 cm *below*
+the bore: they are grenade-launcher attachment proxies, and there is no grenade-launcher geometry in
+LOD0 at all. In `SM_A88.fbx` (78 615 verts), every vertex more than 2 cm below the bore line lies
+between −35.9 and +9.1 cm — the stock, pistol grip, magazine and trigger guard. From +9.1 cm to the
+muzzle at +42.4 cm, nothing is more than 0.9 cm below the bore. The fore-end is a plain tube handguard
+with a top rail, the hand surface runs from about +9 cm to +30 cm ahead of the trigger, and the
+existing `LeftHandGrip` socket at +21.9 cm sits mid-handguard. `GRIP_CLIPS` still names
+`EF88_Vg_static`, but “Vg” names the handAnim *clip*, not the gun; it supplies position only, and
+`build_adfrc_weapons.py` now says so at the line.
+
+**Point 2 — the hold is built at run time, and it lives in config.** `FSSHandIK::BuildGripHold` takes
+the Muzzle and RightHandGrip positions and the weapon component's own up vector and produces the frame:
+`forward = muzzle − rightGrip`, `up` = component up orthogonalised against it, `right = up × forward`
+(UE satisfies `F × R = U`, so `U × F = R`), then `thumb = forward`, `palm` = up tilted `PalmTiltDeg`
+towards `right`, `finger = palm × thumb`. `USSHandIKMeshComponent::UpdateGrip` rebuilds it in the attach
+frame every time the grip resolves, and a weapon with no muzzle or right-hand socket falls back to the
+grip socket's own rotation, which is what the code did before. The angle is data, per weapon, in
+`Config/DefaultGame.ini`: `GripPalmTiltDeg=(A88=30)` and `DefaultPalmTiltDeg=30`, keyed off the held
+mesh's name so a weapon needs no code. Only the A88 is measured; the rest take the default until
+someone measures their mesh the same way, because a hold guessed from a weapon's real-world type is
+exactly the borrowed pose this replaced. The socket-rotation application in `adfrc_weapon.py` is
+reverted — the FBX is back to position-only and the manifest keeps the resolved frame as documentation.
+
+**The sign of `right` is checked against the weapon, not derived.** The ejection port is on the
+shooter's right and the left hand grip on the shooter's left, so `Eject` must land on `+Right` and
+`LeftHandGrip` on `−Right`. The probe now prints both every sample:
+`eject_on_right=1 left_grip_on_left=1 eject_dot_right=+1.625 grip_dot_right=−9.492`.
+
+**Handedness, and the bug a 0.0° residual was hiding.** A *left* hand has `palm = thumb × finger`, so
+`palm × finger = −thumb`: its own (palm, finger, thumb) triad is **left-handed and is not a rotation**.
+The first version of this work used `finger = thumb × palm` — a *right* hand's relation — and measured
+the palm as `finger × thumb` to match it. It reported `residual=0.0/0.0/0.0` on all eleven samples,
+because a mirrored frame still matches a mirrored target, and rendered the back of a closed fist on the
+handguard. Both sides are corrected. The pre-offset error against the arms' own clip pose fell from
+124.8/125.4° to 55.2/54.6°, and the fingers now wrap the tube. `ToHandRotation` is
+`FRotationMatrix::MakeFromXY(Palm, Finger)` — the engine's own helper, so its row/column convention is
+the one `FQuat` expects rather than one re-derived — which gives `+X` palm, `+Y` finger and `+Z` the
+back-of-hand axis. `Tools/Common/adfrc_grip.py` carried the same mirrored triad and is corrected with
+it; its `plain_handguard` finger axis is `−right` for the same reason.
+
+**Point 3 — the offset, solved from `SK_FP_Arms_Rifle`'s own finger bones.**
+`HandRotationOffset=(Pitch=33.853,Yaw=136.820,Roll=−89.996)`, in `Config/DefaultGame.ini`. Solved on
+the A88 from its own clip pose with `-SSHandIKProbe -SSHandIKProbeNoRotate`, identical on all eleven
+samples, and the **three post-offset angles are 0.0 / 0.0 / 0.0** — each far inside the 15° bar. Live
+afterwards, with the offset in config and the rotation step on, every sample t=0.5…5.0 s reads
+`palm_err=0.0 thumb_err=0.0 finger_err=0.0`, and the hold's thumb reads `(1.0,0.0,0.1)` in the weapon's
+frame: on the bore, which is the whole point of rebuilding it at run time. The `thumb_vs_bore=14.7°`
+figure is not an error — it is how far the arms' own idle clip already holds its thumb off the bore,
+the anatomical fact Session 071 measured at 11.5°.
+
+**The per-weapon data path, and a silent failure worth knowing about.** `GripPalmTiltDeg` is a
+`TMap`, and its ini form is unforgiving: `+GripPalmTiltDeg=(A88=30.0)` logs `import failed for
+GripPalmTiltDeg` and leaves the property **empty**, so every weapon silently falls back to
+`DefaultPalmTiltDeg` with nothing else looking wrong. `(("A88",30.0))` is the form that imports. It
+was caught by putting a distinctive 45 in the row and reading the realised tilt back — 30.0° with the
+broken form, 45.0° with the fixed one. Both the ini and the code now say so, because "my per-weapon
+value is being ignored" is exactly the symptom that sends people looking in the wrong place.
+
+**Reading the final live run correctly.** The FP arms settle at `0.0 / 0.0 / 0.0` from t=1.5 s and
+stay there for the remaining eight samples. The first three read 55.2 / 20.4 / 55.2 on the way there:
+`Alpha` ramps at `BlendSpeed=8/s`, so the hand is still the clip's own pose at t=0.4 and halfway at
+t=1.0. That is the blend, not an error, and it is why "every sample reads 0.0" is not a claim this
+session can make about the fade-in window.
+
+**Point 4 — `Build/measure_a88_grip_pose.py` deleted.** It was the cancelled Arma derivation, it was
+never committed (`Build/` is gitignored), and no committed value depends on it. The socket probe it
+fed, `Tools/Unreal/probe_weapon_socket.py`, is removed too: the runtime no longer reads a socket
+rotation, so there is nothing left for it to report.
+
+**Point 5 — `TwoPlayerAuthoritySmoke` on main without the change: PASS**, and **PASS with it**. It is
+not environmental and not this change. The `Fail` in Session 071's evidence is the same test run
+*without* `-NoLoadingScreen`, which produces 4 `ViewportOverlayWidget` ensures from
+`GameViewportClient.cpp:3378`; with the flag it passes, and it passed on the tree as it stood before
+this work began (`SS_smoke_now.log`, exit 0, 0 ensures). The flag, not the code, is the variable. The
+flag needs recording in `Docs/PLAYTEST_COMMANDS.md` so nobody re-derives it.
+
+### TESTS
+
+- `SouthernSpear.Bridge.HandIK.GripHold` (new, pure, no world) — Success. A synthetic bore at +X with
+  up +Z: thumb on the bore, `right = +Y`, `palm = (0,0.5,0.866)` i.e. exactly 30° off up towards
+  right, `palm = thumb × finger`, `palm × finger = −thumb`, `det[palm,finger,−thumb] = +1`,
+  `ToHandRotation` `+Z = −thumb`, 0° and 90° tilts, the frame follows a slanted weapon, and both
+  refusals (coincident sockets, up along the bore) return false with the hold **zeroed** rather than
+  stale — the first cut left `Out.Forward` set on the second refusal, which the test caught.
+- `SouthernSpear.Bridge.HandIK.RotateHand` — Success. `SouthernSpear.Bridge.HandIK.Solve` — Success.
+- Full suite: **63 pass, 0 fail** (`Saved/Logs/SS_suite_072.log`, exit 0).
+- `Tools/Common/test_adfrc_grip.py` 0 failures, `Tools/Common/test_adfrc_reload.py` 0 failures. The
+  grip suite's handedness block was asserting the right hand's relation, so it passed on a mirrored
+  frame; it now asserts the left hand's, and that it is *not* the right hand's.
+- Editor build clean.
+
+### RISKS
+
+- **R-84** — The hold's `PalmTiltDeg` is authored for the A88 only, and only from that weapon's own
+  mesh. Every other weapon takes the 30° default, which is a guess dressed as a default. Open.
+- **R-85** — The A88's palm still reads as a little high and left of the tube in the capture. The
+  rotation is right (the thumb is on the bore and the fingers wrap it); what is left is the *position*
+  of `LeftHandGrip`, 10.3 cm left of the bore, which comes from the ADFRC handAnim wrist and has never
+  been authored. Open — this is the next thing to look at, and it is a socket-position problem, not a
+  hold problem.
+- **R-86** — The socket-rotation route was abandoned on the exporter's transpose. If a future weapon
+  needs a hold the runtime cannot build from muzzle/right-grip/up alone — a weapon with no muzzle
+  socket, say — it falls back to the grip socket's own rotation, which is arbitrary. Open.
+- **R-87** — `-NoLoadingScreen` is required for `TwoPlayerAuthoritySmoke` and is not yet written down
+  in `Docs/PLAYTEST_COMMANDS.md`, so the next person to run it without the flag will read a `Fail` as
+  a regression. Open.
+
+### FILES
+
+`Plugins/SouthernSpearLyraBridge/Source/SouthernSpearLyraBridge/{Public/SSHandIKMeshComponent.h,
+Private/SSHandIKMeshComponent.cpp, Private/SSHandIKProbeSubsystem.cpp, Private/Tests/SSHandIKTests.cpp}`,
+`Config/DefaultGame.ini`, `Tools/Common/adfrc_grip.py`, `Tools/Common/test_adfrc_grip.py`,
+`Tools/Blender/adfrc_weapon.py`, `Tools/build_adfrc_weapons.py`, `Art/Weapons/A88/ADFRC/manifest.json`,
+`Art/Weapons/A88/ADFRC/SM_A88.fbx` (rebuilt, position-only sockets again), deleted
+`Tools/Unreal/probe_weapon_socket.py`, evidence `Docs/evidence/handik_hold/SS_hold_frame.txt`.
+
 ## Open Threads
 
 | Item | Blocked on | Owner |

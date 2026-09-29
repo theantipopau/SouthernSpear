@@ -6,12 +6,52 @@
 #include "Components/SkeletalMeshComponent.h"
 #include "SSHandIKMeshComponent.generated.h"
 
+class UStaticMesh;
+
+/**
+ * The hold the left hand takes on a weapon, authored from the weapon's own sockets (Session 073) rather
+ * than borrowed from a pose: the FBX round trip mangles a socket's rotation, and a handAnim pose's
+ * finger rest joints disagree by ~50 deg, so neither can be the target. Socket positions survive the
+ * round trip exactly, so the frame is built from those at run time.
+ *
+ * Forward runs from the right hand (the trigger) to the muzzle; Up is the weapon component's own up
+ * made orthogonal to it; Right is Up x Forward. In UE's axes F x R = U, so R = U x F, and the sign is
+ * read off the weapon itself: the ejection port sits on +Right and the left hand grip on -Right.
+ *
+ * The hand's own frame follows: Thumb along the bore, Palm the weapon's up tilted PalmTiltDeg towards
+ * its right (the hand sits under and left of the tube; 0 is the palm flat under it, 90 is a vertical
+ * grip with the palm facing across), Finger = Palm x Thumb. That order is the left hand's: a left hand
+ * has palm = thumb x finger, while thumb x palm is a RIGHT hand's and renders a mirrored fist. Note the
+ * consequence for ToHandRotation: the hand's own (palm, finger, thumb) triple is left-handed - palm x
+ * finger = -thumb - so it is not a rotation, and the hand's +Z basis axis is the back-of-hand one.
+ * One per-skeleton offset still fits every weapon, because the basis is the same on all of them.
+ */
+struct SSBRIDGE_API FSSGripHold
+{
+	/** The weapon's orthonormal basis. */
+	FVector Forward, Right, Up;
+	/** The hand's orthonormal basis, in the left hand's own order. */
+	FVector Thumb, Palm, Finger;
+
+	/** The hold as a rotation: +X palm normal, +Y finger direction, +Z the back-of-hand axis (-Thumb). */
+	FQuat ToHandRotation() const;
+};
+
 /**
  * Pure two-bone left-hand IK on a component-space pose (W2). Tested without a world
  * (SouthernSpear.Bridge.HandIK).
  */
 struct SSBRIDGE_API FSSHandIK
 {
+	/**
+	 * Fills Out from the weapon's sockets: Muzzle and RightHandGrip give the bore, WeaponUp is the
+	 * weapon component's own up vector. False when the two points coincide or the up vector lies along
+	 * the bore, which leaves no frame to hold; Out is zeroed first either way, so a refused build can
+	 * never leave a stale hold behind.
+	 */
+	static bool BuildGripHold(const FVector& Muzzle, const FVector& RightHandGrip, const FVector& WeaponUp,
+		float PalmTiltDeg, FSSGripHold& Out);
+
 	/**
 	 * Moves Hand towards Target (component space) by Alpha, bending Upper and Lower in the plane of the
 	 * current elbow, then carries every descendant of Upper (twist bones, fingers) with its bone. The
@@ -49,9 +89,9 @@ struct SSBRIDGE_API FSSHandIK
  * the first-person arms (USSFirstPersonSubsystem; the Fab arms' LeftArm / LeftForeArm / LeftHand). The
  * bones are found by name from a candidate list, so one class serves both skeletons.
  *
- * The wrist solve places the hand; HandRotationOffset then turns the hand itself to the grip socket's
- * rotation (a wrist-only solve leaves the palm open and flat, Session 070), and the hand's descendants
- * follow it. The offset is per skeleton, so it lives in config.
+ * The wrist solve places the hand; the hold authored from the weapon's own sockets, then
+ * HandRotationOffset, turns the hand itself (a wrist-only solve leaves the palm open and flat,
+ * Session 070), and the hand's descendants follow it. The offset is per skeleton, so it lives in config.
  *
  * The IK fades out (BlendSpeed) while a reload, draw, holster or equip plays (the body's active montage
  * name contains one of SuppressingAnimationWords; the first-person arms, which play single clips, are
@@ -73,6 +113,27 @@ public:
 	/** Socket names on the held weapon's static mesh, first match wins (imported name, then the Blender name). */
 	UPROPERTY(EditAnywhere, Category = "Hand IK")
 	TArray<FName> GripSockets = { TEXT("LeftHandGrip"), TEXT("SOCKET_LeftHandGrip") };
+
+	/** The bore's far end. With RightHandGrip it gives the weapon's forward axis (Session 073). */
+	UPROPERTY(EditAnywhere, Category = "Hand IK")
+	TArray<FName> MuzzleSockets = { TEXT("Muzzle"), TEXT("SOCKET_Muzzle") };
+
+	/** The trigger hand. With Muzzle it gives the weapon's forward axis. */
+	UPROPERTY(EditAnywhere, Category = "Hand IK")
+	TArray<FName> RightGripSockets = { TEXT("RightHandGrip"), TEXT("SOCKET_RightHandGrip") };
+
+	/**
+	 * How far the palm normal leans off the weapon's up, in degrees, per weapon - the hold, as data
+	 * (Session 073). Keyed by the held mesh's name without its SM_ prefix (A88, A416), so a weapon
+	 * needs no code change. 0 is the palm flat under the handguard, 90 a vertical grip. Unlisted weapons
+	 * take DefaultPalmTiltDeg, which is the plain handguard.
+	 */
+	UPROPERTY(Config, EditAnywhere, Category = "Hand IK")
+	TMap<FName, float> GripPalmTiltDeg;
+
+	/** Palm tilt for a weapon with no row of its own (DefaultPalmTiltDeg, 30: a hand under a handguard). */
+	UPROPERTY(Config, EditAnywhere, Category = "Hand IK")
+	float DefaultPalmTiltDeg = 30.f;
 
 	/** Candidate bone names, first match wins (Manny, then the Fab first-person arms). */
 	UPROPERTY(EditAnywhere, Category = "Hand IK")
@@ -99,14 +160,18 @@ public:
 	float MaxReachFactor = 1.05f;
 
 	/**
-	 * Turn the hand itself to the grip socket's rotation (socket rotation * HandRotationOffset) once the
-	 * wrist solve has put it there, carrying the fingers and wrist-twist bones with it. A wrist-only solve
-	 * leaves the palm however the animation had it (flat on the receiver for the first-person arms).
+	 * Turn the hand itself to the grip's hold rotation (hold * HandRotationOffset) once the wrist solve
+	 * has put it there, carrying the fingers and wrist-twist bones with it. A wrist-only solve leaves the
+	 * palm however the animation had it (flat on the receiver for the first-person arms).
+	 *
+	 * The hold comes from the sockets (FSSHandIK::BuildGripHold) each time the grip resolves, so one
+	 * per-skeleton correction fits every weapon. A weapon without a muzzle or right-hand socket falls
+	 * back to the grip socket's own rotation, which is what this did before the hold was authored.
 	 *
 	 * Off by default: the third-person body's own Lyra hold already gives it a gripping hand, so only the
 	 * first-person arms, which have no grip animation, turn it on. The correction is per skeleton, so the
 	 * value lives in config: [/Script/SouthernSpearLyraBridge.SSHandIKMeshComponent]
-	 * HandRotationOffset=(Pitch=,Yaw=,Roll=). A zero offset takes the socket's own rotation.
+	 * HandRotationOffset=(Pitch=,Yaw=,Roll=). A zero offset takes the hold as authored.
 	 */
 	UPROPERTY(EditAnywhere, Category = "Hand IK")
 	bool bRotateHandToGrip = false;
@@ -121,6 +186,9 @@ public:
 	/** True when an animation of this name moves the left hand itself (SuppressingAnimationWords). */
 	bool IsSuppressingAnimationName(const FString& Name) const;
 
+	/** The weapon's authored palm tilt: its own row in GripPalmTiltDeg, else DefaultPalmTiltDeg. */
+	float PalmTiltDeg(const UStaticMesh& WeaponMesh) const;
+
 	/** Current blend, 0..1 (diagnostics). */
 	float GetHandIKAlpha() const { return Alpha; }
 
@@ -132,8 +200,11 @@ private:
 
 	/** Grip socket relative to the socket (or bone) the weapon hangs from on this mesh. */
 	FTransform GripInAttach = FTransform::Identity;
+	/** The authored hold, in the attach frame, rebuilt each time the grip resolves. */
+	FQuat HoldInAttach = FQuat::Identity;
 	FName AttachSocket;
 	bool bHasGrip = false;
+	bool bHasHold = false;
 	float Alpha = 0.f;
 	bool bSuppressedExternally = false;
 

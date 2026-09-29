@@ -4,7 +4,8 @@
 // target, keeps bone lengths, keeps the hand's rotation, carries fingers and twist bones with their
 // bones, stops at full reach, blends by alpha, and refuses a broken chain. The rotation step (Session
 // 070) then turns the hand to the target's rotation and carries its descendants, so the palm follows
-// the grip socket instead of lying open on the receiver.
+// the hold instead of lying open on the receiver. FSSGripHold builds that target from the weapon's own
+// sockets (Session 073), so the hand is authored from the weapon rather than borrowed from a pose.
 
 #include "Misc/AutomationTest.h"
 
@@ -93,7 +94,101 @@ bool FSSHandIKSolveTest::RunTest(const FString& Parameters)
 }
 
 // The hand's rotation step: a wrist-only solve leaves the palm open, so the hand is turned to the
-// grip socket's rotation (socket rotation * per-skeleton offset) and everything under the hand follows.
+// grip's hold rotation (hold * per-skeleton offset) and everything under the hand follows.
+// The hold the left hand takes on a weapon, built from the weapon's own sockets (Session 073). No world:
+// a synthetic bore, and the frame it must produce.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FSSGripHoldTest, "SouthernSpear.Bridge.HandIK.GripHold",
+	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+bool FSSGripHoldTest::RunTest(const FString& Parameters)
+{
+	auto Det3 = [](const FVector& A, const FVector& B, const FVector& C)
+	{
+		return FVector::DotProduct(A, FVector::CrossProduct(B, C));
+	};
+
+	// A weapon lying along +X with its up on +Z, muzzle 40 cm ahead of the trigger hand.
+	const FVector RightHandGrip(0.0, 0.0, 0.0);
+	const FVector Muzzle(40.0, 0.0, 0.0);
+	FSSGripHold Hold;
+	TestTrue(TEXT("hold builds"), FSSHandIK::BuildGripHold(Muzzle, RightHandGrip, FVector::UpVector, 30.f, Hold));
+
+	// The weapon's own basis: the thumb lies on the bore, and the sign of right is the one the weapon
+	// shows - the ejection port is on +Right, the left hand grip on -Right (UE satisfies F x R = U).
+	TestTrue(TEXT("thumb on the bore"), Hold.Thumb.Equals(Hold.Forward, 1e-4f));
+	TestTrue(TEXT("forward is the bore"), Hold.Forward.Equals(FVector(1, 0, 0), 1e-4f));
+	TestTrue(TEXT("up is the weapon's up, orthogonal to the bore"), Hold.Up.Equals(FVector(0, 0, 1), 1e-4f));
+	TestTrue(TEXT("right is the weapon's right"), Hold.Right.Equals(FVector(0, 1, 0), 1e-4f));
+	TestEqual(TEXT("the weapon basis is right-handed"), Det3(Hold.Forward, Hold.Right, Hold.Up), 1.0, 1e-4);
+
+	// The hold: the palm is the up, tilted 30 degrees towards the right, and nothing else moves.
+	const FVector ExpectedPalm = FVector(0, 0.5, FMath::Sqrt(0.75));
+	TestTrue(TEXT("palm tilted 30 deg off the weapon's up towards right"), Hold.Palm.Equals(ExpectedPalm, 1e-4f));
+	TestEqual(TEXT("the palm is 30 deg off up"), FMath::RadiansToDegrees(FMath::Acos(Hold.Palm.Dot(Hold.Up))), 30.0, 0.01);
+	TestTrue(TEXT("the palm leans towards right, not left"), Hold.Palm.Dot(Hold.Right) > 0.f);
+	TestTrue(TEXT("palm is perpendicular to the bore"), FMath::Abs(Hold.Palm.Dot(Hold.Forward)) < 1e-4f);
+	TestTrue(TEXT("finger = palm x thumb (the left hand's order)"),
+		Hold.Finger.Equals(FVector::CrossProduct(Hold.Palm, Hold.Thumb), 1e-4f));
+	// A left hand: palm = thumb x finger. The opposite order, thumb x palm, is a RIGHT hand's and authors a
+	// mirrored fist - which still matched its own target to 0.0 deg and rendered upside down on the tube.
+	TestTrue(TEXT("palm = thumb x finger (left hand)"),
+		FVector::CrossProduct(Hold.Thumb, Hold.Finger).Equals(Hold.Palm, 1e-3f));
+	TestTrue(TEXT("palm x finger = -thumb: the hand's own triple is left-handed"),
+		FVector::CrossProduct(Hold.Palm, Hold.Finger).Equals(-Hold.Thumb, 1e-3f));
+	TestTrue(TEXT("not the right hand's order"),
+		!FVector::CrossProduct(Hold.Finger, Hold.Thumb).Equals(Hold.Palm, 1e-3f));
+	TestTrue(TEXT("the hand frame is orthonormal"),
+		Hold.Palm.IsUnit() && Hold.Finger.IsUnit() && Hold.Thumb.IsUnit()
+		&& FMath::Abs(Hold.Palm.Dot(Hold.Finger)) < 1e-4f
+		&& FMath::Abs(Hold.Palm.Dot(Hold.Thumb)) < 1e-4f
+		&& FMath::Abs(Hold.Finger.Dot(Hold.Thumb)) < 1e-4f);
+
+	// The hand's basis: +X palm, +Y finger, and +Z the back-of-hand axis, because that triple is left-handed
+	// and so is not a rotation. -Thumb is the axis that makes it one.
+	const FQuat AsHand = Hold.ToHandRotation();
+	TestTrue(TEXT("ToHandRotation carries +X to the palm"), AsHand.RotateVector(FVector(1, 0, 0)).Equals(Hold.Palm, 1e-3f));
+	TestTrue(TEXT("ToHandRotation carries +Y to the finger"), AsHand.RotateVector(FVector(0, 1, 0)).Equals(Hold.Finger, 1e-3f));
+	TestTrue(TEXT("ToHandRotation carries +Z to the back of the hand (-thumb)"),
+		AsHand.RotateVector(FVector(0, 0, 1)).Equals(-Hold.Thumb, 1e-3f));
+	TestEqual(TEXT("the hand basis is a proper rotation"), Det3(Hold.Palm, Hold.Finger, -Hold.Thumb), 1.0, 1e-3);
+
+	// A vertical grip: 90 deg puts the palm flat across the weapon's right, fingers wrapping it.
+	FSSGripHold Vertical;
+	TestTrue(TEXT("vertical hold builds"), FSSHandIK::BuildGripHold(Muzzle, RightHandGrip, FVector::UpVector, 90.f, Vertical));
+	TestTrue(TEXT("at 90 deg the palm faces right"), Vertical.Palm.Equals(FVector(0, 1, 0), 1e-4f));
+	TestTrue(TEXT("at 90 deg the thumb still lies on the bore"), Vertical.Thumb.Equals(Hold.Thumb, 1e-4f));
+	TestTrue(TEXT("at 90 deg the frame is still the left hand's"),
+		FVector::CrossProduct(Vertical.Thumb, Vertical.Finger).Equals(Vertical.Palm, 1e-3f));
+	// A flat hand under the handguard: 0 deg.
+	FSSGripHold Flat;
+	TestTrue(TEXT("flat hold builds"), FSSHandIK::BuildGripHold(Muzzle, RightHandGrip, FVector::UpVector, 0.f, Flat));
+	TestTrue(TEXT("at 0 deg the palm is the weapon's up"), Flat.Palm.Equals(FVector(0, 0, 1), 1e-4f));
+
+	// The frame follows a weapon that is not axis-aligned: the bore swung across the up axis.
+	const FVector MuzzleA = (FVector(1, 0, 0) * 0.8 + FVector(0, 1, 0) * 0.35).GetSafeNormal() * 40.0;
+	FSSGripHold Slanted;
+	TestTrue(TEXT("slanted hold builds"),
+		FSSHandIK::BuildGripHold(MuzzleA, RightHandGrip, FVector::UpVector, 30.f, Slanted));
+	TestTrue(TEXT("the thumb still lies on the bore"), Slanted.Thumb.Equals(Slanted.Forward, 1e-4f));
+	TestTrue(TEXT("up stays orthogonal to the bore"), FMath::Abs(Slanted.Up.Dot(Slanted.Forward)) < 1e-4f);
+	TestTrue(TEXT("up is the weapon's up, orthogonalised"), Slanted.Up.Dot(FVector::UpVector) > 0.99f);
+	TestTrue(TEXT("palm still leans towards right"), Slanted.Palm.Dot(Slanted.Right) > 0.49f && Slanted.Palm.Dot(Slanted.Right) < 0.51f);
+	TestTrue(TEXT("palm = thumb x finger on a slanted weapon too"),
+		FVector::CrossProduct(Slanted.Thumb, Slanted.Finger).Equals(Slanted.Palm, 1e-3f));
+	TestEqual(TEXT("the slanted hand basis is a proper rotation"), Det3(Slanted.Palm, Slanted.Finger, -Slanted.Thumb), 1.0, 1e-3);
+
+	// Refusals: no bore, or the weapon's up along it, leave no frame to hold, and the caller is told.
+	Hold = Vertical;   // a hold the caller already had, which a refusal must not leave behind
+	TestFalse(TEXT("coincident sockets are refused"),
+		FSSHandIK::BuildGripHold(RightHandGrip, RightHandGrip, FVector::UpVector, 30.f, Hold));
+	TestFalse(TEXT("an up vector along the bore is refused"),
+		FSSHandIK::BuildGripHold(Muzzle, RightHandGrip, FVector(1, 0, 0), 30.f, Hold));
+	TestTrue(TEXT("a refused build zeroes the hold rather than leaving a stale one"),
+		Hold.Forward.IsNearlyZero() && Hold.Palm.IsNearlyZero()
+		&& Hold.Finger.IsNearlyZero() && Hold.Thumb.IsNearlyZero());
+	return true;
+}
+
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FSSHandIKRotateTest, "SouthernSpear.Bridge.HandIK.RotateHand",
 	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
 
@@ -131,12 +226,12 @@ bool FSSHandIKRotateTest::RunTest(const FString& Parameters)
 	TestTrue(TEXT("alpha 0.5 is half-way round"),
 		Pose[4].GetRotation().Equals(FQuat::Slerp(Before[4].GetRotation(), Target, 0.5f), 1e-4f));
 
-	// A zero offset (the config default) reproduces the socket's rotation exactly.
+	// A zero offset (the config default) reproduces the hold's own rotation exactly.
 	MakeArm(Pose, Parents);
-	const FQuat SocketRotation = FRotator(12.f, 88.f, -3.f).Quaternion();
-	const FQuat WithOffset = SocketRotation * FRotator::ZeroRotator.Quaternion();
+	const FQuat HoldRotation = FRotator(12.f, 88.f, -3.f).Quaternion();
+	const FQuat WithOffset = HoldRotation * FRotator::ZeroRotator.Quaternion();
 	FSSHandIK::RotateChain(Pose, Parents, 4, WithOffset, 1.f);
-	TestTrue(TEXT("a zero offset keeps the socket's own rotation"), Pose[4].GetRotation().Equals(SocketRotation, 1e-4f));
+	TestTrue(TEXT("a zero offset keeps the hold's own rotation"), Pose[4].GetRotation().Equals(HoldRotation, 1e-4f));
 
 	// Refusals leave the pose untouched.
 	MakeArm(Pose, Parents);

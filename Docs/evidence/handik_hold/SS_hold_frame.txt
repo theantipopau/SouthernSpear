@@ -1,0 +1,117 @@
+Session 072 - the hold is authored at run time from the weapon's sockets
+=================================================================================
+
+1. Does SM_A88 have a vertical foregrip?  NO.
+
+   Two independent measurements, both against the shipped asset:
+     - ADFRC_EF88_MLOD.blend memory points, measured ahead of trigger_axis:
+         gl  +17.3 cm    gl_axis        +27.2 cm    gl_cartridge_axis +21.9 cm
+         gl_lock_axis  +12.7 cm            muzzle_ugl_pos  +31.6 cm
+       All of them 4-5 cm BELOW the bore: grenade-launcher ATTACHMENT proxies. There is no
+       grenade-launcher geometry in LOD0 at all.
+     - SM_A88.fbx, 78615 verts, 80.22 cm long x 9.77 x 25.41. Every vertex more than 2 cm
+       below the bore line lies in x = -35.9 .. +9.1 cm - the stock, pistol grip, magazine
+       and trigger guard. From +9.1 cm to the muzzle (+42.4 cm) NOTHING is more than 0.9 cm
+       below the bore.
+   So the fore-end is a plain tube handguard with a top rail, and the hand surface runs from
+   about +9 cm to +30 cm ahead of the trigger. The existing LeftHandGrip socket at +21.9 cm
+   (10.3 cm left of the bore) sits mid-handguard, which is right. GRIP_CLIPS still names
+   EF88_Vg_static, but "Vg" names the handAnim clip, not the gun; it supplies position only.
+
+2. The frame is built at RUN TIME, not carried through the FBX.
+
+   The socket-rotation route failed and was reverted: Blender's FBX exporter returns an
+   empty's rotation transposed, so SOCKET_LeftHandGrip's authored frame came back with the
+   thumb on (0,0,-1) while the bore at that socket is (0.874,0.388,0.291). Positions survive
+   the round trip exactly, so FSSHandIK::BuildGripHold builds the frame from those:
+       forward = muzzle - RightHandGrip
+       up      = the weapon component's own up, orthogonalised against forward
+       right   = up x forward            (UE satisfies F x R = U, so U x F = R)
+       thumb   = forward, palm = up tilted PalmTiltDeg towards right, finger = palm x thumb
+
+   Sign of right, checked against the weapon itself, not derived: the ejection port is on the
+   shooter's right and the left hand grip on the shooter's left. Every sample below:
+       eject_on_right=1  left_grip_on_left=1  eject_dot_right=+1.625  grip_dot_right=-9.492
+
+3. Handedness - the bug the 0.0 deg residual hid.
+
+   A LEFT hand has palm = thumb x finger, so palm x finger = -thumb: its own (palm, finger,
+   thumb) triad is LEFT-handed and is not a rotation. The first version of this work used
+   finger = thumb x palm, which is a RIGHT hand's relation, and measured the palm as
+   finger x thumb to match. It reported residual 0.0/0.0/0.0 on every sample - a mirrored
+   frame still matches a mirrored target - and rendered the back of a closed fist on the
+   handguard. Correcting both sides dropped the pre-offset error from 124.8/125.4 deg to
+   55.2/54.6 deg against the arms' own clip pose, and the hand now wraps the tube.
+   ToHandRotation is therefore MakeFromXY(Palm, Finger): +X palm, +Y finger, +Z the
+   back-of-hand axis. The per-skeleton offset is unaffected, because it is solved against the
+   measured frame either way.
+
+4. The offset, solved from SK_FP_Arms_Rifle's own finger bones (A88, its own clip pose).
+
+   Saved/Logs/SS_hold_solve2.log, -SSHandIKProbe -SSHandIKProbeNoRotate:
+     HandRotationOffset=(Pitch=33.853,Yaw=136.820,Roll=-89.996)
+     residual=palm_err=0.0 thumb_err=0.0 finger_err=0.0   (11/11 samples, identical)
+     before  =palm_err=55.2 thumb_err=14.7 finger_err=54.6
+   The three post-offset angles, each far under the 15 deg bar: 0.0 / 0.0 / 0.0.
+   The 14.7 deg thumb figure is not an error: it is how far the arms' own idle clip already
+   holds its thumb off the bore, the same anatomical fact Session 071 measured at 11.5 deg.
+
+   Saved/Logs/SS_hold_live2.log, -SSHandIKProbe with the offset in config and the rotation
+   step live, t=0.5 .. 5.0 s, every sample:
+     palm_err=0.0 thumb_err=0.0 finger_err=0.0
+     hold=palm=(-0.1,0.5,0.9) thumb=(1.0,0.0,0.1) finger=(0.1,0.9,-0.5)   (weapon frame)
+   The thumb reads along the bore, which is the whole point of rebuilding it at run time.
+
+5. Tests.
+
+   SouthernSpear.Bridge.HandIK.GripHold  (new, pure, no world)  Success
+     A synthetic bore at +X with up +Z: thumb on the bore, right = +Y, palm = (0,0.5,0.866)
+     i.e. exactly 30 deg off up towards right, palm = thumb x finger, palm x finger = -thumb,
+     det[palm,finger,-thumb] = +1, ToHandRotation +Z = -thumb, 0 deg at 90 deg, 0 deg at 0 deg,
+     the frame follows a slanted weapon, and both refusals (coincident sockets, up along the
+     bore) return false with the hold zeroed rather than stale.
+   SouthernSpear.Bridge.HandIK.RotateHand   Success
+   SouthernSpear.Bridge.HandIK.Solve       Success
+   Full suite: 63 pass, 0 fail (Saved/Logs/SS_suite_072.log, exit 0).
+   Tools/Common/test_adfrc_grip.py 0 failures; test_adfrc_reload.py 0 failures.
+
+6. TwoPlayerAuthoritySmoke, with this change present.
+
+   UnrealEditor-Cmd.exe <proj> -nullrhi -unattended -nosplash -nosound -NoLoadingScreen
+     -abslog=... "-ExecCmds=Automation RunTests
+     SouthernSpear.Network.Gameplay.TwoPlayerAuthoritySmoke;Quit" -TestExit=...
+
+     Result={Success}  exit 0  ViewportOverlayWidget ensures: 0    (SS_smoke_072.log)
+
+   It is NOT environmental and NOT this change. The Fail in Session 071's evidence is the
+   same test WITHOUT -NoLoadingScreen: 4 ViewportOverlayWidget ensures from
+   GameViewportClient.cpp:3378. With the flag it passes, and it passed before this change
+   too (SS_smoke_now.log on the tree as it stood, exit 0, 0 ensures). The flag, not the code,
+   is the variable.
+
+7. The per-weapon data path, and a silent failure worth knowing about.
+
+   GripPalmTiltDeg is a TMap, and its ini form is unforgiving:
+
+       +GripPalmTiltDeg=(A88=30.0)     -> LogObj: Error: ... import failed for
+                                           GripPalmTiltDeg ... and the property stays EMPTY
+       +GripPalmTiltDeg=(("A88",30.0)) -> imports cleanly
+
+   The failure is quiet. The engine logs it once and carries on, so every weapon silently falls back to
+   DefaultPalmTiltDeg and nothing else looks wrong. It was caught by setting the A88 row to a
+   distinctive 45 and reading the realised tilt back: with the broken form the game still reported
+   palm_tilt=30.0 deg, and with the fixed form it reported 45.0 deg (Saved/Logs/SS_cfg_probe2.log).
+   A per-weapon value that appears to be ignored should be checked against "import failed for" in the
+   log before the code is suspected.
+
+8. Reading the final live run correctly.
+
+   Saved/Logs/SS_hold_final.log, the FP arms, all eleven samples:
+       t=0.40  palm_err=55.2  thumb_err=14.7  finger_err=54.6
+       t=0.50  palm_err=55.2  thumb_err=14.7  finger_err=54.6
+       t=1.00  palm_err=20.4  thumb_err= 5.6  finger_err=20.2
+       t=1.52 .. t=5.00 (8 samples)  palm_err=0.0  thumb_err=0.0  finger_err=0.0
+   The first three are the IK fading in: Alpha ramps at BlendSpeed=8/s, so the hand is still the clip's
+   own pose at t=0.4, halfway at t=1.0, and settled from t=1.5. They are the blend, not an error, and
+   they are the reason a "every sample" claim needs the blend named. The settled figure - the one the
+   offset is judged on - is 0.0 / 0.0 / 0.0.

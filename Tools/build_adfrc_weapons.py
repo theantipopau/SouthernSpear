@@ -26,13 +26,14 @@ OPTIC_X = {"A88": 0.01, "A88G": 0.01}
 GRIP_CLIPS = {"A88": "EF88_Vg_static", "A88G": "AUG_GL", "A4": "ar15_8in_cgrip_static",
               "A416": "hk416_cgrip_static", "A25": "ar15_10in_cgrip_static", "A89": "Minimi_Standard"}
 
-# W2b: the hold the left hand takes on each weapon, as SOCKET_LeftHandGrip's rotation, authored from the
-# weapon's own axes (forward = trigger -> muzzle, up = model up, right = forward x up). A profile name
-# from adfrc_grip.HOLD_PROFILES, optionally with per-axis overrides of the form
-# ("tilt", base, towards, degrees) or a plain (forward, right, up) triple. Data, not code: the choice
-# and the angles live here and are resolved into manifest.json -> "hold".
+# W2b: the hold the left hand takes on each weapon, recorded in manifest.json -> "hold" as a record of
+# what the game's own frame should come out as (FSSHandIK::BuildGripHold builds it at run time from
+# the socket positions, because the FBX export transposes an empty's rotation; the angle itself is read
+# from Config/DefaultGame.ini's GripPalmTiltDeg). A profile name from adfrc_grip.HOLD_PROFILES,
+# optionally with per-axis overrides of the form ("tilt", base, towards, degrees) or a plain
+# (forward, right, up) triple. Data, not code.
 #
-# Only the A88 is authored. Its mesh was measured (Session 072): no geometry below the bore line
+# Only the A88 is authored. Its mesh was measured (Session 073): no geometry below the bore line
 # beyond 9.1 cm ahead of the trigger, so the hand goes under the handguard, and the handguard runs
 # from +9 cm to the front sight. The others keep their bare socket until someone measures their mesh
 # the same way - a hold guessed from the weapon's real-world type is exactly the borrow this replaced.

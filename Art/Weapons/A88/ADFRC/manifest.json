@@ -161,9 +161,14 @@
    0.8602
   ],
   "finger": [
-   0.0541,
-   -0.8663,
-   -0.4967
+   -0.0541,
+   0.8663,
+   0.4967
+  ],
+  "back_of_hand": [
+   -0.9933,
+   0.0042,
+   -0.1155
   ],
   "thumb_derived": [
    0.9933,
@@ -175,6 +180,7 @@
    -0.0042,
    0.1155
   ],
+  "anatomical_triad_det": -1.0,
   "thumb_deviation_deg": 0.0,
   "hold": "plain_handguard",
   "basis": {
@@ -194,10 +200,10 @@
     0.9933
    ]
   },
-  "socket_axes": {
+  "hand_axes": {
    "x": "palm normal",
    "y": "finger direction",
-   "z": "thumb direction"
+   "z": "back of hand (-thumb)"
   }
  },
  "eject": {

@@ -260,39 +260,44 @@ def place_hands(left, right, trigger, muzzle):
 
 # Where the left hand goes is a *position* the handAnim poses measured well; how the hand sits on the
 # grip is not. The rest joints of one pose disagree with each other by ~50 deg between the finger
-# estimates, so they are not a target to copy (Session 072). The hold is authored instead, from the
+# estimates, so they are not a target to copy (Session 073). The hold is authored instead, from the
 # weapon's own axes - the same basis adfrc_reload.weapon_axes uses:
 #
 #     forward  trigger -> muzzle
 #     up       the model's up
 #     right    forward x up
 #
-# The socket's local basis is the hand, and is the SAME for every weapon:
+# The hand's basis is the SAME for every weapon:
 #
 #     +X  the palm normal, out of the palm
 #     +Y  the finger direction
-#     +Z  the thumb direction
+#     +Z  the back-of-hand axis
 #
-# A left hand obeys palm x finger = thumb, so that triad is a proper rotation (adfrc_grip's frame
-# maths and the game's FRotator agree on it). Because the convention never changes, the one
-# HandRotationOffset solved from SK_FP_Arms_Rifle's own finger bones fits every weapon: it is the
-# arms' anatomy expressed in the socket's own frame, and the socket carries the per-weapon part.
+# +Z is not the thumb: a LEFT hand has palm = thumb x finger, so palm x finger = -thumb, and the hand's
+# own (palm, finger, thumb) triad is left-handed and cannot be a rotation. The earlier version of this
+# file asserted palm x finger = thumb, which is a RIGHT hand's relation; it authored a mirrored fist
+# that matched its own target to 0.0 deg and rendered upside down on the tube. Because the convention
+# never changes, the one HandRotationOffset solved from SK_FP_Arms_Rifle's own finger bones fits every
+# weapon: it is the arms' anatomy in the hold's own frame, and the hold carries the per-weapon part.
 #
 # A hold axis is either a unit (forward, right, up) triple, or ("tilt", base, towards, degrees) -
 # `base` rotated towards `towards`, for the angles a hold is authored with. Per-weapon choices and
 # angle overrides are data: GRIP_HOLDS in Tools/build_adfrc_weapons.py, passed as SS_GRIP_HOLD.
 #
-# palm x finger is trusted over the thumb, because those two are what lay the hand on the grip; a
+# palm and finger are trusted over the thumb, because those two are what lay the hand on the grip; a
 # thumb that disagrees is the authored deviation and is reported, not silently averaged away.
 HOLD_PROFILES = {
     # Under a plain handguard: the palm faces up into the tube, the fingers wrap over the far
     # (shooter's right) side, the thumb lies along the handguard pointing at the muzzle. The palm
     # is +up tilted 30 deg towards +right, not square: the hand sits under the LEFT of the tube.
-    # Tilted, the triad stays exactly self-consistent (palm x finger = thumb, 0 deg), because the
+    # Tilted, the triad stays exactly self-consistent (palm x finger = -thumb, 0 deg), because the
     # tilt carries the finger with it once it is projected square.
     "plain_handguard": {
         "palm": ("tilt", (0.0, 0.0, 1.0), (0.0, 1.0, 0.0), 30.0),
-        "finger": (0.0, 1.0, 0.0),    # +right, wrapping over the tube
+        # -right, not +right: the fingers wrap over the tube from the shooter's LEFT, and it is the
+        # left hand's relation (finger x palm = thumb) that puts the derived thumb back on +forward.
+        # With +right here the triad came out a right hand's and the thumb pointed at the shooter.
+        "finger": (0.0, -1.0, 0.0),   # -right, wrapping over the tube
         "thumb": (1.0, 0.0, 0.0),     # +forward, along the handguard
     },
     # A vertical foregrip: the palm faces in from the shooter's left onto the grip, the fingers
@@ -301,7 +306,7 @@ HOLD_PROFILES = {
     # off the one written below.
     "vertical_grip": {
         "palm": (0.0, 1.0, 0.0),      # +right
-        "finger": ("tilt", (0.0, 0.0, -1.0), (-1.0, 0.0, 0.0), 30.0),
+        "finger": ("tilt", (0.0, 0.0, 1.0), (-1.0, 0.0, 0.0), 30.0),
         "thumb": (1.0, 0.0, 0.0),     # +forward
     },
 }
@@ -328,9 +333,11 @@ def hold_axis(spec, basis):
 
 
 def hold_frame_rotation(profile, basis):
-    """(rotation, report) for a hold profile. The rotation's columns are the socket's local axes
-    (+X palm, +Y finger, +Z thumb) in world space; the report carries the authored thumb's
-    disagreement, which is 0 for a self-consistent hold."""
+    """(rotation, report) for a hold profile. The rotation's columns are the hand basis
+    (+X palm, +Y finger, +Z back-of-hand) in world space, matching the game's
+    FRotationMatrix::MakeFromXY(Palm, Finger); the report carries the hand's own anatomical triad,
+    whose thumb is finger x palm, and the authored thumb's disagreement with it, which is 0 for a
+    self-consistent hold."""
     palm = hold_axis(profile["palm"], basis)
     finger = hold_axis(profile["finger"], basis)
     thumb = hold_axis(profile["thumb"], basis)
@@ -338,12 +345,16 @@ def hold_frame_rotation(profile, basis):
     y_axis = unit(sub(finger, tuple(x_axis[i] * dot(x_axis, finger) for i in range(3))))
     if norm(y_axis) < 1e-6:                      # the hold folded the finger onto the palm normal
         raise ValueError("hold profile: the finger direction is parallel to the palm normal")
-    z_axis = cross(x_axis, y_axis)
+    z_axis = cross(x_axis, y_axis)               # palm x finger: -thumb, on a left hand
+    thumb_derived = cross(y_axis, x_axis)        # finger x palm: the left hand's thumb
     rotation = tuple(tuple((x_axis, y_axis, z_axis)[c][r] for c in range(3)) for r in range(3))
     report = {"palm": [round(c, 4) for c in x_axis], "finger": [round(c, 4) for c in y_axis],
-              "thumb_derived": [round(c, 4) for c in z_axis],
+              "back_of_hand": [round(c, 4) for c in z_axis],
+              "thumb_derived": [round(c, 4) for c in thumb_derived],
               "thumb_authored": [round(c, 4) for c in thumb],
-              "thumb_deviation_deg": round(math.degrees(math.acos(max(-1.0, min(1.0, dot(z_axis, thumb))))), 2)}
+              "anatomical_triad_det": round(dot(x_axis, cross(y_axis, thumb_derived)), 4),
+              "thumb_deviation_deg": round(math.degrees(math.acos(
+                  max(-1.0, min(1.0, dot(thumb_derived, thumb))))), 2)}
     return rotation, report
 
 
@@ -370,7 +381,7 @@ def resolve_hold(spec, trigger, muzzle):
     report["basis"] = {"forward": [round(c, 4) for c in basis[0]],
                        "right": [round(c, 4) for c in basis[1]],
                        "up": [round(c, 4) for c in basis[2]]}
-    report["socket_axes"] = {"x": "palm normal", "y": "finger direction", "z": "thumb direction"}
+    report["hand_axes"] = {"x": "palm normal", "y": "finger direction", "z": "back of hand (-thumb)"}
     return rotation, report
 
 

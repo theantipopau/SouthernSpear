@@ -163,9 +163,9 @@ namespace
 	 * points, where the fingers point, and the palm normal. Re-orthogonalised, because three directions read off
 	 * bone heads are not a frame.
 	 *
-	 * The order is the socket's own convention (adfrc_grip.HOLD_PROFILES, Session 072): a left hand obeys
-	 * Palm x Finger = Thumb, so the palm normal is Finger x Thumb, NOT Thumb x Finger - that one is the back of
-	 * the hand, and reading the palm as its negative put the handguard hold a half turn out.
+	 * The order is the left hand's own (Session 073): palm = Thumb x Finger. Thumb x Finger is a RIGHT
+	 * hand's, and reading the palm as its negative turned the hold a half turn out and rendered the back of
+	 * the fist on the handguard - the residual still read 0.0 deg, because a mirrored frame is still a frame.
 	 */
 	struct FProbeHandFrame
 	{
@@ -186,23 +186,23 @@ namespace
 		const FVector RawThumb = (Mesh.GetBoneLocation(ThumbBone, EBoneSpaces::ComponentSpace) - Origin).GetSafeNormal();
 		const FVector RawFinger = (Mesh.GetBoneLocation(FingerBone, EBoneSpaces::ComponentSpace) - Origin).GetSafeNormal();
 		Frame.Thumb = RawThumb;
-		Frame.Palm = FVector::CrossProduct(RawFinger, RawThumb).GetSafeNormal();
-		Frame.Finger = FVector::CrossProduct(Frame.Thumb, Frame.Palm).GetSafeNormal();
+		Frame.Palm = FVector::CrossProduct(RawThumb, RawFinger).GetSafeNormal();
+		Frame.Finger = FVector::CrossProduct(Frame.Palm, Frame.Thumb).GetSafeNormal();
 		Frame.bValid = !Frame.Thumb.IsNearlyZero() && !Frame.Palm.IsNearlyZero() && !Frame.Finger.IsNearlyZero();
 		return Frame;
 	}
 
 	/**
-	 * The same frame, read off a hold socket: +X is the palm normal, +Y the finger direction, +Z the thumb
-	 * direction, on every weapon (adfrc_grip.HOLD_PROFILES). This is the target the arms' own anatomy has to
-	 * meet, so the socket - not the other rig - says what the hold is.
+	 * The same frame, read off the hold the game builds from the weapon's own sockets
+	 * (FSSHandIK::BuildGripHold, Session 073). This is the target the arms' own anatomy has to meet: the
+	 * weapon, not the other rig and not a socket rotation the FBX mangles, says what the hold is.
 	 */
-	FProbeHandFrame ProbeSocketFrame(const FQuat& SocketRotation)
+	FProbeHandFrame ProbeHoldFrame(const FSSGripHold& Hold)
 	{
 		FProbeHandFrame Frame;
-		Frame.Palm = SocketRotation.RotateVector(FVector::ForwardVector);
-		Frame.Finger = SocketRotation.RotateVector(FVector::RightVector);
-		Frame.Thumb = SocketRotation.RotateVector(FVector::UpVector);
+		Frame.Palm = Hold.Palm;
+		Frame.Finger = Hold.Finger;
+		Frame.Thumb = Hold.Thumb;
 		Frame.bValid = true;
 		return Frame;
 	}
@@ -545,11 +545,15 @@ void USSHandIKProbeSubsystem::Sample(const TArray<USSHandIKMeshComponent*>& Arms
 		// cross-rig quaternion transfer assumed and what put the Palm ~90 deg out on the Fab arms.
 		const FName Thumb = ProbeFingerBone(*ArmsMesh, Hand, TEXT("Thumb"));
 		const FName Index = ProbeFingerBone(*ArmsMesh, Hand, TEXT("Index"));
-		const FName Middle = ProbeFingerBone(*ArmsMesh, Hand, TEXT("Middle"));
-		const FName MuzzleSocket = ProbeFirstSocket(*Weapon, { TEXT("Muzzle"), TEXT("SOCKET_Muzzle") });
+		const FName Middle = ProbeFingerBone(*ArmsMesh, Hand, TEXT("Middle"));		const FName MuzzleSocket = ProbeFirstSocket(*Weapon, ArmsMesh->MuzzleSockets);
+		const FName RightSocket = ProbeFirstSocket(*Weapon, ArmsMesh->RightGripSockets);
+		const FName EjectSocket = ProbeFirstSocket(*Weapon, { TEXT("Eject"), TEXT("SOCKET_Eject") });
 		const FVector MuzzleCS = MuzzleSocket.IsNone()
 			? FVector::ZeroVector
 			: ToComponent.TransformPosition(Weapon->GetSocketLocation(MuzzleSocket));
+		const FVector RightCS = RightSocket.IsNone()
+			? FVector::ZeroVector
+			: ToComponent.TransformPosition(Weapon->GetSocketLocation(RightSocket));
 		const FQuat SocketRotation = ToComponent.TransformRotation(Weapon->GetSocketQuaternion(Socket));
 		const FQuat HandRotation = ArmsMesh->GetBoneQuaternion(Hand, EBoneSpaces::ComponentSpace);
 		const FVector Barrel = MuzzleSocket.IsNone()
@@ -560,6 +564,34 @@ void USSHandIKProbeSubsystem::Sample(const TArray<USSHandIKMeshComponent*>& Arms
 		const FVector BarrelLocal = WeaponRotation.Inverse().RotateVector(Barrel);
 		const bool bArms = ArmsMesh->GetName().Contains(TEXT("FirstPersonArms"));
 
+		// The hold, built from the weapon's own sockets exactly as the component builds it: the same muzzle,
+		// right grip and component up, and the weapon's own configured palm tilt. This is the target frame.
+		FSSGripHold Hold;
+		const float Tilt = Weapon->GetStaticMesh()
+			? ArmsMesh->PalmTiltDeg(*Weapon->GetStaticMesh())
+			: ArmsMesh->DefaultPalmTiltDeg;
+		const bool bHold = FSSHandIK::BuildGripHold(
+			MuzzleCS, RightCS, WeaponRotation.RotateVector(FVector::UpVector), Tilt, Hold);
+		const FQuat HoldRotation = bHold ? Hold.ToHandRotation() : FQuat::Identity;
+		// The sign of Right, checked against the weapon itself: the ejection port is on the shooter's right
+		// and the left hand grip on the shooter's left, so Eject must land on +Right and the grip on -Right.
+		FString Signs = TEXT("no-hold");
+		if (bHold)
+		{
+			const FVector EjectCS = EjectSocket.IsNone()
+				? FVector::ZeroVector
+				: ToComponent.TransformPosition(Weapon->GetSocketLocation(EjectSocket));
+			Signs = EjectSocket.IsNone()
+				? FString::Printf(TEXT("left_grip_on_left=%d grip_dot_right=%.3f"),
+					FVector::DotProduct(GripCS - RightCS, Hold.Right) < 0.f ? 1 : 0,
+					FVector::DotProduct(GripCS - RightCS, Hold.Right))
+				: FString::Printf(TEXT("eject_on_right=%d left_grip_on_left=%d eject_dot_right=%.3f grip_dot_right=%.3f"),
+					FVector::DotProduct(EjectCS - RightCS, Hold.Right) > 0.f ? 1 : 0,
+					FVector::DotProduct(GripCS - RightCS, Hold.Right) < 0.f ? 1 : 0,
+					FVector::DotProduct(EjectCS - RightCS, Hold.Right),
+					FVector::DotProduct(GripCS - RightCS, Hold.Right));
+		}
+
 		const FProbeHandFrame Measured = ProbeHandFrame(*ArmsMesh, Hand, Thumb, Index);
 		FString Grip = TEXT("no-finger-bones");
 		if (Measured.bValid)
@@ -567,46 +599,48 @@ void USSHandIKProbeSubsystem::Sample(const TArray<USSHandIKMeshComponent*>& Arms
 			const FProbeHandFrame InWeapon = ProbeFrameInFrame(Measured, WeaponRotation.Inverse());
 			const FQuat HandInWeapon = WeaponRotation.Inverse() * HandRotation;			if (bArms)
 			{
-				// The target is the SOCKET's own authored frame (Session 072). The hold is built from the weapon's
-				// axes in adfrc_grip and baked into the socket's rotation, so the socket says what the hold is; the
-				// arms' own finger-bone anatomy is measured against it. The body's grip is still recorded below,
-				// for comparison, but it is no longer the reference.
-				const FProbeHandFrame Target = ProbeSocketFrame(SocketRotation);
+				// The target is the hold the game builds from the weapon's sockets (Session 073). The arms' own
+				// finger-bone anatomy is measured against it. The body's grip is still recorded below, for
+				// comparison, but it is no longer the reference.
+				const FProbeHandFrame Target = ProbeHoldFrame(Hold);
 				const FProbeHandFrame TargetInWeapon = ProbeFrameInFrame(Target, WeaponRotation.Inverse());
 				Grip = FString::Printf(
-					TEXT("thumb=%s index=%s middle=%s thumb_vs_barrel=%.1fdeg socket_hold=%s %s handrot=%s "
-						 "socketrot=%s hand_vs_socket=%.1fdeg realrot=%s weapon_in_cs=%s hand_in_weapon=%s "
+					TEXT("thumb=%s index=%s middle=%s thumb_vs_bore=%.1fdeg palm_tilt=%.1fdeg %s hold=%s %s handrot=%s "
+						 "holdrot=%s socketrot=%s hand_vs_hold=%.1fdeg realrot=%s weapon_in_cs=%s hand_in_weapon=%s "
 						 "handinweaponrot=%s%s"),
-					*Thumb.ToString(), *Index.ToString(), *Middle.ToString(), ProbeAngleDeg(Measured.Thumb, Barrel),
+					*Thumb.ToString(), *Index.ToString(), *Middle.ToString(),
+					ProbeAngleDeg(Measured.Thumb, bHold ? Hold.Thumb : Barrel),
+					ProbeAngleDeg(Hold.Palm, WeaponRotation.RotateVector(FVector::UpVector)), *Signs,
 					*ProbeFrameText(TargetInWeapon), *ProbeErrorText(InWeapon, TargetInWeapon),
-					*ProbeQuatText(HandRotation), *ProbeQuatText(SocketRotation),
-					FMath::RadiansToDegrees(HandRotation.AngularDistance(SocketRotation)), *ProbeRotatorText(HandRotation),
+					*ProbeQuatText(HandRotation), *ProbeQuatText(HoldRotation), *ProbeQuatText(SocketRotation),
+					FMath::RadiansToDegrees(HandRotation.AngularDistance(HoldRotation)), *ProbeRotatorText(HandRotation),
 					*ProbeQuatText(WeaponRotation), *ProbeQuatText(HandInWeapon), *ProbeRotatorText(HandInWeapon),
 					GBodyFrameInWeapon.bValid
-						? *FString::Printf(TEXT(" body_vs_socket=%s"), *ProbeErrorText(GBodyFrameInWeapon, TargetInWeapon))
+						? *FString::Printf(TEXT(" body_vs_hold=%s"), *ProbeErrorText(GBodyFrameInWeapon, TargetInWeapon))
 						: TEXT(""));
-
 				// The correction this pose needs, solved from the measured frame directly: the hand rotation that
-				// carries the arms' own anatomy onto the socket's, as the config offset (socket rotation * offset).
+				// carries the arms' own anatomy onto the hold, as the config offset (hold rotation * offset).
 				// Valid on a run with -SSHandIKProbeNoRotate, where the hand's rotation is still the clip's.
-				if (Target.bValid)
+				if (Target.bValid && bHold)
 				{
 					const FQuat Align = ProbeAlign(Measured, Target);
 					// A * B applies B first in UE, so the hand's own rotation goes in second: Align(HandRotation(v)).
 					const FQuat Required = Align * HandRotation;
-					const FQuat Offset = SocketRotation.Inverse() * Required;
-					const FQuat HandAfter = SocketRotation * Offset;   // exactly what the component would apply
+					const FQuat Offset = HoldRotation.Inverse() * Required;
+					const FQuat HandAfter = HoldRotation * Offset;   // exactly what the component would apply
 					const FProbeHandFrame After = ProbeFrameInFrame(ProbeFrameInFrame(Measured, Align), WeaponRotation.Inverse());
 					UE_LOG(LogSSHandIKProbe, Log,
-						TEXT("OFFSET t=%.2f arms=%s mesh=%s align=%s (%.1fdeg) residual=%s offset_rotator=%s "
-							 "HandRotationOffset=(Pitch=%.3f,Yaw=%.3f,Roll=%.3f)"),
-						InElapsed, *ArmsMesh->GetName(), *ProbeMeshOf(*ArmsMesh), *ProbeRotatorText(Align),
+						TEXT("OFFSET t=%.2f arms=%s mesh=%s palm_tilt=%.1fdeg align=%s (%.1fdeg) residual=%s "
+							 "before=%s offset_rotator=%s HandRotationOffset=(Pitch=%.3f,Yaw=%.3f,Roll=%.3f)"),
+						InElapsed, *ArmsMesh->GetName(), *ProbeMeshOf(*ArmsMesh), Tilt,
+						*ProbeRotatorText(Align),
 						FMath::RadiansToDegrees(Align.AngularDistance(FQuat::Identity)),
-						*ProbeErrorText(After, TargetInWeapon), *ProbeRotatorText(Offset),
+						*ProbeErrorText(After, TargetInWeapon), *ProbeErrorText(InWeapon, TargetInWeapon),
+						*ProbeRotatorText(Offset),
 						Offset.Rotator().Pitch, Offset.Rotator().Yaw, Offset.Rotator().Roll);
 					UE_LOG(LogSSHandIKProbe, Log,
-						TEXT("OFFSETCHECK t=%.2f hand_after=%s realrot=%s socket_hold=%s (the component applies "
-							 "socketrot * offset)"),
+						TEXT("OFFSETCHECK t=%.2f hand_after=%s realrot=%s hold=%s (the component applies "
+							 "holdrot * offset)"),
 						InElapsed, *ProbeQuatText(HandAfter), *ProbeRotatorText(HandAfter),
 						*ProbeFrameText(TargetInWeapon));
 				}
@@ -618,11 +652,11 @@ void USSHandIKProbeSubsystem::Sample(const TArray<USSHandIKMeshComponent*>& Arms
 				GHaveBodyFrame = true;
 				Grip = FString::Printf(
 					TEXT("thumb=%s index=%s middle=%s thumb_vs_barrel=%.1fdeg body_in_weapon=%s %s handrot=%s "
-						"socketrot=%s hand_vs_socket=%.1fdeg hand_in_weapon=%s"),
+						"holdrot=%s socketrot=%s hand_vs_hold=%.1fdeg hand_in_weapon=%s"),
 					*Thumb.ToString(), *Index.ToString(), *Middle.ToString(), ProbeAngleDeg(Measured.Thumb, Barrel),
 					*ProbeFrameText(InWeapon), *ProbeErrorText(InWeapon, GBodyFrameInWeapon),
-					*ProbeQuatText(HandRotation), *ProbeQuatText(SocketRotation),
-					FMath::RadiansToDegrees(HandRotation.AngularDistance(SocketRotation)), *ProbeQuatText(HandInWeapon));
+					*ProbeQuatText(HandRotation), *ProbeQuatText(HoldRotation), *ProbeQuatText(SocketRotation),
+					FMath::RadiansToDegrees(HandRotation.AngularDistance(HoldRotation)), *ProbeQuatText(HandInWeapon));
 			}
 		}
 		UE_LOG(LogSSHandIKProbe, Log,

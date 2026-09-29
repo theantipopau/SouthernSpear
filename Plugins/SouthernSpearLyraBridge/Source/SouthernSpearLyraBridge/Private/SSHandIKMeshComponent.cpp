@@ -7,6 +7,8 @@
 #include "Components/StaticMeshComponent.h"
 #include "Engine/SkeletalMesh.h"
 #include "Engine/SkeletalMeshSocket.h"
+#include "Engine/StaticMesh.h"
+#include "Engine/StaticMeshSocket.h"
 #include "HAL/IConsoleManager.h"
 
 DEFINE_LOG_CATEGORY_STATIC(LogSSHandIK, Log, All);
@@ -20,6 +22,78 @@ namespace
 	{
 		return V - Axis * FVector::DotProduct(V, Axis);
 	}
+
+	/** First of Names the component's mesh carries, or NAME_None. */
+	FName FirstSocket(const UMeshComponent& Weapon, const TArray<FName>& Names)
+	{
+		for (const FName& Name : Names)
+		{
+			if (Weapon.DoesSocketExist(Name))
+			{
+				return Name;
+			}
+		}
+		return NAME_None;
+	}
+
+	/** "SM_A88" -> "A88": the per-weapon key in the config tables (GripPalmTiltDeg). */
+	FName WeaponKeyOf(const UStaticMesh& Mesh)
+	{
+		FString Key = Mesh.GetName();
+		if (Key.StartsWith(TEXT("SM_")))
+		{
+			Key.RightChopInline(3);
+		}
+		return FName(*Key);
+	}
+}
+
+// --------------------------------------------------------------------------- the hold
+
+FQuat FSSGripHold::ToHandRotation() const
+{
+	// MakeFromXY is the engine's own basis-to-rotation helper, so its row/column convention is the one
+	// FQuat expects rather than one re-derived here. Note what +Z becomes: a left hand's own
+	// (palm, finger, thumb) triple is LEFT-handed - palm x finger = -thumb - so it cannot be a rotation,
+	// and +Z is the back-of-hand axis, Thumb.GetSafeNegated(). USSHandIKProbeSubsystem::ProbeAlign does not care: it
+	// matches Thumb to Thumb, which matches -Thumb to -Thumb.
+	return FRotationMatrix::MakeFromXY(Palm, Finger).ToQuat();
+}
+
+bool FSSHandIK::BuildGripHold(const FVector& Muzzle, const FVector& RightHandGrip, const FVector& WeaponUp,
+	float PalmTiltDeg, FSSGripHold& Out)
+{
+	Out = FSSGripHold(); // a refused build must not leave a stale hold behind
+	const FVector Bore = Muzzle - RightHandGrip;
+	if (FVector::DistSquared(Muzzle, RightHandGrip) < 1e-8f)
+	{
+		return false; // no bore to point a thumb along
+	}
+	// Built aside, so every refusal leaves Out zeroed rather than half-filled.
+	FSSGripHold Built;
+	Built.Forward = Bore.GetSafeNormal();
+	Built.Up = Perpendicular(WeaponUp, Built.Forward);
+	if (Built.Up.SizeSquared() < 1e-8f)
+	{
+		return false; // the weapon's up lies along the bore, so there is no roll about it to hold
+	}
+	Built.Up.Normalize();
+	// UE's axes satisfy F x R = U, so U x F = R. Read off the A88: Eject is on +Right, LeftHandGrip on -Right.
+	Built.Right = FVector::CrossProduct(Built.Up, Built.Forward).GetSafeNormal();
+
+	// The palm leans off the weapon's up towards its right, so the hand sits under and left of the tube.
+	const double Tilt = FMath::DegreesToRadians(FMath::Clamp(PalmTiltDeg, -180.0, 180.0));
+	Built.Palm = (Built.Up * FMath::Cos(Tilt) + Built.Right * FMath::Sin(Tilt)).GetSafeNormal();
+	Built.Thumb = Built.Forward;
+	// Palm x Thumb, NOT Thumb x Palm: a left hand has palm = thumb x finger, and the other order is a
+	// right hand's - it authored a mirrored hand, which rendered the back of the fist on the handguard.
+	Built.Finger = FVector::CrossProduct(Built.Palm, Built.Thumb).GetSafeNormal();
+	if (Built.Palm.IsNearlyZero() || Built.Finger.IsNearlyZero())
+	{
+		return false;
+	}
+	Out = Built;
+	return true;
 }
 
 // --------------------------------------------------------------------------- pure IK
@@ -218,6 +292,16 @@ bool USSHandIKMeshComponent::ResolveBones()
 	return true;
 }
 
+float USSHandIKMeshComponent::PalmTiltDeg(const UStaticMesh& WeaponMesh) const
+{
+	// Per-weapon hold as data (Session 073): the weapon's own row, or the plain-handguard default.
+	if (const float* Degrees = GripPalmTiltDeg.Find(WeaponKeyOf(WeaponMesh)))
+	{
+		return *Degrees;
+	}
+	return DefaultPalmTiltDeg;
+}
+
 bool USSHandIKMeshComponent::IsSuppressingAnimationName(const FString& Name) const
 {
 	for (const FString& Word : SuppressingAnimationWords)
@@ -253,6 +337,7 @@ void USSHandIKMeshComponent::UpdateGrip(float DeltaTime)
 	// Game thread, before this frame's evaluation: the attached weapon's world transform and this mesh's
 	// published pose are from the same (last) frame, so their relative transform is exact.
 	bHasGrip = false;
+	bHasHold = false;
 	float Want = 0.f;
 	if (CVarHandIK.GetValueOnGameThread() != 0 && ResolveBones() && !IsSimulatingPhysics())
 	{
@@ -269,22 +354,39 @@ void USSHandIKMeshComponent::UpdateGrip(float DeltaTime)
 			{
 				const UStaticMeshComponent* Weapon = Cast<UStaticMeshComponent>(Candidate);
 				FName GripSocket = NAME_None;
-				if (Weapon && Weapon->IsVisible())
+				if (Weapon && Weapon->IsVisible() && Weapon->GetStaticMesh())
 				{
-					for (const FName& Name : GripSockets)
-					{
-						if (Weapon->DoesSocketExist(Name))
-						{
-							GripSocket = Name;
-							break;
-						}
-					}
+					GripSocket = FirstSocket(*Weapon, GripSockets);
 				}
 				if (!GripSocket.IsNone())
 				{
 					AttachSocket = Child->GetAttachSocketName();
 					const FTransform AttachWorld = AttachSocket.IsNone() ? GetComponentTransform() : GetSocketTransform(AttachSocket, RTS_World);
+					const FTransform WeaponInAttach = Weapon->GetComponentTransform().GetRelativeTransform(AttachWorld);
 					GripInAttach = Weapon->GetSocketTransform(GripSocket, RTS_World).GetRelativeTransform(AttachWorld);
+
+					// The hold, from the weapon's own sockets (Session 073). Only positions cross the FBX
+					// round trip intact, so the frame is built here each time the grip resolves, in the
+					// attach frame the solve already works in.
+					const FName MuzzleSocket = FirstSocket(*Weapon, MuzzleSockets);
+					const FName RightSocket = FirstSocket(*Weapon, RightGripSockets);
+					if (!MuzzleSocket.IsNone() && !RightSocket.IsNone())
+					{
+						const FVector MuzzleInAttach =
+							Weapon->GetSocketTransform(MuzzleSocket, RTS_World).GetRelativeTransform(AttachWorld).GetLocation();
+						const FVector RightInAttach =
+							Weapon->GetSocketTransform(RightSocket, RTS_World).GetRelativeTransform(AttachWorld).GetLocation();
+						// The weapon component's own up, in the attach frame: the mesh's +Z turned by the
+						// weapon's own rotation, which is the weapon's up whatever the sockets say.
+						const FVector UpInAttach = WeaponInAttach.GetRotation().RotateVector(FVector::UpVector);
+						FSSGripHold Hold;
+						const float Tilt = Weapon->GetStaticMesh() ? PalmTiltDeg(*Weapon->GetStaticMesh()) : DefaultPalmTiltDeg;
+						if (FSSHandIK::BuildGripHold(MuzzleInAttach, RightInAttach, UpInAttach, Tilt, Hold))
+						{
+							HoldInAttach = Hold.ToHandRotation();
+							bHasHold = true;
+						}
+					}
 					bHasGrip = true;
 					break;
 				}
@@ -350,7 +452,12 @@ void USSHandIKMeshComponent::FinalizeBoneTransform()
 					// rotation, corrected by HandRotationOffset, so the palm is on the handguard.
 					if (FSSHandIK::Apply(Pose, Parents, Upper, Lower, Hand, Target, Alpha) && bRotateHandToGrip)
 					{
-						const FQuat GripRotation = GripCS.GetRotation() * HandRotationOffset.Quaternion();
+						// The hand takes the authored hold (its own frame from the weapon's sockets), or the
+						// socket's own rotation on a weapon with no muzzle or right-hand socket to build it
+						// from; then the per-skeleton offset, solved from that same frame.
+						const FQuat GripRotation = (bHasHold
+							? AttachCS.GetRotation() * HoldInAttach
+							: GripCS.GetRotation()) * HandRotationOffset.Quaternion();
 						FSSHandIK::RotateChain(Pose, Parents, Hand, GripRotation, Alpha);
 					}
 				}

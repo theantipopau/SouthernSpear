@@ -19,11 +19,12 @@
 # - SS_GRIP_CLIP=<handAnim pose> (W2): SOCKET_LeftHandGrip / SOCKET_RightHandGrip where the ADFRC
 #   pose puts the wrists on this weapon (Tools/Common/adfrc_grip.py, calibrated on trigger_axis and
 #   muzzle_pos). No sockets, and the reason in the manifest, when the pose does not fit.
-# - SS_GRIP_HOLD=<json> (W2b): the hold SOCKET_LeftHandGrip's rotation authors, from the weapon's
-#   own axes (forward = trigger -> muzzle, up = model up, right = forward x up) and the named profile
-#   in adfrc_grip.HOLD_PROFILES. The handAnim poses are not a target for this: their finger rest
-#   joints disagree by ~50 deg. The socket's basis is the hand (+X palm, +Y finger, +Z thumb) on
-#   every weapon, so one HandRotationOffset fits them all. Position untouched; manifest "hold".
+# - SS_GRIP_HOLD=<json> (W2b): the hold the left hand takes on this weapon, as documentation only.
+#   The handAnim poses are not a target for this: their finger rest joints disagree by ~50 deg, and
+#   the FBX round trip mangles a socket's rotation, so the game builds the hold itself at run time
+#   from the socket positions (FSSHandIK::BuildGripHold) and reads its per-weapon angle from
+#   Config/DefaultGame.ini. Nothing is written to the socket; the profile and the resolved axes are
+#   recorded in the manifest under "hold" so the export can be checked against them.
 # - W3: SOCKET_Eject at the ejection port (nabojnicestart) and SOCKET_EjectEnd where the case is thrown
 #   (nabojniceend); manifest "eject".
 #
@@ -313,20 +314,18 @@ sock.location = muzzle
 bpy.context.scene.collection.objects.link(sock)
 sock.parent = obj
 
-# W2: hand IK targets (wrist positions), carried through the same transforms as the mesh.
-# W2b: the left one also gets an explicit rotation - the hold, authored from the weapon's own axes
-# (see adfrc_grip.HOLD_PROFILES). The socket's local basis is the hand: +X palm normal, +Y finger
-# direction, +Z thumb direction, the same convention on every weapon, so the one HandRotationOffset
-# the game solves from SK_FP_Arms_Rifle's finger bones fits them all. The position is untouched.
+# W2: hand IK targets (wrist positions), carried through the same transforms as the mesh. Position only:
+# the exporter transposes an empty's rotation on the way out, and a handAnim pose is too uncertain a
+# target anyway, so the game builds the hold from the socket positions instead (W2b below is the record
+# of what that hold is, for checking the export against).
 hold_report = None
-hold_rotation = None
 hold_spec = json.loads(GRIP_HOLD) if GRIP_HOLD else None
 if hold_spec is not None:
     try:
-        hold_rotation, hold_report = adfrc_grip.resolve_hold(
+        _, hold_report = adfrc_grip.resolve_hold(
             hold_spec, tuple(points["trigger_axis"]), tuple(points["muzzle_pos"]))
     except ValueError as error:
-        hold_rotation, hold_report = None, {"hold": hold_spec, "reason": str(error)}
+        hold_report = {"hold": hold_spec, "reason": str(error)}
     print("[ADFRC hold]", NAME, json.dumps(hold_report))
 
 for key, socket_name in (("grip_left", "SOCKET_LeftHandGrip"), ("grip_right", "SOCKET_RightHandGrip")):
@@ -335,11 +334,6 @@ for key, socket_name in (("grip_left", "SOCKET_LeftHandGrip"), ("grip_right", "S
         hand.location = points[key]
         bpy.context.scene.collection.objects.link(hand)
         hand.parent = obj
-        if key == "grip_left" and hold_rotation is not None:
-            # adfrc_grip's matrix has the hand's axes as COLUMNS (+X palm, +Y finger, +Z thumb);
-            # mathutils.Matrix() is row-major, so transpose to put them back as columns.
-            hand.rotation_mode = "QUATERNION"
-            hand.rotation_quaternion = mathutils.Matrix(hold_rotation).transposed().to_quaternion()
 # W3: the ejection port (nabojnicestart) and where the case is thrown to (nabojniceend), as two sockets so
 # the throw direction survives the FBX axis conversion; the game takes the direction between them at runtime.
 eject_report = None
