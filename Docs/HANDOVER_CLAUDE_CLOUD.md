@@ -45,15 +45,16 @@ Agents over-claim. Check their numbers against the code, and ask for measurement
 
 | Area | State | Next |
 |---|---|---|
-| Casualty care (ADR-040) | **Steps 1 and 2 written:** rules (53 checks in g++, mutation-tested), then settings, replicated component and kit (Session 077). **Step 2 has never been compiled** | Build and run `SouthernSpear.Casualty.*` (4 tests); then step 3 (§3.2) |
+| Casualty care (ADR-040) | **Steps 1 and 2 built and passing:** 67/67 automation incl. `SouthernSpear.Casualty.*` (Session 078 run) | Step 3 investigation first (prompt C), then the bridge (§3.2) |
 | Loading screens / front end | **Done in code, not built:** per-operation loading screen, one operation list, 3-column front end, "KILLS" label | Build, capture a load (§3.3) |
-| Hand IK (W2) | Works in game: the wrist is on the socket, and the hold is built at runtime from the weapon's sockets plus `GripPalmTiltDeg`. Fingers wrap | R-86 socket position (§3.4) |
+| Hand IK (W2) | **A88 accepted by the producer (2026-09-29).** Wrist 4.54 cm from the bore via `GripNudgeCm` (R-86 closed, Session 078). Other six weapons take the un-nudged default and are unmeasured (R-85 stands) | Measure the other weapons only when their turn comes; no active work |
 | Reload (W5) | Tooling exists; **Arma's AUG reload clips decode to impossible poses**; the magazine is welded into the mesh | An authored path, after R-86 (§3.5) |
 | Casings / muzzle light (W3) | Code and tests pass (61/61 then 63/63 suites) | Muzzle flash: `NS_WeaponFire_MuzzleFlash_Rifle` (§3.6) |
 | Player model / uniforms | Plan written: `Docs/PLAYER_MODEL_PLAN.md`. ADR-036 (G3 body) stands; ADR-037–039 cover Quantum | **The producer's next focus** (§3.7) |
 | Grenade | A local agent was moving throw-grenade off **Q** (lean) to **G** and adding a model | Check it landed; ADFRC F1 grenade is available (§3.8) |
 | Ravenshoe map | Built, dressed, lit; **nav not baked** (needs an attended editor bake, R-82) | Producer or local agent, attended |
-| Unity-name check | **Fails on main:** two local shadows in `SSHandIKProbeSubsystem.cpp` (`GHaveBodyFrame`, `GBodyFrameInWeapon`) | A local agent renames them (prompt in §5) |
+| Unity-name check | **Still fails on main:** two local shadows in `SSHandIKProbeSubsystem.cpp` (`GHaveBodyFrame`, `GBodyFrameInWeapon`). The animation work is now committed, so the rename is safe | Local agent (prompt A step 1) |
+| UI verification (Session 076) | **Not yet seen in game:** front end at 1080p, per-map loading screens | Local agent (prompt A steps 5-6) |
 | Assets | **Every asset is usable whatever its `isAiForbidden` flag** (L-0016d, producer). Record the flag, never hold back | — |
 
 ---
