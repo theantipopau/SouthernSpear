@@ -3,6 +3,7 @@
 #include "SSClassSelectWidget.h"
 
 #include "Animation/AnimSequence.h"
+#include "Animation/AnimationAsset.h"
 #include "Components/BackgroundBlur.h"
 #include "Components/PointLightComponent.h"
 #include "Components/SceneCaptureComponent2D.h"
@@ -58,6 +59,8 @@ namespace
 	const FVector StageAt(0.f, 0.f, 250000.f);
 	const TCHAR* InvisibleBody = TEXT("/Game/Characters/Heroes/Mannequin/Meshes/SKM_Manny_Invis.SKM_Manny_Invis");
 	const TCHAR* IdlePose = TEXT("/Game/Characters/Heroes/Mannequin/Animations/Locomotion/Rifle/MM_Rifle_Idle_Hipfire.MM_Rifle_Idle_Hipfire");
+	// The Quantum pack's own idle (the modules ship with it), for the preview's Quantum body.
+	const TCHAR* QuantumIdle = TEXT("/Game/QuantumCharacter/Demo/Animations/A_MM_Idle.A_MM_Idle");
 	const TCHAR* SoldierClass = TEXT("/SSExp_ObjectiveAssault/Characters/B_SS_Soldier.B_SS_Soldier_C");
 
 	UButton* ClassCard(UWidgetTree* T, int32 Index, const FRoleText& Role, UBorder*& OutEdge, UTextBlock*& OutWeapon)
@@ -279,27 +282,88 @@ void USSClassSelectWidget::BuildStage()
 		StageBody->PlayAnimation(Idle, /*bLooping=*/ true);
 	}
 	// The parts live on the soldier Blueprint (SouthernSpearTeam, not a dependency of this module):
-	// read its friendly part list by reflection.
+	// read its friendly part lists by reflection. Since ADR-042 the friendly body is the Quantum
+	// character on its own skeleton: leader pose cannot drive it, so the preview self-animates the
+	// Quantum modules with their own idle while the mannequin-rigged gear and weapon stay exactly as
+	// in game. Falls back to all-leader-pose when the soldier still ships mannequin parts only.
+	bool bQuantumPreview = false;
+	TArray<USkeletalMeshComponent*> QuantumComponents;
 	if (UClass* Soldier = LoadClass<AActor>(nullptr, SoldierClass))
 	{
-		const FArrayProperty* Parts = FindFProperty<FArrayProperty>(Soldier, TEXT("FriendlyParts"));
-		const FObjectPropertyBase* Inner = Parts ? CastField<FObjectPropertyBase>(Parts->Inner) : nullptr;
-		if (Inner)
+		auto MeshesOf = [Soldier](const TCHAR* Field) -> TArray<USkeletalMesh*>
 		{
-			FScriptArrayHelper Array(Parts, Parts->ContainerPtrToValuePtr<void>(Soldier->GetDefaultObject()));
-			for (int32 Index = 0; Index < Array.Num(); ++Index)
+			TArray<USkeletalMesh*> Meshes;
+			if (const FArrayProperty* Parts = FindFProperty<FArrayProperty>(Soldier, Field))
 			{
-				if (USkeletalMesh* Mesh = Cast<USkeletalMesh>(Inner->GetObjectPropertyValue(Array.GetRawPtr(Index))))
+				if (const FObjectPropertyBase* Inner = CastField<FObjectPropertyBase>(Parts->Inner))
 				{
-					USkeletalMeshComponent* Part = NewObject<USkeletalMeshComponent>(Stage);
-					Part->SetupAttachment(StageBody);
-					Part->SetSkeletalMesh(Mesh);
-					Part->SetLeaderPoseComponent(StageBody);
-					Part->RegisterComponent();
+					FScriptArrayHelper Array(Parts, Parts->ContainerPtrToValuePtr<void>(Soldier->GetDefaultObject()));
+					for (int32 Index = 0; Index < Array.Num(); ++Index)
+					{
+						if (USkeletalMesh* Mesh = Cast<USkeletalMesh>(Inner->GetObjectPropertyValue(Array.GetRawPtr(Index))))
+						{
+							Meshes.Add(Mesh);
+						}
+					}
 				}
+			}
+			return Meshes;
+		};
+
+		TArray<USkeletalMesh*> LeaderParts = MeshesOf(TEXT("FriendlyLeaderPoseParts"));
+		if (LeaderParts.Num() == 0)
+		{
+			// Fallback for a soldier still configured with mannequin parts only.
+			LeaderParts = MeshesOf(TEXT("FriendlyParts"));
+		}
+		TArray<USkeletalMesh*> RetargetParts = MeshesOf(TEXT("FriendlyParts"));
+		bQuantumPreview = RetargetParts.Num() > 0 && LeaderParts.Num() > 0;
+		if (!bQuantumPreview)
+		{
+			// A soldier still configured with mannequin parts only: preview the old way.
+			LeaderParts.Append(RetargetParts);
+		}
+		for (USkeletalMesh* Mesh : LeaderParts)
+		{
+			USkeletalMeshComponent* Part = NewObject<USkeletalMeshComponent>(Stage);
+			Part->SetupAttachment(StageBody);
+			Part->SetSkeletalMesh(Mesh);
+			Part->SetLeaderPoseComponent(StageBody);
+			Part->RegisterComponent();
+		}
+
+		if (bQuantumPreview)
+		{
+			for (USkeletalMesh* Mesh : RetargetParts)
+			{
+				USkeletalMeshComponent* Part = NewObject<USkeletalMeshComponent>(Stage);
+				Part->SetupAttachment(StageBody);
+				Part->SetSkeletalMesh(Mesh);
+				Part->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+				Part->RegisterComponent();
+				QuantumComponents.Add(Part);
 			}
 		}
 	}
+	// The Quantum modules keep their own idle rather than the mannequin's rifle idle: without the
+	// runtime retarget they cannot follow it, and a stiff T-pose would misstate the soldier. The
+	// modules self-animate as single-node skeletal components on their own skeleton.
+	if (bQuantumPreview)
+	{
+		if (UAnimationAsset* Idle = LoadObject<UAnimationAsset>(nullptr, QuantumIdle))
+		{
+			for (USkeletalMeshComponent* Part : QuantumComponents)
+			{
+				Part->PlayAnimation(Idle, /*bLooping=*/ true);
+			}
+		}
+		// The pawn mesh holds its reference pose: the vest and helmet then sit where the gear was
+		// authored, which is the closest pose the two skeletons share.
+		StageBody->SetAnimationMode(EAnimationMode::AnimationCustomMode);
+		StageBody->SetAnimation(nullptr);
+		StageBody->Stop();
+	}
+
 
 	// Backdrop wall and floor disc (engine shapes tinted to the UI palette): dark rifles need something
 	// behind them to read against, and the soldier needs ground under the boots.

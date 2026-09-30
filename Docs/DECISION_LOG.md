@@ -1487,3 +1487,89 @@ decision the map's first dressing pass had to make. Evidence gathered before dec
   else in the pack.
 - R-67 extends one line: vendor Blueprint logic (doors) is now load-bearing for nothing; if a
   future phase wires doors, the component path above is the only sanctioned route.
+
+## ADR-042 — The friendly soldier renders as the Quantum character on its own skeleton; the gameplay skeleton stays Manny
+
+**Status:** Accepted
+**Date:** 2026-09-30
+
+**Context.** The shipped friendly look — a Modern Insurgent 7 head on an ADFRC G3 uniform with ADFRC
+vest and helmet (the assembly documented in Session 086) — reads as *assembled rather than worn*, and
+the producer rejected it: "the mismatch of the other model doesn't look good." ADR-036–039 had held
+the body switch behind a fully-dressed Quantum-vs-G3 comparison; the producer has now made the call
+the comparison was for and chosen **Quantum** for the 3 ACR look, ending the comparison gate. The
+technical facts the prototype sessions established still stand:
+
+- Quantum ships on its own 351-bone skeleton (`SK_Military_Character_Skeleton`), never reparented to
+  the mannequin (ADR-037/038). Leader pose cannot drive it: there is no shared bone chain.
+- The project's retarget arithmetic is proven (`Docs/evidence/qproto/quantum_retarget_proof.json`:
+  122 mapped bones, rest fixed-point drift 0.0001 cm, 30° probe propagates, bone lengths survive),
+  with twist/IK helper bones excluded and the Quantum-only finger bones given a grip curl.
+- The ADFRC vest and helmet are Manny-rigged and were measured to fit the Quantum torso within
+  1.6 cm on every axis (Session 058 fit report), so they can stay leader-posed.
+- The pawn's body mesh — Lyra's Manny with the hand-IK component — is load-bearing for hit zones,
+  damage, movement, weapon sockets and the hand-IK solve. Swapping it is a different project.
+
+**Decision.**
+
+1. **The viewer's own team is shown as the Quantum character** (shirt, jeans, arms, head — the four
+   modules `setup_quantum_proto.py` maintains, carrying the ADFRC camo), rendered on Quantum's own
+   skeleton. `ASSCharacterPartActor` retargets those modules **per tick from the pawn mesh's
+   evaluated component-space pose** (locomotion, aim overlay and the hand-IK wrist included, because
+   the pawn mesh is the pose authority the weapon and camera already follow). The bone map is built
+   once per module mesh with the prototype's rest-pose tolerances (6% of standing height, 30°),
+   cached, and re-derived only if the mesh changes.
+
+2. **The gameplay skeleton does not change.** The pawn body remains the Manny-skeletoned
+   `USSHandIKMeshComponent`: hit zones, damage, movement, sockets, the hand-IK solve and the weapon
+   attachment path are untouched (ADR-004). The Quantum body is presentation, exactly as the G3
+   pieces were, and the retarget copies the wrist rotation the hand IK produces — the Quantum hands
+   hold the weapon without a second IK solve. Quantum bones with no Manny counterpart (fingers, some
+   helpers) hold the vendor reference pose, fingers with the tuned grip curl.
+
+3. **The ADFRC vest and helmet stay Manny-rigged and leader-posed**, layered over the Quantum body
+   via the new `FriendlyLeaderPoseParts` (they measured within 1.6 cm on Quantum's torso). The G3
+   uniform and the Modern Insurgent head leave the friendly look entirely. The MAF opposing look is
+   unchanged in every part and material.
+
+4. **First person follows the part kind, not the mesh class.** The local player must never see their
+   own body: body view hides the head bone on every attached skinned part (the Quantum head is its
+   own component now), and the arms view-model path hides every attached *skinned* mesh — the
+   Quantum modules are `UPoseableMeshComponent`s, which the previous `USkeletalMeshComponent`-only
+   cast let through into the camera.
+
+5. **Locality rules unchanged (ADR-017).** Parts stay hidden until the viewer's client resolves a
+   locality; opposing viewers keep seeing the MAF look; nothing here is replicated.
+
+**Alternatives.**
+
+- *Keep the G3/Insurgent assembly until a fair comparison renders* — rejected by the producer: the
+  comparison existed to inform this choice, and the current look is unacceptable now.
+- *Swap the pawn's gameplay skeleton to Quantum* — rejected for this phase: it would re-open hit
+  zones, damage, the hand-IK solve, weapon sockets and every Manny-authored animation layer at once,
+  and ADR-004 forbids presentation work from carrying that risk. Revisit as its own decision if the
+  cosmetic body proves out.
+- *Author an IK Retargeter asset* — not available: 5.8 has no IKRetargeter Python factory and no
+  AnimBlueprint graph API (Build/probe_retargeter.json), which is why the project already owns the
+  component-space retarget the prototype proved.
+- *Leader-pose the Quantum modules anyway* — impossible: cross-skeleton leader pose only maps
+  same-named bones, and the Quantum rig's rest pose disagrees with Manny's exactly where it matters
+  (the prototype measured metres of drift on shared names before the tolerance filter).
+
+**Consequences.**
+
+- R-58 narrows but does not close: the *visible* soldier is no longer welded to the Manny skeleton,
+  but the *gameplay* body still is. The risk remains open for the gameplay-skeleton question.
+- `setup_soldiers.py` writes the Quantum configuration (`friendly_parts` = the four QuantumProto
+  modules, `friendly_leader_pose_parts` = ADFRC vest + helmet, `retarget_friendly_pose` = true) and
+  `setup_character_textures.py` no longer authors friendly overrides (the modules carry their own
+  materials). Both scripts must be re-run if `B_SS_Soldier` is regenerated.
+- The class-select preview self-animates the Quantum modules with the pack's own idle and
+  leader-poses the vest/helmet on the invisible Manny body, mirroring the runtime split without a
+  SouthernSpearTeam dependency (SS001).
+- The camo rides on component overrides (`FriendlyMaterialOverrides`), not on the module meshes:
+  measured 2026-09-30, mesh-asset material slots are read-only from Python in 5.8, and the
+  prototype-era script had reported ok while silently writing nothing (R-91). A camo pass that
+  leaves the vendor material puts a blue civilian shirt in the game, as observed 2026-09-30.
+- R-91 is closed as a pipeline defect (root cause measured, scripts fixed, asset read-back
+  verified); the in-game confirmation is the producer's next capture.

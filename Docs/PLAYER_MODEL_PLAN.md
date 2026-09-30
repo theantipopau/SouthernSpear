@@ -179,13 +179,34 @@ Promote the ad-hoc `Build/soldier_check.html` into a turntable capture script an
 this class of defect is caught by a run rather than by a producer noticing it in a screenshot. Every
 finding in §2 came from a hand-cropped screenshot; none of it was caught by a check.
 
-## 5. Body and head — working baseline; final comparison open (ADR-036–039)
+## 5. Body and head — RESOLVED by producer decision: Quantum is the friendly body (ADR-042, 2026-09-30)
 
-**The ADFRC G3 body and fitted gear remain the working baseline; a body switch is not approved.** ADR-036 favored G3, while ADR-037–039 keep Quantum as a viable but unproven alternative. The existing Quantum-vs-G3 stage/evidence has defects (including an incomplete comparison and a runtime leader-pose ensure/crash), so it is not a fair decision capture. Do not replace the player body/skeleton until both options are shown fully dressed, under the same animation/pose, camera, lighting and framing, and the producer chooses.
+**The producer chose Quantum for the 3 ACR look, ending the ADR-036–039 comparison gate.** The
+G3/Modern-Insurgent assembly — the "assembled rather than worn" mismatch this plan diagnosed — has
+left the friendly look entirely. What ships now:
 
-**Known assembly mismatch, not a resolved repair:** `setup_soldiers.py` currently assembles `Modern_Insurgent_7/SK_Head` with the ADFRC `SK_ADF_Uniform_G3`, vest and helmet. The uniform itself carries the arms; no separate body sits under it. That current code contradicts ADR-036's stated G3-head intent and the earlier claim that the head had already been removed. The installed ADFRC source tree has no character-body model from which to assume a matching G3 head exists. First inventory the currently installed candidate meshes and their provenance, then produce the fair comparison / head-fit evidence before changing assembly.
+- **Friendly:** the four Quantum modules from `setup_quantum_proto.py` (shirt, jeans, arms, head),
+  rendered on Quantum's own skeleton and retargeted per tick from the pawn mesh's evaluated pose by
+  `ASSCharacterPartActor`; the ADFRC vest and helmet stay Manny-rigged and leader-posed over the
+  body (`FriendlyLeaderPoseParts`, fit measured within 1.6 cm). The G3 uniform and the Modern
+  Insurgent head are gone from the friendly look.
+- **Gameplay unchanged:** the pawn's body mesh is still Manny with the hand-IK component — hit
+  zones, damage, movement, sockets and the wrist solve all keep working (ADR-004); the retarget
+  carries the solved wrist rotation into the Quantum arms.
+- **Camo:** the ADFRC camo on the shirt and jeans rides on component overrides
+  (`FriendlyMaterialOverrides`), because mesh-asset material slots are read-only from Python in
+  5.8 (R-91, measured 2026-09-30) — the prototype-era in-mesh assignment silently never wrote.
+- **Opposing (MAF):** byte-for-byte the look it was before this change.
 
-The original "assembled rather than worn" concern is therefore **not claimed fixed**. Keep the tested G3 clothing baseline while determining whether its current separate head/neck seam is the main visible defect. P2 (own skeleton) remains a technical plan, not an automatic consequence of choosing a body; settle the fair body comparison first.
+The fair-comparison evidence trail (ADR-036–039, the prototype stage and its defects) remains below
+as the record of how the decision was informed; the crash-suspect comparison stage is still not
+spawned in gameplay. R-58 narrows: the visible soldier is no longer Manny-welded, the gameplay
+skeleton still is, and that remains open as its own future decision.
+
+**Historical (superseded):** the plan previously held the G3 baseline pending a fully-dressed,
+same-condition comparison, and recorded that `setup_soldiers.py` assembled the Modern Insurgent 7
+head with the ADFRC G3 uniform. That assembly was live until 2026-09-30 and was the producer's
+grievance; it is now configuration history in git, not a live defect.
 
 ## 6. Things that fail silently on this build
 

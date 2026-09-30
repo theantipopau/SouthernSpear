@@ -7189,6 +7189,100 @@ R-82 remains open: perform Build ▸ Build Paths in the editor, save, then rerun
 
 The character-model audit resumed in Session 086 as a documentation correction only: `setup_soldiers.py` still puts the Modern Insurgent 7 head on the ADFRC G3 uniform/gear, and the installed ADFRC source set has no character body/head mesh. ADR-036 no longer overstates the head as a same-pack G3 asset or Quantum as retired; see `PLAYER_MODEL_PLAN.md`. No soldier asset or runtime configuration was changed. The next model work is candidate inventory and a safe same-condition comparison; do not switch skeleton/body before the producer's choice.
 
+## Session 087 — 2026-09-30 — The Quantum body is live for the friendly look (ADR-042): runtime retarget, preview, first-person fixes
+
+### COMPLETED
+
+- Producer decision executed: the friendly soldier is now the **Quantum character on its own
+  skeleton** (ADR-042), ending the ADR-036–039 comparison gate. The pawn's gameplay skeleton stays
+  Manny (hit zones, hand IK, sockets untouched); the Quantum modules are retargeted per tick from
+  the pawn mesh's evaluated pose. Opposing MAF look unchanged. The producer's in-game screenshots
+  confirm the Quantum body rendering live with the ADFRC vest and helmet in both the class-select
+  preview and third person.
+- `ASSCharacterPartActor` rewritten to a minimal retarget path: per-mesh bone maps built lazily
+  with the prototype's rest-pose tolerances (6% height / 30°), pose read from the pawn mesh's
+  component-space transforms, root held at identity, local rotations composed parent-before-child
+  into component space. Rejected the earlier WIP's separate pose-driver component (it could not
+  see the pawn's animation) and its out-of-bounds map indexing. Verified in a headless live run:
+  all 4 pawns spawned `4 retarget + 2 leader + 4 opposing part(s), leader CharacterMesh0,
+  retarget=1`, zero script errors.
+- `FriendlyLeaderPoseParts` added to the part actor for the Manny-rigged ADFRC vest and helmet
+  layered over the Quantum body; `setup_soldiers.py` now writes the Quantum configuration and
+  `Build/soldiers_setup.json` reports `ok: true` (4 retarget, 2 leader-pose, 4 opposing).
+- First-person fixes for the skinned-part world (producer screenshots showed the local player's own
+  Quantum head filling the camera in body view, and an arms-view dark mass): body view now hides the
+  head bone on every attached skinned part (the Quantum head is its own component), the arms
+  view-model path hides every attached *skinned* mesh (`USkinnedMeshComponent`, not the
+  skeletal-only cast that missed the poseable Quantum modules), and body view un-hides parts when
+  switching view models.
+- Class-select preview mirrors the runtime split without a Team dependency (SS001): the Quantum
+  modules self-animate with the pack's own idle, the vest/helmet leader-pose the invisible Manny,
+  and a soldier configured with mannequin parts only still previews the old way. Confirmed live by
+  the producer's screenshot.
+- ADR-042 written; `PLAYER_MODEL_PLAN.md` §5 rewritten to record the decision (the historical
+  assembly mismatch is configuration history now); this changelog entry.
+
+### FILES CHANGED
+
+- `Plugins/SouthernSpearTeam/.../SSCharacterPartActor.{h,cpp}` — retarget implementation,
+  `FriendlyLeaderPoseParts`, cached per-mesh bone maps. `AnimationCore` dependency removed again
+  (the retarget needs only `ReferenceSkeleton.h`, which Engine already exports); Build.cs now
+  byte-identical to HEAD, and the final build after removal is green (15 s, 0 errors).
+- `Plugins/SouthernSpearLyraBridge/.../SSFirstPersonSubsystem.cpp` — skinned-part-aware head hide,
+  arms-view hiding and body-view restore.
+- `Plugins/SouthernSpearUI/.../SSClassSelectWidget.cpp` — Quantum preview (self-animated modules,
+  leader-posed kit, legacy fallback).
+- `Tools/Unreal/setup_soldiers.py`, `Tools/Unreal/setup_character_textures.py` — Quantum friendly
+  configuration; the texture pass no longer authors friendly overrides.
+- `Docs/DECISION_LOG.md` (ADR-042), `Docs/PLAYER_MODEL_PLAN.md`, `Docs/CHANGELOG.md`.
+
+### TESTING
+
+| Check | Command | Result |
+|---|---|---|
+| Architecture guard | `python Tools/validate_architecture.py` | **PASS** (exit 0; the accepted SS010 note is pre-existing) |
+| Unity-name check | `python Tools/check_unity_names.py` | **PASS**, 9 modules, no clash |
+| Editor build | `Build.bat SouthernSpearEditor Win64 Development` | **PASS ×3** — zero errors, zero warnings (one intermediate failure per wrong engine API, each fixed) |
+| Automation suite | `UnrealEditor-Cmd … RunTests SouthernSpear` (with `-NoLoadingScreen`) | **67/67 `Result={Success}`, 0 fails** |
+| Soldier setup | `setup_soldiers.py` commandlet | `Build/soldiers_setup.json` `ok: true`; one prior run failed on the bool's Python name (`retarget_friendly_pose`, not `b_retarget_friendly_pose`) — fixed and re-run |
+| Live headless smoke | Dry River `?NumBots=4` `-game -nullrhi`, 150 s | `SSCharacterPart … 4 retarget + 2 leader + 4 opposing part(s) … retarget=1` ×4 pawns, 0 `LogScript` errors |
+| Producer visual | In-game screenshots 2026-09-30 | Quantum body + ADFRC vest/helmet render in class-select preview and third person; first-person defects reproduced by screenshots, C++ fix built **NOT yet captured in game** |
+| Quantum proof | `prove_quantum_retarget.py` | **NOT RUN** this session (editor lock); the proof targets the prototype stage's copy of the same arithmetic — the runtime path's own evidence above is the spawn log + screenshots |
+| Camo verification | `probe_quantum_material.py` + asset read-back | **ROOT CAUSE CONFIRMED**: mesh-asset material slots are **read-only from Python in 5.8** — `set_editor_property` on the materials array returns without error and without effect, and `set_material` does not exist on the asset. Session 058's `ok:true` was a silent no-op. Fixed by routing the camo through `FriendlyMaterialOverrides` (the same component-override mechanism as the MAF green uniform, ADR-004): `setup_quantum_proto.py` re-ran `ok: true` with a cleaned graph (`delete_all_material_expressions` after measuring 12 expressions from reruns), `setup_soldiers.py` re-ran `ok: true` writing the overrides, and the saved `B_SS_Soldier.uasset` greps for both `MI_SS_ADFRC_Camo_*` instances and all three Quantum + ADFRC part names. **NOT yet captured in game** — the next play session shows the camo |
+
+### ASSETS
+
+- `B_SS_Soldier.uasset` reconfigured (Quantum friendly parts, leader-pose kit, retarget flag).
+- QuantumProto module meshes and materials unchanged on disk this session (their camo defect is
+  Session 058's, resurfaced; the producer's own untracked Quantum content edits are preserved).
+
+### DEFECTS FOUND
+
+- The WIP retarget from the previous session could never have worked: its pose driver was a
+  separately animated skeletal component (reference pose, not the pawn's animation) and its bone
+  map indexing read `FriendlyRetargetComponents[Num]` out of bounds. Found by re-reading the diff
+  before building on it.
+- First person: attached **poseable** soldier parts escaped both first-person hiding paths (skeletal
+  casts) — the local player wore their own head. Found by the producer's screenshots.
+- `setup_quantum_proto.py` claimed camo slots it never persisted (Session 058's `ok:true` vs. the
+  blue shirt in game). Found by grepping the saved mesh assets for material names.
+- UE 5.8 Python booleans drop the `b` prefix (`retarget_friendly_pose`); found by running the
+  commandlet, not by assuming.
+
+### RISKS
+
+- **R-91:** CLOSED as a pipeline defect (root cause measured, scripts fixed and re-run,
+  asset read-back verified). The in-game camo confirmation is pending the producer's next capture.
+- R-58 narrows (visible body no longer Manny-welded; the gameplay skeleton still is).
+- First-person fix is built but not yet producer-captured; the hide-bone call on poseable meshes is
+  the one untested engine-behaviour claim in this session.
+
+### NEXT ACTION
+
+Play a round on the new build: confirm the shirt and jeans render the ADFRC camo, the first-person
+view is clean (no head, no dark mass), and the vest/helmet and hands sit right in motion. Then set
+the friendly overrides read-back as a scripted check in a future session.
+
 ## Open Threads
 
 | Item | Blocked on | Owner |

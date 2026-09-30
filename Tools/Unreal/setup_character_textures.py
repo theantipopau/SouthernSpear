@@ -1,8 +1,11 @@
-# Southern Spear - original character uniforms on the licensed bodies (ADR-016, ADR-021).
+# Southern Spear - original character uniforms on the licensed bodies (ADR-016, ADR-021, ADR-042).
 #
 # Imports the script-generated CMECU / MAF / gear textures, authors four
 # original fabric materials around them, and assigns them as cosmetic material
-# overrides on B_SS_Soldier. The vendor meshes (Fab, L-0016) are not duplicated
+# overrides on B_SS_Soldier's OPPOSING (MAF) parts. Since ADR-042 the friendly
+# look is the Quantum body, whose modules carry their own materials (the ADFRC
+# camo from setup_quantum_proto.py, authored arms and head), so the friendly
+# override list stays empty. The vendor meshes (Fab, L-0016) are not duplicated
 # or edited: overrides ride on the character-part components, so appearance is
 # ours while the licensed geometry stays untouched (ADR-004).
 #
@@ -29,7 +32,6 @@ TEX_DEST = DEST_ROOT + "/Textures"
 MAT_DEST = DEST_ROOT + "/Materials"
 SOLDIER = DEST_ROOT + "/B_SS_Soldier"
 
-FRIENDLY_MESH = "/Game/QuantumCharacter/Mesh/SKM_QuantumCharacter"
 OPPOSING_MESHES = [
     "/Game/Modern_Insurgent_7/Mesh/Separate_Parts/SK_Head",
     "/Game/Modern_Insurgent_7/Mesh/Separate_Parts/SK_Hands",
@@ -46,17 +48,6 @@ SETS = {
     "MAF": ("T_SS_MAF_Camo_BC", "T_SS_MAF_Camo_N", "T_SS_MAF_Camo_ORM", 2.0),
     "GearTan": ("T_SS_Gear_BC", "T_SS_Gear_N", "T_SS_Gear_ORM", 4.0),
     "GearDark": ("T_SS_GearDark_BC", "T_SS_GearDark_N", "T_SS_GearDark_ORM", 4.0),
-}
-
-# Material slot name -> set, for the single friendly body (14 slots).
-FRIENDLY_SLOTS = {
-    "M_Cap": "GearTan",
-    "M_Holster_Hard": "GearTan",
-    "M_Shirt_RolledUp": "CMECU",
-    "M_Bulletproof_Light": "GearTan",
-    "M_Jeans": "CMECU",
-    "M_Patches": "GearTan",       # plain fabric: removes any vendor insignia (R-20)
-    "M_Drops_Tactical": "GearTan",
 }
 
 # Material slot name -> set, for the seven MAF parts.
@@ -235,12 +226,13 @@ def main():
         s.set_editor_property("slots", slots)
         return s
 
-    friendly = [wrap(slot_overrides(FRIENDLY_MESH, FRIENDLY_SLOTS, mats))]
     opposing = [wrap(slot_overrides(p, OPPOSING_SLOTS, mats)) for p in OPPOSING_MESHES]
-    cdo.set_editor_property("friendly_material_overrides", friendly)
+    # Friendly overrides belong to setup_soldiers.py since ADR-042 (the ADFRC camo on the
+    # Quantum modules, R-91): this pass must not touch friendly_material_overrides, or it
+    # would wipe the camo off the friendly look.
     cdo.set_editor_property("opposing_material_overrides", opposing)
     report["overrides"] = {
-        "friendly": [m.get_path_name() if m else None for m in friendly[0].get_editor_property("slots")],
+        "friendly": "left to setup_soldiers.py (ADR-042)",
         "opposing": [[m.get_path_name() if m else None for m in r.get_editor_property("slots")] for r in opposing],
     }
     unreal.BlueprintEditorLibrary.compile_blueprint(soldier)

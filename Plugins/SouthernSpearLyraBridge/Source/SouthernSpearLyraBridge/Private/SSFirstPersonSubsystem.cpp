@@ -241,6 +241,20 @@ void USSFirstPersonSubsystem::Tick(float DeltaTime)
 		{
 			Character->GetMesh()->HideBoneByName(TEXT("head"), EPhysBodyOp::PBO_None);
 		}
+		// The Quantum body's head is a separate skinned component on its own skeleton
+		// (ADR-042), so the pawn mesh's hidden head bone says nothing about it. Hide the
+		// head bone on every attached skinned part that has one (HideBoneByName is a
+		// guarded no-op where the bone does not exist).
+		TArray<AActor*> Parts;
+		Pawn->GetAttachedActors(Parts, true, true);
+		for (AActor* Part : Parts)
+		{
+			TInlineComponentArray<USkinnedMeshComponent*> Skins(Part);
+			for (USkinnedMeshComponent* Skin : Skins)
+			{
+				Skin->HideBoneByName(TEXT("head"), EPhysBodyOp::PBO_None);
+			}
+		}
 		HandledPawn = Pawn;
 		UE_LOG(LogSSFirstPerson, Log, TEXT("First-person camera active for %s (body view)."), *Pawn->GetName());
 		return;
@@ -451,6 +465,9 @@ void USSFirstPersonSubsystem::UpdateViewModel(APawn* Pawn, float DeltaTime)
 				if (Part->bOwnerNoSee)
 				{
 					Part->SetOwnerNoSee(false);
+					// Undo the arms-view hiding if this session switched view models:
+					// body view shows the soldier parts and the held weapon.
+					Part->SetHiddenInGame(false);
 				}
 			}
 		}
@@ -459,21 +476,23 @@ void USSFirstPersonSubsystem::UpdateViewModel(APawn* Pawn, float DeltaTime)
 	// The held weapon is a cosmetic actor attached to the pawn's body mesh
 	// (Lyra equipment). Show its mesh in first person and hide the body copy
 	// from the owner. Soldier body parts are skeletal, so they never match.
-	UStaticMesh* Held = nullptr;
-	TArray<AActor*> Attached;
-	Pawn->GetAttachedActors(Attached, true, true);
-	for (AActor* Actor : Attached)
-	{
-		TInlineComponentArray<USkeletalMeshComponent*> Bodies(Actor);
-		for (USkeletalMeshComponent* Body : Bodies)
+	UStaticMesh* Held = nullptr;		TArray<AActor*> Attached;
+		Pawn->GetAttachedActors(Attached, true, true);
+		for (AActor* Actor : Attached)
 		{
-			// Hidden locally (this subsystem only runs for the local player),
-			// shadow kept: owner-no-see alone let the beret through from inside.
-			Body->SetOwnerNoSee(true);
-			Body->bCastHiddenShadow = true;
-			Body->VisibilityBasedAnimTickOption = EVisibilityBasedAnimTickOption::AlwaysTickPoseAndRefreshBones;
-			Body->SetHiddenInGame(true);
-		}
+			// Skinned, not skeletal: the Quantum body parts are UPoseableMeshComponents
+			// (ADR-042) and a USkeletalMeshComponent cast misses them, which put the local
+			// player's own body inside the first-person camera.
+			TInlineComponentArray<USkinnedMeshComponent*> Bodies(Actor);
+			for (USkinnedMeshComponent* Body : Bodies)
+			{
+				// Hidden locally (this subsystem only runs for the local player),
+				// shadow kept: owner-no-see alone let the beret through from inside.
+				Body->SetOwnerNoSee(true);
+				Body->bCastHiddenShadow = true;
+				Body->VisibilityBasedAnimTickOption = EVisibilityBasedAnimTickOption::AlwaysTickPoseAndRefreshBones;
+				Body->SetHiddenInGame(true);
+			}
 		TInlineComponentArray<UStaticMeshComponent*> Meshes(Actor);
 		for (UStaticMeshComponent* Mesh : Meshes)
 		{

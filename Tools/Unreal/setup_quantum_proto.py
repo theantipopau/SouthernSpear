@@ -45,6 +45,12 @@ GARMENTS = {
     "SKM_Shirt_RolledUp_Blue": ("MI_SS_ADFRC_Camo_Shirt", 3.0),
     "SKM_Jeans": ("MI_SS_ADFRC_Camo_Jeans", 4.0),
 }
+# R-91, measured 2026-09-30: mesh-asset material slots are READ-ONLY from Python in 5.8 -
+# set_editor_property on the materials array returns without error and without effect
+# (probe_quantum_material.py). The shipping camo therefore does NOT edit these meshes at all:
+# setup_soldiers.py assigns the material instances below as FriendlyMaterialOverrides, riding
+# on the character-part components (ADR-004). This script builds the materials and instances
+# those overrides point at, and records the vendor slots they replace.
 
 report = {"ok": False, "steps": [], "errors": []}
 tools = unreal.AssetToolsHelpers.get_asset_tools()
@@ -88,8 +94,10 @@ def build_camo_material(texture):
     folder = CAMO_MAT.rsplit("/", 1)[0]
     if asset_exists(CAMO_MAT):
         material = unreal.load_asset(CAMO_MAT)
-        # Rebuild the graph: the simplest way to be idempotent is to lay the same nodes down
-        # again and reconnect them, rather than trying to find the old ones by name.
+        # Idempotent graph: clear the nodes earlier runs laid down before laying the
+        # same nodes down again, or every rerun compounds the graph (12 expressions
+        # after two runs, measured).
+        mel.delete_all_material_expressions(material)
     else:
         material = tools.create_asset(name, folder, unreal.Material, unreal.MaterialFactoryNew())
     if material is None:
@@ -160,12 +168,15 @@ def duplicate_module(name):
     return duplicated
 
 
-def apply_camo(mesh, instance):
+def apply_camo(mesh, instance, name):
+    """Record what the vendor slots carry; do not write them (read-only from Python, R-91).
+    The shipping camo rides on component overrides (setup_soldiers.py), which point at the
+    instances this script builds and saves."""
     slots = mesh.get_editor_property("materials")
-    for index, slot in enumerate(slots):
-        slot.set_editor_property("material_interface", instance)
-    mesh.set_editor_property("materials", slots)
-    return len(slots)
+    unreal.EditorAssetLibrary.save_loaded_asset(mesh, only_if_is_dirty=False)
+    vendor = [s.get_editor_property("material_interface").get_path_name()
+              if s.get_editor_property("material_interface") else None for s in slots]
+    return len(slots), vendor
 
 
 def build_map():
@@ -222,10 +233,9 @@ def main():
         mesh = meshes.get(name)
         if mesh is None or instance is None:
             continue
-        count = apply_camo(mesh, instance)
-        mesh.modify()
-        step("camo_slots:" + name, count > 0, "{} slots -> {}".format(
-            count, instance.get_path_name()))
+        count, vendor = apply_camo(mesh, instance, name)
+        step("camo_slots:" + name, count > 0, "{} slots (vendor: {}) -> override {}".format(
+            count, vendor, instance.get_path_name()))
 
     for name in CAMLESS:
         mesh = meshes.get(name)
