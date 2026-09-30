@@ -1,0 +1,220 @@
+{
+  "ok": true,
+  "steps": [
+    {
+      "step": "load_map",
+      "ok": true,
+      "detail": "/Game/Maps/L_DryRiver_01"
+    },
+    {
+      "step": "untextured_scan",
+      "ok": true,
+      "detail": "0 visible actors with empty/default material slots (+10 hidden collision-only helpers excluded)"
+    },
+    {
+      "step": "windmill_conflicts",
+      "ok": true,
+      "detail": "11 windmills, 0 conflicts under 12 m"
+    },
+    {
+      "step": "creek_profile",
+      "ok": true,
+      "detail": "bed depth vs bank: {'min': 65, 'max': 217}"
+    },
+    {
+      "step": "foliage_compare",
+      "ok": true,
+      "detail": "DR small-foliage 592 (500 instanced) vs RG 124 (0 instanced)"
+    },
+    {
+      "step": "thin_scan",
+      "ok": true,
+      "detail": "0 paper-thin candidates"
+    }
+  ],
+  "errors": [],
+  "actor_total": 1222,
+  "prefix_census": {
+    "SS_RA_Cover": 392,
+    "SS_Expand_Cover": 281,
+    "SS_Dressing_PaddockEast": 49,
+    "SS_Dressing_CreekWest": 49,
+    "SS_Dressing_Scrub": 46,
+    "SS_RA_Scrub": 46,
+    "SS_RA_Tree": 38,
+    "SS_Dressing_WestMidLine": 31,
+    "SS_Expand_Quarry": 30,
+    "SS_Dressing_PaddockNorth": 28,
+    "SS_Dressing_NorthEastBoundary": 28,
+    "SS_Expand_Creek": 26,
+    "SS_Overhaul_Bed": 26,
+    "SS_RA_Rock": 25,
+    "SS_Dressing_SouthBankEast": 22,
+    "SS_Dressing_CreekBankSouth": 16,
+    "SS_Farm_Drum": 14,
+    "SS_Farm_PenFence": 13,
+    "SS_Dressing_Barrel": 10,
+    "SS_Gum_WindmillScreen": 10
+  },
+  "untextured": [],
+  "collision_only_default_material": [
+    {
+      "label": "SS_Gum_TrunkCol_00",
+      "x": 622,
+      "y": -1413,
+      "mats": [
+        "DefaultMaterial"
+      ]
+    },
+    {
+      "label": "SS_Gum_TrunkCol_01",
+      "x": 495,
+      "y": -1919,
+      "mats": [
+        "DefaultMaterial"
+      ]
+    },
+    {
+      "label": "SS_Gum_TrunkCol_02",
+      "x": 466,
+      "y": -2430,
+      "mats": [
+        "DefaultMaterial"
+      ]
+    },
+    {
+      "label": "SS_Gum_TrunkCol_03",
+      "x": -93,
+      "y": -2414,
+      "mats": [
+        "DefaultMaterial"
+      ]
+    },
+    {
+      "label": "SS_Gum_TrunkCol_04",
+      "x": -522,
+      "y": -2765,
+      "mats": [
+        "DefaultMaterial"
+      ]
+    },
+    {
+      "label": "SS_Gum_TrunkCol_05",
+      "x": -964,
+      "y": -2322,
+      "mats": [
+        "DefaultMaterial"
+      ]
+    },
+    {
+      "label": "SS_Gum_TrunkCol_06",
+      "x": -1517,
+      "y": -2658,
+      "mats": [
+        "DefaultMaterial"
+      ]
+    },
+    {
+      "label": "SS_Gum_TrunkCol_07",
+      "x": -1566,
+      "y": -2146,
+      "mats": [
+        "DefaultMaterial"
+      ]
+    },
+    {
+      "label": "SS_Gum_TrunkCol_08",
+      "x": -1478,
+      "y": -1437,
+      "mats": [
+        "DefaultMaterial"
+      ]
+    },
+    {
+      "label": "SS_Gum_TrunkCol_09",
+      "x": -2000,
+      "y": -916,
+      "mats": [
+        "DefaultMaterial"
+      ]
+    }
+  ],
+  "windmill_count": 11,
+  "windmill_tree_conflicts": [],
+  "creek_profile": [
+    {
+      "x": -30000,
+      "creek_z": -444,
+      "bank_z_30m": -232
+    },
+    {
+      "x": -24000,
+      "creek_z": -182,
+      "bank_z_30m": 8
+    },
+    {
+      "x": -18000,
+      "creek_z": 63,
+      "bank_z_30m": 128
+    },
+    {
+      "x": -12000,
+      "creek_z": -236,
+      "bank_z_30m": -47
+    },
+    {
+      "x": -6000,
+      "creek_z": -142,
+      "bank_z_30m": -37
+    },
+    {
+      "x": 0,
+      "creek_z": -227,
+      "bank_z_30m": -33
+    },
+    {
+      "x": 6000,
+      "creek_z": 292,
+      "bank_z_30m": 474
+    },
+    {
+      "x": 12000,
+      "creek_z": 17,
+      "bank_z_30m": 234
+    },
+    {
+      "x": 18000,
+      "creek_z": -264,
+      "bank_z_30m": -86
+    },
+    {
+      "x": 24000,
+      "creek_z": -156,
+      "bank_z_30m": -81
+    },
+    {
+      "x": 30000,
+      "creek_z": -302,
+      "bank_z_30m": -90
+    }
+  ],
+  "creek_depth_cm": {
+    "min": 65,
+    "max": 217
+  },
+  "small_foliage": {
+    "dryriver": {
+      "SS_Dressing_Scrub": 46,
+      "SS_RA_Scrub": 46,
+      "SS_Overhaul_Scatter_": 500
+    },
+    "redgum": {
+      "SS_RedGum_Dress_v1_Bush": 124
+    },
+    "dryriver_total_actors": 1222,
+    "redgum_total_actors": 1185,
+    "dryriver_instanced": 500,
+    "redgum_instanced": 0
+  },
+  "paper_thin_candidates": []
+}

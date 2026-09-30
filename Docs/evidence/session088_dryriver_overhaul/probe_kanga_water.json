@@ -1,0 +1,223 @@
+{
+ "kangaroo": [
+  {
+   "label": "SS_EasterEgg_Kangaroo_1",
+   "cls": "StaticMeshActor",
+   "loc": [
+    -8328,
+    -3943,
+    20
+   ],
+   "slots": [
+    {
+     "slot": 0,
+     "mat": "/Game/Art/Environment/Kangaroo/MI_SS_Kangaroo.MI_SS_Kangaroo",
+     "tex_params_err": "'TextureParameterValue' object has no attribute 'parameter_name'",
+     "parent": "/Game/Art/Environment/Fab/M_SS_ScanPBR.M_SS_ScanPBR"
+    },
+    {
+     "slot": 1,
+     "mat": "/Game/Art/Environment/Kangaroo/MI_SS_Kangaroo.MI_SS_Kangaroo",
+     "tex_params_err": "'TextureParameterValue' object has no attribute 'parameter_name'",
+     "parent": "/Game/Art/Environment/Fab/M_SS_ScanPBR.M_SS_ScanPBR"
+    },
+    {
+     "slot": 2,
+     "mat": "/Game/Art/Environment/Kangaroo/MI_SS_Kangaroo.MI_SS_Kangaroo",
+     "tex_params_err": "'TextureParameterValue' object has no attribute 'parameter_name'",
+     "parent": "/Game/Art/Environment/Fab/M_SS_ScanPBR.M_SS_ScanPBR"
+    },
+    {
+     "slot": 3,
+     "mat": "/Game/Art/Environment/Kangaroo/MI_SS_Kangaroo.MI_SS_Kangaroo",
+     "tex_params_err": "'TextureParameterValue' object has no attribute 'parameter_name'",
+     "parent": "/Game/Art/Environment/Fab/M_SS_ScanPBR.M_SS_ScanPBR"
+    },
+    {
+     "slot": 4,
+     "mat": "/Game/Art/Environment/Kangaroo/MI_SS_Kangaroo.MI_SS_Kangaroo",
+     "tex_params_err": "'TextureParameterValue' object has no attribute 'parameter_name'",
+     "parent": "/Game/Art/Environment/Fab/M_SS_ScanPBR.M_SS_ScanPBR"
+    },
+    {
+     "slot": 5,
+     "mat": "/Game/Art/Environment/Kangaroo/MI_SS_Kangaroo.MI_SS_Kangaroo",
+     "tex_params_err": "'TextureParameterValue' object has no attribute 'parameter_name'",
+     "parent": "/Game/Art/Environment/Fab/M_SS_ScanPBR.M_SS_ScanPBR"
+    },
+    {
+     "slot": 6,
+     "mat": "/Game/Art/Environment/Kangaroo/MI_SS_Kangaroo.MI_SS_Kangaroo",
+     "tex_params_err": "'TextureParameterValue' object has no attribute 'parameter_name'",
+     "parent": "/Game/Art/Environment/Fab/M_SS_ScanPBR.M_SS_ScanPBR"
+    },
+    {
+     "slot": 7,
+     "mat": "/Game/Art/Environment/Kangaroo/MI_SS_Kangaroo.MI_SS_Kangaroo",
+     "tex_params_err": "'TextureParameterValue' object has no attribute 'parameter_name'",
+     "parent": "/Game/Art/Environment/Fab/M_SS_ScanPBR.M_SS_ScanPBR"
+    },
+    {
+     "slot": 8,
+     "mat": "/Game/Art/Environment/Kangaroo/MI_SS_Kangaroo.MI_SS_Kangaroo",
+     "tex_params_err": "'TextureParameterValue' object has no attribute 'parameter_name'",
+     "parent": "/Game/Art/Environment/Fab/M_SS_ScanPBR.M_SS_ScanPBR"
+    },
+    {
+     "slot": 9,
+     "mat": "/Game/Art/Environment/Kangaroo/MI_SS_Kangaroo.MI_SS_Kangaroo",
+     "tex_params_err": "'TextureParameterValue' object has no attribute 'parameter_name'",
+     "parent": "/Game/Art/Environment/Fab/M_SS_ScanPBR.M_SS_ScanPBR"
+    },
+    {
+     "slot": 10,
+     "mat": "/Game/Art/Environment/Kangaroo/MI_SS_Kangaroo.MI_SS_Kangaroo",
+     "tex_params_err": "'TextureParameterValue' object has no attribute 'parameter_name'",
+     "parent": "/Game/Art/Environment/Fab/M_SS_ScanPBR.M_SS_ScanPBR"
+    }
+   ],
+   "trace_bed": null
+  },
+  {
+   "label": "SS_EasterEgg_Kangaroo_2",
+   "cls": "StaticMeshActor",
+   "loc": [
+    1409,
+    4274,
+    2
+   ],
+   "slots": [
+    {
+     "slot": 0,
+     "mat": "/Game/Art/Environment/Kangaroo/MI_SS_Kangaroo.MI_SS_Kangaroo",
+     "tex_params_err": "'TextureParameterValue' object has no attribute 'parameter_name'",
+     "parent": "/Game/Art/Environment/Fab/M_SS_ScanPBR.M_SS_ScanPBR"
+    },
+    {
+     "slot": 1,
+     "mat": "/Game/Art/Environment/Kangaroo/MI_SS_Kangaroo.MI_SS_Kangaroo",
+     "tex_params_err": "'TextureParameterValue' object has no attribute 'parameter_name'",
+     "parent": "/Game/Art/Environment/Fab/M_SS_ScanPBR.M_SS_ScanPBR"
+    },
+    {
+     "slot": 2,
+     "mat": "/Game/Art/Environment/Kangaroo/MI_SS_Kangaroo.MI_SS_Kangaroo",
+     "tex_params_err": "'TextureParameterValue' object has no attribute 'parameter_name'",
+     "parent": "/Game/Art/Environment/Fab/M_SS_ScanPBR.M_SS_ScanPBR"
+    },
+    {
+     "slot": 3,
+     "mat": "/Game/Art/Environment/Kangaroo/MI_SS_Kangaroo.MI_SS_Kangaroo",
+     "tex_params_err": "'TextureParameterValue' object has no attribute 'parameter_name'",
+     "parent": "/Game/Art/Environment/Fab/M_SS_ScanPBR.M_SS_ScanPBR"
+    },
+    {
+     "slot": 4,
+     "mat": "/Game/Art/Environment/Kangaroo/MI_SS_Kangaroo.MI_SS_Kangaroo",
+     "tex_params_err": "'TextureParameterValue' object has no attribute 'parameter_name'",
+     "parent": "/Game/Art/Environment/Fab/M_SS_ScanPBR.M_SS_ScanPBR"
+    },
+    {
+     "slot": 5,
+     "mat": "/Game/Art/Environment/Kangaroo/MI_SS_Kangaroo.MI_SS_Kangaroo",
+     "tex_params_err": "'TextureParameterValue' object has no attribute 'parameter_name'",
+     "parent": "/Game/Art/Environment/Fab/M_SS_ScanPBR.M_SS_ScanPBR"
+    },
+    {
+     "slot": 6,
+     "mat": "/Game/Art/Environment/Kangaroo/MI_SS_Kangaroo.MI_SS_Kangaroo",
+     "tex_params_err": "'TextureParameterValue' object has no attribute 'parameter_name'",
+     "parent": "/Game/Art/Environment/Fab/M_SS_ScanPBR.M_SS_ScanPBR"
+    },
+    {
+     "slot": 7,
+     "mat": "/Game/Art/Environment/Kangaroo/MI_SS_Kangaroo.MI_SS_Kangaroo",
+     "tex_params_err": "'TextureParameterValue' object has no attribute 'parameter_name'",
+     "parent": "/Game/Art/Environment/Fab/M_SS_ScanPBR.M_SS_ScanPBR"
+    },
+    {
+     "slot": 8,
+     "mat": "/Game/Art/Environment/Kangaroo/MI_SS_Kangaroo.MI_SS_Kangaroo",
+     "tex_params_err": "'TextureParameterValue' object has no attribute 'parameter_name'",
+     "parent": "/Game/Art/Environment/Fab/M_SS_ScanPBR.M_SS_ScanPBR"
+    },
+    {
+     "slot": 9,
+     "mat": "/Game/Art/Environment/Kangaroo/MI_SS_Kangaroo.MI_SS_Kangaroo",
+     "tex_params_err": "'TextureParameterValue' object has no attribute 'parameter_name'",
+     "parent": "/Game/Art/Environment/Fab/M_SS_ScanPBR.M_SS_ScanPBR"
+    },
+    {
+     "slot": 10,
+     "mat": "/Game/Art/Environment/Kangaroo/MI_SS_Kangaroo.MI_SS_Kangaroo",
+     "tex_params_err": "'TextureParameterValue' object has no attribute 'parameter_name'",
+     "parent": "/Game/Art/Environment/Fab/M_SS_ScanPBR.M_SS_ScanPBR"
+    }
+   ],
+   "trace_bed": null
+  }
+ ],
+ "water": [
+  {
+   "label": "SS_Overhaul_Creek_Water_00",
+   "z": -237.5,
+   "bed_c": null,
+   "bed_n8": null,
+   "bed_s8": null,
+   "bed_n4": null,
+   "bed_s4": null,
+   "yaw": 0.0
+  },
+  {
+   "label": "SS_Overhaul_Creek_Water_01",
+   "z": -266.0,
+   "bed_c": null,
+   "bed_n8": null,
+   "bed_s8": null,
+   "bed_n4": null,
+   "bed_s4": null,
+   "yaw": 0.0
+  },
+  {
+   "label": "SS_Overhaul_Creek_Water_02",
+   "z": -324.5,
+   "bed_c": null,
+   "bed_n8": null,
+   "bed_s8": null,
+   "bed_n4": null,
+   "bed_s4": null,
+   "yaw": 0.0
+  },
+  {
+   "label": "SS_Overhaul_Creek_Water_03",
+   "z": 23.6,
+   "bed_c": null,
+   "bed_n8": null,
+   "bed_s8": null,
+   "bed_n4": null,
+   "bed_s4": null,
+   "yaw": 0.0
+  },
+  {
+   "label": "SS_Overhaul_Creek_Water_04",
+   "z": 93.5,
+   "bed_c": null,
+   "bed_n8": null,
+   "bed_s8": null,
+   "bed_n4": null,
+   "bed_s4": null,
+   "yaw": 0.0
+  },
+  {
+   "label": "SS_Overhaul_Creek_Water_05",
+   "z": -164.6,
+   "bed_c": null,
+   "bed_n8": null,
+   "bed_s8": null,
+   "bed_n4": null,
+   "bed_s4": null,
+   "yaw": 0.0
+  }
+ ],
+ "errors": []
+}

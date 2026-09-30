@@ -1,0 +1,141 @@
+{
+ "ok": true,
+ "steps": [
+  {
+   "step": "gum_import",
+   "ok": true,
+   "detail": "/Game/Art/Environment/Fab/TH_Complete_Full_Ghoast_Gum"
+  },
+  {
+   "step": "gum_ring",
+   "ok": true,
+   "detail": "10 gums around windmill at (-4.3, 14.2)"
+  },
+  {
+   "step": "water_assets",
+   "ok": true,
+   "detail": "True True"
+  },
+  {
+   "step": "water_plane",
+   "ok": true,
+   "detail": "6 segments"
+  },
+  {
+   "step": "quarry_bed",
+   "ok": true,
+   "detail": "driftwood 26, stones 90"
+  },
+  {
+   "step": "bush_layer",
+   "ok": true,
+   "detail": "A 150, B 90, C 60, flowers 110"
+  },
+  {
+   "step": "windmill_sweep",
+   "ok": true,
+   "detail": "0 crowding trees removed"
+  },
+  {
+   "step": "windmill_clearance",
+   "ok": true,
+   "detail": "{'gum': (2.74, 'SS_Gum_WindmillScreen_03'), 'other': (5.99, 'SS_Expand_Creek_Ledge_25')}"
+  },
+  {
+   "step": "fix_kangaroos",
+   "ok": true,
+   "detail": "2 re-seated; MI bound base=znzmoModel-1132355448-0277 norm=znzmoModel-1132355448-0278"
+  },
+  {
+   "step": "saved",
+   "ok": true,
+   "detail": ""
+  }
+ ],
+ "scatter": {
+  "Driftwood": 26,
+  "BedStones": 90,
+  "BushA": 150,
+  "BushB": 90,
+  "BushC": 60,
+  "Flowers": 110
+ },
+ "placed": 42,
+ "warnings": [],
+ "errors": [],
+ "removed_previous": 100,
+ "gum_bounds_cm": [
+  656.1,
+  615.1,
+  650.8
+ ],
+ "gum_ring": 10,
+ "water_audit": [
+  {
+   "seg": 0,
+   "water_z": -250.5,
+   "bed_z": -262.5,
+   "centre_m": [
+    -133.5,
+    -0.4
+   ]
+  },
+  {
+   "seg": 1,
+   "water_z": -279.0,
+   "bed_z": -291.0,
+   "centre_m": [
+    -76.5,
+    -2.0
+   ]
+  },
+  {
+   "seg": 2,
+   "water_z": -337.5,
+   "bed_z": -349.5,
+   "centre_m": [
+    -19.5,
+    -0.8
+   ]
+  },
+  {
+   "seg": 3,
+   "water_z": 10.6,
+   "bed_z": -1.4,
+   "centre_m": [
+    37.5,
+    1.5
+   ]
+  },
+  {
+   "seg": 4,
+   "water_z": 80.5,
+   "bed_z": 68.5,
+   "centre_m": [
+    94.5,
+    1.7
+   ]
+  },
+  {
+   "seg": 5,
+   "water_z": -177.6,
+   "bed_z": -189.6,
+   "centre_m": [
+    142.5,
+    -0.1
+   ]
+  }
+ ],
+ "windmill_sweep": [],
+ "windmill_gap": {
+  "gum": [
+   2.74,
+   "SS_Gum_WindmillScreen_03"
+  ],
+  "other": [
+   5.99,
+   "SS_Expand_Creek_Ledge_25"
+  ]
+ },
+ "nav_note": "gum trunk colliders added: run build_dryriver_nav.py, then in-game capture pass"
+}

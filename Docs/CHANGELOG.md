@@ -7283,6 +7283,145 @@ Play a round on the new build: confirm the shirt and jeans render the ADFRC camo
 view is clean (no head, no dark mass), and the vest/helmet and hands sit right in motion. Then set
 the friendly overrides read-back as a scripted check in a future session.
 
+## Session 088 — 2026-09-30 — Dry River harvest overhaul: D-DR-01..07 fixed from assets already in the project
+
+### COMPLETED
+
+- The producer's Dry River overhaul defect list (`MAPS_DRYRIVER.md` §11) is now worked end to end by one
+  idempotent script, `Tools/Unreal/harvest_dryriver.py`. It removes only its own labels
+  (`SS_Overhaul_*`, `SS_Gum_*`) before re-placing, so it never touches hand-placed dressing and can be
+  re-run to iterate. **Report `ok: true`, 0 warnings, 0 errors, 42 actors placed, 100 own actors cleared
+  on the re-run.**
+- **The harvest came entirely from assets already in this project** — nothing was downloaded. Scene Quarry
+  Slate (L-0005) for the creek surface mesh and bed stones, RuralAustralia (L-0016) for the bush vocabulary,
+  Namaqualand (Session 041) for searsia/rooibos/didelta shrubs, the four-flower pool, dead-quiver driftwood
+  and stones, the ghost gum (ENV-003, L-0024) for the canopy, and one normal map out of the WaterPlane pack.
+- **D-DR-03 windmill caught in trees.** Measured root cause, not the impression: three `SS_RA_Tree` /
+  `SS_RA_Cover_Tree` with 28–38 m bounds radii overlapped the mill at 24–33 m. They carry no trunk
+  colliders, so deleting them is nav-safe. The mill is now framed by a **ring of 10 imported ghost gums at
+  10.5 / 13.5 / 16.5 m** — the classic outback windmill-in-gums shot — each with a hidden trunk collider so
+  agents cannot walk through the trunk while the canopy stays collision-free.
+- **D-DR-05 no water.** Six water segments placed **trace-anchored**: the old placement used the `height()`
+  formula, but the rendered creek terrain is excavated *below* that formula, so all six planes were buried
+  in the ground. Every segment is now `bed_z + 12 cm`, and `water_audit` in the report records the water z,
+  the traced bed z and the segment centre for all six. `M_SS_CreekWater` was authored from scratch
+  (`Tools/Unreal/author_creek_water.py`) because the pack water reads as a glossy orange strip on red dirt.
+- **D-DR-06 / D-DR-07 density, measured.** The audit previously counted only `StaticMeshActor`s, so the new
+  HISM scatter registered as zero. Fixed to count HISM **instances** through the same subobject path the
+  placement uses: Dry River small-foliage **92 → 592** against Red Gum's 124, of which **500 are instanced
+  pieces** (bed stones 90, bush A 150 / B 90 / C 60, flowers 110) plus 26 driftwood logs. Static-mesh actors
+  1173 → 1222. Nothing the producer placed by hand was removed.
+- **D-DR-02 raw grey.** The audit now scans for *visible* actors with empty/default material slots:
+  **0**, with the 10 hidden trunk-collider helpers counted separately so they can never masquerade as a
+  defect. The producer's **grey leafless gum** had the same root cause as the discs — the ghost gum mesh has
+  two slots (`blinn5` trunk, `TH_Gum_Branch_Blinn` **foliage cards**), the branch slot was taking the bark
+  instance, and the tree rendered grey and bare. Slots matching *branch*/*leaf* now take the alpha-masked leaf
+  instance. **The producer confirms the gums are properly leafed.**
+- **Two placements were retired outright** rather than tuned, because both were wrong as assets:
+  the QuarrySlate `SM_Qua_Sla_Patch_*` round discs (flat discs float on any slope, and their cream albedo
+  fights the red dirt — the producer's "round discs floating" screenshot) and the QuarrySlate "European
+  Spindle" bushes (European broadleaf, near-black; Dry River and Red Gum are both Namaqualand didelta, so
+  they were the wrong continent as well as the wrong colour). Replaced with Namaqualand searsia. Bed stones
+  and driftwood now carry the creek floor.
+- **Kangaroo, partially fixed.** The animals were sunk into the terrain; they are re-seated on a real trace
+  (+6 cm) and the producer confirms they stand. `MI_SS_Kangaroo`'s texture overrides were found **empty** in
+  the saved asset — the original egg script's parameter writes never persisted — so both maps are now bound
+  by registry lookup and read back through `MaterialEditingLibrary`
+  (`base=znzmoModel-1132355448-0277`, `norm=…-0278`). **The roo still renders clay-grey in game**, so this is
+  not closed; see DEFECTS FOUND.
+- Nav verified after the new trunk colliders: `build_dryriver_nav.py` `ok: true`.
+
+### FILES CHANGED
+
+- `Tools/Unreal/harvest_dryriver.py` *(new)* — the whole overhaul pass; `Tools/Unreal/author_creek_water.py`
+  *(new)* — authors `M_SS_CreekWater`.
+- `Tools/Unreal/audit_dryriver_overhaul.py` *(new)* — D-DR-01..07 ground-truth audit, extended this session to
+  count HISM instances, to separate hidden collision helpers from visible grey assets, and to restore the
+  Red Gum comparison prefixes it had lost.
+- `Tools/Unreal/inventory_map_assets.py`, `probe_gum_params.py`, `probe_kanga_water.py`, `probe_mat_api.py`,
+  `probe_sweep.py`, `probe_water_state.py` *(new)* — the diagnostic probes this work needed. Kept: each one
+  documents an engine behaviour that is not obvious.
+- `Content/Maps/L_DryRiver_01.umap`, `Content/Art/Environment/Kangaroo/MI_SS_Kangaroo.uasset` *(modified)*.
+- `Content/Art/Environment/DryRiver/M_SS_CreekWater.uasset`,
+  `Content/Art/Environment/Fab/TH_Complete_Full_Ghoast_Gum.uasset`, `…/MI_SS_GhostGum_{Trunk,Branch,Leaf}.uasset`,
+  `Content/Art/Environment/Fab/GhostGum/*` *(new, imported from ENV-003)*,
+  `Content/WaterPlane/Lake/Textures/T_MediumWaves_N.uasset` *(new — the single pack file the water material
+  references; the other 33 files of that 140 MB pack stay local)*.
+- `Docs/MAPS_DRYRIVER.md` §11 statuses + new §11.1, `Docs/ASSET_REGISTER.md` §4.9h/ENV-003/§4.9l,
+  `Docs/CHANGELOG.md`, `Docs/evidence/session088_dryriver_overhaul/*.json`,
+  `Docs/evidence/ui_session088/*.png`.
+- **Not touched:** anything belonging to the concurrent character-model/Wandarra thread — the Quantum and
+  ADFRC character assets, `SSCharacterPartActor`, the first-person and class-select C++, the Wandarra map, or
+  `probe_quantum_material.py`. This entry also lands in a working tree that already held that thread's
+  uncommitted Session 087 changelog section; both are additive and neither was rewritten.
+
+### TESTING
+
+| Check | Command | Result |
+|---|---|---|
+| Overhaul pass | `UnrealEditor-Cmd … -run=pythonscript -Script=Tools/Unreal/harvest_dryriver.py` | **PASS** — `ok: true`, 0 warnings, 0 errors, 42 actors placed, 100 own actors removed on re-run |
+| Water material | `-Script=Tools/Unreal/author_creek_water.py` | **PASS** — `ok: true`, 1 warning (see DEFECTS FOUND) |
+| Defect audit | `-Script=Tools/Unreal/audit_dryriver_overhaul.py` | **PASS** — `ok: true`: 0 visible untextured actors (+10 collision-only), 0 windmill tree conflicts inside 12 m, creek bed 65–217 cm below bank, small-foliage DR 592 vs RG 124, 0 paper-thin candidates, 1222 actors |
+| Water height | report `water_audit` | **PASS** — all 6 segments at exactly `bed_z + 12.0 cm` (e.g. seg 3: water 10.6 / bed −1.4) |
+| Windmill clearance | report `windmill_clearance` | **PASS** — nearest canopy gap 2.74 m (gum ring; threshold 2.5 m), nearest other scenery 5.99 m (threshold 5.0 m) |
+| Kangaroo material | report `fix_kangaroos` | **PARTIAL** — MI reads back with both maps bound; the render is still grey. Not closed |
+| Nav | `-Script=Tools/Unreal/build_dryriver_nav.py` | **PASS** — `ok: true`; two non-gating steps fail on the documented R-10 reload quirk |
+| Producer visual | screenshots, 2026-09-30 | **MIXED** — gums confirmed leafed, kangaroos confirmed standing, discs and black bushes confirmed gone; **no water seen**, and the kangaroo is still grey |
+| In-engine captures | six-spot spectator/player capture pass × 6 | **PARTIAL** — 42 frames in `Docs/evidence/ui_session088/`; the final pass matches the current build. The water close-up has not been inspected for D-DR-05 |
+
+### ASSETS
+
+- **ENV-003 ghost gum `VENDORED` → `IN_USE`**: mesh + 6 imported maps + 3 `MI_SS_GhostGum_*` instances; 10
+  placed on Dry River. Register row updated in the same commit.
+- **ENV-005** `M_SS_CreekWater` and **ENV-006** the gum trunk-collider helpers registered as Class F
+  originals in the new §4.9l.
+- **WaterPlane pack registered** in §4.9h as a bookkeeping correction: it was installed in `Content/` with no
+  register row and no `metadata` sidecar, so it is recorded as **unverified, never clear** (L-0016c posture),
+  not Class A. One texture file is committed because the material references it.
+- L-0024 (ENV-003/004 provenance) is unchanged — producer risk acceptance stands.
+
+### DEFECTS FOUND
+
+- **The creek water was buried because the placement formula was wrong, not the material.** `height()` is
+  the *design* profile; the rendered terrain is excavated below it by up to 2.2 m. Every water plane placed
+  on the formula was under the ground. Found by tracing the bed instead of trusting the spec function.
+- **The "windmill caught in trees" report was really crowding at 24–33 m** — no canopy actually overlapped
+  the mill. Re-reading the producer's screenshot changed the fix from "delete trees" to "frame the mill",
+  which is a better result and cheaper. Found by measuring bounds radii against the mill.
+- **The ghost gum's second material slot is its foliage**, not more bark, despite the name. Mapping bark to
+  it produced the producer's grey leafless gum. Found by reading the mesh's slot names.
+- **An audit that counts actors silently reports HISM work as zero.** The density pass had landed 500
+  instances and the audit still said DR 92 vs RG 124. Found by the numbers not moving after a fix that was
+  known to have worked.
+- **A grey-asset scan that ignores visibility flags reports invisible collision helpers as defects.** 10
+  hidden cylinders would have kept failing D-DR-02 forever. Found by running the audit after the harvest.
+- `set_material_instance_texture_parameter_value` returned without error and **wrote nothing** to the
+  kangaroo MI (same class of silent no-op as the Quantum camo in Session 087). The fix is a read-back through
+  a different API, and the read-back is now part of the step.
+
+### RISKS
+
+- **New R-92 — the kangaroo grey is unresolved.** The material binding is verified and the height is fixed,
+  so the defect is one of: the kangaroo texture assets, the mesh's UVs, or the parent `M_SS_ScanPBR`'s
+  material-usage flags (a material not flagged for static meshes renders with the engine's flat default
+  material, which is exactly the clay-grey read). **Do not close D-DR-02 on the MI read-back alone.**
+- **New R-93 — the creek water is unverified in game.** Geometry and material are measured; nobody has seen
+  it rendered. If it is invisible in play, the next suspects are the translucent blend mode at this
+  exposure and the segment width against the excavated bed.
+- `M_SS_CreekWater`'s panner speed could not be set (`MaterialExpressionPanner.Speed` is protected in 5.8),
+  so the wave animation runs at the node's default rate. Cosmetic; the material still animates.
+- D-DR-01 is only **partially** evidenced: the audit's `thin_scan` is a bounds proxy, not the producer's
+  look. The assets that showed the defect are gone, which is the strongest single piece of evidence.
+- D-DR-04's *aesthetic* half (does the composition read well?) is the producer's call and is not closed by a
+  placement rule.
+
+### NEXT ACTION
+
+One play session on Dry River with three questions only: **is there water in the creek**, **is the kangaroo
+still grey**, and **does the gum ring read as a framed windmill** — then fix the kangaroo by dumping the
+kangaroo texture assets' real state (source size, sRGB, compression) and the mesh's UV channel count before
+touching the material again.
+
 ## Open Threads
 
 | Item | Blocked on | Owner |

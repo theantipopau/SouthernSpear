@@ -443,21 +443,58 @@ its spec.** Statuses update in this table as each is fixed.
 
 | ID | Defect | Evidence | Status |
 |---|---|---|---|
-| D-DR-01 | Some assets are **front-facing only** — nothing on the back (billboard-style geometry visible in level view) | `DR_defect_front_facing_only.jpg` | OPEN |
-| D-DR-02 | Some assets have **no textures** (raw grey) | `DR_defect_debugcam_overview.png` | OPEN |
-| D-DR-03 | The **windmill is caught up in the trees** | `DR_wreck_windmill_context.jpg` | OPEN |
-| D-DR-04 | Some props are **placed randomly without thought** — no composition, no relation to cover or sightlines | `DR_defect_debugcam_overview.png` | OPEN |
-| D-DR-05 | **No water in the creek** — the dry creek bed reads as bare terrain | walk-through | OPEN |
-| D-DR-06 | **Very little small foliage** compared with Red Gum Station — ground layer is empty | comparison, `DR_defect_debugcam_overview.png` | OPEN |
-| D-DR-07 | Map generally **needs more within it** — density pass across the whole play space | producer verdict | OPEN |
+| D-DR-01 | Some assets are **front-facing only** — nothing on the back (billboard-style geometry visible in level view) | `DR_defect_front_facing_only.jpg` | **PARTIAL** — audit `thin_scan` measures 0 paper-thin candidates. The discs that showed it (`SM_Qua_Sla_Patch_*`) were **retired outright**, not re-used. Needs a producer look at the level, not just the number |
+| D-DR-02 | Some assets have **no textures** (raw grey) | `DR_defect_debugcam_overview.png` | **FIXED** — audit `untextured_scan`: 0 *visible* actors with empty/default material slots (10 hidden gum trunk-collider helpers are excluded and counted separately). **The kangaroo is still clay-grey in game — separate defect, see below** |
+| D-DR-03 | The **windmill is caught up in the trees** | `DR_wreck_windmill_context.jpg` | **FIXED** — 3 crowding `SS_RA_Tree`/`SS_RA_Cover_Tree` deleted (they have no trunk colliders, so nav is unaffected); 10 imported ghost gums now ring the mill at 10.5–16.5 m. Post-check `windmill_clearance`: nearest canopy gap **2.74 m** (a gum of the new ring), nearest other scenery 5.99 m, threshold 2.5 m / 5.0 m. Audit independently: 0 tree conflicts inside 12 m |
+| D-DR-04 | Some props are **placed randomly without thought** — no composition, no relation to cover or sightlines | `DR_defect_debugcam_overview.png` | **FIXED (rule-based)** — the creek dressing is now placed by an explicit rule (inside the 6 m creek band, local slope < 0.6, ≥3 m clear of existing dressing, ≥6 m from objectives, ≥12 m from deploys) instead of by eye. Composition/aesthetic judgement is the producer's and stays **OPEN** |
+| D-DR-05 | **No water in the creek** — the dry creek bed reads as bare terrain | walk-through | **FIXED (geometry + material), NOT YET VISUALLY CONFIRMED** — 6 water segments, each trace-anchored to the real bed at **+12 cm** (`water_audit` in `harvest_dryriver_report.json` records water_z and bed_z for every segment), using a purpose-authored translucent material `M_SS_CreekWater`. **Still awaiting one in-game look** |
+| D-DR-06 | **Very little small foliage** compared with Red Gum Station — ground layer is empty | comparison, `DR_defect_debugcam_overview.png` | **FIXED (measured)** — audit `foliage_compare`: Dry River small-foliage **92 → 592** against Red Gum's 124, of which 500 are HISM instances (bushes, flowers, creek stones) |
+| D-DR-07 | Map generally **needs more within it** — density pass across the whole play space | producer verdict | **FIXED (measured)** — instanced dressing 426 pieces across 6 groups, plus the gum ring; static-mesh actors 1173 → 1222. Nothing the producer placed by hand was removed |
 
 **Related Session 084 defect (fixed same session):** the four kangaroo easter-egg actors were first placed at
 canopy height — the placement script's downward visibility trace at the trunk hit the tree's own collision
 top. Fixed by anchoring each animal to its tree's pivot z (the dressing passes spawn trees at terrain height)
 and re-placing all four (`DR_kangaroo_in_canopy.png` is the pre-fix evidence).
 
-**Overhaul intake (planned, not started):** the newly registered ghost gum model (ENV-003, L-0024) is
-imported as part of this overhaul to add canopy variety alongside the RuralAustralia gums, per the producer's
-direction. Every fix must be verified with **in-engine captures of the placed actors** (debug-cam/spectator
-route), not script reports alone — the canopy defect was caught by the producer's screenshot, not by the
-placement script's report, and that gap is the process lesson of Session 084.
+**Overhaul intake (done — Session 088):** the newly registered ghost gum model (ENV-003, L-0024) was imported
+and placed as part of this overhaul, adding canopy variety alongside the RuralAustralia gums, per the
+producer's direction; see §11.1. Every fix must be verified with **in-engine captures of the placed actors**
+(debug-cam/spectator route), not script reports alone — the canopy defect was caught by the producer's
+screenshot, not by the placement script's report, and that gap is the process lesson of Session 084.
+
+### 11.1 The harvest overhaul pass (Session 088)
+
+One script, `Tools/Unreal/harvest_dryriver.py`, places the whole pass and removes only its own labels
+(`SS_Overhaul_*`, `SS_Gum_*`), so it is re-runnable and never touches hand-placed dressing. Report:
+`Build/harvest_dryriver_report.json` (`ok: true`, 0 warnings); copy in
+`Docs/evidence/session088_dryriver_overhaul/`.
+
+**Sources harvested — proven assets already in this project, nothing downloaded:**
+
+| Source | Licence | What was taken |
+|---|---|---|
+| Scene Quarry Slate (Bluestone) | L-0005 | `SM_Qua_Sla_Water_01` (the creek surface mesh), `SM_Qua_Sla_Rock_S_16` (bed stones) |
+| RuralAustralia (Red Gum) | L-0016 | the bush/scrub vocabulary the Red Gum ground layer is built from |
+| Namaqualand (Saltbush) | Session 041 | searsia/rooibos/didelta shrubs, the flower pool (ursinia, empodium, gazania, stinkkruid), dead quiver driftwood, stones |
+| Ghost gum ENV-003 | L-0024 | `TH_Complete_Full_Ghoast_Gum` + 6 imported maps + 3 `MI_SS_GhostGum_*` instances |
+| WaterPlane pack | L-0016b | one normal map, `T_MediumWaves_N`, for the creek material |
+
+**Counts.** Water 6 segments · gum ring 10 (+10 hidden trunk colliders) · creek driftwood 26 · creek stones 90 ·
+bush A 150 / B 90 / C 60 · flowers 110 → **500 HISM instances + 42 static-mesh actors**.
+
+**Deliberately removed.** The QuarrySlate `SM_Qua_Sla_Patch_*` discs (flat discs float on any slope and their
+cream albedo fights the red dirt — the producer's "round discs floating" screenshot) and the QuarrySlate
+"European Spindle" bushes (European broadleaf, near-black; Dry River and Red Gum are both Namaqualand didelta,
+so the species was wrong as well as ugly). Bed stones and driftwood carry the creek floor instead.
+
+**Kangaroo, D-DR-02 residue.** The producer still sees the roo clay-grey in game although
+`MI_SS_Kangaroo` now reads back with both maps bound (`BaseColor` → `znzmoModel-1132355448-0277`,
+`Normal` → `…-0278`, verified through `MaterialEditingLibrary.get_material_instance_texture_parameter_value`
+after saving). The binding is not the defect. Open candidates, none yet measured: the texture assets
+themselves, the mesh's UVs, or the parent `M_SS_ScanPBR`'s material-usage flags (a material not flagged for
+static meshes renders with the engine's flat default material, which is exactly the clay-grey read).
+**This is the next task, not a closed defect.**
+
+**Evidence.** Script reports: `Docs/evidence/session088_dryriver_overhaul/*.json`. In-engine captures:
+`Docs/evidence/ui_session088/` (six spots × six passes; the final pass is the one that matches the current
+build).

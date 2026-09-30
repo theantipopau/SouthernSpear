@@ -1,0 +1,44 @@
+{
+ "ok": true,
+ "steps": [
+  {
+   "step": "create_material",
+   "ok": true,
+   "detail": "/Game/Art/Environment/DryRiver/M_SS_CreekWater"
+  },
+  {
+   "step": "base_color",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "step": "roughness",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "step": "opacity",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "step": "normal_tex",
+   "ok": true,
+   "detail": "/Game/WaterPlane/Lake/Textures/T_MediumWaves_N"
+  },
+  {
+   "step": "normal",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "step": "saved",
+   "ok": true,
+   "detail": ""
+  }
+ ],
+ "errors": [],
+ "warnings": [
+  "panner speed: MaterialExpressionPanner: Property 'Speed' for attribute 'speed' on 'MaterialExpressionPanner' is protected and cannot be set"
+ ]
+}

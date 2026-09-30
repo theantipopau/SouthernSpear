@@ -1,0 +1,1796 @@
+{
+ "wm": [
+  -428.08047890126704,
+  -1418.708999728329,
+  "SS_Farm_Windmill"
+ ],
+ "near": [
+  {
+   "lab": "SS_Blockout_Geometry",
+   "mesh": "SS_MAP_DryRiver_01",
+   "d_m": 14.82,
+   "r_m": 220.0,
+   "gap_clear": -205.18,
+   "gap_sweep": -95.18,
+   "tree_filter": false,
+   "cls": "StaticMeshActor"
+  },
+  {
+   "lab": "SS_Dressing_CreekBankSouth_Post00",
+   "mesh": "SS_Dressing_FencePost",
+   "d_m": 11.1,
+   "r_m": 0.12,
+   "gap_clear": 10.98,
+   "gap_sweep": 11.04,
+   "tree_filter": false,
+   "cls": "StaticMeshActor"
+  },
+  {
+   "lab": "SS_Dressing_CreekBankSouth_Post01",
+   "mesh": "SS_Dressing_FencePost",
+   "d_m": 13.35,
+   "r_m": 0.12,
+   "gap_clear": 13.23,
+   "gap_sweep": 13.29,
+   "tree_filter": false,
+   "cls": "StaticMeshActor"
+  },
+  {
+   "lab": "SS_Dressing_CreekBankSouth_Post02",
+   "mesh": "SS_Dressing_FencePost",
+   "d_m": 15.65,
+   "r_m": 0.12,
+   "gap_clear": 15.53,
+   "gap_sweep": 15.59,
+   "tree_filter": false,
+   "cls": "StaticMeshActor"
+  },
+  {
+   "lab": "SS_Dressing_CreekBankSouth_Post03",
+   "mesh": "SS_Dressing_FencePost",
+   "d_m": 17.98,
+   "r_m": 0.12,
+   "gap_clear": 17.86,
+   "gap_sweep": 17.92,
+   "tree_filter": false,
+   "cls": "StaticMeshActor"
+  },
+  {
+   "lab": "SS_Dressing_CreekBankSouth_Post04",
+   "mesh": "SS_Dressing_FencePost",
+   "d_m": 20.32,
+   "r_m": 0.12,
+   "gap_clear": 20.2,
+   "gap_sweep": 20.26,
+   "tree_filter": false,
+   "cls": "StaticMeshActor"
+  },
+  {
+   "lab": "SS_Dressing_CreekBankSouth_Post05",
+   "mesh": "SS_Dressing_FencePost",
+   "d_m": 22.67,
+   "r_m": 0.12,
+   "gap_clear": 22.55,
+   "gap_sweep": 22.61,
+   "tree_filter": false,
+   "cls": "StaticMeshActor"
+  },
+  {
+   "lab": "SS_Dressing_CreekBankSouth_Rail00_055",
+   "mesh": "SS_Dressing_FenceRail",
+   "d_m": 12.22,
+   "r_m": 1.23,
+   "gap_clear": 11.0,
+   "gap_sweep": 11.61,
+   "tree_filter": false,
+   "cls": "StaticMeshActor"
+  },
+  {
+   "lab": "SS_Dressing_CreekBankSouth_Rail00_105",
+   "mesh": "SS_Dressing_FenceRail",
+   "d_m": 12.22,
+   "r_m": 1.23,
+   "gap_clear": 11.0,
+   "gap_sweep": 11.61,
+   "tree_filter": false,
+   "cls": "StaticMeshActor"
+  },
+  {
+   "lab": "SS_Dressing_CreekBankSouth_Rail01_055",
+   "mesh": "SS_Dressing_FenceRail",
+   "d_m": 14.5,
+   "r_m": 1.23,
+   "gap_clear": 13.27,
+   "gap_sweep": 13.89,
+   "tree_filter": false,
+   "cls": "StaticMeshActor"
+  },
+  {
+   "lab": "SS_Dressing_CreekBankSouth_Rail01_105",
+   "mesh": "SS_Dressing_FenceRail",
+   "d_m": 14.5,
+   "r_m": 1.23,
+   "gap_clear": 13.27,
+   "gap_sweep": 13.89,
+   "tree_filter": false,
+   "cls": "StaticMeshActor"
+  },
+  {
+   "lab": "SS_Dressing_CreekBankSouth_Rail02_055",
+   "mesh": "SS_Dressing_FenceRail",
+   "d_m": 16.81,
+   "r_m": 1.23,
+   "gap_clear": 15.59,
+   "gap_sweep": 16.2,
+   "tree_filter": false,
+   "cls": "StaticMeshActor"
+  },
+  {
+   "lab": "SS_Dressing_CreekBankSouth_Rail02_105",
+   "mesh": "SS_Dressing_FenceRail",
+   "d_m": 16.81,
+   "r_m": 1.23,
+   "gap_clear": 15.59,
+   "gap_sweep": 16.2,
+   "tree_filter": false,
+   "cls": "StaticMeshActor"
+  },
+  {
+   "lab": "SS_Dressing_CreekBankSouth_Rail03_055",
+   "mesh": "SS_Dressing_FenceRail",
+   "d_m": 19.14,
+   "r_m": 1.23,
+   "gap_clear": 17.92,
+   "gap_sweep": 18.53,
+   "tree_filter": false,
+   "cls": "StaticMeshActor"
+  },
+  {
+   "lab": "SS_Dressing_CreekBankSouth_Rail03_105",
+   "mesh": "SS_Dressing_FenceRail",
+   "d_m": 19.14,
+   "r_m": 1.23,
+   "gap_clear": 17.92,
+   "gap_sweep": 18.53,
+   "tree_filter": false,
+   "cls": "StaticMeshActor"
+  },
+  {
+   "lab": "SS_Dressing_CreekBankSouth_Rail04_055",
+   "mesh": "SS_Dressing_FenceRail",
+   "d_m": 21.49,
+   "r_m": 1.23,
+   "gap_clear": 20.27,
+   "gap_sweep": 20.88,
+   "tree_filter": false,
+   "cls": "StaticMeshActor"
+  },
+  {
+   "lab": "SS_Dressing_CreekBankSouth_Rail04_105",
+   "mesh": "SS_Dressing_FenceRail",
+   "d_m": 21.49,
+   "r_m": 1.23,
+   "gap_clear": 20.27,
+   "gap_sweep": 20.88,
+   "tree_filter": false,
+   "cls": "StaticMeshActor"
+  },
+  {
+   "lab": "SS_Dressing_Scrub_03",
+   "mesh": "SM_didelta_spinosa_medium_NN",
+   "d_m": 32.97,
+   "r_m": 2.96,
+   "gap_clear": 30.02,
+   "gap_sweep": 31.49,
+   "tree_filter": false,
+   "cls": "StaticMeshActor"
+  },
+  {
+   "lab": "SS_Dressing_Scrub_43",
+   "mesh": "SM_didelta_spinosa_large_NN",
+   "d_m": 38.43,
+   "r_m": 1.99,
+   "gap_clear": 36.44,
+   "gap_sweep": 37.43,
+   "tree_filter": false,
+   "cls": "StaticMeshActor"
+  },
+  {
+   "lab": "SS_Dressing_Scrub_44",
+   "mesh": "SM_didelta_spinosa_large_NN",
+   "d_m": 26.26,
+   "r_m": 3.33,
+   "gap_clear": 22.92,
+   "gap_sweep": 24.59,
+   "tree_filter": false,
+   "cls": "StaticMeshActor"
+  },
+  {
+   "lab": "SS_RA_Scrub",
+   "mesh": "SM_GrassTree_03",
+   "d_m": 32.97,
+   "r_m": 3.11,
+   "gap_clear": 29.86,
+   "gap_sweep": 31.42,
+   "tree_filter": true,
+   "cls": "StaticMeshActor"
+  },
+  {
+   "lab": "SS_RA_Scrub",
+   "mesh": "SM_Tree_S_01",
+   "d_m": 38.43,
+   "r_m": 21.66,
+   "gap_clear": 16.76,
+   "gap_sweep": 27.6,
+   "tree_filter": true,
+   "cls": "StaticMeshActor"
+  },
+  {
+   "lab": "SS_RA_Scrub",
+   "mesh": "SM_GrassTree_04",
+   "d_m": 26.26,
+   "r_m": 2.39,
+   "gap_clear": 23.87,
+   "gap_sweep": 25.06,
+   "tree_filter": true,
+   "cls": "StaticMeshActor"
+  },
+  {
+   "lab": "SS_RA_Tree",
+   "mesh": "SM_Tree_M_04",
+   "d_m": 24.16,
+   "r_m": 28.57,
+   "gap_clear": -4.41,
+   "gap_sweep": 9.88,
+   "tree_filter": true,
+   "cls": "StaticMeshActor"
+  },
+  {
+   "lab": "SS_RA_Tree",
+   "mesh": "SM_Tree_L_01",
+   "d_m": 32.62,
+   "r_m": 38.44,
+   "gap_clear": -5.82,
+   "gap_sweep": 13.4,
+   "tree_filter": true,
+   "cls": "StaticMeshActor"
+  },
+  {
+   "lab": "SS_RA_Tree",
+   "mesh": "SM_Tree_M_02",
+   "d_m": 39.08,
+   "r_m": 19.03,
+   "gap_clear": 20.05,
+   "gap_sweep": 29.57,
+   "tree_filter": true,
+   "cls": "StaticMeshActor"
+  },
+  {
+   "lab": "SS_RA_Tree",
+   "mesh": "SM_Tree_M_02",
+   "d_m": 33.79,
+   "r_m": 21.95,
+   "gap_clear": 11.84,
+   "gap_sweep": 22.82,
+   "tree_filter": true,
+   "cls": "StaticMeshActor"
+  },
+  {
+   "lab": "SS_RA_Rock",
+   "mesh": "SM_Ridge_Rock_01",
+   "d_m": 25.13,
+   "r_m": 16.25,
+   "gap_clear": 8.88,
+   "gap_sweep": 17.0,
+   "tree_filter": false,
+   "cls": "StaticMeshActor"
+  },
+  {
+   "lab": "SS_RA_Rock",
+   "mesh": "SM_Rock_M_01",
+   "d_m": 30.45,
+   "r_m": 3.45,
+   "gap_clear": 27.0,
+   "gap_sweep": 28.72,
+   "tree_filter": false,
+   "cls": "StaticMeshActor"
+  },
+  {
+   "lab": "SS_RA_Cover_Rock",
+   "mesh": "SM_Rock_M_01",
+   "d_m": 37.01,
+   "r_m": 4.93,
+   "gap_clear": 32.08,
+   "gap_sweep": 34.54,
+   "tree_filter": false,
+   "cls": "StaticMeshActor"
+  },
+  {
+   "lab": "SS_RA_Cover_Rock",
+   "mesh": "SM_Ridge_Rock_02",
+   "d_m": 19.52,
+   "r_m": 3.62,
+   "gap_clear": 15.9,
+   "gap_sweep": 17.71,
+   "tree_filter": false,
+   "cls": "StaticMeshActor"
+  },
+  {
+   "lab": "SS_RA_Cover_Rock",
+   "mesh": "SM_Rock_S_01",
+   "d_m": 32.0,
+   "r_m": 1.98,
+   "gap_clear": 30.02,
+   "gap_sweep": 31.01,
+   "tree_filter": false,
+   "cls": "StaticMeshActor"
+  },
+  {
+   "lab": "SS_RA_Cover_Tree",
+   "mesh": "SM_Tree_L_01",
+   "d_m": 24.28,
+   "r_m": 19.52,
+   "gap_clear": 4.75,
+   "gap_sweep": 14.51,
+   "tree_filter": true,
+   "cls": "StaticMeshActor"
+  },
+  {
+   "lab": "SS_RA_Cover_FencePost",
+   "mesh": "SM_Fence_02",
+   "d_m": 37.97,
+   "r_m": 0.26,
+   "gap_clear": 37.72,
+   "gap_sweep": 37.85,
+   "tree_filter": false,
+   "cls": "StaticMeshActor"
+  },
+  {
+   "lab": "SS_RA_Cover_FenceWire",
+   "mesh": "SM_Fence_Wires_01",
+   "d_m": 37.97,
+   "r_m": 1.59,
+   "gap_clear": 36.38,
+   "gap_sweep": 37.18,
+   "tree_filter": false,
+   "cls": "StaticMeshActor"
+  },
+  {
+   "lab": "SS_RA_Cover_FencePost",
+   "mesh": "SM_Fence_02",
+   "d_m": 35.21,
+   "r_m": 0.26,
+   "gap_clear": 34.95,
+   "gap_sweep": 35.08,
+   "tree_filter": false,
+   "cls": "StaticMeshActor"
+  },
+  {
+   "lab": "SS_RA_Cover_FenceWire",
+   "mesh": "SM_Fence_Wires_01",
+   "d_m": 35.21,
+   "r_m": 1.59,
+   "gap_clear": 33.62,
+   "gap_sweep": 34.42,
+   "tree_filter": false,
+   "cls": "StaticMeshActor"
+  },
+  {
+   "lab": "SS_RA_Cover_FencePost",
+   "mesh": "SM_Fence_02",
+   "d_m": 32.49,
+   "r_m": 0.26,
+   "gap_clear": 32.23,
+   "gap_sweep": 32.36,
+   "tree_filter": false,
+   "cls": "StaticMeshActor"
+  },
+  {
+   "lab": "SS_RA_Cover_FenceWire",
+   "mesh": "SM_Fence_Wires_01",
+   "d_m": 32.49,
+   "r_m": 1.59,
+   "gap_clear": 30.9,
+   "gap_sweep": 31.7,
+   "tree_filter": false,
+   "cls": "StaticMeshActor"
+  },
+  {
+   "lab": "SS_RA_Cover_FencePost",
+   "mesh": "SM_Fence_02",
+   "d_m": 29.83,
+   "r_m": 0.26,
+   "gap_clear": 29.57,
+   "gap_sweep": 29.7,
+   "tree_filter": false,
+   "cls": "StaticMeshActor"
+  },
+  {
+   "lab": "SS_RA_Cover_FenceWire",
+   "mesh": "SM_Fence_Wires_01",
+   "d_m": 29.83,
+   "r_m": 1.59,
+   "gap_clear": 28.24,
+   "gap_sweep": 29.03,
+   "tree_filter": false,
+   "cls": "StaticMeshActor"
+  },
+  {
+   "lab": "SS_RA_Cover_FencePost",
+   "mesh": "SM_Fence_02",
+   "d_m": 27.23,
+   "r_m": 0.26,
+   "gap_clear": 26.97,
+   "gap_sweep": 27.1,
+   "tree_filter": false,
+   "cls": "StaticMeshActor"
+  },
+  {
+   "lab": "SS_RA_Cover_FenceWire",
+   "mesh": "SM_Fence_Wires_01",
+   "d_m": 27.23,
+   "r_m": 1.59,
+   "gap_clear": 25.64,
+   "gap_sweep": 26.44,
+   "tree_filter": false,
+   "cls": "StaticMeshActor"
+  },
+  {
+   "lab": "SS_RA_Cover_FencePost",
+   "mesh": "SM_Fence_02",
+   "d_m": 24.73,
+   "r_m": 0.26,
+   "gap_clear": 24.47,
+   "gap_sweep": 24.6,
+   "tree_filter": false,
+   "cls": "StaticMeshActor"
+  },
+  {
+   "lab": "SS_RA_Cover_FenceWire",
+   "mesh": "SM_Fence_Wires_01",
+   "d_m": 24.73,
+   "r_m": 1.59,
+   "gap_clear": 23.14,
+   "gap_sweep": 23.93,
+   "tree_filter": false,
+   "cls": "StaticMeshActor"
+  },
+  {
+   "lab": "SS_RA_Cover_FencePost",
+   "mesh": "SM_Fence_02",
+   "d_m": 22.35,
+   "r_m": 0.26,
+   "gap_clear": 22.09,
+   "gap_sweep": 22.22,
+   "tree_filter": false,
+   "cls": "StaticMeshActor"
+  },
+  {
+   "lab": "SS_RA_Cover_FenceWire",
+   "mesh": "SM_Fence_Wires_01",
+   "d_m": 22.35,
+   "r_m": 1.59,
+   "gap_clear": 20.75,
+   "gap_sweep": 21.55,
+   "tree_filter": false,
+   "cls": "StaticMeshActor"
+  },
+  {
+   "lab": "SS_RA_Cover_FencePost",
+   "mesh": "SM_Fence_02",
+   "d_m": 20.13,
+   "r_m": 0.26,
+   "gap_clear": 19.87,
+   "gap_sweep": 20.0,
+   "tree_filter": false,
+   "cls": "StaticMeshActor"
+  },
+  {
+   "lab": "SS_RA_Cover_FenceWire",
+   "mesh": "SM_Fence_Wires_01",
+   "d_m": 20.13,
+   "r_m": 1.59,
+   "gap_clear": 18.54,
+   "gap_sweep": 19.33,
+   "tree_filter": false,
+   "cls": "StaticMeshActor"
+  },
+  {
+   "lab": "SS_RA_Cover_FencePost",
+   "mesh": "SM_Fence_02",
+   "d_m": 18.14,
+   "r_m": 0.26,
+   "gap_clear": 17.88,
+   "gap_sweep": 18.01,
+   "tree_filter": false,
+   "cls": "StaticMeshActor"
+  },
+  {
+   "lab": "SS_RA_Cover_FenceWire",
+   "mesh": "SM_Fence_Wires_01",
+   "d_m": 18.14,
+   "r_m": 1.59,
+   "gap_clear": 16.55,
+   "gap_sweep": 17.34,
+   "tree_filter": false,
+   "cls": "StaticMeshActor"
+  },
+  {
+   "lab": "SS_RA_Cover_FencePost",
+   "mesh": "SM_Fence_02",
+   "d_m": 16.46,
+   "r_m": 0.26,
+   "gap_clear": 16.2,
+   "gap_sweep": 16.33,
+   "tree_filter": false,
+   "cls": "StaticMeshActor"
+  },
+  {
+   "lab": "SS_RA_Cover_FenceWire",
+   "mesh": "SM_Fence_Wires_01",
+   "d_m": 16.46,
+   "r_m": 1.59,
+   "gap_clear": 14.87,
+   "gap_sweep": 15.66,
+   "tree_filter": false,
+   "cls": "StaticMeshActor"
+  },
+  {
+   "lab": "SS_RA_Cover_FencePost",
+   "mesh": "SM_Fence_02",
+   "d_m": 15.19,
+   "r_m": 0.26,
+   "gap_clear": 14.93,
+   "gap_sweep": 15.06,
+   "tree_filter": false,
+   "cls": "StaticMeshActor"
+  },
+  {
+   "lab": "SS_RA_Cover_FenceWire",
+   "mesh": "SM_Fence_Wires_01",
+   "d_m": 15.19,
+   "r_m": 1.59,
+   "gap_clear": 13.6,
+   "gap_sweep": 14.4,
+   "tree_filter": false,
+   "cls": "StaticMeshActor"
+  },
+  {
+   "lab": "SS_RA_Cover_FencePost",
+   "mesh": "SM_Fence_02",
+   "d_m": 14.45,
+   "r_m": 0.26,
+   "gap_clear": 14.19,
+   "gap_sweep": 14.32,
+   "tree_filter": false,
+   "cls": "StaticMeshActor"
+  },
+  {
+   "lab": "SS_RA_Cover_FenceWire",
+   "mesh": "SM_Fence_Wires_01",
+   "d_m": 14.45,
+   "r_m": 1.59,
+   "gap_clear": 12.85,
+   "gap_sweep": 13.65,
+   "tree_filter": false,
+   "cls": "StaticMeshActor"
+  },
+  {
+   "lab": "SS_RA_Cover_FencePost",
+   "mesh": "SM_Fence_02",
+   "d_m": 14.3,
+   "r_m": 0.26,
+   "gap_clear": 14.04,
+   "gap_sweep": 14.17,
+   "tree_filter": false,
+   "cls": "StaticMeshActor"
+  },
+  {
+   "lab": "SS_RA_Cover_FenceWire",
+   "mesh": "SM_Fence_Wires_01",
+   "d_m": 14.3,
+   "r_m": 1.59,
+   "gap_clear": 12.71,
+   "gap_sweep": 13.51,
+   "tree_filter": false,
+   "cls": "StaticMeshActor"
+  },
+  {
+   "lab": "SS_RA_Cover_FencePost",
+   "mesh": "SM_Fence_02",
+   "d_m": 14.78,
+   "r_m": 0.26,
+   "gap_clear": 14.52,
+   "gap_sweep": 14.65,
+   "tree_filter": false,
+   "cls": "StaticMeshActor"
+  },
+  {
+   "lab": "SS_RA_Cover_FenceWire",
+   "mesh": "SM_Fence_Wires_01",
+   "d_m": 14.78,
+   "r_m": 1.59,
+   "gap_clear": 13.19,
+   "gap_sweep": 13.98,
+   "tree_filter": false,
+   "cls": "StaticMeshActor"
+  },
+  {
+   "lab": "SS_RA_Cover_FencePost",
+   "mesh": "SM_Fence_02",
+   "d_m": 15.82,
+   "r_m": 0.26,
+   "gap_clear": 15.56,
+   "gap_sweep": 15.69,
+   "tree_filter": false,
+   "cls": "StaticMeshActor"
+  },
+  {
+   "lab": "SS_RA_Cover_FenceWire",
+   "mesh": "SM_Fence_Wires_01",
+   "d_m": 15.82,
+   "r_m": 1.59,
+   "gap_clear": 14.23,
+   "gap_sweep": 15.03,
+   "tree_filter": false,
+   "cls": "StaticMeshActor"
+  },
+  {
+   "lab": "SS_RA_Cover_FencePost",
+   "mesh": "SM_Fence_02",
+   "d_m": 17.33,
+   "r_m": 0.26,
+   "gap_clear": 17.07,
+   "gap_sweep": 17.2,
+   "tree_filter": false,
+   "cls": "StaticMeshActor"
+  },
+  {
+   "lab": "SS_RA_Cover_FenceWire",
+   "mesh": "SM_Fence_Wires_01",
+   "d_m": 17.33,
+   "r_m": 1.59,
+   "gap_clear": 15.73,
+   "gap_sweep": 16.53,
+   "tree_filter": false,
+   "cls": "StaticMeshActor"
+  },
+  {
+   "lab": "SS_RA_Cover_FencePost",
+   "mesh": "SM_Fence_02",
+   "d_m": 19.19,
+   "r_m": 0.26,
+   "gap_clear": 18.93,
+   "gap_sweep": 19.06,
+   "tree_filter": false,
+   "cls": "StaticMeshActor"
+  },
+  {
+   "lab": "SS_RA_Cover_FenceWire",
+   "mesh": "SM_Fence_Wires_01",
+   "d_m": 19.19,
+   "r_m": 1.59,
+   "gap_clear": 17.59,
+   "gap_sweep": 18.39,
+   "tree_filter": false,
+   "cls": "StaticMeshActor"
+  },
+  {
+   "lab": "SS_RA_Cover_FencePost",
+   "mesh": "SM_Fence_02",
+   "d_m": 21.31,
+   "r_m": 0.26,
+   "gap_clear": 21.05,
+   "gap_sweep": 21.18,
+   "tree_filter": false,
+   "cls": "StaticMeshActor"
+  },
+  {
+   "lab": "SS_RA_Cover_FenceWire",
+   "mesh": "SM_Fence_Wires_01",
+   "d_m": 21.31,
+   "r_m": 1.59,
+   "gap_clear": 19.71,
+   "gap_sweep": 20.51,
+   "tree_filter": false,
+   "cls": "StaticMeshActor"
+  },
+  {
+   "lab": "SS_RA_Cover_FencePost",
+   "mesh": "SM_Fence_02",
+   "d_m": 23.62,
+   "r_m": 0.26,
+   "gap_clear": 23.36,
+   "gap_sweep": 23.49,
+   "tree_filter": false,
+   "cls": "StaticMeshActor"
+  },
+  {
+   "lab": "SS_RA_Cover_FenceWire",
+   "mesh": "SM_Fence_Wires_01",
+   "d_m": 23.62,
+   "r_m": 1.59,
+   "gap_clear": 22.03,
+   "gap_sweep": 22.82,
+   "tree_filter": false,
+   "cls": "StaticMeshActor"
+  },
+  {
+   "lab": "SS_RA_Cover_FencePost",
+   "mesh": "SM_Fence_02",
+   "d_m": 26.07,
+   "r_m": 0.26,
+   "gap_clear": 25.81,
+   "gap_sweep": 25.94,
+   "tree_filter": false,
+   "cls": "StaticMeshActor"
+  },
+  {
+   "lab": "SS_RA_Cover_FenceWire",
+   "mesh": "SM_Fence_Wires_01",
+   "d_m": 26.07,
+   "r_m": 1.59,
+   "gap_clear": 24.48,
+   "gap_sweep": 25.28,
+   "tree_filter": false,
+   "cls": "StaticMeshActor"
+  },
+  {
+   "lab": "SS_RA_Cover_FencePost",
+   "mesh": "SM_Fence_02",
+   "d_m": 28.63,
+   "r_m": 0.26,
+   "gap_clear": 28.37,
+   "gap_sweep": 28.5,
+   "tree_filter": false,
+   "cls": "StaticMeshActor"
+  },
+  {
+   "lab": "SS_RA_Cover_FenceWire",
+   "mesh": "SM_Fence_Wires_01",
+   "d_m": 28.63,
+   "r_m": 1.59,
+   "gap_clear": 27.04,
+   "gap_sweep": 27.83,
+   "tree_filter": false,
+   "cls": "StaticMeshActor"
+  },
+  {
+   "lab": "SS_RA_Cover_FencePost",
+   "mesh": "SM_Fence_02",
+   "d_m": 31.26,
+   "r_m": 0.26,
+   "gap_clear": 31.01,
+   "gap_sweep": 31.14,
+   "tree_filter": false,
+   "cls": "StaticMeshActor"
+  },
+  {
+   "lab": "SS_RA_Cover_FenceWire",
+   "mesh": "SM_Fence_Wires_01",
+   "d_m": 31.26,
+   "r_m": 1.59,
+   "gap_clear": 29.67,
+   "gap_sweep": 30.47,
+   "tree_filter": false,
+   "cls": "StaticMeshActor"
+  },
+  {
+   "lab": "SS_RA_Cover_FencePost",
+   "mesh": "SM_Fence_02",
+   "d_m": 33.96,
+   "r_m": 0.26,
+   "gap_clear": 33.7,
+   "gap_sweep": 33.83,
+   "tree_filter": false,
+   "cls": "StaticMeshActor"
+  },
+  {
+   "lab": "SS_RA_Cover_FenceWire",
+   "mesh": "SM_Fence_Wires_01",
+   "d_m": 33.96,
+   "r_m": 1.59,
+   "gap_clear": 32.37,
+   "gap_sweep": 33.17,
+   "tree_filter": false,
+   "cls": "StaticMeshActor"
+  },
+  {
+   "lab": "SS_RA_Cover_FencePost",
+   "mesh": "SM_Fence_02",
+   "d_m": 36.7,
+   "r_m": 0.26,
+   "gap_clear": 36.45,
+   "gap_sweep": 36.58,
+   "tree_filter": false,
+   "cls": "StaticMeshActor"
+  },
+  {
+   "lab": "SS_RA_Cover_FenceWire",
+   "mesh": "SM_Fence_Wires_01",
+   "d_m": 36.7,
+   "r_m": 1.59,
+   "gap_clear": 35.11,
+   "gap_sweep": 35.91,
+   "tree_filter": false,
+   "cls": "StaticMeshActor"
+  },
+  {
+   "lab": "SS_RA_Cover_FencePost",
+   "mesh": "SM_Fence_02",
+   "d_m": 39.49,
+   "r_m": 0.26,
+   "gap_clear": 39.23,
+   "gap_sweep": 39.36,
+   "tree_filter": false,
+   "cls": "StaticMeshActor"
+  },
+  {
+   "lab": "SS_RA_Cover_FenceWire",
+   "mesh": "SM_Fence_Wires_01",
+   "d_m": 39.49,
+   "r_m": 1.59,
+   "gap_clear": 37.89,
+   "gap_sweep": 38.69,
+   "tree_filter": false,
+   "cls": "StaticMeshActor"
+  },
+  {
+   "lab": "SS_RA_Cover_FarmFencePost",
+   "mesh": "SM_Fence_02",
+   "d_m": 11.1,
+   "r_m": 0.26,
+   "gap_clear": 10.84,
+   "gap_sweep": 10.97,
+   "tree_filter": false,
+   "cls": "StaticMeshActor"
+  },
+  {
+   "lab": "SS_RA_Cover_FarmFenceWire",
+   "mesh": "SM_Fence_Wires_01",
+   "d_m": 11.1,
+   "r_m": 1.3,
+   "gap_clear": 9.8,
+   "gap_sweep": 10.45,
+   "tree_filter": false,
+   "cls": "StaticMeshActor"
+  },
+  {
+   "lab": "SS_RA_Cover_FarmFencePost",
+   "mesh": "SM_Fence_02",
+   "d_m": 13.35,
+   "r_m": 0.26,
+   "gap_clear": 13.09,
+   "gap_sweep": 13.22,
+   "tree_filter": false,
+   "cls": "StaticMeshActor"
+  },
+  {
+   "lab": "SS_RA_Cover_FarmFenceWire",
+   "mesh": "SM_Fence_Wires_01",
+   "d_m": 11.1,
+   "r_m": 1.3,
+   "gap_clear": 9.8,
+   "gap_sweep": 10.45,
+   "tree_filter": false,
+   "cls": "StaticMeshActor"
+  },
+  {
+   "lab": "SS_RA_Cover_FarmFenceWire",
+   "mesh": "SM_Fence_Wires_01",
+   "d_m": 13.35,
+   "r_m": 1.3,
+   "gap_clear": 12.06,
+   "gap_sweep": 12.71,
+   "tree_filter": false,
+   "cls": "StaticMeshActor"
+  },
+  {
+   "lab": "SS_RA_Cover_FarmFencePost",
+   "mesh": "SM_Fence_02",
+   "d_m": 15.65,
+   "r_m": 0.26,
+   "gap_clear": 15.39,
+   "gap_sweep": 15.52,
+   "tree_filter": false,
+   "cls": "StaticMeshActor"
+  },
+  {
+   "lab": "SS_RA_Cover_FarmFenceWire",
+   "mesh": "SM_Fence_Wires_01",
+   "d_m": 13.35,
+   "r_m": 1.3,
+   "gap_clear": 12.06,
+   "gap_sweep": 12.71,
+   "tree_filter": false,
+   "cls": "StaticMeshActor"
+  },
+  {
+   "lab": "SS_RA_Cover_FarmFenceWire",
+   "mesh": "SM_Fence_Wires_01",
+   "d_m": 15.65,
+   "r_m": 1.3,
+   "gap_clear": 14.35,
+   "gap_sweep": 15.0,
+   "tree_filter": false,
+   "cls": "StaticMeshActor"
+  },
+  {
+   "lab": "SS_RA_Cover_FarmFencePost",
+   "mesh": "SM_Fence_02",
+   "d_m": 17.98,
+   "r_m": 0.26,
+   "gap_clear": 17.72,
+   "gap_sweep": 17.85,
+   "tree_filter": false,
+   "cls": "StaticMeshActor"
+  },
+  {
+   "lab": "SS_RA_Cover_FarmFenceWire",
+   "mesh": "SM_Fence_Wires_01",
+   "d_m": 15.65,
+   "r_m": 1.3,
+   "gap_clear": 14.35,
+   "gap_sweep": 15.0,
+   "tree_filter": false,
+   "cls": "StaticMeshActor"
+  },
+  {
+   "lab": "SS_RA_Cover_FarmFenceWire",
+   "mesh": "SM_Fence_Wires_01",
+   "d_m": 17.98,
+   "r_m": 1.3,
+   "gap_clear": 16.68,
+   "gap_sweep": 17.33,
+   "tree_filter": false,
+   "cls": "StaticMeshActor"
+  },
+  {
+   "lab": "SS_RA_Cover_FarmFencePost",
+   "mesh": "SM_Fence_02",
+   "d_m": 20.32,
+   "r_m": 0.26,
+   "gap_clear": 20.06,
+   "gap_sweep": 20.19,
+   "tree_filter": false,
+   "cls": "StaticMeshActor"
+  },
+  {
+   "lab": "SS_RA_Cover_FarmFenceWire",
+   "mesh": "SM_Fence_Wires_01",
+   "d_m": 17.98,
+   "r_m": 1.3,
+   "gap_clear": 16.68,
+   "gap_sweep": 17.33,
+   "tree_filter": false,
+   "cls": "StaticMeshActor"
+  },
+  {
+   "lab": "SS_RA_Cover_FarmFenceWire",
+   "mesh": "SM_Fence_Wires_01",
+   "d_m": 20.32,
+   "r_m": 1.3,
+   "gap_clear": 19.02,
+   "gap_sweep": 19.67,
+   "tree_filter": false,
+   "cls": "StaticMeshActor"
+  },
+  {
+   "lab": "SS_RA_Cover_FarmFencePost",
+   "mesh": "SM_Fence_02",
+   "d_m": 22.67,
+   "r_m": 0.26,
+   "gap_clear": 22.41,
+   "gap_sweep": 22.54,
+   "tree_filter": false,
+   "cls": "StaticMeshActor"
+  },
+  {
+   "lab": "SS_RA_Cover_FarmFenceWire",
+   "mesh": "SM_Fence_Wires_01",
+   "d_m": 20.32,
+   "r_m": 1.3,
+   "gap_clear": 19.02,
+   "gap_sweep": 19.67,
+   "tree_filter": false,
+   "cls": "StaticMeshActor"
+  },
+  {
+   "lab": "SS_Expand_Skirt",
+   "mesh": "SS_MAP_DryRiver_Skirt",
+   "d_m": 14.82,
+   "r_m": 3000.0,
+   "gap_clear": -2985.18,
+   "gap_sweep": -1485.18,
+   "tree_filter": false,
+   "cls": "StaticMeshActor"
+  },
+  {
+   "lab": "SS_Expand_Horizon",
+   "mesh": "SM_Horizon_01",
+   "d_m": 14.82,
+   "r_m": 5194.85,
+   "gap_clear": -5180.03,
+   "gap_sweep": -2582.61,
+   "tree_filter": false,
+   "cls": "StaticMeshActor"
+  },
+  {
+   "lab": "SS_Expand_Cover_Sangar_02_00",
+   "mesh": "SM_SacksPacked_01",
+   "d_m": 32.85,
+   "r_m": 1.26,
+   "gap_clear": 31.59,
+   "gap_sweep": 32.22,
+   "tree_filter": false,
+   "cls": "StaticMeshActor"
+  },
+  {
+   "lab": "SS_Expand_Cover_Sangar_02_01",
+   "mesh": "SM_SacksPacked_02",
+   "d_m": 31.82,
+   "r_m": 1.54,
+   "gap_clear": 30.28,
+   "gap_sweep": 31.05,
+   "tree_filter": false,
+   "cls": "StaticMeshActor"
+  },
+  {
+   "lab": "SS_Expand_Cover_Sangar_02_02",
+   "mesh": "SM_SacksPacked_01",
+   "d_m": 31.12,
+   "r_m": 1.07,
+   "gap_clear": 30.05,
+   "gap_sweep": 30.59,
+   "tree_filter": false,
+   "cls": "StaticMeshActor"
+  },
+  {
+   "lab": "SS_Expand_Cover_Sangar_02_03",
+   "mesh": "SM_SacksPacked_02",
+   "d_m": 30.95,
+   "r_m": 1.41,
+   "gap_clear": 29.54,
+   "gap_sweep": 30.25,
+   "tree_filter": false,
+   "cls": "StaticMeshActor"
+  },
+  {
+   "lab": "SS_Expand_Cover_Sangar_02_04",
+   "mesh": "SM_SacksPacked_01",
+   "d_m": 31.35,
+   "r_m": 1.34,
+   "gap_clear": 30.01,
+   "gap_sweep": 30.68,
+   "tree_filter": false,
+   "cls": "StaticMeshActor"
+  },
+  {
+   "lab": "SS_Expand_Cover_Sangar_02_05",
+   "mesh": "SM_SacksPacked_02",
+   "d_m": 32.31,
+   "r_m": 1.55,
+   "gap_clear": 30.76,
+   "gap_sweep": 31.53,
+   "tree_filter": false,
+   "cls": "StaticMeshActor"
+  },
+  {
+   "lab": "SS_Expand_Cover_Sangar_02_06",
+   "mesh": "SM_SacksPacked_01",
+   "d_m": 31.42,
+   "r_m": 1.23,
+   "gap_clear": 30.18,
+   "gap_sweep": 30.8,
+   "tree_filter": false,
+   "cls": "StaticMeshActor"
+  },
+  {
+   "lab": "SS_Expand_Cover_Sangar_02_07",
+   "mesh": "SM_SacksPacked_02",
+   "d_m": 30.96,
+   "r_m": 1.21,
+   "gap_clear": 29.76,
+   "gap_sweep": 30.36,
+   "tree_filter": false,
+   "cls": "StaticMeshActor"
+  },
+  {
+   "lab": "SS_Expand_Cover_Sangar_02_08",
+   "mesh": "SM_SacksPacked_01",
+   "d_m": 31.08,
+   "r_m": 1.31,
+   "gap_clear": 29.77,
+   "gap_sweep": 30.42,
+   "tree_filter": false,
+   "cls": "StaticMeshActor"
+  },
+  {
+   "lab": "SS_Expand_Cover_SangarKit_02_00",
+   "mesh": "SM_CrateSmall_01",
+   "d_m": 33.57,
+   "r_m": 0.87,
+   "gap_clear": 32.7,
+   "gap_sweep": 33.14,
+   "tree_filter": false,
+   "cls": "StaticMeshActor"
+  },
+  {
+   "lab": "SS_Expand_Cover_Rock_010",
+   "mesh": "SM_Rock_S_01",
+   "d_m": 24.7,
+   "r_m": 2.86,
+   "gap_clear": 21.84,
+   "gap_sweep": 23.27,
+   "tree_filter": false,
+   "cls": "StaticMeshActor"
+  },
+  {
+   "lab": "SS_Expand_Cover_Rock_028",
+   "mesh": "SM_Rock_M_03",
+   "d_m": 22.46,
+   "r_m": 2.01,
+   "gap_clear": 20.45,
+   "gap_sweep": 21.46,
+   "tree_filter": false,
+   "cls": "StaticMeshActor"
+  },
+  {
+   "lab": "SS_Expand_Cover_CreekRock_001",
+   "mesh": "SM_Rock_S_02",
+   "d_m": 26.83,
+   "r_m": 1.82,
+   "gap_clear": 25.01,
+   "gap_sweep": 25.92,
+   "tree_filter": false,
+   "cls": "StaticMeshActor"
+  },
+  {
+   "lab": "SS_Expand_Cover_CreekRock_010",
+   "mesh": "SM_Rock_S_01",
+   "d_m": 14.96,
+   "r_m": 1.94,
+   "gap_clear": 13.03,
+   "gap_sweep": 14.0,
+   "tree_filter": false,
+   "cls": "StaticMeshActor"
+  },
+  {
+   "lab": "SS_Expand_Cover_CreekRock_012",
+   "mesh": "SM_Rock_S_02",
+   "d_m": 28.92,
+   "r_m": 1.44,
+   "gap_clear": 27.48,
+   "gap_sweep": 28.2,
+   "tree_filter": false,
+   "cls": "StaticMeshActor"
+  },
+  {
+   "lab": "SS_Expand_Cover_CreekRock_013",
+   "mesh": "SM_Rock_S_02",
+   "d_m": 34.8,
+   "r_m": 1.07,
+   "gap_clear": 33.72,
+   "gap_sweep": 34.26,
+   "tree_filter": false,
+   "cls": "StaticMeshActor"
+  },
+  {
+   "lab": "SS_Expand_Cover_CreekRock_015",
+   "mesh": "SM_Rock_S_01",
+   "d_m": 12.03,
+   "r_m": 2.47,
+   "gap_clear": 9.57,
+   "gap_sweep": 10.8,
+   "tree_filter": false,
+   "cls": "StaticMeshActor"
+  },
+  {
+   "lab": "SS_Expand_Cover_CreekRock_022",
+   "mesh": "SM_Rock_S_02",
+   "d_m": 19.91,
+   "r_m": 1.71,
+   "gap_clear": 18.21,
+   "gap_sweep": 19.06,
+   "tree_filter": false,
+   "cls": "StaticMeshActor"
+  },
+  {
+   "lab": "SS_Expand_Cover_CreekRock_023",
+   "mesh": "SM_Rock_S_02",
+   "d_m": 34.34,
+   "r_m": 1.27,
+   "gap_clear": 33.07,
+   "gap_sweep": 33.71,
+   "tree_filter": false,
+   "cls": "StaticMeshActor"
+  },
+  {
+   "lab": "SS_Expand_Creek_Ledge_03",
+   "mesh": "SM_Qua_Sla_Ledge_Rock_M_01",
+   "d_m": 21.12,
+   "r_m": 2.89,
+   "gap_clear": 18.23,
+   "gap_sweep": 19.68,
+   "tree_filter": false,
+   "cls": "StaticMeshActor"
+  },
+  {
+   "lab": "SS_Expand_Creek_Ledge_10",
+   "mesh": "SM_Qua_Sla_Ledge_Rock_M_03",
+   "d_m": 34.19,
+   "r_m": 2.16,
+   "gap_clear": 32.03,
+   "gap_sweep": 33.11,
+   "tree_filter": false,
+   "cls": "StaticMeshActor"
+  },
+  {
+   "lab": "SS_Expand_Creek_Ledge_11",
+   "mesh": "SM_Qua_Sla_Ledge_Rock_M_03",
+   "d_m": 26.64,
+   "r_m": 3.28,
+   "gap_clear": 23.36,
+   "gap_sweep": 25.0,
+   "tree_filter": false,
+   "cls": "StaticMeshActor"
+  },
+  {
+   "lab": "SS_Expand_Creek_Ledge_25",
+   "mesh": "SM_Qua_Sla_Cluster_Ledge_Rock_M_01",
+   "d_m": 9.24,
+   "r_m": 3.24,
+   "gap_clear": 5.99,
+   "gap_sweep": 7.61,
+   "tree_filter": false,
+   "cls": "StaticMeshActor"
+  },
+  {
+   "lab": "SS_Expand_Quarry_Rocks_06",
+   "mesh": "SM_Qua_Sla_Cluster_Rock_S_02",
+   "d_m": 34.38,
+   "r_m": 2.56,
+   "gap_clear": 31.82,
+   "gap_sweep": 33.1,
+   "tree_filter": false,
+   "cls": "StaticMeshActor"
+  },
+  {
+   "lab": "SS_Expand_Quarry_Rocks_16",
+   "mesh": "SM_Qua_Sla_Cluster_Rock_M_07",
+   "d_m": 38.32,
+   "r_m": 3.58,
+   "gap_clear": 34.74,
+   "gap_sweep": 36.53,
+   "tree_filter": false,
+   "cls": "StaticMeshActor"
+  },
+  {
+   "lab": "SS_Farm_Windmill",
+   "mesh": "SS_Raven_windmill",
+   "d_m": 0.0,
+   "r_m": 3.35,
+   "gap_clear": -3.35,
+   "gap_sweep": -1.67,
+   "tree_filter": false,
+   "cls": "StaticMeshActor"
+  },
+  {
+   "lab": "SS_Farm_WaterTower",
+   "mesh": "SS_Raven_water_tower",
+   "d_m": 25.51,
+   "r_m": 3.7,
+   "gap_clear": 21.81,
+   "gap_sweep": 23.66,
+   "tree_filter": false,
+   "cls": "StaticMeshActor"
+  },
+  {
+   "lab": "SS_Farm_Pump_Water",
+   "mesh": "SS_Raven_hand_pump",
+   "d_m": 9.29,
+   "r_m": 0.73,
+   "gap_clear": 8.56,
+   "gap_sweep": 8.92,
+   "tree_filter": false,
+   "cls": "StaticMeshActor"
+  },
+  {
+   "lab": "SS_Farm_Caravan",
+   "mesh": "Caravan",
+   "d_m": 25.87,
+   "r_m": 6.59,
+   "gap_clear": 19.28,
+   "gap_sweep": 22.58,
+   "tree_filter": false,
+   "cls": "StaticMeshActor"
+  },
+  {
+   "lab": "SS_Farm_Well_Water",
+   "mesh": "SM_Well",
+   "d_m": 37.38,
+   "r_m": 3.01,
+   "gap_clear": 34.37,
+   "gap_sweep": 35.88,
+   "tree_filter": false,
+   "cls": "StaticMeshActor"
+  },
+  {
+   "lab": "SS_Gum_WindmillScreen_00",
+   "mesh": "TH_Complete_Full_Ghoast_Gum",
+   "d_m": 10.5,
+   "r_m": 6.74,
+   "gap_clear": 3.76,
+   "gap_sweep": 7.13,
+   "tree_filter": false,
+   "cls": "StaticMeshActor"
+  },
+  {
+   "lab": "SS_Gum_TrunkCol_00",
+   "mesh": "Cylinder",
+   "d_m": 10.5,
+   "r_m": 0.48,
+   "gap_clear": 10.02,
+   "gap_sweep": 10.26,
+   "tree_filter": false,
+   "cls": "StaticMeshActor"
+  },
+  {
+   "lab": "SS_Gum_WindmillScreen_01",
+   "mesh": "TH_Complete_Full_Ghoast_Gum",
+   "d_m": 10.5,
+   "r_m": 7.7,
+   "gap_clear": 2.8,
+   "gap_sweep": 6.65,
+   "tree_filter": false,
+   "cls": "StaticMeshActor"
+  },
+  {
+   "lab": "SS_Gum_TrunkCol_01",
+   "mesh": "Cylinder",
+   "d_m": 10.5,
+   "r_m": 0.46,
+   "gap_clear": 10.04,
+   "gap_sweep": 10.27,
+   "tree_filter": false,
+   "cls": "StaticMeshActor"
+  },
+  {
+   "lab": "SS_Gum_WindmillScreen_02",
+   "mesh": "TH_Complete_Full_Ghoast_Gum",
+   "d_m": 13.5,
+   "r_m": 8.16,
+   "gap_clear": 5.34,
+   "gap_sweep": 9.42,
+   "tree_filter": false,
+   "cls": "StaticMeshActor"
+  },
+  {
+   "lab": "SS_Gum_TrunkCol_02",
+   "mesh": "Cylinder",
+   "d_m": 13.5,
+   "r_m": 0.48,
+   "gap_clear": 13.02,
+   "gap_sweep": 13.26,
+   "tree_filter": false,
+   "cls": "StaticMeshActor"
+  },
+  {
+   "lab": "SS_Gum_WindmillScreen_03",
+   "mesh": "TH_Complete_Full_Ghoast_Gum",
+   "d_m": 10.5,
+   "r_m": 7.76,
+   "gap_clear": 2.74,
+   "gap_sweep": 6.62,
+   "tree_filter": false,
+   "cls": "StaticMeshActor"
+  },
+  {
+   "lab": "SS_Gum_TrunkCol_03",
+   "mesh": "Cylinder",
+   "d_m": 10.5,
+   "r_m": 0.48,
+   "gap_clear": 10.02,
+   "gap_sweep": 10.26,
+   "tree_filter": false,
+   "cls": "StaticMeshActor"
+  },
+  {
+   "lab": "SS_Gum_WindmillScreen_04",
+   "mesh": "TH_Complete_Full_Ghoast_Gum",
+   "d_m": 13.5,
+   "r_m": 6.66,
+   "gap_clear": 6.84,
+   "gap_sweep": 10.17,
+   "tree_filter": false,
+   "cls": "StaticMeshActor"
+  },
+  {
+   "lab": "SS_Gum_TrunkCol_04",
+   "mesh": "Cylinder",
+   "d_m": 13.5,
+   "r_m": 0.46,
+   "gap_clear": 13.04,
+   "gap_sweep": 13.27,
+   "tree_filter": false,
+   "cls": "StaticMeshActor"
+  },
+  {
+   "lab": "SS_Gum_WindmillScreen_05",
+   "mesh": "TH_Complete_Full_Ghoast_Gum",
+   "d_m": 10.5,
+   "r_m": 6.84,
+   "gap_clear": 3.66,
+   "gap_sweep": 7.08,
+   "tree_filter": false,
+   "cls": "StaticMeshActor"
+  },
+  {
+   "lab": "SS_Gum_TrunkCol_05",
+   "mesh": "Cylinder",
+   "d_m": 10.5,
+   "r_m": 0.41,
+   "gap_clear": 10.09,
+   "gap_sweep": 10.3,
+   "tree_filter": false,
+   "cls": "StaticMeshActor"
+  },
+  {
+   "lab": "SS_Gum_WindmillScreen_06",
+   "mesh": "TH_Complete_Full_Ghoast_Gum",
+   "d_m": 16.5,
+   "r_m": 8.58,
+   "gap_clear": 7.92,
+   "gap_sweep": 12.21,
+   "tree_filter": false,
+   "cls": "StaticMeshActor"
+  },
+  {
+   "lab": "SS_Gum_TrunkCol_06",
+   "mesh": "Cylinder",
+   "d_m": 16.5,
+   "r_m": 0.5,
+   "gap_clear": 16.0,
+   "gap_sweep": 16.25,
+   "tree_filter": false,
+   "cls": "StaticMeshActor"
+  },
+  {
+   "lab": "SS_Gum_WindmillScreen_07",
+   "mesh": "TH_Complete_Full_Ghoast_Gum",
+   "d_m": 13.5,
+   "r_m": 7.84,
+   "gap_clear": 5.66,
+   "gap_sweep": 9.58,
+   "tree_filter": false,
+   "cls": "StaticMeshActor"
+  },
+  {
+   "lab": "SS_Gum_TrunkCol_07",
+   "mesh": "Cylinder",
+   "d_m": 13.5,
+   "r_m": 0.46,
+   "gap_clear": 13.04,
+   "gap_sweep": 13.27,
+   "tree_filter": false,
+   "cls": "StaticMeshActor"
+  },
+  {
+   "lab": "SS_Gum_WindmillScreen_08",
+   "mesh": "TH_Complete_Full_Ghoast_Gum",
+   "d_m": 10.5,
+   "r_m": 6.29,
+   "gap_clear": 4.21,
+   "gap_sweep": 7.36,
+   "tree_filter": false,
+   "cls": "StaticMeshActor"
+  },
+  {
+   "lab": "SS_Gum_TrunkCol_08",
+   "mesh": "Cylinder",
+   "d_m": 10.5,
+   "r_m": 0.44,
+   "gap_clear": 10.06,
+   "gap_sweep": 10.28,
+   "tree_filter": false,
+   "cls": "StaticMeshActor"
+  },
+  {
+   "lab": "SS_Gum_WindmillScreen_09",
+   "mesh": "TH_Complete_Full_Ghoast_Gum",
+   "d_m": 16.5,
+   "r_m": 7.88,
+   "gap_clear": 8.62,
+   "gap_sweep": 12.56,
+   "tree_filter": false,
+   "cls": "StaticMeshActor"
+  },
+  {
+   "lab": "SS_Gum_TrunkCol_09",
+   "mesh": "Cylinder",
+   "d_m": 16.5,
+   "r_m": 0.49,
+   "gap_clear": 16.01,
+   "gap_sweep": 16.25,
+   "tree_filter": false,
+   "cls": "StaticMeshActor"
+  },
+  {
+   "lab": "SS_Overhaul_Creek_Water_02",
+   "mesh": "SM_Qua_Sla_Water_01",
+   "d_m": 21.39,
+   "r_m": 40.5,
+   "gap_clear": -19.1,
+   "gap_sweep": 1.14,
+   "tree_filter": false,
+   "cls": "StaticMeshActor"
+  },
+  {
+   "lab": "SS_Overhaul_Bed_Patch_028",
+   "mesh": "SM_Qua_Sla_Patch_Tracks_Dirt_Coarse_01",
+   "d_m": 38.81,
+   "r_m": 4.2,
+   "gap_clear": 34.61,
+   "gap_sweep": 36.71,
+   "tree_filter": false,
+   "cls": "StaticMeshActor"
+  },
+  {
+   "lab": "SS_Overhaul_Bed_Patch_029",
+   "mesh": "SM_Qua_Sla_Patch_Gravel_Coarse_01",
+   "d_m": 34.6,
+   "r_m": 3.86,
+   "gap_clear": 30.74,
+   "gap_sweep": 32.67,
+   "tree_filter": false,
+   "cls": "StaticMeshActor"
+  },
+  {
+   "lab": "SS_Overhaul_Bed_Patch_030",
+   "mesh": "SM_Qua_Sla_Patch_Tracks_Dirt_Coarse_01",
+   "d_m": 36.58,
+   "r_m": 2.93,
+   "gap_clear": 33.65,
+   "gap_sweep": 35.12,
+   "tree_filter": false,
+   "cls": "StaticMeshActor"
+  },
+  {
+   "lab": "SS_Overhaul_Bed_Patch_031",
+   "mesh": "SM_Qua_Sla_Patch_Tracks_Dirt_Coarse_01",
+   "d_m": 31.76,
+   "r_m": 4.21,
+   "gap_clear": 27.55,
+   "gap_sweep": 29.65,
+   "tree_filter": false,
+   "cls": "StaticMeshActor"
+  },
+  {
+   "lab": "SS_Overhaul_Bed_Patch_032",
+   "mesh": "SM_Qua_Sla_Patch_Gravel_Coarse_01",
+   "d_m": 28.67,
+   "r_m": 4.79,
+   "gap_clear": 23.88,
+   "gap_sweep": 26.27,
+   "tree_filter": false,
+   "cls": "StaticMeshActor"
+  },
+  {
+   "lab": "SS_Overhaul_Bed_Patch_033",
+   "mesh": "SM_Qua_Sla_Patch_Gravel_Coarse_01",
+   "d_m": 31.16,
+   "r_m": 6.73,
+   "gap_clear": 24.42,
+   "gap_sweep": 27.79,
+   "tree_filter": false,
+   "cls": "StaticMeshActor"
+  },
+  {
+   "lab": "SS_Overhaul_Bed_Patch_034",
+   "mesh": "SM_Qua_Sla_Patch_Tracks_Dirt_Coarse_01",
+   "d_m": 25.9,
+   "r_m": 4.4,
+   "gap_clear": 21.49,
+   "gap_sweep": 23.69,
+   "tree_filter": false,
+   "cls": "StaticMeshActor"
+  },
+  {
+   "lab": "SS_Overhaul_Bed_Patch_035",
+   "mesh": "SM_Qua_Sla_Patch_Tracks_Dirt_Coarse_01",
+   "d_m": 29.17,
+   "r_m": 4.43,
+   "gap_clear": 24.74,
+   "gap_sweep": 26.95,
+   "tree_filter": false,
+   "cls": "StaticMeshActor"
+  },
+  {
+   "lab": "SS_Overhaul_Bed_Patch_036",
+   "mesh": "SM_Qua_Sla_Patch_Mound_Mud_Dried_03",
+   "d_m": 26.23,
+   "r_m": 2.72,
+   "gap_clear": 23.51,
+   "gap_sweep": 24.87,
+   "tree_filter": false,
+   "cls": "StaticMeshActor"
+  },
+  {
+   "lab": "SS_Overhaul_Bed_Patch_037",
+   "mesh": "SM_Qua_Sla_Patch_Gravel_Coarse_01",
+   "d_m": 19.26,
+   "r_m": 5.05,
+   "gap_clear": 14.2,
+   "gap_sweep": 16.73,
+   "tree_filter": false,
+   "cls": "StaticMeshActor"
+  },
+  {
+   "lab": "SS_Overhaul_Bed_Patch_038",
+   "mesh": "SM_Qua_Sla_Patch_Gravel_Coarse_01",
+   "d_m": 20.07,
+   "r_m": 4.94,
+   "gap_clear": 15.12,
+   "gap_sweep": 17.59,
+   "tree_filter": false,
+   "cls": "StaticMeshActor"
+  },
+  {
+   "lab": "SS_Overhaul_Bed_Patch_039",
+   "mesh": "SM_Qua_Sla_Patch_Tracks_Dirt_Coarse_01",
+   "d_m": 10.64,
+   "r_m": 3.53,
+   "gap_clear": 7.11,
+   "gap_sweep": 8.88,
+   "tree_filter": false,
+   "cls": "StaticMeshActor"
+  },
+  {
+   "lab": "SS_Overhaul_Bed_Patch_040",
+   "mesh": "SM_Qua_Sla_Patch_Gravel_Coarse_01",
+   "d_m": 13.55,
+   "r_m": 6.17,
+   "gap_clear": 7.38,
+   "gap_sweep": 10.46,
+   "tree_filter": false,
+   "cls": "StaticMeshActor"
+  },
+  {
+   "lab": "SS_Overhaul_Bed_Patch_041",
+   "mesh": "SM_Qua_Sla_Patch_Tracks_Dirt_Coarse_01",
+   "d_m": 22.59,
+   "r_m": 3.55,
+   "gap_clear": 19.03,
+   "gap_sweep": 20.81,
+   "tree_filter": false,
+   "cls": "StaticMeshActor"
+  },
+  {
+   "lab": "SS_Overhaul_Bed_Patch_042",
+   "mesh": "SM_Qua_Sla_Patch_Gravel_Coarse_01",
+   "d_m": 14.91,
+   "r_m": 6.08,
+   "gap_clear": 8.84,
+   "gap_sweep": 11.88,
+   "tree_filter": false,
+   "cls": "StaticMeshActor"
+  },
+  {
+   "lab": "SS_Overhaul_Bed_Patch_043",
+   "mesh": "SM_Qua_Sla_Patch_Mound_Mud_Dried_03",
+   "d_m": 20.2,
+   "r_m": 2.83,
+   "gap_clear": 17.37,
+   "gap_sweep": 18.79,
+   "tree_filter": false,
+   "cls": "StaticMeshActor"
+  },
+  {
+   "lab": "SS_Overhaul_Bed_Patch_044",
+   "mesh": "SM_Qua_Sla_Patch_Gravel_Coarse_01",
+   "d_m": 32.74,
+   "r_m": 2.82,
+   "gap_clear": 29.92,
+   "gap_sweep": 31.33,
+   "tree_filter": false,
+   "cls": "StaticMeshActor"
+  },
+  {
+   "lab": "SS_Overhaul_Bed_Patch_045",
+   "mesh": "SM_Qua_Sla_Patch_Tracks_Dirt_Coarse_01",
+   "d_m": 28.37,
+   "r_m": 5.06,
+   "gap_clear": 23.31,
+   "gap_sweep": 25.84,
+   "tree_filter": false,
+   "cls": "StaticMeshActor"
+  },
+  {
+   "lab": "SS_Overhaul_Bed_Patch_046",
+   "mesh": "SM_Qua_Sla_Patch_Tracks_Dirt_Coarse_01",
+   "d_m": 31.21,
+   "r_m": 4.8,
+   "gap_clear": 26.41,
+   "gap_sweep": 28.81,
+   "tree_filter": false,
+   "cls": "StaticMeshActor"
+  },
+  {
+   "lab": "SS_Overhaul_Bed_Patch_047",
+   "mesh": "SM_Qua_Sla_Patch_Tracks_Dirt_Coarse_01",
+   "d_m": 37.76,
+   "r_m": 4.31,
+   "gap_clear": 33.45,
+   "gap_sweep": 35.61,
+   "tree_filter": false,
+   "cls": "StaticMeshActor"
+  },
+  {
+   "lab": "SS_Overhaul_Bed_Patch_048",
+   "mesh": "SM_Qua_Sla_Patch_Tracks_Dirt_Coarse_01",
+   "d_m": 34.41,
+   "r_m": 3.0,
+   "gap_clear": 31.41,
+   "gap_sweep": 32.91,
+   "tree_filter": false,
+   "cls": "StaticMeshActor"
+  },
+  {
+   "lab": "SS_Overhaul_Bed_Patch_049",
+   "mesh": "SM_Qua_Sla_Patch_Mound_Mud_Dried_03",
+   "d_m": 37.08,
+   "r_m": 1.79,
+   "gap_clear": 35.29,
+   "gap_sweep": 36.18,
+   "tree_filter": false,
+   "cls": "StaticMeshActor"
+  },
+  {
+   "lab": "SS_Overhaul_Bed_Patch_051",
+   "mesh": "SM_Qua_Sla_Patch_Tracks_Dirt_Coarse_01",
+   "d_m": 40.0,
+   "r_m": 3.44,
+   "gap_clear": 36.56,
+   "gap_sweep": 38.28,
+   "tree_filter": false,
+   "cls": "StaticMeshActor"
+  },
+  {
+   "lab": "SS_Overhaul_Bed_Driftwood_09",
+   "mesh": "SM_dead_quiver_branch_02_NN",
+   "d_m": 26.51,
+   "r_m": 0.37,
+   "gap_clear": 26.14,
+   "gap_sweep": 26.32,
+   "tree_filter": false,
+   "cls": "StaticMeshActor"
+  },
+  {
+   "lab": "SS_Overhaul_Bed_Driftwood_10",
+   "mesh": "SM_dead_quiver_branch_01_NN",
+   "d_m": 25.55,
+   "r_m": 0.29,
+   "gap_clear": 25.26,
+   "gap_sweep": 25.4,
+   "tree_filter": false,
+   "cls": "StaticMeshActor"
+  },
+  {
+   "lab": "SS_Overhaul_Bed_Driftwood_11",
+   "mesh": "SM_dead_quiver_branch_02_NN",
+   "d_m": 33.77,
+   "r_m": 0.35,
+   "gap_clear": 33.43,
+   "gap_sweep": 33.6,
+   "tree_filter": false,
+   "cls": "StaticMeshActor"
+  }
+ ],
+ "sweep_would_remove": [
+  "SS_RA_Tree",
+  "SS_RA_Tree",
+  "SS_RA_Tree",
+  "SS_RA_Tree"
+ ],
+ "errors": []
+}

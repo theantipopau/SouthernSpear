@@ -1,0 +1,20 @@
+{
+ "params": [],
+ "scalars": [],
+ "vectors": [],
+ "mi_parent": "/Game/Scene_QuarrySlate/Materials/MasterMaterials/M_Qua_Sla_Water_01.M_Qua_Sla_Water_01",
+ "mesh_slots": [
+  "WorldGridMaterial"
+ ],
+ "mesh_bounds": [
+  15374.4,
+  13093.1,
+  0.0
+ ],
+ "probe_error": "type object 'MaterialEditingLibrary' has no attribute 'get_material_instance_texture_parameter_names'",
+ "has_body": true,
+ "gum_slots": [
+  "blinn5",
+  "TH_Gum_Branch_Blinn"
+ ]
+}

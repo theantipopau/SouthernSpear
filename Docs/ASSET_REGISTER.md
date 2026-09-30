@@ -2,7 +2,7 @@
 
 **Document ID:** `Docs/ASSET_REGISTER.md`
 **Status:** Baseline — Phase 0
-**Last updated:** 2026-09-29
+**Last updated:** 2026-09-30
 
 > **Fictional entertainment project.** Not endorsed, developed or approved by the Australian Defence Force, the Department of Defence or the Australian Army. All units, insignia, operations and places referenced are fictional.
 
@@ -341,6 +341,7 @@ All are Fab Standard License, **Class A** (L-0016).
 | Sample Animation Pack | `Content/SampleAnimationPack` | — | `NOT_USED` |
 | World Flags | `Content/World_Flags` | — | `NOT_USED` |
 | FP_AKS74U Animation | `Content/FP_AKS74U_Animation` | — | `NOT_USED` |
+| WaterPlane (ocean/lake) | `Content/WaterPlane` | **Dry River creek water** (M-001): `T_MediumWaves_N` is the animated normal for `M_SS_CreekWater` (ENV-005) | `PARTIAL_IN_USE` — registered 2026-09-30 as a bookkeeping correction; 140 MB / 34 files, of which **only `Lake/Textures/T_MediumWaves_N.uasset` is committed and referenced**. The rest of the pack stays local: it is ocean/lake geometry for open water, and Dry River needs a 3–7 m creek, not a sea plane. **Provenance note:** this pack was already installed in `Content/` with no register row and no `metadata` sidecar, so under the L-0016c posture it is recorded as **unverified, never clear**, not as Class A |
 
 ### 4.9i Fab prop downloads registered 2026-09-28 (L-0016c)
 
@@ -459,7 +460,7 @@ been imported into the engine yet in this change except as noted in the Status c
 
 | ID | Asset | Path | Contents | Status | Licence dep. | Notes |
 |---|---|---|---|---|---|---|
-| ENV-003 | Ghost gum tree model + texture set | `Content/ghostgum/` | `source/TH_Complete_Full_Ghoast_Gum.fbx` (full tree), 8 TGA source textures (diffuse, normals, spec, branch alpha set), `textures/` PNG derivatives. 20 MB. `source/TH_Ghoast_Gum.zip.zip` is the original archive, kept for provenance | `VENDORED` — staged; UE import pending (queued: dressing pass for Dry River / Red Gum Station canopy variety alongside the RuralAustralia gums) | **L-0024** — provenance unverified (no licence text, no seller metadata); producer risk-accepted | "Ghoast" [sic] spelling is the vendor's. Australian ghost gum look fits ADR-016. Textures need power-of-two check and sRGB audit at import; the FBX axis/scale conventions must be measured before first placement (same intake discipline as M-008k) |
+| ENV-003 | Ghost gum tree model + texture set | `Content/ghostgum/` | `source/TH_Complete_Full_Ghoast_Gum.fbx` (full tree), 8 TGA source textures (diffuse, normals, spec, branch alpha set), `textures/` PNG derivatives. 20 MB. `source/TH_Ghoast_Gum.zip.zip` is the original archive, kept for provenance | `VENDORED` — staged; **`IN_USE`: imported 2026-09-30** (Session 088) as `/Game/Art/Environment/Fab/TH_Complete_Full_Ghoast_Gum` + 6 maps under `Fab/GhostGum/` + `MI_SS_GhostGum_{Trunk,Branch,Leaf}`; 10 placed on Dry River as the windmill screen ring | **L-0024** — provenance unverified (no licence text, no seller metadata); producer risk-accepted | "Ghoast" [sic] spelling is the vendor's. Australian ghost gum look fits ADR-016. Measured at import: 656 × 615 × 651 cm bounds, 2 material slots (`blinn5` trunk, `TH_Gum_Branch_Blinn` foliage cards — the second slot carries the **leaves**, so it must take the alpha-masked Leaf instance or the tree renders grey and bare; that was the producer's "grey leafless gum") |
 | ENV-004 | Kangaroo model + texture set | `Content/kangaroo/` | `source/source/kangaroo.FBX` (+ `.obj`/`.mtl` twins), 8 JPG + 1 TGA textures. 24 MB. `source/kangaroo.rar` is the original archive, kept for provenance | `VENDORED` — staged; **imported this change for the easter egg** (see below) | **L-0024** — provenance unverified; producer risk-accepted | Static prop — no rig, no animation in the source. Producer intent: 2–3 individuals as an easter egg under trees on Dry River (M-001) and Red Gum Station (M-RG-01) |
 
 > **Provenance note (updated 2026-09-30, producer decision).** Both sources arrived without licence files or
@@ -471,3 +472,20 @@ been imported into the engine yet in this change except as noted in the Status c
 2 on Red Gum Station, 2 on Dry River — by `Tools/Unreal/dress_kangaroo_easteregg.py`, labels
 `SS_EasterEgg_Kangaroo_N`, terrain-anchored to the tree pivot, collision off (decoration only, never blocks
 nav or shots).
+
+### 4.9l Dry River overhaul additions (Session 088) — original assets authored for D-DR-05
+
+Both are script-authored originals with no third-party dependency, created because no installed pack asset
+did the job. Registered in the same commit as the assets themselves, per §7.
+
+| ID | Asset | Path | Source | Licence dep. | Notes |
+|---|---|---|---|---|---|
+| ENV-005 | Dry River creek water material | `Content/Art/Environment/DryRiver/M_SS_CreekWater.uasset` | `Tools/Unreal/author_creek_water.py` | **Class F — original** | `BLEND_TRANSLUCENT` / `MSM_DEFAULT_LIT`. Fresnel-lerped base colour (deep 0.012/0.022/0.020 → edge 0.045/0.075/0.085), roughness 0.06 → 0.30, opacity 0.60 → 0.94, panner-driven normal from `T_MediumWaves_N` (4.9h). Written because the only pack water in the project — `Scene_QuarrySlate` `M_Qua_Sla_Water_01` — read as a glossy orange strip on red dirt and was deleted from the creek in `expand_dryriver.py`. **Not yet visually confirmed in game** |
+| ENV-006 | Gum trunk collider helpers | `L_DryRiver_01`, labels `SS_Gum_TrunkCol_00..09` | `Tools/Unreal/harvest_dryriver.py` (engine `BasicShapes/Cylinder`) | **Class F — original** | Invisible, non-shadowing `BlockAll` cylinders giving the 10 ENV-003 ghost gums trunk collision without making their canopies solid — Lyra has no vault, so a colliding canopy is worse than none. Untextured by design; the overhaul audit counts them in a separate `collision_only_default_material` list so they can never be mistaken for a D-DR-02 grey-asset defect |
+
+> **Kangaroo (ENV-004) remains a D-DR-02 residue.** `MI_SS_Kangaroo` reads back with both kangaroo maps
+> bound after saving, and the two Dry River animals were re-seated on a real ground trace (+6 cm, the producer
+> confirms they now stand). The roo still renders clay-grey in game, so the defect is *not* the binding and
+> *not* the height. Unmeasured candidates: the texture assets themselves, the mesh's UVs, or the parent
+> `M_SS_ScanPBR`'s material-usage flags (a material not flagged for static meshes renders with the engine's
+> flat default material — the exact clay-grey read). **Do not close D-DR-02 on the MI read-back alone.**

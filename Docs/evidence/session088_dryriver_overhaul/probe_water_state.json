@@ -1,0 +1,98 @@
+{
+ "segments": [
+  {
+   "label": "SS_Overhaul_Creek_Water_00",
+   "pos_cm": [
+    -13350,
+    35,
+    -238
+   ],
+   "scale": [
+    0.42,
+    0.12,
+    1.0
+   ],
+   "material": "/Game/Art/Environment/DryRiver/M_SS_CreekWater.M_SS_CreekWater",
+   "mesh": "SM_Qua_Sla_Water_01"
+  },
+  {
+   "label": "SS_Overhaul_Creek_Water_01",
+   "pos_cm": [
+    -7650,
+    200,
+    -266
+   ],
+   "scale": [
+    0.42,
+    0.12,
+    1.0
+   ],
+   "material": "/Game/Art/Environment/DryRiver/M_SS_CreekWater.M_SS_CreekWater",
+   "mesh": "SM_Qua_Sla_Water_01"
+  },
+  {
+   "label": "SS_Overhaul_Creek_Water_02",
+   "pos_cm": [
+    -1950,
+    85,
+    -325
+   ],
+   "scale": [
+    0.42,
+    0.12,
+    1.0
+   ],
+   "material": "/Game/Art/Environment/DryRiver/M_SS_CreekWater.M_SS_CreekWater",
+   "mesh": "SM_Qua_Sla_Water_01"
+  },
+  {
+   "label": "SS_Overhaul_Creek_Water_03",
+   "pos_cm": [
+    3750,
+    -149,
+    24
+   ],
+   "scale": [
+    0.42,
+    0.12,
+    1.0
+   ],
+   "material": "/Game/Art/Environment/DryRiver/M_SS_CreekWater.M_SS_CreekWater",
+   "mesh": "SM_Qua_Sla_Water_01"
+  },
+  {
+   "label": "SS_Overhaul_Creek_Water_04",
+   "pos_cm": [
+    9450,
+    -174,
+    94
+   ],
+   "scale": [
+    0.42,
+    0.12,
+    1.0
+   ],
+   "material": "/Game/Art/Environment/DryRiver/M_SS_CreekWater.M_SS_CreekWater",
+   "mesh": "SM_Qua_Sla_Water_01"
+  },
+  {
+   "label": "SS_Overhaul_Creek_Water_05",
+   "pos_cm": [
+    14250,
+    6,
+    -165
+   ],
+   "scale": [
+    0.31,
+    0.12,
+    1.0
+   ],
+   "material": "/Game/Art/Environment/DryRiver/M_SS_CreekWater.M_SS_CreekWater",
+   "mesh": "SM_Qua_Sla_Water_01"
+  }
+ ],
+ "material_path": "/Game/Art/Environment/DryRiver/M_SS_CreekWater.M_SS_CreekWater",
+ "errors": [],
+ "count": 6,
+ "bed_z_at_x0_cm": -233.99440164920082
+}
