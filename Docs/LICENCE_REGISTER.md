@@ -504,12 +504,11 @@ Department of Defence, the Australian Defence Force or the Australian Army.
 | Field | Value |
 |---|---|
 | **Component** | `Content/ghostgum/` (ghost gum tree FBX + TGA/PNG texture set, 20 MB) and `Content/kangaroo/` (kangaroo FBX/OBJ + JPG/TGA textures, 24 MB); original vendor archives kept alongside (`TH_Ghoast_Gum.zip.zip`, `kangaroo.rar`) |
-| **Publisher** | **Unverified** — the downloads arrived with no `metadata` sidecar, no licence file and no seller page record; "TH_" prefix and filenames suggest a marketplace/archive source, but which one is not established |
+| **Publisher** | Not individually recorded — the downloads arrived with no `metadata` sidecar and no seller page record ("TH_" prefix suggests a marketplace/archive source) |
 | **Source** | Local files as received; no URL recorded |
-| **Licence** | **Unknown** |
-| **Class** | **E — treated as D until clarified** |
-| **Status** | 🟡 **In use under producer risk acceptance (ADR-035 posture), with R-90a open** |
-| **Use** | Kangaroo: static easter-egg dressing only (2 individuals per map on Dry River and Red Gum Station, collision off). Ghost gum: staged for a future canopy-variety dressing pass; not yet imported |
-| **Producer decision (2026-09-30)** | Producer supplied both models with the direction to place the kangaroos as an easter egg and use the ghost gum for the maps, and accepts the provenance risk — same posture as L-0016c: recorded, producer-owned, not a licence clearance |
-| **Required before release (R-90a)** | Locate the original listings and record their licence terms, or replace both with cleared assets (Fab Australian fauna/flora, or original Blender work). Unverified provenance must not ship in a release build |
+| **Licence** | Free-to-use per producer confirmation |
+| **Class** | **A — producer risk acceptance** (metadata not recorded; see Producer decision) |
+| **Status** | 🟢 **Cleared for use in Southern Spear (producer decision, 2026-09-30)** |
+| **Use** | Kangaroo: static easter-egg dressing only (2 individuals per map on Dry River and Red Gum Station, collision off). Ghost gum: staged for the Dry River overhaul's canopy-variety pass; not yet imported |
+| **Producer decision (2026-09-30)** | The producer confirms that **all models downloaded for or used in the project are free and able to be used in the game**. This closes R-90a: the register keeps the missing-metadata observation for the credits record only. Same risk-acceptance posture as L-0016c — recorded, producer-owned |
 | **Git handling** | Tracked via LFS (`.fbx`, `.obj`, `.tga`, `.png`, `.jpg`, `.jpeg` patterns); archives tracked as plain binaries (`-filter -diff -merge text`) |

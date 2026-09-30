@@ -7091,8 +7091,10 @@ spec rows if the dump demands, then Build ▸ Build Paths, `build_wandarra_nav.p
 ## Session 085 — 2026-09-30 — The kangaroo easter egg is placed (and one floated in a tree); Dry River gets its overhaul defect list
 
 The producer's two new model sets — ghost gum (ENV-003) and kangaroo (ENV-004, both L-0024, provenance
-unverified and recorded as such with R-90a) — arrived in `Content/ghostgum/` and `Content/kangaroo/`. The
-registers were updated in the same change as the sources landed (`d7c2d93b`).
+initially unverified and recorded as such with R-90a) — arrived in `Content/ghostgum/` and
+`Content/kangaroo/`. The registers were updated in the same change as the sources landed (`d7c2d93b`).
+**Later the same day the producer confirmed all models downloaded for or used in the project are free and
+cleared for game use; R-90a is closed and L-0024 reclassified to Class A under producer risk acceptance.**
 
 **The easter egg.** `Tools/Unreal/dress_kangaroo_easteregg.py` imports the kangaroo FBX (legacy FBX path with
 `combine_meshes` — Interchange split it into 25 pieces first), authors `MI_SS_Kangaroo` as an instance of the
@@ -7132,7 +7134,8 @@ The ghost gum model is imported as part of that overhaul (canopy variety), per t
 
 ### RISKS
 
-- R-90a (L-0024 provenance unverified) still open; both model sets must be replaced or licenced before release.
+- ~~R-90a~~ CLOSED same day: the producer confirms all downloaded/used models are free for game use
+  (L-0024 reclassified Class A; the missing vendor metadata remains a credits-record note only).
 - The easter-egg placement is script-verified and pivot-snapped but **not yet re-verified with in-engine
   captures after the fix** — first item for the overhaul session, along with every D-DR fix.
 
