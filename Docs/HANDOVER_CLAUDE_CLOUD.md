@@ -4,7 +4,18 @@ Written 2026-09-29 at the end of the cloud session that ran Sessions 055–076 (
 It's for the next Claude cloud session, or any agent taking over the work this session was doing. Read it after
 `CLAUDE.md`. Everything here is either measured and committed, or marked as not verified.
 
----
+> ## → Read `Docs/NEXT_PRIORITIES.md` first for what to build
+>
+> §1–§6 of this file describe **the state of one cloud session** (055–076, 2026-09-29). Several of its
+> entries have since moved on — ADR-036 is superseded by ADR-042, the player model is settled, the kangaroo
+> and the Dry River overhaul are done. They are kept for the traps and the pipeline knowledge, not as a
+> current task list.
+>
+> **The current order of work is `Docs/NEXT_PRIORITIES.md`** (written 2026-09-30 from the producer's
+> playtest verdict): character models and animations, weapon textures, VFX, weapon zeroing and recoil from
+> real-world data, then the maps. That document carries the measured baseline, the dependency order, and
+> the real-world weapon figures with sources. **§3.7 and §2's player-model row below are stale** — read
+> `Docs/PLAYER_MODEL_PLAN.md` §5 and ADR-042 instead.
 
 ## 1. How the work is split
 
@@ -50,7 +61,7 @@ Agents over-claim. Check their numbers against the code, and ask for measurement
 | Hand IK (W2) | **A88 accepted by the producer (2026-09-29).** Wrist 4.54 cm from the bore via `GripNudgeCm` (R-86 closed, Session 078). Other six weapons take the un-nudged default and are unmeasured (R-85 stands) | Measure the other weapons only when their turn comes; no active work |
 | Reload (W5) | Tooling exists; **Arma's AUG reload clips decode to impossible poses**; the magazine is welded into the mesh | An authored path, after R-86 (§3.5) |
 | Casings / muzzle light (W3) | Code and tests pass (61/61 then 63/63 suites) | Muzzle flash: `NS_WeaponFire_MuzzleFlash_Rifle` (§3.6) |
-| Player model / uniforms | Plan written: `Docs/PLAYER_MODEL_PLAN.md`. ADR-036 (G3 body) stands; ADR-037–039 cover Quantum | **The producer's next focus** (§3.7) |
+| Player model / uniforms | **Superseded — see `Docs/NEXT_PRIORITIES.md` §2.** ADR-042 (2026-09-30): Quantum is the friendly body, runtime-retargeted, live and rendering. Appearance not yet accepted by the producer | `PLAYER_MODEL_PLAN.md` §4 P1–P5; P1 (texture pipeline) is the largest look defect |
 | Grenade | A local agent was moving throw-grenade off **Q** (lean) to **G** and adding a model | Check it landed; ADFRC F1 grenade is available (§3.8) |
 | Ravenshoe map | Built, dressed, lit; **nav not baked** (needs an attended editor bake, R-82) | Producer or local agent, attended |
 | Unity-name check | **Fixed (Session 079):** the two "shadows" were false positives from the checker (assignments, not declarations); the checker now needs a type and a name. The cloud's earlier claim that this would break the Windows build was wrong | — |
@@ -167,7 +178,13 @@ which currently says "Healing is not in the game yet."
   `NS_WeaponFire_MuzzleFlash_Rifle` (Lyra's own) and `P_AssaultRifle_MuzzleFlash` (the AK-47 pack), listed in
   `Docs/evidence/vfx_muzzle_candidates.json`.
 
-### 3.7 Player model / uniforms (the producer's next focus)
+### 3.7 Player model / uniforms — **SUPERSEDED, read `Docs/NEXT_PRIORITIES.md` §2**
+
+The body question below is **closed**: ADR-042 (2026-09-30) made Quantum the friendly body on its own
+skeleton, runtime-retargeted from the pawn mesh, and the producer confirmed it renders in game. The
+remaining work is appearance, not selection, and the ordered plan is `PLAYER_MODEL_PLAN.md` §4 (P1–P5).
+The diagnosis in §2 of that document — 53% flat fill in the uniform texture — is still the largest single
+contributor to the soldier looking wrong. The text below is kept for the assembly-mismatch history.
 
 - Start with `Docs/PLAYER_MODEL_PLAN.md`. It's measured, not guessed, and gives the ordered plan.
 - Read ADR-036–039 together: G3 is the current baseline, Quantum is a viable but unapproved alternative. The latest prototype comparison is incomplete and its runtime capture path has hit a leader-pose ensure/crash; do not switch body or skeleton without a fair fully dressed, same-condition comparison and producer decision.

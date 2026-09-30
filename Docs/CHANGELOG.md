@@ -7525,6 +7525,94 @@ Producer to rule on R-95 (Singapore Canal) and name the Stone Well listing for R
 questions no agent should answer alone. Then `python Tools\verify_packs.py` should read 14 OK, which is
 also the precondition for turning the CI steps from advisory to blocking.
 
+## Session 090 — 2026-09-30 — Next priorities written down: models, textures, VFX, recoil from real data, maps
+
+### COMPLETED
+
+- The producer's playtest verdict — character models look horrible, weapons need better textures, VFX need
+  work, weapons need zeroing and recoil built on real-world data, then the maps — is now a document:
+  `Docs/NEXT_PRIORITIES.md`, integrated into `Docs/HANDOVER_CLAUDE_CLOUD.md` (header pointer, and §3.7 /
+  §2's player-model row marked superseded, since that file is a 2026-09-29 snapshot whose body-selection
+  question ADR-042 has since answered) and into `CLAUDE.md`'s start-of-session list.
+- **The recoil baseline is measured and it does not exist.** `WID_SS_{A88,A88G,A4,A416,A25,A89}` are copies
+  of Lyra's rifle definitions; a `strings` scan of `WID_SS_A88.uasset` returns no authored recoil, spread,
+  dispersion, damage or range keys, and `B_SS_A88_Weapon` references only Lyra's `/Game/Weapons/B_Weapon`.
+  **All six weapons therefore fire with one generic rifle's recoil, including the LMG.** That is the defect
+  behind the producer's feel, and it is now a written finding rather than an impression.
+- Real-world figures gathered from primary sources, with derived numbers marked as derived:
+  **EF88** — 5.56, 30-round box, 680–850 rpm, **300 m effective** (Australian Army / Navy).
+  **F89** — 5.56, **100 or 200-round box and belt-capable feed**, 750–1,000 rpm, **400 m point / 600 m
+  area** (ADF Navy F89A1 page; FN MINIMI 5.56 MK3). **HK416** — 5.56, **790 m/s and 1,250 J** per
+  Heckler & Koch's own product page. **M4-pattern** — 5.56, 880–910 m/s, 500 m point.
+- **The finding that matters is the shape, not the ranking:** the A89 is a different weapon rather than a
+  bigger one (sustained fire without a reload, per-shot recoil comparable to the A88 — the most likely
+  thing to get wrong); the A416 should be the hardest-hitting 5.56 (lowest quoted muzzle energy, piston
+  system, large vertical); A88 and A88G must share ballistics exactly (ADR-004); and effective range is
+  engagement design, not damage falloff. Recorded with an explicit warning that **free recoil energy is
+  not a game recoil value**: the real data fixes the ordering, the ratios and the zero distances; per-shot
+  climb is tuned by playtest.
+- Weapon texture baseline measured: the A88 carries five ADFRC maps (`adfrc_ef88_co`, `mbus_front_co`,
+  `mbus_rear_co`, `adfrc_spectr_co`, `adfrc_spectr_ca`), but `git ls-files` shows **no weapon texture is
+  in the repository** — they live in the git-ignored Sourced tree — and the pack ships no
+  normal/roughness/AO/metalness (the same finding already recorded for Ravenshoe props, M-008l). The fix is
+  documented as project-owned `M_SS_ScanPBR` instances, which also makes the recoil tuning reproducible.
+- VFX baseline measured: casing eject and muzzle light are in and tested; **muzzle flash was never placed**
+  (`NS_WeaponFire_MuzzleFlash_Rifle` exists, candidates in `Docs/evidence/vfx_muzzle_candidates.json`);
+  **tracers are still `PLACEHOLDER`** (E-002) and are called out as the notable gap at Dry River's ranges.
+- Map baseline measured from the audit and Session 088: **R-82 (attended nav bake) is the single blocker for
+  three maps** (Wandarra, Ravenshoe, and Red Gum's remaining pass) and is cheap in effort.
+
+### FILES CHANGED
+
+- `Docs/NEXT_PRIORITIES.md` (new), `Docs/HANDOVER_CLAUDE_CLOUD.md`, `CLAUDE.md`, `Docs/CHANGELOG.md`.
+- No content, no code, no asset touched. **Nothing in the character/animation/VFX/weapon areas was
+  modified** — this session read and measured them only, since the character thread owns that work.
+
+### TESTING
+
+| Check | Command | Result |
+|---|---|---|
+| Weapon stat baseline | `strings` on `WID_SS_A88.uasset`, `B_SS_A88_Weapon.uasset` | **CONFIRMED** — no authored stat keys; `B_SS_A88_Weapon` → `/Game/Weapons/B_Weapon` only |
+| Weapon texture commit state | `git ls-files | grep` for weapon textures | **0 weapon textures tracked**; only `T_ADFRC_DPC_camo.uasset` under `Content/Art/Characters/ADF/` |
+| Texture slots in use | `Build/weapons_setup.json` | A88 `textured_finishes` = 5 ADFRC maps, as listed above |
+| VFX state | `git ls-files | grep -iE "NS_.*(Flash|Muzzle|Impact)"` | muzzle flash asset present but unplaced; 4 impact systems present; **no tracer** |
+| Real-world figures | web search + `read_url` on `army.gov.au`, `navy.gov.au`, `heckler-koch.com`, `fnherstal.com` | EF88 / F89 / HK416 figures cited from those pages; M4 figures from standard published data; **derived muzzle energies marked derived** |
+| Document integration | grep | handover header pointer present; §3.7 superseded; `CLAUDE.md` start-of-session reads `NEXT_PRIORITIES.md`; one accidental duplicated bullet found by grep and removed |
+
+### ASSETS
+
+- None added, imported, modified or deleted.
+
+### DEFECTS FOUND
+
+- **All six weapons share Lyra's generic rifle recoil**, including the LMG, because the `WID_SS_*` and
+  `B_SS_*` assets are copies of Lyra's with no authored stats. Found by scanning the assets for stat keys,
+  not by playing. The producer's "recoil needs work" is this defect, and it predates this session.
+- **The handover file's player-model guidance is stale**: it told the next agent that ADR-036 (G3 body)
+  stands and that Quantum is "unapproved". ADR-042 superseded that on 2026-09-30. Left in place with the
+  history, but now marked superseded at both places it appears, so an agent cannot follow it by mistake.
+- My first edit to the handover duplicated a bullet rather than replacing it (the anchor text also matched
+  the sentence I had inserted above it). Found by grepping the section back after the edit.
+
+### RISKS
+
+- **New R-96 — weapon ballistics have no home.** The numbers in `NEXT_PRIORITIES.md` §5.6 need to become a
+  project-owned data asset plus a component override; they must not be edited into Lyra's assets (ADR-004)
+  and must not be hardcoded in C++, or the cloud role cannot check them. Until that exists, the real-world
+  data is documentation only.
+- **New R-97 — weapon textures are uncommitted.** 0 of them are tracked, so a clean checkout has no weapon
+  finish at all. This is ADR-021 working as intended (vendor content stays out of git) but it means the
+  "weapons look bad" verdict cannot be re-checked on another machine. Interacts with
+  `Docs/PACK_MANIFEST.md`: the Sourced tree is not a pack and is not in the manifest.
+- `NEXT_PRIORITIES.md` §5.5 is the constraint on R-96: per-shot climb and recovery are **playtest-tuned**,
+  and only the zero distances, feed and rate-of-fire limits come from the real data.
+
+### NEXT ACTION
+
+Producer to confirm §8's order — in particular whether weapon textures (Priority 2) really precede VFX
+(Priority 3) — and to rule on the A89's intended feel, because sustained fire versus per-shot kick is the
+one recoil decision that is a design choice rather than a derivation from the real weapon.
+
 ## Open Threads
 
 | Item | Blocked on | Owner |

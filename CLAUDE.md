@@ -16,7 +16,9 @@ Southern Spear is an original, fictional, Australian-inspired tactical multiplay
 ## Start of every session
 
 1. `git status`, `git log --oneline -10`, and review any uncommitted diff before changing anything.
-2. For work handed over from the cloud Claude session, read `Docs/HANDOVER_CLAUDE_CLOUD.md` (state, traps, ready prompts).
+2. Read `Docs/NEXT_PRIORITIES.md` — the current order of work and why (models/animation → weapon textures →
+   VFX → weapon zeroing and recoil from real data → maps).
+3. For work handed over from the cloud Claude session, read `Docs/HANDOVER_CLAUDE_CLOUD.md` (state, traps, ready prompts).
    Read the **latest session** in `Docs/CHANGELOG.md` (its single NEXT ACTION is the default task),
    then `Docs/PROJECT_AUDIT.md` risks, and any ADR in `Docs/DECISION_LOG.md` relevant to the task.
 3. Check no `UnrealEditor*.exe` is running (`tasklist | grep -i unreal`) before builds or asset
