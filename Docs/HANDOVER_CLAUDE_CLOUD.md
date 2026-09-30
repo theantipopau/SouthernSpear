@@ -170,10 +170,8 @@ which currently says "Healing is not in the game yet."
 ### 3.7 Player model / uniforms (the producer's next focus)
 
 - Start with `Docs/PLAYER_MODEL_PLAN.md`. It's measured, not guessed, and gives the ordered plan.
-- Then ADR-036 (G3 body), ADR-037–039 (Quantum: leader pose works; retarget via `UPoseableMeshComponent`; the plate
-  carrier fits Quantum within 1.6 cm).
-- **The open decision is the head:** it comes from a Fab "Modern Insurgent 7" pack on an ADFRC body, which is why the
-  soldier reads as "assembled".
+- Read ADR-036–039 together: G3 is the current baseline, Quantum is a viable but unapproved alternative. The latest prototype comparison is incomplete and its runtime capture path has hit a leader-pose ensure/crash; do not switch body or skeleton without a fair fully dressed, same-condition comparison and producer decision.
+- Audit found `setup_soldiers.py` still assembles the Modern Insurgent 7 head with ADFRC G3 uniform/vest/helmet, despite ADR-036's intended G3 head. The G3 uniform carries the arms. Installed ADFRC source tree has no character body model to imply a matching head; inventory candidate meshes/provenance before editing the head.
 - Known issues:
   - the flat olive patch between webbing and waist, which is baked into the vendor texture (53% of the sheet is flat fill);
   - R-58, the soldier welded to the Manny skeleton;

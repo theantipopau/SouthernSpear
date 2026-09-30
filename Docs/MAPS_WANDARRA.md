@@ -121,7 +121,7 @@ git-ignored path; the repo carries the build scripts, the spec, the docs and the
 |---|---|---|
 | spec | `Tools/Common/wandarra_spec.py` | pure-Python single source: kit paths, layouts, PROTECTED zones, `seg_point_distance`, `run_clears_protected` (Liang–Barsky) |
 | level | `Tools/Unreal/build_wandarra_level.py` | delete+`new_level`, ground, buildings, church, fences, furniture, cars, trees, objectives, director, nav volume, experience, lighting; saves |
-| nav | `Tools/Unreal/build_wandarra_nav.py` | reload, BUILDPATHS ×1 (×2 access-violates), coverage grid, verify the designed Depot→A→B→C→Green legs, repair only what cannot walk them |
+| nav | `Tools/Unreal/build_wandarra_nav.py` | reload saved map, validate actor nav-export policy, sample saved nav coverage, verify the designed Depot→A→B→C→Green legs and repair only what cannot walk them; it does **not** bake paths |
 | light | `Tools/Unreal/light_wandarra.py` | idempotent `SS_Light_*` rig (as `light_dryriver.py`) |
 | spawns | `Tools/Unreal/layout_spawns.py` (SS_MAPS=L_Wandarra_01) | 8 starts per team on the navmesh — after the bake |
 
@@ -141,21 +141,24 @@ a south-west-origin site frame; the builder writes `(x·100, −y·100, z·100)`
 is site-frame degrees clockwise from north and converts as **`yaw − 90`** (site north = Unreal −Y =
 Unreal yaw −90; site east = +X = 0; site south = +Y = 90). The first build shipped `-yaw`, which
 put every rotated actor one cardinal direction off — found on 2026-09-30 while deriving the
-awning push-out vector (Session 084), fixed in `build_wandarra_level.py`; **the map on disk still
-carries the defective rotations and the pre-083 wide gate gaps until the level pass is re-run**,
-after which the bake must be redone.
+awning push-out vector (Session 084), fixed in `build_wandarra_level.py`. The level was rebuilt and
+dressed on 2026-09-30 (Session 086): the saved map now carries the corrected yaw and current gate
+layout. The transform is code- and report-verified; the attended visual inspection and nav bake
+remain outstanding.
 
 ## 6. Verification status (honest numbers, 2026-09-30)
 
 | Check | Result |
 |---|---|
-| `python -m py_compile` all four scripts | PASS (exit 0) |
-| spec unit checks (`seg_point_distance`, protected-zone blocking) | PASS |
-| Level pass headless | **ok: true** — 12/12 steps, 0 missing assets, 0 Python errors, 0 fatals |
-| `L_Wandarra_01.umap` on disk | 1,050,985 bytes |
+| Python syntax checks | PASS (exit 0) for `wandarra_spec.py`, level, dressing, nav-verifier and spawn-layout scripts |
+| Spec unit checks (`seg_point_distance`, protected-zone blocking) | PASS (Session 082) |
+| Level pass headless | **ok: true** — 12/12 steps; 11 buildings, 17 church parts, 183 fence segments, 35 props, 10 cars, 38 trees; no missing assets/errors |
+| Dressing + bounds pass headless | **ok: true** — 11 building bounds, 0 road-corridor overlaps, 6/6 awnings (5 pushed clear; max 2.7 m), 2/2 scenery doors; no missing assets/errors |
+| Saved actor nav-export policy | 38 trees and 10 cars excluded from Recast mesh export; placed world collision remains enabled |
+| `L_Wandarra_01.umap` on disk | 1,105,561 bytes |
 | First 5.8 load of the 4.26 kit | **silent** — 0 upconversion/redirect error lines (R-67 first-load evidence; draw cost still unmeasured) |
-| Nav pass headless | **expected fail**: 0/3721 grid points on navmesh — headless BUILDPATHS is a no-op under -nullrhi (R-82) |
-| `layout_spawns.py`, playability audit | NOT RUN — both need the navmesh |
+| Nav verifier | **expected fail**: 0/3721 grid points on saved navmesh; headless BUILDPATHS is a no-op under -nullrhi (R-82) |
+| `layout_spawns.py`, playability audit | NOT RUN — both need the attended nav bake |
 
 The navmesh bake is **attended-editor work** (R-82): open `L_Wandarra_01`, Build ▸ Build Paths,
 save, then re-run the nav pass (verify) and the spawn layout. Until then no pathfinding number on
@@ -168,13 +171,13 @@ this map is real, and none is claimed.
 | R-67 (existing) | 4.26 upconversion — first load now measured **silent**; texture/LOD/draw cost still unmeasured | remains OPEN until the map is inspected in a rendered editor |
 | R-82 (existing) | headless nav bake consumes no geometry on this machine | applies; attended bake is the documented next step |
 | **R-89** (new) | the ADR-016 look check **deferred, not passed**: bungalows, awnings, bus stop, playground and clothes lines read ordinary-suburban rather than specifically European, and the beech forest is placed as scattered township trees — but the check is an editor-eyeball act and no one has eyeballed it | before the map is shown or played beyond a bot smoke test, the look verdict gets recorded here and in ADR-016 |
-| **R-90** (new) | vendor building Blueprints arrive at their authored pivot/footprint; the 1 m grid in the spec assumed 5 m wall modules, so a building's actual extent may overlap a footpath or fence line — unmeasured until bounds are dumped in the editor | `dress_wandarra_awnings.py` performs the dump (Session 084) and reports road-corridor overlaps; fix by moving spec rows, never by nudging actors |
+| **R-90** (new) | vendor building Blueprints arrive at their authored pivot/footprint; the 1 m grid in the spec assumed 5 m wall modules, so actual extents may intersect roads, footpaths or fence lines | Session 086 measured all 11 building bounds and found 0 road-corridor overlaps. Footpath/fence clearance and the rendered look still need attended inspection; if something conflicts, move spec rows and rebuild, never nudge actors |
 
 ## 8. How to re-verify every number above
 
 ```bash
 python Tools/Common/wandarra_spec.py 2>/dev/null || python -c "import sys; sys.path.insert(0,'Tools/Common'); import wandarra_spec"
-ls -la Content/Maps/L_Wandarra_01.umap                       # 1,050,985 bytes
+ls -la Content/Maps/L_Wandarra_01.umap                       # 1,105,561 bytes after Session 086 rebuild
 python -c "import json; r=json.load(open('Build/wandarra_level.json')); print(r['ok'], len(r['steps']), r['counts'])"
 python -c "import json; r=json.load(open('Build/wandarra_nav.json')); print(r['nav_coverage'])"   # 0 pct until the bake
 du -sh Content/MOUT_Civilian Content/RustyCarsFree Content/EuropeanBeech   # 2.1G / 69M / 7.0G

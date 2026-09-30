@@ -57,12 +57,28 @@ def main():
     # RecastNavMesh lives in the saved map (spawned by the level pass). Do not
     # spawn one here: script-spawned nav actors register on a later tick, which
     # a headless run never gives them (MAPS_DRYRIVER.md section 11.3).
+    # Validate actor-level exclusions before sampling the saved tiles.
+    nav_policy = {"trees_exporting": [], "cars_exporting": []}
+    for actor in unreal.GameplayStatics.get_all_actors_of_class(world, unreal.StaticMeshActor):
+        label = actor.get_actor_label()
+        affects = actor.static_mesh_component.get_editor_property("can_ever_affect_navigation")
+        if "Tree" in label and affects:
+            nav_policy["trees_exporting"].append(label)
+        elif "Car_" in label and affects:
+            nav_policy["cars_exporting"].append(label)
+    report["nav_component_policy"] = nav_policy
+    policy_ok = not nav_policy["trees_exporting"] and not nav_policy["cars_exporting"]
+    step("nav_component_policy", policy_ok, "{} tree and {} car actors still export collision".format(
+        len(nav_policy["trees_exporting"]), len(nav_policy["cars_exporting"])))
+    if not policy_ok:
+        report["notes"] = ["repeat dressing pass to apply actor nav filters before nav verification"]
+        return False
     if not unreal.GameplayStatics.get_all_actors_of_class(world, unreal.RecastNavMesh):
         return step("recast_navmesh", False,
                     "absent from saved map - re-run build_wandarra_level.py")
-    # BUILDPATHS once per run: a second issue rebuilds on live tile data and
-    # access-violates UnrealEd on this machine (Ravenshoe measurement, 2026-09-29).
-    unreal.SystemLibrary.execute_console_command(world, "BUILDPATHS")
+    # This pass only verifies saved tiles. Rebuilding here risks another asynchronous
+    # Recast rebuild on script-spawned geometry; the attended editor is the bake owner.
+    # (R-82: BUILDPATHS headless was measured as a no-op on this machine.)
 
     # Coverage evidence: grid sample the site, count projected points.
     step_cm = 500.0
@@ -85,8 +101,12 @@ def main():
         report["nav_baked"] = False
         report["notes"] = ["navmesh empty: BUILDPATHS is a no-op under -nullrhi (R-82).",
                            "open L_Wandarra_01 in the editor, Build - Build Paths, save, then re-run this pass."]
+        report["nav_export_warnings"] = []
         return step("navmesh_present", False, "headless bake produced no navmesh; attended bake required")
     step("navmesh_present", True, "{} / {} grid points on navmesh".format(hits, grid))
+    report["nav_baked"] = True
+
+    report["nav_export_warnings"] = []
 
     # The designed chain: depot deployment, A, B, C, green deployment.
     depot = cm(SPEC.DEPLOYS[0]["x"], SPEC.DEPLOYS[0]["y"])

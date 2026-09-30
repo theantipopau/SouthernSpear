@@ -1092,10 +1092,10 @@ the fix is a rename or a texture or device swap. Nothing is structurally tied to
 
 ---
 
-## ADR-036 — The soldier's body: one source of truth, the ADFRC G3
+## ADR-036 — The soldier's body direction: ADFRC G3 as the working baseline
 
-**Status:** Accepted (producer, 2026-09-28). Closes the open question in `Docs/PLAYER_MODEL_PLAN.md` §5.
-**Date:** 2026-09-28
+**Status:** Accepted as the G3 working-baseline direction (producer, 2026-09-28); the exact player body/skeleton is not a final locked choice. ADR-037–039 keep Quantum viable pending a fair visual comparison and producer decision. Clarification 2026-09-30: the friendly head configured in `setup_soldiers.py` is still the Fab Modern Insurgent 7 head; no matching ADFRC character head/body source has been identified.
+**Date:** 2026-09-28 (clarified 2026-09-30)
 
 **Context.** The friendly soldier is assembled from four meshes in `Tools/Unreal/setup_soldiers.py`:
 `Modern_Insurgent_7/SK_Head` (Fab), then ADFRC's `SK_ADF_Uniform_G3`, `SK_ADF_Vest_TBAS` and
@@ -1103,35 +1103,23 @@ the fix is a rename or a texture or device swap. Nothing is structurally tied to
 (108 bones, 23,187 verts, arm vertices split 4,590 shirt / 914 gloves). So the head comes from one pack
 and the body from another, and the arms belong to neither the head nor the vest.
 
-That is why the model reads as *assembled* rather than *worn*, independently of any texture fault: the
-proportions, skin and material response are three sources. It is also why the producer keeps seeing
-mismatched look on the shoulders and neck. Separately, every part is parented onto **Lyra's**
-`SK_Mannequin` skeleton, so the soldier can never own a bone (R-58).
+The mixed sources were a plausible explanation for the *assembled* rather than *worn* read, but this causal claim was not established by a controlled visual comparison. The producer also reported a mismatched look on the shoulders and neck. Separately, every part is parented onto **Lyra's** `SK_Mannequin` skeleton, so the soldier cannot own a bone (R-58).
 
 The alternative was to switch to the Fab `SKM_QuantumCharacter` (3 ACR) as the body and dress it in ADFRC
 gear, which gives a better-animated base at the cost of taming its 14 vendor material slots.
 
 **Decision.**
 
-1. **The ADFRC G3 is the body.** Head, arms, torso and gear all come from the ADF Re-Cut pack, already
-   held under L-0021. The Fab "Modern Insurgent 7" head comes off the friendly soldier. The MAF keeps its
-   own `SK_Head`; it is a separate conventional force with its own look (ADR-016, ADR-035).
+1. **The ADFRC G3 uniform is the body baseline.** It carries the arms; the fitted ADFRC vest and helmet remain. The MAF keeps its own `SK_Head`; it is a separate conventional force with its own look (ADR-016, ADR-035). The friendly head must match the producer-approved body source, but no G3 head is established by this decision: `setup_soldiers.py` currently still assembles the Fab "Modern Insurgent 7" head, and the installed ADFRC source tree contains no character-body model. Resolve the head asset/fit from evidence before claiming a single-source head-to-body assembly or changing the configured mesh.
 2. **The MAF stays a material variation of the same mesh**, as it already is
    (`SK_MAF_Vest_*`, `SK_MAF_Helmet_*`, and the green palette applied through
    `opposing_material_overrides`). This decision does not change that.
-3. **`SKM_QuantumCharacter` is retired as a candidate body** and is not to be dressed. Its 14 slots all
-   sit on vendor materials, none of which are in the soldier today, so nothing is lost.
-4. **Followed by ADR-037 in the same work item:** give the soldier its own skeleton rather than Lyra's,
-   which is what makes any further anatomy work possible.
+3. **Initial assessment (superseded by ADR-037):** `SKM_QuantumCharacter` was retired on the mistaken basis that its assembled mesh had 14 vendor-material slots. ADR-037 corrected this after the separate modular set was inspected; Quantum remains a viable, unapproved alternative and the 14-slot argument does not apply to its modules.
+4. **Intended follow-up:** give the selected soldier body its own skeleton rather than Lyra's, if the fair comparison confirms the body direction and the implementation is validated. This is not authorized as an immediate mesh/skeleton switch.
 
-**Why this and not the Quantum body.** The ADFRC gear is already fitted, textured and rigged to the G3
-(Session 049, `adf_soldier_setup.json`). One source of truth is worth more than a better base mesh, and
-the ADR-033/035 licence position already covers the pack for every use. The head swap is the only new
-asset work the decision requires.
+**Why G3 was chosen as the working baseline.** The ADFRC gear is already fitted, textured and rigged to the G3 uniform (Session 049, `adf_soldier_setup.json`), making it the least disruptive baseline. That did not prove a matching ADFRC head asset exists or establish that the current mixed-source assembly is visually solved. ADR-037–039 subsequently corrected the claim that Quantum was retired and documented a viable modular/retarget prototype route; the producer should compare complete, similarly dressed and posed versions before a final body/skeleton choice.
 
-**Consequence.** P2 of `Docs/PLAYER_MODEL_PLAN.md` unblocks: the skeleton can move off Lyra's mannequin
-once the body is settled. The texture work in P1 is unaffected — the cap fix (P1.1) and the flat-fallback
-removal (P1.2) apply to the same textures whichever body is used.
+**Consequence.** The G3 uniform/gear and its texture work remain the current working setup. P2 of `Docs/PLAYER_MODEL_PLAN.md` is a plan, not an automatic next action: own-skeleton work follows the body comparison and producer choice. The cap fix (P1.1) and flat-fallback removal (P1.2) remain applicable to the current G3 materials.
 
 ---
 

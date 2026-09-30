@@ -6,8 +6,9 @@ judgement rather than a measurement it says so.
 
 **How to use this document.** §1–§2 are what the model is and what is wrong with it. §3 is the
 skeleton, which is in better shape than the complaint suggests. §4 is the ordered plan — this is the
-part to work from. §5 is the one decision only the producer can make. §6 is the list of things that
-fail *silently* on this build, each of which has already cost time. §7 is the weapons hand-off.
+part to work from. §5 records the producer-only body decision and its current evidence gate. §6 is the
+list of things that fail *silently* on this build, each of which has already cost time. §7 is the
+weapons hand-off.
 
 | | |
 |---|---|
@@ -178,15 +179,13 @@ Promote the ad-hoc `Build/soldier_check.html` into a turntable capture script an
 this class of defect is caught by a run rather than by a producer noticing it in a screenshot. Every
 finding in §2 came from a hand-cropped screenshot; none of it was caught by a check.
 
-## 5. The body — decided (ADR-036)
+## 5. Body and head — working baseline; final comparison open (ADR-036–039)
 
-**The ADFRC G3 is the body.** Head, arms, torso and gear all come from the ADF Re-Cut pack; the Fab
-`Modern_Insurgent_7` head comes off the friendly soldier. `SKM_QuantumCharacter` is retired as a
-candidate body. Rationale, and the MAF's unchanged position, are in `Docs/DECISION_LOG.md` ADR-036.
+**The ADFRC G3 body and fitted gear remain the working baseline; a body switch is not approved.** ADR-036 favored G3, while ADR-037–039 keep Quantum as a viable but unproven alternative. The existing Quantum-vs-G3 stage/evidence has defects (including an incomplete comparison and a runtime leader-pose ensure/crash), so it is not a fair decision capture. Do not replace the player body/skeleton until both options are shown fully dressed, under the same animation/pose, camera, lighting and framing, and the producer chooses.
 
-The "assembled rather than worn" read was never a texture fault — it is three sources of proportions,
-skin and material response — and it is now fixed at the source rather than painted over. P2 below
-unblocks as a direct result.
+**Known assembly mismatch, not a resolved repair:** `setup_soldiers.py` currently assembles `Modern_Insurgent_7/SK_Head` with the ADFRC `SK_ADF_Uniform_G3`, vest and helmet. The uniform itself carries the arms; no separate body sits under it. That current code contradicts ADR-036's stated G3-head intent and the earlier claim that the head had already been removed. The installed ADFRC source tree has no character-body model from which to assume a matching G3 head exists. First inventory the currently installed candidate meshes and their provenance, then produce the fair comparison / head-fit evidence before changing assembly.
+
+The original "assembled rather than worn" concern is therefore **not claimed fixed**. Keep the tested G3 clothing baseline while determining whether its current separate head/neck seam is the main visible defect. P2 (own skeleton) remains a technical plan, not an automatic consequence of choosing a body; settle the fair body comparison first.
 
 ## 6. Things that fail silently on this build
 

@@ -7144,6 +7144,51 @@ The ghost gum model is imported as part of that overhaul (canopy variety), per t
 The Dry River overhaul per §11: ghost gum import, water in the creek, ground-foliage density pass, prop
 re-composition, textured/backface audit — each fixed with before/after in-engine captures.
 
+## Session 086 — 2026-09-30 — Wandarra rebuilt and dressed; Recast export policy narrowed to walkable geometry
+
+### COMPLETED
+
+- Rebuilt `L_Wandarra_01` from the layout spec with the corrected site-to-Unreal yaw (`yaw - 90`) and current gate layout. The level report is `ok: true`: 11 buildings, 17 church parts, 183 fence segments, 35 props, 10 cars and 38 trees; no missing assets or Python errors.
+- Ran the idempotent dressing/bounds pass. It measured all 11 building bounds, found **0 road-corridor overlaps**, placed **6/6 awnings** (five pushed clear of the measured building boxes, max push 2.7 m), and **2/2 scenery doors**. The report is `ok: true`, with no missing assets or errors.
+- Tree and car render-mesh components are excluded from Recast geometry export at the placed-actor level (38 trees, 10 cars); world collision remains enabled and no vendor mesh assets are modified. The level builder applies the same policy to newly generated actors.
+- Removed headless `BUILDPATHS` from `build_wandarra_nav.py`. It now checks saved actor nav policy and saved tile coverage only; this machine's null-RHI bake is a measured no-op (R-82), so a failed/empty report directs the operator to the attended editor bake instead of claiming success or triggering another asynchronous build.
+- Updated `MAPS_WANDARRA.md` and R-90 in `PROJECT_AUDIT.md` with the measured road clearance, rebuild state, nav-filtering policy and honest outstanding checks.
+
+### FILES CHANGED
+
+- `Content/Maps/L_Wandarra_01.umap` — rebuilt and dressed; no Dry River map or assets included.
+- `Tools/Unreal/build_wandarra_level.py`, `dress_wandarra_awnings.py`, `build_wandarra_nav.py` — actor-level nav exclusions, measured dressing and saved-nav verification.
+- `Docs/MAPS_WANDARRA.md`, `Docs/PROJECT_AUDIT.md`, `Docs/CHANGELOG.md` — implementation status and risk update.
+- `Docs/DECISION_LOG.md`, `Docs/PLAYER_MODEL_PLAN.md`, `Docs/HANDOVER_CLAUDE_CLOUD.md` — corrected the G3/Quantum decision framing and documented the live head-assembly mismatch discovered while returning focus to the character model.
+
+### TESTING
+
+| Command / evidence | Result |
+|---|---|
+| Headless level build report | **PASS** — `Build/wandarra_level.json`: `ok: true`, 12/12 steps, no missing assets/errors |
+| Headless dressing report | **PASS** — `Build/wandarra_dressing.json`: `ok: true`, 11 bounds, 0 road overlaps, 6 awnings, 2 doors, 38 tree + 10 car nav exclusions |
+| `python -m py_compile Tools/Common/wandarra_spec.py Tools/Unreal/build_wandarra_level.py Tools/Unreal/dress_wandarra_awnings.py Tools/Unreal/build_wandarra_nav.py Tools/Unreal/layout_spawns.py` | **PASS** (exit 0) |
+| Saved nav verification | **BLOCKED as expected** — `Build/wandarra_nav.json` reports 0/3721 projected points; attended-editor Build ▸ Build Paths and save still required (R-82) |
+| `layout_spawns.py`, in-engine visual inspection, playability audit | **NOT RUN** — depend on the attended nav bake and rendered editor validation |
+
+### ASSETS
+
+- `L_Wandarra_01.umap` is the only generated project asset changed. Vendor pack assets are referenced in place and unmodified. No Dry River asset is included.
+
+### DEFECTS FOUND
+
+- The MOUT building Blueprints measured clear of the defined road corridors (0 overlaps); the headless report does not prove footpath/fence clearance or the visual read.
+- Vendor tree/car render collision caused high-triangle Recast-export warnings. The fix is per-instance nav exclusion with world collision retained; vendor assets remain unchanged.
+- The old nav pass attempted `BUILDPATHS` despite measured null-RHI no-op behavior. It is now a saved-nav verifier only.
+
+### RISKS / NEXT ACTION
+
+R-82 remains open: perform Build ▸ Build Paths in the editor, save, then rerun the read-only nav verifier and spawn layout. R-89's visual/look check and R-90's footpath/fence clearance are also still open; the measured road-overlap result alone does not close them. Other-agent Dry River changes were intentionally left out.
+
+**Next action:** attend the editor for Wandarra's Build Paths bake and save, then verify saved coverage and planned routes.
+
+The character-model audit resumed in Session 086 as a documentation correction only: `setup_soldiers.py` still puts the Modern Insurgent 7 head on the ADFRC G3 uniform/gear, and the installed ADFRC source set has no character body/head mesh. ADR-036 no longer overstates the head as a same-pack G3 asset or Quantum as retired; see `PLAYER_MODEL_PLAN.md`. No soldier asset or runtime configuration was changed. The next model work is candidate inventory and a safe same-condition comparison; do not switch skeleton/body before the producer's choice.
+
 ## Open Threads
 
 | Item | Blocked on | Owner |

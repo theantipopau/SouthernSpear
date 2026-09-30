@@ -113,7 +113,32 @@ def main():
         for rect in overlaps_road(cx, cy, ex, ey):
             road_overlaps.append({"building": b["label"], "corridor": rect})
     report["road_overlaps"] = road_overlaps
-    step("road_overlaps", True, "{} building(s) bite a road corridor".format(len(road_overlaps)))
+    step("road_overlaps", not road_overlaps,
+         "{} building(s) bite a road corridor".format(len(road_overlaps)))
+
+    # Trees are decoration. Cars use dedicated gameplay/physics later; neither
+    # needs its vendor render-mesh triangles exported into a pathfinding bake.
+    nav_components = {"trees_excluded": 0, "cars_excluded": 0, "tree_labels_sample": [], "car_labels_sample": []}
+    for actor in actors.get_all_level_actors():
+        label = actor.get_actor_label()
+        component = actor.get_component_by_class(unreal.StaticMeshComponent)
+        if component is None:
+            continue
+        if "Tree" in label:
+            component.set_editor_property("can_ever_affect_navigation", False)
+            nav_components["trees_excluded"] += 1
+            if len(nav_components["tree_labels_sample"]) < 5:
+                nav_components["tree_labels_sample"].append(label)
+        elif "Car_" in label:
+            component.set_editor_property("can_ever_affect_navigation", False)
+            nav_components["cars_excluded"] += 1
+            if len(nav_components["car_labels_sample"]) < 5:
+                nav_components["car_labels_sample"].append(label)
+    report["nav_component_policy"] = nav_components
+    step("nav_component_policy", nav_components["trees_excluded"] > 0
+         and nav_components["cars_excluded"] == len(SPEC.CARS_LAYOUT),
+         "excluded {} trees and {} cars from Recast export; no vendor asset modified".format(
+             nav_components["trees_excluded"], nav_components["cars_excluded"]))
 
     # ---- idempotent clear ----
     removed = 0
@@ -140,7 +165,8 @@ def main():
             continue
         a.set_actor_label("{}Awning_{:02d}".format(PREFIX, n))
         # Push out of the nearest measured building box along the away-vector.
-        near = min(buildings, key=lambda b: (b["center"] - site).size2d()) if buildings else None
+        near = min(buildings, key=lambda b: math.sqrt(
+            (b["center"].x - site.x) ** 2 + (b["center"].y - site.y) ** 2)) if buildings else None
         if near is not None:
             away = site - near["center"]
             away.z = 0
@@ -177,6 +203,9 @@ def main():
          "{}/{} scenery doors at the compound and green gates".format(dplaced, len(SPEC.DOOR_ROWS)))
     report["missing_assets"] = missing
 
+    # Prove the nav filtering survived serialization: close/reopen is not viable
+    # mid-pass, so record the instance flags immediately for the saved map verifier.
+    report["nav_component_policy"] = nav_components
     return step("save_map", unreal.EditorLoadingAndSavingUtils.save_current_level(), MAP)
 
 

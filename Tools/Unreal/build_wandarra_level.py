@@ -66,7 +66,8 @@ class Builder(object):
         self.counts = {}
         self.missing = []
 
-    def mesh(self, path, label, x, y, z=0.0, yaw=0.0, scale=1.0, collide=True):
+    def mesh(self, path, label, x, y, z=0.0, yaw=0.0, scale=1.0, collide=True,
+             nav_relevant=True):
         asset = unreal.load_asset(path) if asset_exists(path) else None
         if asset is None:
             self.missing.append(path)
@@ -79,13 +80,14 @@ class Builder(object):
             a.set_actor_scale3d(unreal.Vector(scale, scale, scale))
         else:
             a.set_actor_scale3d(unreal.Vector(scale[0], scale[1], scale[2]))
-        if collide:
-            m = asset
-            bs = m.get_editor_property("body_setup")
-            if bs is not None:
-                bs.set_editor_property("collision_trace_flag",
-                                       unreal.CollisionTraceFlag.CTF_USE_COMPLEX_AS_SIMPLE)
-                eal.save_loaded_asset(m, False)
+        component = a.static_mesh_component
+        component.set_editor_property("can_ever_affect_navigation", nav_relevant)
+        # Set collision on the placed component, not on shared vendor mesh assets.
+        # This preserves player/world blocking while letting selected actors opt out
+        # of Recast's geometry export independently of their collision settings.
+        component.set_collision_enabled(
+            unreal.CollisionEnabled.QUERY_AND_PHYSICS if collide
+            else unreal.CollisionEnabled.NO_COLLISION)
         self.counts[label.split("_")[0]] = self.counts.get(label.split("_")[0], 0) + 1
         return a
 
@@ -224,7 +226,8 @@ def trees(b):
             if not SPEC.run_clears_protected(x, y, x, y, margin_m=1.0):
                 continue
             mesh = SPEC.TREE_MESHES[rng.randrange(len(SPEC.TREE_MESHES))]
-            b.mesh(mesh, "Tree", x, y, 0.0, rng.uniform(0.0, 360.0), rng.uniform(0.9, 1.25))
+            b.mesh(mesh, "Tree", x, y, 0.0, rng.uniform(0.0, 360.0),
+                   rng.uniform(0.9, 1.25), collide=True, nav_relevant=False)
             total += 1
     return total
 
@@ -240,7 +243,11 @@ def furniture(b):
 def cars(b):
     n = 0
     for (idx, x, y, yaw, why) in SPEC.CARS_LAYOUT:
-        b.mesh(SPEC.CAR_MESHES[idx], "Car_%02d" % n, x, y, 0.0, yaw)
+        # Wrecks are visual cover, but their vendor collision exports up to
+        # 972k triangles into Recast. Exclude only their nav export; leave the
+        # original meshes and collision untouched until a dedicated proxy exists.
+        b.mesh(SPEC.CAR_MESHES[idx], "Car_%02d" % n, x, y, 0.0, yaw,
+               collide=True, nav_relevant=False)
         n += 1
     return n
 
