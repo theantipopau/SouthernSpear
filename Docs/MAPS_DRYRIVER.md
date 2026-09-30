@@ -434,3 +434,30 @@ Stated plainly so it is never over-claimed:
 - It does **not** have multiple layers. Day and low-light variants come in Phase 4; the vertical slice ships one.
 - It does **not** have vehicles, destructibles, or dynamic cover.
 - It does **not** represent a real place, and its layout is not derived from any real site.
+
+## 11. Overhaul defect list (producer review, 2026-09-30 — Session 084)
+
+The producer walked the map after the kangaroo easter-egg placement and recorded these defects
+(evidence: `Docs/evidence/session084_dryriver/`). **The map needs a complete dressing overhaul; this list is
+its spec.** Statuses update in this table as each is fixed.
+
+| ID | Defect | Evidence | Status |
+|---|---|---|---|
+| D-DR-01 | Some assets are **front-facing only** — nothing on the back (billboard-style geometry visible in level view) | `DR_defect_front_facing_only.jpg` | OPEN |
+| D-DR-02 | Some assets have **no textures** (raw grey) | `DR_defect_debugcam_overview.png` | OPEN |
+| D-DR-03 | The **windmill is caught up in the trees** | `DR_wreck_windmill_context.jpg` | OPEN |
+| D-DR-04 | Some props are **placed randomly without thought** — no composition, no relation to cover or sightlines | `DR_defect_debugcam_overview.png` | OPEN |
+| D-DR-05 | **No water in the creek** — the dry creek bed reads as bare terrain | walk-through | OPEN |
+| D-DR-06 | **Very little small foliage** compared with Red Gum Station — ground layer is empty | comparison, `DR_defect_debugcam_overview.png` | OPEN |
+| D-DR-07 | Map generally **needs more within it** — density pass across the whole play space | producer verdict | OPEN |
+
+**Related Session 084 defect (fixed same session):** the four kangaroo easter-egg actors were first placed at
+canopy height — the placement script's downward visibility trace at the trunk hit the tree's own collision
+top. Fixed by anchoring each animal to its tree's pivot z (the dressing passes spawn trees at terrain height)
+and re-placing all four (`DR_kangaroo_in_canopy.png` is the pre-fix evidence).
+
+**Overhaul intake (planned, not started):** the newly registered ghost gum model (ENV-003, L-0024) is
+imported as part of this overhaul to add canopy variety alongside the RuralAustralia gums, per the producer's
+direction. Every fix must be verified with **in-engine captures of the placed actors** (debug-cam/spectator
+route), not script reports alone — the canopy defect was caught by the producer's screenshot, not by the
+placement script's report, and that gap is the process lesson of Session 084.

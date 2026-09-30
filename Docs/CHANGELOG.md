@@ -7088,6 +7088,59 @@ the yaw fix and the 2.4 m gate gaps), run `dress_wandarra_awnings.py` for the R-
 spec rows if the dump demands, then Build ▸ Build Paths, `build_wandarra_nav.py`,
 `layout_spawns.py` with `SS_MAPS=L_Wandarra_01`. Evidence to `Docs/evidence/wandarra_bake/`.
 
+## Session 085 — 2026-09-30 — The kangaroo easter egg is placed (and one floated in a tree); Dry River gets its overhaul defect list
+
+The producer's two new model sets — ghost gum (ENV-003) and kangaroo (ENV-004, both L-0024, provenance
+unverified and recorded as such with R-90a) — arrived in `Content/ghostgum/` and `Content/kangaroo/`. The
+registers were updated in the same change as the sources landed (`d7c2d93b`).
+
+**The easter egg.** `Tools/Unreal/dress_kangaroo_easteregg.py` imports the kangaroo FBX (legacy FBX path with
+`combine_meshes` — Interchange split it into 25 pieces first), authors `MI_SS_Kangaroo` as an instance of the
+project's `M_SS_ScanPBR` master wired to the vendor's own body maps, derives a uniform scale from the mesh's
+real bounds (63.4 × 24.9 × 53.3 cm source → 2.3668 to stand 1.5 m), and places **two kangaroos per map** on
+Red Gum Station and Dry River under named dressing trees — terrain-anchored, collision off, labels
+`SS_EasterEgg_Kangaroo_1/2`, idempotent per label, each map saved.
+
+**The defect the producer caught, and what it exposed.** First placement floated two animals in the canopy:
+the script's downward visibility trace at the trunk hit the tree's own collision top and used *that* z. The
+producer's screenshot (`Docs/evidence/session084_dryriver/DR_kangaroo_in_canopy.png`) is what found it — the
+placement script's report said ok. Fix: anchor to the tree's own pivot z (dressing passes spawn trees at
+terrain height) and re-place all four; re-run clean, 4/4, maps saved. **Process rule recorded in the map doc:
+no placement pass is done without in-engine captures of the placed actors; script reports are not verification.**
+
+**Dry River overhaul.** The producer walked the map and recorded seven defects — front-facing-only assets,
+untextured assets, the windmill caught in trees, random prop placement, no water in the creek, sparse small
+foliage versus Red Gum, and a general need for more density. Recorded as D-DR-01..07 with evidence in
+`Docs/evidence/session084_dryriver/` and standing in §11 of `Docs/MAPS_DRYRIVER.md` as the overhaul's spec.
+The ghost gum model is imported as part of that overhaul (canopy variety), per the producer's direction.
+
+### TESTING
+
+| Command | Exit | Result |
+| --- | --- | --- |
+| `UnrealEditor-Cmd -run=pythonscript -Script=.../dress_kangaroo_easteregg.py` | 0 | `ok: true`; textures 9, mesh 1, material 1; Red Gum 2/2, Dry River 2/2; both maps saved |
+| Re-run after the pivot-z fix (idempotent) | 0 | 0 warnings, 4/4 replaced, both maps saved |
+| Interchange first import | — | produced 25 piece meshes; purged, re-imported combined (legacy FBX path) |
+
+### FILES
+
+- `Tools/Unreal/dress_kangaroo_easteregg.py` — the import + placement pass (idempotent, bounds-derived scale).
+- `Content/Art/Environment/Kangaroo/` — SM_Kangaroo, MI_SS_Kangaroo, 9 textures.
+- `Content/Maps/L_RedGum_01.umap`, `Content/Maps/L_DryRiver_01.umap` — 2 easter-egg actors each.
+- `Docs/ASSET_REGISTER.md` §4.9k, `Docs/LICENCE_REGISTER.md` L-0024 — in the earlier same-session commit.
+- `Docs/MAPS_DRYRIVER.md` §11 — D-DR-01..07 overhaul spec; `Docs/evidence/session084_dryriver/` — producer evidence.
+
+### RISKS
+
+- R-90a (L-0024 provenance unverified) still open; both model sets must be replaced or licenced before release.
+- The easter-egg placement is script-verified and pivot-snapped but **not yet re-verified with in-engine
+  captures after the fix** — first item for the overhaul session, along with every D-DR fix.
+
+### NEXT ACTION
+
+The Dry River overhaul per §11: ghost gum import, water in the creek, ground-foliage density pass, prop
+re-composition, textured/backface audit — each fixed with before/after in-engine captures.
+
 ## Open Threads
 
 | Item | Blocked on | Owner |
