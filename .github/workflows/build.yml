@@ -127,6 +127,37 @@ jobs:
         shell: cmd
         run: python Tools\validate_architecture.py --json > "%PROJECT_DIR%\Build\architecture_report.json"
 
+      # ADR-021 keeps every vendor pack out of git, so the repository alone cannot
+      # open any map: 14 packs, ~22 GB, 685 referenced packages. That is a deliberate
+      # trade, but a trade nobody can check is a trade nobody remembers -- see
+      # Docs/PACK_MANIFEST.md.
+      #
+      # check_asset_references catches the silent version of the same problem: a
+      # committed asset that names a file the repository does not contain renders
+      # correctly on the build machine and wrong everywhere else (M_SS_CreekWater
+      # did exactly that). verify_packs then confirms each pack is present, whole
+      # and honestly registered.
+      #
+      # Both are advisory for now. The reference guard cannot block until packs are
+      # restorable (ADR-021 guarantees 738 untracked references), and the pack
+      # verifier blocks on the four open ASSET_REGISTER findings. Drop
+      # continue-on-error once both are closed.
+      - name: Report asset references and pack state (advisory)
+        shell: cmd
+        continue-on-error: true
+        run: |
+          python Tools\check_asset_references.py --baseline Tools\asset_reference_baseline.json --report "%PROJECT_DIR%\Build\asset_refs.json"
+          python Tools\verify_packs.py --report "%PROJECT_DIR%\Build\pack_verify.json"
+
+      - name: Upload asset integrity reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: asset-integrity
+          path: |
+            %PROJECT_DIR%\Build\asset_refs.json
+            %PROJECT_DIR%\Build\pack_verify.json
+
       - name: Build Editor
         shell: cmd
         run: |

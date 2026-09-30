@@ -330,17 +330,23 @@ Nine packs were found installed in `Content/` with no row in this register or in
 Bookkeeping correction: **no asset was imported, modified, moved or deleted**, and no licence class changed.
 All are Fab Standard License, **Class A** (L-0016).
 
+> **This table is checked, not remembered.** `Tools/verify_packs.py` cross-references every row below
+> against what the committed maps actually reference and fails on a row that says `NOT_USED` while the
+> pack is in use. Three rows below and one missing pack were corrected by that check on 2026-09-30; see
+> `Docs/PACK_MANIFEST.md` §4 for the full list and the one open producer question.
+
 | Pack | Path | Used by | Status |
 |---|---|---|---|
 | Scene Quarry Slate | `Content/Scene_QuarrySlate` | Dry River rock/gravel/road, tinted `MI_SS_Ironstone_*`; Ravenshoe Crossing (M-008d) gorge walls and boulders | `IN_USE` |
 | Modular Rural Cabin | `Content/Modular_Rural_Cabin` | Ravenshoe shaded-slope conifers (M-008) | `IN_USE` |
-| Singapore Canal | `Content/Singapore_Canal` | — | `NOT_USED` — Asian canal/urban (ADR-016); stone *materials* must not be repurposed for Australian masonry |
+| Singapore Canal | `Content/Singapore_Canal` | **Dry River `SS_DR_LeanTo`, `SS_DR_Shed`, `SS_DR_Tank`; Red Gum farmhouse and both huts — all through the corrugated-iron instance chain** | `NOT_USED` — Asian canal/urban (ADR-016); stone *materials* must not be repurposed for Australian masonry. **OPEN PRODUCER QUESTION (Session 089): 11 committed assets reference this pack while this row says `NOT_USED`.** The referenced assets are corrugated-iron material instances, not masonry, so the prohibition may not bite — but that is an art-direction call, not a bookkeeping fix, and the row stays as written until the producer rules |
 | Nanite Plants Sample Collection | `Content/Nanite_Plants_Sample_Collection` | — | `NOT_USED` — temperate European garden species |
 | Military Radio | `Content/Military_Radio` | Radio and headset props | `IN_USE` |
 | Realistic Starter VFX Pack Vol 2 | `Content/Realistic_Starter_VFX_Pack_Vol2` | Particle effects | `IN_USE` |
 | Sample Animation Pack | `Content/SampleAnimationPack` | — | `NOT_USED` |
-| World Flags | `Content/World_Flags` | — | `NOT_USED` |
-| FP_AKS74U Animation | `Content/FP_AKS74U_Animation` | — | `NOT_USED` |
+| World Flags | `Content/World_Flags` | `MI_SS_Flag_Friendly`, `MI_SS_Flag_MAF` (SSExp_ObjectiveAssault) | `IN_USE` — **corrected 2026-09-30**: the row said `NOT_USED` while two committed material instances parented off this pack. Found by `verify_packs.py`, not by reading |
+| FP_AKS74U Animation | `Content/FP_AKS74U_Animation` | `MI_AKS74U`, `MI_Magazine` on `SM_MAF_R1` / `SM_MAF_S1` | `IN_USE` — **corrected 2026-09-30**, same as World Flags: the opposing weapon meshes take their materials from this pack |
+| Stone Well | `Content/StoneWell` | Dry River farm dressing (`L_DryRiver_01.umap`) | `UNREGISTERED — PROVENANCE UNKNOWN`. 1.2 GB / 42 files, referenced by the map, **with no row in this register or in `LICENCE_REGISTER.md`**. Recorded 2026-09-30 by `verify_packs.py`. The listing must be identified before this dependency can be cleared for release; the ADR-035 posture for unverified sources applies |
 | WaterPlane (ocean/lake) | `Content/WaterPlane` | **Dry River creek water** (M-001): `T_MediumWaves_N` is the animated normal for `M_SS_CreekWater` (ENV-005) | `PARTIAL_IN_USE` — registered 2026-09-30 as a bookkeeping correction; 140 MB / 34 files, of which **only `Lake/Textures/T_MediumWaves_N.uasset` is committed and referenced**. The rest of the pack stays local: it is ocean/lake geometry for open water, and Dry River needs a 3–7 m creek, not a sea plane. **Provenance note:** this pack was already installed in `Content/` with no register row and no `metadata` sidecar, so under the L-0016c posture it is recorded as **unverified, never clear**, not as Class A |
 
 ### 4.9i Fab prop downloads registered 2026-09-28 (L-0016c)

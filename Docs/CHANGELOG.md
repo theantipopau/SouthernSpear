@@ -7422,6 +7422,109 @@ still grey**, and **does the gum ring read as a framed windmill** — then fix t
 kangaroo texture assets' real state (source size, sRGB, compression) and the mesh's UV channel count before
 touching the material again.
 
+## Session 089 — 2026-09-30 — The packs git does not carry are now measured, verified and registered
+
+### COMPLETED
+
+- Started from the producer's question — *is there a way of opening Unreal without manually importing
+  everything in the content folder?* — and answered it by measurement: **there is no import step.** Every
+  `.uasset`/`.umap` in `Content/` is already imported content, including all 14 vendor packs; the ~4,000
+  `.fbx`/`.blend`/`.tga` files sitting inside `Content/` are source kept beside their imports and Unreal
+  ignores them. What the question was really hitting is the next finding.
+- **The repository alone cannot open any map.** Tracked `Content/` is ~350 MB; the tree is ~111 GB, and
+  **14 packs — 25.8 GB, 4,318 files, 685 referenced packages** — are gitignored by ADR-021. Dry River
+  references 207 Namaqualand packages, Ravenshoe 176 Singapore Canal ones, Bluestone and Dry River 102
+  QuarrySlate ones. This was a known cost of a deliberate rule, not a defect, and it is now a number in a
+  file rather than a fact only the build machine knows.
+- `Tools/check_asset_references.py` (new, stdlib only, **2.7 s for 9,364 assets / 37,044 references**)
+  reads every committed asset's binary for the package paths it names and sorts each into `ok`,
+  `untracked`, `missing`, `folder`, `artifact` or `external`. This is the check for the silent failure
+  `M_SS_CreekWater` proved: a committed asset naming a file git does not hold renders correctly on the
+  build machine and wrong everywhere else.
+- `Tools/verify_packs.py` (new) verifies each pack in the manifest is present with the recorded file count
+  and byte size, optionally hashing every file with `--deep` (the check that enforces ADR-021's
+  "never modified" half), and cross-references both registers against live usage.
+- `Docs/PACK_MANIFEST.md` + `Docs/PACK_MANIFEST.json` (new): the 14 packs with size, file count, referenced
+  package count, licence, register row, restore route and per-pack notes. The JSON is generated;
+  `licence`/`register_row`/`restore`/`note` are hand-maintained and survive regeneration.
+- **`ASSET_REGISTER.md` §4.9h corrected by the check, not by reading.** World Flags and FP_AKS74U
+  Animation were both marked `NOT_USED` while committed assets referenced them — the MAF weapon meshes take
+  `MI_AKS74U`/`MI_Magazine` from the animation pack, and both flag material instances parent off World
+  Flags. Both now `IN_USE`. A Stone Well row was added for a 1.2 GB pack `L_DryRiver_01.umap` references
+  with **no licence record in either register**; it is written as `UNREGISTERED — PROVENANCE UNKNOWN` so
+  the gate stays red until the listing is identified.
+- Both checks wired into `.github/workflows/build.yml` as **advisory** (`continue-on-error`), uploading
+  `Build/asset_refs.json` and `Build/pack_verify.json` as build artifacts on every run, with the comment
+  recording exactly what must happen before they can block.
+
+### FILES CHANGED
+
+- `Tools/check_asset_references.py`, `Tools/verify_packs.py`, `Tools/asset_reference_baseline.json` (new).
+- `Docs/PACK_MANIFEST.md`, `Docs/PACK_MANIFEST.json` (new).
+- `Docs/ASSET_REGISTER.md` §4.9h (two status corrections, one new row, one open-question annotation, and
+  a note that the table is machine-checked), `Docs/CHANGELOG.md`, `.github/workflows/build.yml`.
+- **Not touched:** any character-model or Wandarra content or C++, and `probe_quantum_material.py`. The
+  manifest *records* that Modern Insurgent 7 and QuantumCharacter are dependencies, which is a note about
+  them, not an edit to them.
+
+### TESTING
+
+| Check | Command | Result |
+|---|---|---|
+| Reference audit | `python Tools\check_asset_references.py` | **9,364 assets, 37,044 references in 2.7 s** — `ok` 13,495, `untracked` 738, `missing` 101 raw |
+| Same, after de-noising | with prefix-artifact and folder-reference handling | **`missing` 0 after baselining 31**, `folder` 31, `artifact` 70, `external` 22,679. **No project-authored asset has a dangling reference** |
+| Pack verification | `python Tools\verify_packs.py` | **12 OK, 2 problems** — Singapore Canal (`REGISTER_MISMATCH`, 11 referencing assets vs a `NOT_USED` row) and Stone Well (`UNREGISTERED`, provenance unknown). 25.8 GB / 4,318 files measured |
+| Live-read proof | edited a pack row to `NOT_USED` **without** regenerating the manifest, re-ran | `Content/Scene_QuarrySlate` immediately became `REGISTER_MISMATCH` (OK 11, problems 3); register restored. Proves the check reads the registers, not the manifest cache |
+| CI wiring | `yaml.safe_load` on `build.yml` + both CI commands dry-run with their real arguments | **PASS** — 24 steps, parses; both commands run and write their reports (both exit 1 by design, hence `continue-on-error`) |
+
+### ASSETS
+
+- No asset imported, modified, moved or deleted. **Nothing in `Content/` changed this session.**
+- `Content/WaterPlane/` remains deliberately uncommitted except the one texture `M_SS_CreekWater`
+  references (Session 088); it is not in the manifest because no committed asset depends on the rest.
+
+### DEFECTS FOUND
+
+Five, all in the new tooling itself, and all found by disbelieving a result:
+
+1. **The first scan reported 3,931 missing references and was wrong.** The regex demanded a trailing
+   `.AssetName`, but UE stores a HISM or instanced component's mesh as a bare package path with no object
+   name — so it found 16 references in `L_DryRiver_01.umap` where there are hundreds, and would have
+   missed exactly the reference kind that matters.
+2. **Asset names containing dots** (`NM_BPSystemEvent.NM_BPSystemEvent`) resolved to themselves and were
+   reported as missing references to themselves. Resolution now tries every dot boundary against what is
+   actually on disk, longest name first.
+3. **70 references were truncated-prefix strings** — `/Game/.../SM_Qua_Sla_Rock_S` where the real asset is
+   `SM_Qua_Sla_Rock_S_10`. Those render correctly, so calling them broken buried the real ones. Caught
+   because the "missing" list named Dry River rocks that visibly work in game.
+4. **A substring search for `NOT_USED` matched prose.** Section 4.9j's row reads "Row corrected
+   2026-09-29 to `NOT_USED`, corrected again 2026-09-30 on first map use" on the row that now says
+   `IN_USE`, so the pack it names was reported as unused. The status is now read from the status cell.
+5. **The verifier read the register state from the manifest it was checking.** Fixing a register row
+   changed nothing until the manifest was regenerated — the exact staleness the tool exists to catch.
+   The check now recomputes from the registers every run, proven above.
+
+### RISKS
+
+- **New R-94 — `Content/StoneWell` has no provenance record.** 1.2 GB, referenced by the map, licensed
+  unknown. It cannot be cleared for release, and the verifier will keep failing until a listing is
+  identified. This is the only dependency in the project that cannot currently be traced.
+- **New R-95 — Singapore Canal is in use against an explicit prohibition.** 11 committed assets reference
+  it through the corrugated-iron instance chain (Dry River lean-to, shed, water tank; Red Gum farmhouse
+  and both huts) while §4.9h says the pack's materials "must not be repurposed for Australian masonry".
+  **Producer decision, deliberately not resolved here** — the row was annotated, not rewritten.
+- The reference guard **cannot be made blocking** while ADR-021 holds: 738 untracked references are the
+  expected state, not a fault. Blocking requires restore routes a fresh machine can follow, which is what
+  `PACK_MANIFEST.json`'s `restore` field now records per pack.
+- The 31 baselined Lyra references are inherited debt. The baseline is a ratchet: it fails on anything
+  new, and deleting a line from it to go green is the failure mode it exists to prevent.
+
+### NEXT ACTION
+
+Producer to rule on R-95 (Singapore Canal) and name the Stone Well listing for R-94; both are register
+questions no agent should answer alone. Then `python Tools\verify_packs.py` should read 14 OK, which is
+also the precondition for turning the CI steps from advisory to blocking.
+
 ## Open Threads
 
 | Item | Blocked on | Owner |
