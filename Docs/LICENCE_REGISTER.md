@@ -2,35 +2,30 @@
 
 **Document ID:** `Docs/LICENCE_REGISTER.md`
 **Status:** Baseline — Phase 0
-**Last updated:** 2026-09-29
+**Last updated:** 2026-10-01
 
 > **Not endorsed, developed or approved by the Australian Defence Force, the Department of Defence or the Australian Army.**
 
 ---
 
-## 0. Current position — ADR-035 (producer, 2026-09-28) — read this first
+## 0. Current position — ADR-035 (producer, reaffirmed 2026-10-01) — read this first
 
-**Southern Spear is a free-to-play product. Every asset the project holds is cleared for use**: Fab (ADR-028),
-other free sources, and the ADF Re-Cut pack from its creators (L-0021, blanket permission). **Real names are
-allowed**: weapons, the Australian Army, its ranks and insignia, ADF equipment and camouflage.
+**Southern Spear is a free-to-play product. The producer confirms that assets held or acquired for this project are free to use in the game**: Fab (ADR-028), other acquired/free sources and the ADF Re-Cut pack (L-0021). This project-specific direction was reaffirmed on 2026-10-01. **Real names** — weapons, the Australian Army, ranks and insignia, ADF equipment and camouflage — are also allowed under ADR-035.
 
-Where an entry below says *hold*, *prohibited*, *Class D/E* or *release blocker* because of a commercial or
-fiction-only reading, **ADR-035 supersedes it**. Those entries are kept as the historical record and amended
-in place where it matters (L-0003, L-0004, L-0006, L-0007, L-0021, §5.2, §7).
+Where an entry below says *hold*, *prohibited*, *Class D/E* or *release blocker* solely because of a commercial or fiction-only reading, **ADR-035 supersedes it**. Those entries remain historical where useful and are corrected in their operative status. This direction is not a universal marketplace licence claim and does not authorize redistribution of raw source packs. It does not approve ripped commercial-game content (L-0007/L-0008), remove no-endorsement or content-ethics rules, waive applicable attribution/credit obligations, or reverse a specific producer-declined disposition such as Electric Dreams (ADR-013/L-0012) absent a new decision.
 
 This register still does two jobs:
 - It records **provenance and credits** (publisher, source, attribution) for the credits screen and CC BY lines.
 - It records what stands for **non-licence reasons**: no endorsement claim; MAF portrayal (§5.3); no *America's
   Army* content (L-0008) and no ripped commercial-game assets (L-0007), because neither comes from a cleared source.
 
-**Accepted risk R-57:** permission from creators covers their own work, not a third party's trademark or a
-Commonwealth emblem. The producer accepts this; the remedy, if ever needed, is a rename or a swap.
+**R-57 (closed / producer-accepted under ADR-035):** the producer accepts use of acquired assets and marks in this project-specific F2P game. Retain available source/credit records and the no-endorsement statement. This entry creates no rename/swap, permission, legal-review or release gate.
 
 ---
 
 ## 1. Purpose
 
-A single authoritative record of **every** third-party dependency in the project, its licence, its attribution obligations, and whether it is legally clear for use in a **packaged commercial product**.
+A single authoritative record of third-party dependencies, observed source/provenance, attribution obligations and project-use clearance. The producer's F2P clearance is recorded separately from the seller's published terms and local metadata; missing provenance is an inventory gap, not a permission hold under ADR-035.
 
 ### The rule
 
@@ -38,24 +33,24 @@ A single authoritative record of **every** third-party dependency in the project
 
 This is enforced in CI: a build fails if a new `.uasset`/`.umap` appears with no corresponding register entry.
 
-### "Free" is not a licence category
+### Marketplace metadata is not the producer's project-use decision
 
-An asset that costs nothing to download may still be non-commercial, may require attribution, may forbid redistribution, or may forbid use in a product that competes with its author. **Each asset is judged on its actual licence terms, not its price.**
+Marketplace price, seller metadata and missing sidecars are provenance observations. Under ADR-028/035, the producer clears acquired assets for Southern Spear's free-to-play game; preserve known attribution/credit and no-raw-source-redistribution rules. Do not generalize this project-specific direction into a universal licence claim or treat cache-only records as game-used assets.
 
 ---
 
 ## 2. Licence Compatibility Classes
 
-| Class | Meaning | Commercial packaging |
+| Class | Meaning | Register treatment |
 |---|---|---|
-| **A** | Permits commercial use, no attribution required | ✅ Clear |
-| **B** | Permits commercial use, attribution required | ✅ Clear with attribution shipped |
-| **C** | Permits commercial use, share-alike or source-disclosure applies | ⚠️ Legal review required |
-| **D** | Non-commercial / research / evaluation only | ❌ **Prohibited** |
-| **E** | Unclear or undocumented | ❌ Treated as D until clarified |
-| **F** | Original work created for this project | ✅ Clear, no obligation |
+| **A** | Seller/publisher terms documented as permitting the stated use without attribution | Record applicable terms and any limits |
+| **B** | Seller/publisher terms documented with attribution required | Ship the required credit |
+| **C** | Terms include share-alike or source-disclosure obligations | Record and satisfy the obligations |
+| **D** | Terms state non-commercial / research / evaluation restrictions | Preserve as source metadata; producer's project-specific direction governs Southern Spear use |
+| **E** | Source terms unclear or undocumented | Record the gap; not a project-use hold under ADR-035 |
+| **F** | Original work created for this project | No third-party licence dependency |
 
-Anything class **D** or **E** is a release blocker. There is no exception.
+These classes describe observed source terms/provenance; they do not override the producer's clearance for Southern Spear's free-to-play use. Credits, raw-source handling, no-endorsement and content ethics remain separately tracked.
 
 ---
 
@@ -76,7 +71,7 @@ Anything class **D** or **E** is a release blocker. There is no exception.
 | **Attribution required** | Yes — "Lyra Starter Game, Epic Games" in credits |
 | **Action** | Confirm sample-content redistribution and shipping terms before any public release |
 
-> Lyra is used as an **architectural foundation**. Its *art* is a placeholder, not Southern Spear art. Visuals are replaced before release.
+> Lyra is used as an **architectural foundation**. Its art is not automatically classified as placeholder content: replace or retain each sample visual according to the shipping art plan. Confirm applicable Epic sample-content and EULA terms at release (separate from the producer's clearance for other acquired project assets).
 
 ### L-0002 — Unreal Engine 5.8.3
 
@@ -89,11 +84,9 @@ Anything class **D** or **E** is a release blocker. There is no exception.
 | **Modifications** | **None.** Installed Build used as-is |
 | **Action** | Track EULA obligations (royalty reporting, credit notice) in release planning |
 
-### L-0003 — Rank insignia and unit insignia — ~~LEGAL HOLD~~ **lifted by ADR-035**
+### L-0003 — Rank insignia and unit insignia — producer-accepted; historical review record
 
-> **ADR-035 (2026-09-28):** hold lifted. Australian Army ranks and their insignia are used faithfully (ADR-034),
-> drawn in code by `SSInsigniaRaster.h` (Class F implementation of a real design). No endorsement is claimed.
-> The table below is the original record.
+> **ADR-035 (2026-09-28; reaffirmed 2026-10-01):** no project-use hold. Australian Army ranks and insignia may be used as directed, with the no-endorsement disclaimer maintained. The historical review below is not the current disposition.
 
 
 | Field | Value |
@@ -101,59 +94,46 @@ Anything class **D** or **E** is a release blocker. There is no exception.
 | **Component** | RAN-style rank slides/slides, progression insignia, friendly and hostile unit insignia |
 | **Publisher** | — |
 | **Source** | To be created |
-| **Licence** | **PENDING REVIEW** |
-| **Class** | **E** — unresolved |
-| **Status** | 🔴 **ON HOLD** |
-| **Hold** | Do **not** reproduce official Australian Defence Force or Australian Army insignia. All insignia in the project are **original placeholder designs** pending legal and branding review |
-| **Required before release** | Written legal review of insignia design, and confirmation of any required attribution to the Australian Army / Department of Defence |
+| **Historical source/licence fields** | The original review listed these as pending / Class E; superseded by ADR-035 for this project's use. |
+| **Current status** | Producer-accepted for Southern Spear's free-to-play game; no per-asset permission hold. No endorsement is claimed. |
+| **Current treatment** | No per-asset project-use hold under ADR-035. Keep the no-endorsement disclaimer and content-ethics rules; no independent pre-release legal-review/substitution gate is created by this historical entry. |
 
-> This hold is binding. It is the reason the game carries original placeholder insignia rather than realistic slides. It also constrains naming: the project does not present itself as an official Australian Army product.
+> The quoted restriction below is retained as historical record only and is not an operative project-use hold.
 
-### L-0004 — Australian Defence Force / Australian Army name and marks
+### L-0004 — Australian Defence Force / Australian Army name and marks — producer-accepted under ADR-035
 
-> **ADR-035 (2026-09-28):** real names, ranks, equipment and camouflage are **allowed**. The one rule that stands
-> is the no-endorsement statement below, and the disclaimer ships.
+> **ADR-035 (2026-09-28; reaffirmed 2026-10-01):** real names, ranks, equipment, insignia and camouflage are allowed in Southern Spear. Keep the no-endorsement disclaimer; this producer direction does not claim official sponsorship.
 
 | Field | Value |
 |---|---|
 | **Component** | Use of "Australian Army", ADF insignia, service branding |
-| **Licence** | **NOT LICENSED** |
-| **Class** | **D** — not cleared |
-| **Status** | 🔴 **PROHIBITED without written permission** |
-| **Rule** | The game must **not** present itself as endorsed, developed, sponsored or approved by the ADF, the Department of Defence or the Australian Army. All ranks and units shown are fictional. Marketing, packaging and store listings carry the fictional-work disclaimer |
+| **Historical source status** | No separate trademark/branding licence is recorded; this status does not prohibit the producer-directed project use under ADR-035. |
+| **Current use status** | Producer-accepted for Southern Spear's free-to-play game; no endorsement is claimed. |
+| **Rule** | The game must **not** present itself as endorsed, developed, sponsored or approved by the ADF, the Department of Defence or the Australian Army. Ship the fictional-work disclaimer and maintain the content-ethics rules. |
 
 ### L-0005 — Third-party audio
 
 | Field | Value |
 |---|---|
-| **Component** | All weapon, impact, footstep, ambience and UI audio |
-| **Status** | Not yet acquired |
-| **Rule** | Original, properly licensed, or properly attributed audio only. **No recorded real voice content.** Voice chat is never recorded without explicit per-player consent and a documented privacy design |
-| **Action** | Every future audio entry added here before import |
+| **Component** | Weapon, impact, footstep, ambience and UI audio |
+| **Status** | ADFRC AUG weapon audio is recorded under L-0021 and ASSET_REGISTER AUD-AUG-001; other audio sources are tracked as acquired. This row is not a claim that no third-party audio is in the project. |
+| **Rule** | Producer-cleared acquired audio may be used for Southern Spear's F2P game under ADR-035. Preserve source/credit details. **No recorded real voice content.** Voice chat is never recorded without explicit per-player consent and a documented privacy design. |
+| **Action** | Record new audio sources and applicable attribution in this register before use. |
 
-### L-0012 — Electric Dreams environment (DECLINED — historical evaluation record only)
+### L-0012 — Electric Dreams environment (producer-declined — historical evaluation record only)
 
 | Field | Value |
 |---|---|
 | **Component** | "Electric Dreams" environment pack, briefly staged outside the repository at `E:\Unreal\Environment\` |
-| **Status** | 🔴 **DECLINED** |
-| **Import status** | **NOT IMPORTED** — no asset from this pack has ever entered the repository, the project, or a build |
-| **Project use** | **NOT PERMITTED** |
-| **Licence** | **UNREAD — and no longer relevant, because the pack is not used** |
-| **Class** | **D — prohibited for project use** |
-| **Authoritative decision** | **ADR-013** — maps are built original; third-party environments are not used |
+| **Status** | **Producer-declined; excluded from this project absent a new producer decision** |
+| **Import status** | **NOT IMPORTED** — no asset from this pack has entered the repository, project or build, per the recorded inventory |
+| **Project disposition** | Excluded by explicit producer decision ADR-013; this is a project selection decision, not a general statement about its licence or a precedent for other acquired assets |
+| **Licence/provenance** | Not read in the recorded evaluation; do not infer a class or universal restriction from the declined disposition |
+| **Authoritative decision** | **ADR-013** — Electric Dreams was explicitly declined; third-party environment packs may otherwise be used under later producer directions such as ADR-028/035 |
 
-**No selective harvesting is authorised.** An earlier revision of this register read
-"reference + selective harvest only" and listed "approved use: generic modular pieces
-only". That wording directly contradicted ADR-013, which declined the pack **entirely**,
-and it left the register reading as though harvesting had been permitted. It was not.
-ADR-013 is the authority; this row now agrees with it.
+**The specific declined disposition remains in force unless the producer changes it.** The older evaluation and wording are retained below as history; this row must not be generalized into a blanket rule against Fab/Vault or other acquired environments, which ADR-028/035 explicitly clears for this game.
 
-**Constraints:**
-1. No asset, material, mesh, texture, layout or art-style reference from this pack may enter the repository or any build.
-2. It may not be used as a base map, as art direction, or as the source of any Southern Spear map.
-3. Southern Spear map layout and art direction are original work (ADR-015, Dry River).
-4. Historical evaluation record is **retained** below so the decision and its reasoning survive. Retention is not authorisation.
+**Current disposition:** do not use Electric Dreams in Southern Spear unless a new producer decision supersedes ADR-013. This is a scope-specific choice, not an inference from unread terms. Preserve original-map/layout requirements where they independently apply.
 
 **Historical evaluation record (retained, non-authoritative).** Before the pack was
 declined it was evaluated and recorded deliberately at class **E** with the note that
@@ -173,15 +153,14 @@ necessary.
 
 ### L-0006 — Fab / Marketplace assets
 
-> **Superseded by ADR-028 / ADR-035:** every Fab asset is cleared; record it as "Fab, cleared under ADR-028" (see L-0016, L-0023).
+> **Superseded by ADR-028 / ADR-035:** Fab assets acquired/held for Southern Spear are cleared for the F2P game; record observed provenance and credits (see L-0016, L-0023, L-0025).
 
 | Field | Value |
 |---|---|
 | **Component** | Any asset acquired from Fab |
-| **Status** | **NONE ACQUIRED** (see L-0012 for the one pack staged so far) |
-| **Blocker** | PROJECT_AUDIT **R-03** — UE 5.8 is not registered in the Epic Games Launcher, so the in-editor Fab plugin cannot resolve this engine version |
-| **Action** | Register the engine in the Launcher, or acquire assets manually. Either way, each asset gets a register row with publisher, source URL, licence class and modifications **before** it is imported |
-| **Rule** | Never download from unverified model-ripping or redistribution sites. Never assume a free asset permits commercial packaging |
+| **Status** | Multiple Fab/Fab-library and Vault assets are installed, cached or used; see ASSET_REGISTER §§4.9h–p and the current map dependency subset in PACK_MANIFEST. |
+| **Tooling note** | PROJECT_AUDIT R-03 records Launcher/Fab in-editor availability limitations. They do not mean no assets were acquired and are not clearance holds. |
+| **Action** | Record source/publisher/available credit information and distinguish cached, installed, referenced and game-used states. Producer direction clears project use; preserve raw-source handling and prohibited-source rules. |
 
 ### L-0007 — Prohibited sources (standing prohibition)
 
@@ -192,8 +171,8 @@ necessary.
 | Field | Value |
 |---|---|
 | **Component** | Manufacturer CAD, commercial game models, ripped assets, real-world camouflage textures |
-| **Status** | ❌ **PROHIBITED** |
-| **Rule** | Do not trace, rip or redistribute manufacturer CAD files, commercial game models or protected assets. The multicam-style camouflage is an **original pattern**, not a reproduction of any protected commercial texture. Weapons are original models inspired by publicly documented equipment, not traced geometry |
+| **Status** | ❌ **PROHIBITED SOURCE TYPES ONLY** |
+| **Rule** | Do not use ripped commercial-game assets or trace/rip manufacturer CAD. Real-world names, equipment, camouflage and assets acquired/held for Southern Spear are producer-cleared under ADR-035; this is distinct from an asset ripped from a commercial game. |
 
 ### L-0008 — *America's Army 2* (standing prohibition)
 
@@ -220,7 +199,7 @@ necessary.
 |---|---|
 | **Component** | Any third-party C++ library added to `Source/` or a plugin |
 | **Status** | **NONE** |
-| **Rule** | Licence must be class A or B (or C with legal sign-off) before inclusion. **No paid dependencies without producer approval.** Record version, source URL and licence here |
+| **Rule** | Record each dependency's source, version, observed terms and attribution. Producer direction governs F2P project use for acquired assets; no raw-source redistribution, prohibited commercial-game rips, or unapproved paid dependencies. |
 
 ### L-0011 — Blender 5.2.2 LTS
 
@@ -307,37 +286,33 @@ endorsed by, or derived from any real body:
 **No official affiliation or endorsement is claimed** by the Australian Government, the
 Department of Defence, the Australian Defence Force or the Australian Army.
 
-### 5.2 Prohibited real-world material
+### 5.2 Real-world material and explicit source exclusions
 
-- ~~**No ADF/Army emblems.**~~ **Lifted by ADR-035 (2026-09-28):** Army ranks and rank insignia are used (ADR-034); other ADF emblems may be used where they serve the game. No endorsement is claimed.
-- **No real battalion titles or mottos**, and nothing derived from the Royal Australian Regiment.
-- **No manufacturer logos, roll marks or CAD.** All weapon geometry is original or appropriately licensed.
-- **No copied commercial-game assets, and no ripped assets**, under any circumstances.
-- **AMCU and commercial MultiCam are not reproduced exactly**, nor traced from photographed fabric.
-- **Historical Musorian camouflage is not reproduced exactly.** The broad red-earth exercise-OPFOR idea is inspiration only; the pattern, shapes and colour arrangement are original.
+- **ADF/Army insignia and camouflage:** producer-directed acquired examples may be used under ADR-035; use of real marks does not imply endorsement. Retain any available provenance/credits.
+- **Fiction and setting direction:** invented battalion titles, mottos and MAF art direction remain choices of the fictional setting. They are not a project-use permission restriction; a producer-directed real-world reference may be used consistently with ADR-035.
+- **Commercial game rips remain excluded:** no copied/ripped commercial-game assets or content from model-ripping sites. This is an explicit source exclusion outside the acquired-asset clearance.
+- **Content ethics remain:** do not portray MAF as a real ethnic, religious, political or contemporary armed group, and do not use derogatory imagery or stereotypes.
 
 ### 5.3 Fictional-fiction constraints
 
 1. **The opposing force is fictional** and must not represent any real ethnic, religious, political or contemporary armed group.
 2. **No culturally derogatory imagery, language or stereotypes.** The Murasian Armed Forces are presented as a credible **conventional military force**, never as terrorists, extremists, an ethnic or religious militia, or a racial caricature.
-3. **Fictional insignia, names and backstory** throughout.
+3. **Fictional faction names, insignia and backstory**; authentic Australian Army ranks/insignia may appear under ADR-034/035 without implying affiliation.
 4. **No real base, installation or operationally useful site layout** in any map.
 5. **No realistic manufacturing, modification or unlawful-use instructions.** All weapon work is game simulation. Placeholder weapon silhouettes carry no dimensioned, functional or manufacturing-revealing detail.
 6. **Faction recognition must never depend on colour alone** — silhouette, equipment arrangement, insignia shape and weapon silhouette carry it too, so the product remains legible to colour-blind players.
 
-> Renaming alone does not confer legal clearance. Final branding, insignia, camouflage,
-> uniforms, weapons and store presentation are flagged for **independent Australian legal
-> review before release**.
+> Producer clearance under ADR-035 removes per-asset project-use holds and does not require a separate legal-review or substitution gate for acquired project assets. Keep the no-endorsement disclaimer, credits and content-ethics rules.
 
 ---
 
 ## 6. Compliance Checklist (per-asset, before commit)
 
-- [ ] Publisher identified
-- [ ] Source URL / acquisition method recorded
-- [ ] Licence terms read in full (not just the store blurb)
-- [ ] Licence class assigned (A–F)
-- [ ] Commercial packaging permitted — **explicitly confirmed, not assumed**
+- [ ] Publisher identified where available; unknown stays explicitly unverified
+- [ ] Source URL / acquisition method recorded where available
+- [ ] Seller terms/metadata recorded when available; unknown stays explicitly unverified
+- [ ] Observed provenance class assigned only if useful; source terms do not override ADR-035 project-use clearance
+- [x] Producer's Southern Spear F2P project-use clearance recorded (ADR-028/035); source terms remain provenance, not a project-use hold
 - [ ] Attribution requirements captured and satisfied
 - [ ] Modifications from the original recorded
 - [ ] Share-alike / source-disclosure implications checked (class C)
@@ -368,84 +343,86 @@ Department of Defence, the Australian Defence Force or the Australian Army.
 | 2026-09-26 | Register created. Lyra and UE recorded. Insignia, ADF marks and prohibited sources placed on hold. No third-party assets acquired. | All |
 | 2026-09-28 | **ADR-035**: free-to-play; every project asset cleared; real names allowed; L-0003 hold and L-0004 prohibition lifted; L-0007 narrowed to ripped/CAD sources; release gate revised; R-57 accepted. | §0, L-0003, L-0004, L-0006, L-0007, §5.2, §7, L-0021 |
 
-### L-0016 — Fab packs (Standard License), added 2026-09-27; **table completed 2026-09-28**
+### L-0016 — Fab/Vault assets acquired for Southern Spear; initial entries 2026-09-27, expanded in inventory 2026-10-01
+
+> The old SESSION 090 risk claims R-94 (StoneWell unregistered) and R-95 (Singapore Canal against a prohibition) were superseded after this intake snapshot: StoneWell is registered/producer-cleared in `ASSET_REGISTER.md` §4.9h, and Singapore Canal's generic prop/material references are producer-cleared under ADR-028/035; the no-Asian-base-map art-direction distinction remains. The historical risk statements remain in the changelog as dated history, not current gates.
+>
+> **Disposition vocabulary:** this table began as dated intake/selection notes. “Held for” meant a candidate intended for possible map placement, not a permission hold; “downloaded, not imported” and similar labels describe observed technical state at that snapshot. Current cache/install/use findings are in `ASSET_REGISTER.md` §§4.9i–4.9n. Under ADR-035, none of those labels conditions project-use clearance.
 
 | Pack | Local folder | Used for | Status |
 |---|---|---|---|
 | Rural Australia | `Content/RuralAustralia` | Base of `L_RedGum_01` (ADR-022); fence meshes changed to have no collision, and since Session 041 Dry River: ground material `MI_Ground_Dirt_01` (terrain and skirt), rocks, logs, trees (`Tools/Unreal/expand_dryriver.py`; `dryriver_ground.py` removed in Session 044) | In use |
 | Namaqualand | `Content/Namaqualand` | Base of `L_Saltbush_01` (MAPS_SALTBUSH.md); Dry River scatter since Session 041: stones, rocks, boulders, bark debris, dead branches, *Didelta* shrubs. The South African wildflowers are not used (setting reads as Australian, ADR-016) | In use |
-| QuantumCharacter (military character) | `Content/QuantumCharacter` | 3 ACR soldier body | In use; insignia check pending (R-20); carries original Southern Spear materials as per-slot cosmetic overrides (L-0022) |
-| Modern_Insurgent_7 | `Content/Modern_Insurgent_7` | MAF soldier body (conventional parts only) | In use; names internal only |
-| Insurgent_2 | `Content/Insurgent_2` | — (irregular/ethnic-coded gear; ADR-016) | Not used |
+| QuantumCharacter (modular military character) | `Content/QuantumCharacter` plus tracked Game Feature prototype modules | Friendly visible body (ADR-042) | Producer-cleared for F2P use; four Quantum modules are on Quantum's skeleton, with component-level camo overrides and retained Manny-rigged vest/helmet. Final in-game appearance capture remains pending. |
+| Modern_Insurgent_7 | `Content/Modern_Insurgent_7` | MAF soldier body (conventional parts only) | Producer-cleared for F2P use; retain provenance/credits. Historical friendly-head use ended under ADR-042. |
+| Insurgent_2 | `Content/Insurgent_2` | — (not selected for current MAF art direction; historical art-selection note, not a permission hold) | Not used |
 | FPS_Weapon_Bundle, AK-47, M1911 | `Content/FPS_Weapon_Bundle`, `Content/AK-47`, `Content/M1911` | Reference for A-series reshaping only | Not used |
 | **Scene Quarry Slate** | `Content/Scene_QuarrySlate` | **Rock, ledges, gravel, the best stone in the project.** Dry River scatter and road surface, tinted under `MI_SS_Ironstone_*`; Ravenshoe Crossing gorge walls and boulders (`MAPS_RAVENSHOE.md`) | In use — **row added 2026-09-28, see L-0016b** |
 | Modular Rural Cabin | `Content/Modular_Rural_Cabin` | Sparse conifer on shaded north-facing slopes (Ravenshoe). No map base | In use — **row added 2026-09-28, see L-0016b** |
-| Singapore Canal | `Content/Singapore_Canal` | Dry River generic props only (Session 044): crates, barrels, tubs, carts, packed sacks, planks and plain wood materials | **Generic props in use; architecture not used.** Asian canal/urban architecture and ornamented metal (`MI_MetalParts_01`) stay out (ADR-016). Stone *materials* must not be repurposed for Australian masonry. Row added 2026-09-28, see L-0016b; corrected Session 044 |
-| Nanite Plants Sample Collection | `Content/Nanite_Plants_Sample_Collection` | — (6 sample meshes, temperate European garden species) | Installed, not used. Row added 2026-09-28, see L-0016b |
+| Singapore Canal | `Content/Singapore_Canal` | Generic corrugated/wood material and prop references used on Dry River and Red Gum structures; 11 committed assets reference the pack | **In use.** No canal layout or Asian masonry is used as an Australian base. Producer-cleared for F2P use under ADR-028/035; retain the art-direction distinction. Row added 2026-09-28, see L-0016b; corrected after map-reference scan. |
+| Nanite Plants Sample Collection | `Content/Nanite_Plants_Sample_Collection` | — (6 sample meshes, temperate European garden species) | Installed, not used; producer-cleared if selected for F2P use. Row added 2026-09-28, see L-0016b |
 | Military Radio | `Content/Military_Radio` | Radio/headset props | In use (props). Row added 2026-09-28, see L-0016b |
 | Realistic Starter VFX Pack Vol 2 | `Content/Realistic_Starter_VFX_Pack_Vol2` | Particle effects | In use (FX). Row added 2026-09-28, see L-0016b |
 | Sample Animation Pack | `Content/SampleAnimationPack` | — | Installed, not used. Row added 2026-09-28, see L-0016b |
-| World Flags | `Content/World_Flags` | — | Installed, not used. Row added 2026-09-28, see L-0016b |
-| FP_AKS74U Animation | `Content/FP_AKS74U_Animation` | AKS-74U animations | Installed, not used. Row added 2026-09-28, see L-0016b |
+| World Flags | `Content/World_Flags` | `MI_SS_Flag_Friendly`, `MI_SS_Flag_MAF` material instances | In use; corrected after reference scan. |
+| FP_AKS74U Animation | `Content/FP_AKS74U_Animation` | `MI_AKS74U`, `MI_Magazine` on MAF weapon meshes | In use; material dependencies, not an asserted animation dependency. Corrected after reference scan. |
 | Red car wreck | `Content/Downloaded/VaultCache/FabLibrary/Red_car_wreck-04d70886` (cache) → prepped to `SS_Raven_wreck_car` | **Ravenshoe Crossing M-008j** — the burning wreck on the bridge deck at OBJ A. A red Renault shell, doors open, engine bay gutted | In use (M-008j). **Row added 2026-09-28, see L-0016c.** Fab plugin wrote no `metadata` for this folder, so seller and `isAiForbidden` are **unverified** |
 | Abandoned & junk Car (PLEXUS GAME ASSETS) | `.../FabLibrary/Abandoned___junk_Car-ee5cffe5` → prepped to `SS_Raven_wreck_junk` | Ravenshoe Crossing M-008j — second wreck, in the creek bed | In use (M-008j). Row added 2026-09-28, see L-0016c. `isAiForbidden: false` |
 | American Old Windmill (Polyvine) | `.../American_Old_Windmill-d8d4a1d3` → prepped to `SS_Raven_windmill` | Ravenshoe Crossing M-008j — windmill on the north ridge | In use (M-008j). **`isAiForbidden: true` — see L-0016c** |
 | Fuel barrel (SampleDotTxt) | `.../Fuel_barrel-873fee1d` → prepped to `SS_Raven_fuel_drum` | Ravenshoe Crossing M-008j — fuel drums on the deck and at the gatehouse | In use (M-008j). **`isAiForbidden: true` — see L-0016c** |
 | Barn (seller unrecorded) | `.../FabLibrary/Barn-eb4457bc` → prepped to `SS_Raven_barn` | Ravenshoe Crossing M-008j — barn on the north ridge | In use (M-008j). No `metadata` written by the Fab plugin; seller and AI flag unverified. See L-0016c |
 | Military Trenches — Pile Sandbag Canvas 01 (Quixel Megascans) | `.../Military_Trenches_Pile_Sandbag_Canvas_01-a08111c9` → prepped to `SS_Raven_sandbag_stack` | Ravenshoe Crossing M-008j — sandbag hard cover on both approaches | In use (M-008j). **`isAiForbidden: true` — see L-0016c** |
-| Military Trenches — Wall Metal Corrugated 04 (Quixel Megascans) | `.../Military_Trenches_Wall_Metal_Corrugated_04-e15620d3` → prepped to `SS_Raven_trench_wall` | Ravenshoe Crossing M-008j — improvised cover panels at the abutments | In use (M-008j). `metadata` absent; same Quixel series as the two above and assumed **AI-forbidden** — see L-0016c |
+| Military Trenches — Wall Metal Corrugated 04 (Quixel Megascans) | `.../Military_Trenches_Wall_Metal_Corrugated_04-e15620d3` → prepped to `SS_Raven_trench_wall` | Ravenshoe Crossing M-008j — improvised cover panels at the abutments | In use (M-008j). `metadata` absent; `isAiForbidden` **unverified**, not inferred from neighboring Quixel listings — see L-0016c |
 | Old Abandoned Rusty Cars (OlegVerenko) | `.../Old_Abandoned_Rusty_Cars___...-ed740921` | — (5 car meshes, `Content/RustyCarsFree/`) | **In use — Wandarra (M-009) since 2026-09-30**: 10 wrecks placed as cover. `isAiForbidden: false`. Row added 2026-09-28, see L-0016c; corrected 2026-09-29 to not-used, corrected again 2026-09-30 on first map use (`ASSET_REGISTER.md` §4.9j) |
-| Rigged Cargo Container Red PBR (Vadim3dd) | `.../Rigged_Cargo_Container_Red_PBR-1db0b7e1` | — | **Downloaded, not imported. `isAiForbidden: true` — see L-0016c** |
-| Old Rustic Hand Water Pump (Sayan Paul) | `.../Old_Rustic_Hand_Water_Pump-0b2fc83d` | Held for the Ravenshoe approaches | **Downloaded, not imported.** `isAiForbidden: false`. Row added 2026-09-28 |
-| Water Tower (Chamod1999) | `.../Water_Tower-86b17984` | Held for the Ravenshoe approaches | **Downloaded, not imported.** `isAiForbidden: false`. Row added 2026-09-28 |
-| Red Tractor, Storage Unit nr5, Old Barn, Wooden Chicken Coop, Crushed Classic Raw Scan, Old Bath, Military Trenches Debris Pile Rock | `.../FabLibrary/*` | — | **Downloaded, not imported**, rows added 2026-09-28 so the sweep has a floor. Several are European/Baltic in origin and would need an ADR-016 look check before use |
-| **MOUT urban training kit** (Military Operation Urban Training; 2.1 GB, 507 files, 3 maps incl. a 4.26-era demo urban block) | `Content/Downloaded/VaultCache/ModularM6dfea54fd98cV5/` (staging) → `Content/MOUT_Civilian/` | **Wandarra (M-009) since 2026-09-30**: buildings, church kit, fences and street furniture; `Docs/MAPS_WANDARRA.md` | **In use.** Class **A**, same Fab Standard License as the rest of this table. **The Vault download wrote no `metadata` sidecar anywhere in the pack, so seller and `isAiForbidden` are both unverified** — recorded per the L-0016c standing action as unverified, never as clear. First 5.8 load of the 4.26 content measured silent (R-67 first-load evidence, 2026-09-30). Row added 2026-09-29 |
-| **European Beech trees** (Fab; 7.0 GB, 258 files: SimpleWind and PivotPainter beech forests, saplings, impostors) | `Content/Downloaded/VaultCache/MS_Beech_UE51_V2/` (staging) → `Content/EuropeanBeech/` | **Wandarra (M-009) since 2026-09-30**: 38 SimpleWind statics as verge rows, park cluster and depot screen | **In use.** Class **A**. **The Vault chunk carries a build manifest only — no `metadata` sidecar — so seller and `isAiForbidden` are unverified** per L-0016c (unverified, never clear). Authored **UE 5.1 native**. Row added 2026-09-30 |
-| Mega Moduler Apartment Building | `.../FabLibrary/Mega_Moduler_Apartment_Building-db1b80f5` | — | **Downloaded, not imported. `isAiForbidden: true`.** Seller karaman. Row added 2026-09-29 |
-| Modular 3D hospital environment | `.../FabLibrary/Modular_3D_hospital_environment-7e1574fd` | — | **Downloaded, not imported. `isAiForbidden: false`.** Seller Madd Game Art; listed under *Environments / Horror*, needs an ADR-016 look check before any consideration. Row added 2026-09-29 |
-| American Road with Parking Lot | `.../FabLibrary/American_Road_with_Parking_Lot-a629eb34` | — | **Downloaded, not imported. `isAiForbidden: false`.** Seller Jimbogies; GLB only, so it needs an import path in `prep_fab_props.py` before it can be onboarded at all. Row added 2026-09-29 |
-| Individual First Aid Medical Kit (IFAK) | `.../FabLibrary/Individual_First_Aid_Medical_Kit_IFAK-a628e3ba` | — | **Downloaded, not imported. `isAiForbidden: true`.** Seller SpatialNeglect; a medical prop for a Medic role that does not exist yet. Row added 2026-09-29 |
+| Rigged Cargo Container Red PBR (Vadim3dd) | `.../Rigged_Cargo_Container_Red_PBR-1db0b7e1` | — | Cache-only/not imported in the 2026-10-01 snapshot; `isAiForbidden: true` is observed metadata only, not a project-use hold under ADR-035. |
+| Old Rustic Hand Water Pump (Sayan Paul) | `.../Old_Rustic_Hand_Water_Pump-0b2fc83d` | Candidate for Ravenshoe approaches in the 2026-09-28 intake snapshot | Not imported in the 2026-09-28 snapshot; later imported and used in Ravenshoe. `isAiForbidden: false`. Row added 2026-09-28 |
+| Water Tower (Chamod1999) | `.../Water_Tower-86b17984` | Candidate for Ravenshoe approaches in the 2026-09-28 intake snapshot | Not imported in the 2026-09-28 snapshot; later imported and used in Ravenshoe. `isAiForbidden: false`. Row added 2026-09-28 |
+| Red Tractor, Storage Unit nr5, Old Barn, Wooden Chicken Coop, Crushed Classic Raw Scan, Old Bath, Military Trenches Debris Pile Rock | `.../FabLibrary/*` | — | **Intake snapshot (2026-09-28):** downloaded/cache-only or not imported at that time; Old Barn was later imported and used in Ravenshoe. Other items remain unselected in the current inventory for import-pipeline or art-direction reasons, not a project-use permission hold. |
+| **MOUT urban training kit** (Military Operation Urban Training; 2.1 GB, 507 files, 3 maps incl. a 4.26-era demo urban block) | `Content/Downloaded/VaultCache/ModularM6dfea54fd98cV5/` (staging) → `Content/MOUT_Civilian/` | **Wandarra (M-009) since 2026-09-30**: buildings, church kit, fences and street furniture; `Docs/MAPS_WANDARRA.md` | **In use; producer-cleared for F2P use.** The Vault download wrote no `metadata` sidecar anywhere in the pack, so seller and `isAiForbidden` are unverified. First 5.8 load of the 4.26 content measured silent (R-67 first-load evidence, 2026-09-30). Row added 2026-09-29 |
+| **European Beech trees** (Fab; 7.0 GB, 258 files: SimpleWind and PivotPainter beech forests, saplings, impostors) | `Content/Downloaded/VaultCache/MS_Beech_UE51_V2/` (staging) → `Content/EuropeanBeech/` | **Wandarra (M-009) since 2026-09-30**: 38 SimpleWind statics as verge rows, park cluster and depot screen | **In use; producer-cleared for F2P use.** The Vault chunk carries a build manifest only — no `metadata` sidecar — so seller and `isAiForbidden` are unverified. Authored **UE 5.1 native**. Row added 2026-09-30 |
+| Mega Moduler Apartment Building | `.../FabLibrary/Mega_Moduler_Apartment_Building-db1b80f5` | — | Cache-only/not imported in the 2026-10-01 snapshot; `isAiForbidden: true` is observed metadata only. No project-use hold under ADR-035. Seller karaman. Row added 2026-09-29 |
+| Modular 3D hospital environment | `.../FabLibrary/Modular_3D_hospital_environment-7e1574fd` | — | Cache-only/not imported in the 2026-10-01 snapshot; `isAiForbidden: false` is observed metadata only. Seller Madd Game Art; listed under *Environments / Horror*, not selected for current use. Row added 2026-09-29 |
+| American Road with Parking Lot | `.../FabLibrary/American_Road_with_Parking_Lot-a629eb34` | — | Cache-only/not imported in the 2026-10-01 snapshot; `isAiForbidden: false` is observed metadata only. Seller Jimbogies; GLB format is not currently onboarded in the prop-prep path. Row added 2026-09-29 |
+| Individual First Aid Medical Kit (IFAK) | `.../FabLibrary/Individual_First_Aid_Medical_Kit_IFAK-a628e3ba` | — | Cache-only/not imported in the 2026-10-01 snapshot; planned medic asset (ADR-040). `isAiForbidden: true` is observed metadata only, not a project-use hold. Seller SpatialNeglect. Row added 2026-09-29 |
 
 | Field | Value |
 |---|---|
 | **Author** | Respective Fab sellers (see each pack's Fab page in the producer's library) |
 | **Source** | Fab (fab.com), added to the project from the producer's Epic account |
-| **Licence** | Fab Standard License |
-| **Class** | **A** — no attribution required; source files must not be redistributed publicly (R-14) |
-| **Status** | Raw packs git-ignored; project assets reference them by path (R-19) |
+| **Licence/provenance** | Listing-specific terms and seller metadata vary; sidecar observations are listed in ASSET_REGISTER §4.9m. |
+| **Project-use status** | Producer-cleared for Southern Spear F2P use under ADR-028/035. Preserve available credits/provenance; raw vendor source is not to be redistributed. |
 
 ### L-0016b — The installed-pack register gap, found and closed 2026-09-28
 
 | Field | Value |
 |---|---|
-| **What was found** | Nine Fab packs were installed in `Content/` and in active use with **no row in this register and no row in `ASSET_REGISTER.md`**: `Scene_QuarrySlate`, `Singapore_Canal`, `Modular_Rural_Cabin`, `Nanite_Plants_Sample_Collection`, `Military_Radio`, `Realistic_Starter_VFX_Pack_Vol2`, `SampleAnimationPack`, `World_Flags`, `FP_AKS74U_Animation`. `Scene_QuarrySlate` is the significant one: Dry River is built on its rock and gravel meshes, and Ravenshoe Crossing is specified on it |
-| **How it was found** | Inventory of `Content/Downloaded/VaultCache/` (19 folders, ~36 GB) taken while scoping the Ravenshoe Crossing map. The cache is the Fab desktop staging area; all 18 of its content roots turned out to be **already installed** in `Content/`, which made the register's coverage testable in one pass |
+| **What was found (2026-09-28 snapshot)** | Nine packs were undocumented at that time: `Scene_QuarrySlate`, `Singapore_Canal`, `Modular_Rural_Cabin`, `Nanite_Plants_Sample_Collection`, `Military_Radio`, `Realistic_Starter_VFX_Pack_Vol2`, `SampleAnimationPack`, `World_Flags`, `FP_AKS74U_Animation`. Later dependency scanning corrected World Flags and FP_AKS74U Animation as in-use, and a 2026-10-01 review corrected Singapore Canal and added StoneWell. This historical nine-pack set was not a complete scan of FabLibrary or all VaultCache. |
+| **How it was found** | A limited inventory of 19 non-Fab VaultCache directories (~36 GB) taken while scoping Ravenshoe Crossing. It did not include a recursive inventory of the separate `FabLibrary` cache and should not be read as the complete VaultCache state; the 2026-10-01 full local scan is documented in L-0025 and `ASSET_REGISTER.md` §4.9m–o. |
 | **Why it went unnoticed** | L-0016's table was written when Red Gum was built (ADR-022) and listed only the packs that had a *decision* attached to them. Packs added later — Dry River's rock, the radio props, the VFX — were installed through per-feature work without a register pass, so the rule in §1 ("no third-party asset enters this repository without a row") was being met in letter for those six packs but not in substance |
-| **Class** | **A** — Fab Standard License, as for the rest of L-0016. **This is a bookkeeping correction, not a new clearance:** the same licence, publisher and source apply as the rows above, because these are the same Fab packs from the same producer library |
+| **Project-use status** | Producer-cleared for Southern Spear F2P use under ADR-028/035. This was an inventory/bookkeeping correction; listing terms and provenance are recorded separately and do not create a permission hold. |
 | **Action taken** | L-0016's table completed with a row per pack, each marked as added 2026-09-28. **No asset was imported, modified, moved or deleted.** No licence class changed |
-| **Residual risk** | None identified. The gap was documentary, not legal: every pack is a Fab Standard Licence pack already in the producer's library. Had any of them turned out to be a different licence class, the finding would have been materially more serious, which is why the sweep was done rather than assumed |
 | **Standing action** | Any future pack import must add its L-0016 row **in the same change** that imports it, not afterwards. The CI check in §1 covers `.uasset`/`.umap` files appearing without a register entry; the failure mode found here is a pack that is *already* imported, which that check does not catch |
 
-### L-0016c — Fab listings that forbid AI-assisted use, found 2026-09-28
+### L-0016c — Fab listing metadata observations (`isAiForbidden`), found 2026-09-28
 
 | Field | Value |
 |---|---|
-| **What was found** | The 2026-09-28 Ravenshoe prop download added 13 more Fab listings. Five of the twelve that shipped a `metadata` file are flagged **`isAiForbidden: true`** by their sellers: *American Old Windmill* (Polyvine), *Fuel barrel* (SampleDotTxt), *Rigged Cargo Container Red PBR* (Vadim3dd), and two of the Quixel Megascans *Military Trenches* assets (*Pile Sandbag Canvas 01*, *Debris Pile Rock*). A sixth, *Wall Metal Corrugated 04*, shipped no `metadata` but is the same Quixel series and is treated as forbidden. Three more — the red car wreck, the barn, and the corrugated wall — wrote no `metadata` at all, so their flag is **unknown**, not known-good |
+| **What was found (2026-09-28 snapshot)** | The Ravenshoe prop sweep recorded marketplace `isAiForbidden` values, including true/false and absent metadata. The corrugated-wall sidecar was absent; its value is **unverified** and is not inferred from neighboring Quixel listings. The 2026-10-01 recursive inventory in ASSET_REGISTER §4.9m supersedes the old incomplete counts. |
 | **How it was found** | Parsing the `metadata` sidecar that the Fab desktop plugin writes into `Content/Downloaded/VaultCache/FabLibrary/<pack>/<format>/metadata`. Note the sidecar sits at **varying depth** — `fbx/metadata`, `fbx/mid/metadata`, `obj/metadata` — so a fixed-depth scan silently misses most packs. A first pass at fixed depth reported only 3 of 12 |
-| **Producer's decision** | **Proceed with the import.** The producer's stated position is that all the Fab assets being downloaded are free to use. That is **ADR-028**, which already clears every Fab asset for Southern Spear and instructs agents not to hold an asset back pending a licence check. On that instruction four AI-flagged assets were imported into Ravenshoe: the windmill, the fuel drum, the sandbag stack and the corrugated wall panel. The Rigged Cargo Container was downloaded but not imported. **Note what this is and is not:** ADR-028 removes the *licence lookup*, and `isAiForbidden` is not a licence field — it is a separate seller declaration about AI use. Recording it is bookkeeping, exactly as the L-0016b register rows are, and does not re-open the licence question ADR-028 closed |
-| **Class** | **A**, unchanged — the Fab Standard License is the same. `isAiForbidden` is a **seller opt-out on the listing**, not a different licence tier, so the class does not change. What changes is the **risk position**, which is recorded here rather than in the class column |
-| **Residual risk — stated plainly** | The Fab listing flag is the seller's declaration that AI-assisted use of their content is not wanted. The producer has decided to proceed regardless, under ADR-028. That decision is the producer's to make and it is recorded, not re-litigated here, but anyone auditing this later needs to know that **four imported assets carry a flag their sellers placed against this use**, and that three more have no verifiable metadata at all. If the project is ever published or distributed commercially at a scale ADR-028 does not cover, these are the rows to re-check first |
-| **Mitigation applied** | Every affected asset was **prepped in Blender** (`Tools/Blender/prep_fab_props.py`) — rescaled, ground plane removed, re-pivoted and decimated — before import, and is referenced by path. The project holds a working copy, not a link to the seller's listing, so a takedown or a licence change on the Fab side does not silently break the map. The producer's own originals (`SS_RedGum_Windmill`, `SS_Dressing_Barrel`) remain in the project and cover the same dressing needs without the flag; they were not displaced because the producer chose the pack assets |
-| **Standing action** | Any future Fab import must read the `metadata` sidecar **recursively** and record the `isAiForbidden` value in this register at import time, including when it is `true` and including when the file is **absent** — an absent sidecar is recorded as *unverified*, never as *clear* |
+| **Producer's decision** | Producer direction under ADR-028/035 clears project use for acquired Fab assets. The 2026-09-28 listing observations included windmill, fuel barrel, sandbag and corrugated-wall metadata, and the Rigged Cargo Container remained cache-only at that time. `isAiForbidden` is a marketplace metadata field, not the project's use decision; record it as provenance without imposing a hold. |
+| **Project-use status** | Producer-cleared under ADR-028/035. Listing/sidecar values are recorded as provenance; this entry does not assert one Fab licence tier across these distinct listings. |
+| **Metadata finding** | The flag is an observed marketplace field, not a licence class. The producer has cleared acquired assets for Southern Spear's free-to-play game under ADR-028/035, regardless of `true`, `false` or missing values. Preserve the flag and missing-sidecar state as provenance; neither is a project-use hold. |
+| **Handling** | Record source metadata and credits where present. Mechanically prepped game derivatives are tracked as distinct project assets; keep raw vendor sources out of public redistribution. These steps do not modify or condition the producer's F2P use clearance. |
+| **Standing action** | When available, record seller/source, credit and `isAiForbidden` metadata recursively, including an explicit `unverified` value when no sidecar exists. This is provenance/credit bookkeeping only and does not defer producer-cleared use. |
 
-### L-0016d — `isAiForbidden` overruled for every asset (producer, 2026-09-29)
+### L-0016d — Producer clearance applies regardless of `isAiForbidden` (2026-09-29; reaffirmed 2026-10-01)
 
 | Field | Value |
 |---|---|
-| **Producer's decision** | **Every asset the project holds may be used, whatever its `isAiForbidden` flag** — true, false or unverified. This extends L-0016c from the four Ravenshoe props to all present and future assets, so no asset is held back or swapped for a placeholder on account of the flag. First application: the Fab *Individual First Aid Medical Kit (IFAK)* as the medic's kit (ADR-040) |
-| **What stays** | The bookkeeping: record the flag's value at import time (L-0016c's standing action), so the credits and any later audit can see it. L-0016c's residual-risk statement applies to every flagged asset, not just the four it named |
+| **Producer's decision** | Assets acquired/held for Southern Spear may be used in this free-to-play game regardless of whether `isAiForbidden` is `true`, `false` or unverified (ADR-028/035). No asset is held back or replaced on account of this metadata field. |
+| **What stays** | Record available seller, source, attribution and AI-use metadata for provenance/credits. This is not a universal marketplace-license statement and does not authorize raw-source redistribution. The producer's prohibition on ripped commercial-game assets and the project's no-endorsement/content-ethics rules remain separate. |
 
-### L-0017 — A88 textured model (producer-supplied download)
+### L-0017 — A88 textured model (producer-supplied download; project use cleared)
 
 | Field | Value |
 |---|---|
@@ -454,8 +431,8 @@ Department of Defence, the Australian Defence Force or the Australian Army.
 | **Local copy** | `Art/Weapons/A88/New/` (not committed) |
 | **Licence** | Aggregator page shows "Royalty Free"; the original author's terms are not shown and not yet confirmed |
 | **Use** | Current A88 cosmetic mesh via `Tools/Blender/a88_sourced.py` and `setup_weapons.py` |
-| **Status** | **Provisional** (R-21): record the URL and terms; reshape into an original A-series design (ADR-021) |
-| **Producer decision — website promotion (2026-09-28)** | The producer directs that a render of the sourced EF88 model (the current in-game A88 cosmetic mesh) be published on the public website's Loadout section, and accepts the residual risk that the aggregator "Royalty Free" claim is unverified against the original author's terms. The site labels the render as the current internal model. Producer risk acceptance only; **not a legal clearance**; revisit before any commercial release. |
+| **Status** | **Producer-cleared for Southern Spear F2P use (ADR-035).** Original-author terms remain unverified provenance; retain the source URL/credit record and continue fictional A-series visual-design work. R-21 is not a project-use hold. |
+| **Producer decision — website promotion (2026-09-28)** | The producer directed publication of a render of the sourced EF88 model (current in-game A88 cosmetic mesh) on the website's Loadout section. The source terms remain unverified provenance; producer clearance under ADR-035 covers Southern Spear F2P use. Do not redistribute raw source files. |
 
 ### L-0021 — ADF Re-Cut (ADFRC) pack, extracted into `Content/Sourced/ADF_Extracted/`
 
@@ -465,38 +442,38 @@ Department of Defence, the Australian Defence Force or the Australian Army.
 | **Source** | Two origins, per the tree's own `README.md`: (1) the source/config distribution of **ADF Re-Cut / ADFRC**, `github.com/IsoBones/ADFRC`, under APL-SA; (2) the **binarised Steam Workshop release**, `!Workshop\@ADF Re-Cut [Beta]\addons` (15 `.pbo` archives, 5.8 GB). The GitHub repository ships no `.p3d` by design — all geometry exists only inside the Workshop PBOs |
 | **Local copy** | `Content/Sourced/ADF_Extracted/` (git-ignored, inside the Unreal content root — see R-25) |
 | **Authorisation** | **WRITTEN GRANT ON FILE.** Email from **Tonnie** to the producer, 2026-09-27 15:05, granting permission to use "the ADF ReCut models and associated assets that I have extracted" within the Southern Spear project, for development, testing, prototyping and inclusion in the game, in the extracted (unextracted-format) state. Verbatim transcription and the original screenshot are preserved at `Docs/evidence/L0021_adfrc_authorisation_email.txt` / `.png`. This is the evidence that moves this entry off the R-24 block for the grantor's own components |
-| **Licence** | **Partially cleared — see conditions.** APL-SA (Bohemia, Arma distribution side) remains non-commercial and Arma-only and is **not** within a community author's gift to waive. ADFRC's `ASSETS_LICENSE.md` and `DEV_LICENSE.md` §2.4 restrict the protected models against extraction, derivatives, redistribution and use in other media; the grantor states he performed the extraction himself, which is the act those terms restrict, so his permission cures the *use* question for his own components but does not retrospectively license the extraction method. Attribution still cannot cure APL-SA |
+| **Observed upstream terms** | The source tree includes APL-SA and ADFRC license texts with restrictions on extraction, derivatives and redistribution. These remain recorded provenance. The producer's project-specific direction clears acquired assets for this game's free-to-play use; it does not authorize redistribution of raw source or erase the source record. |
 | **Grant is narrower than it appears** | The email's third paragraph is a **disclaimer, not a warranty**: permission is granted "on the understanding that you remain responsible for ensuring compliance with any applicable intellectual property, licensing, copyright, or other legal requirements associated with the original source material." The grantor therefore expressly does **not** warrant that the material is free of third-party rights, nor that he holds every right he is granting. Recorded deliberately — this is the most consequential sentence in the message |
-| **Scope limit — multi-author pack** | **RESOLVED 2026-09-27 (Session 032c).** ADF Re-Cut is multi-author: author strings in the extracted configs name **Brucey, Exer, Growlor, Louetta, Quiggs**, "ADFU Team" and "ADF Re-Cut Team", and "Tonnie" is not among them — so his grant could only ever have covered his own components. The producer has since obtained a **blanket 100% permission from the mod team as a whole**, which covers the whole pack including every credited author. Per-component confirmation is no longer required for import, development or inclusion in game. The limits that the mod team cannot lift are unchanged: the third-party marks below, and redistribution |
-| **Additional conflict — unaffected by this grant** | Real manufacturer and service identities are present regardless of the grant: Crye Precision (G3), Ops-Core, PASGT, "Team Wendy", and the actual ADF camouflage patterns (Auscam, DPCU). These belong to companies and to the ADF/Department of Defence, **none of whom are party to the email** and none of whom are in the mod team's gift. A blanket grant from the mod team clears the mod's **own** work; it cannot clear a government or commercial trademark. L-0004 / L-0007 continue to bar them. **Amended by ADR-033 (2026-09-28):** ADR-016's requirement that CMECU be an original pattern is **withdrawn** — the soldiers now wear the ADFRC field-green G3 textures at source resolution, and no ADF service pattern is used — so the remaining rule is narrow: *the mod team's own work is cleared; a texture that is a real ADF service pattern or a commercial trademark is not, and still needs legal review or removal of the mark.* |
-| **Producer decision** | The producer has reviewed the above, **confirms the authorisation is genuine**, and accepts responsibility for the terms: Brucey/Tonnie are old mates, the Re-Cut team are content for these to be used in his free project. As of 2026-09-27 the producer additionally holds a **blanket 100% permission from the mod team**, which closes the multi-author scope limit. ADFRC material is treated as **free to use in Southern Spear**, including converted and derived work. Recorded as a **producer risk acceptance**, not as a legal clearance — the third-party items in the row below are unchanged by it. |
-| **Producer decision — website promotion (2026-09-28)** | The producer directs that renders of the ADFRC-derived weapon models (A4, A416, A25, A89, A9) be published on the public website's Loadout section as promotion, and accepts the residual redistribution risk that the underlying ADFRC/APL-SA terms restrict use in other media. The site labels these as renders of the current internal models. This is a **producer risk acceptance**, not a legal clearance, and **does not extend to selling, merchandising or any commercial use**; it is to be revisited before any commercial release or storefront page. |
-| **Use** | **Authorised by the producer for use in Southern Spear** (development, testing, prototyping, inclusion in game) in the unextracted format. Not cleared for **redistribution** — see git handling below. Branding substitutions still required before release (ADR-016 / R-27) |
+| **Scope limit — multi-author pack** | **RESOLVED 2026-09-27 (Session 032c).** The producer reports blanket permission from the ADFRC mod team as a whole, covering the credited contributors. This team permission is retained as provenance alongside the producer's broader project-specific F2P direction under ADR-035. Raw-source redistribution remains prohibited by project handling; no further per-component permission hold applies to acquired project assets. |
+| **Source/branding note** | Source assets include recorded manufacturer/service identifiers and camouflage. These remain useful provenance/art-direction observations. ADR-035 accepts their use in Southern Spear's F2P game; preserve the no-endorsement statement and do not treat this row as a legal opinion about rights outside the project. |
+| **Producer decision** | The producer confirms the ADFRC team permission and clears assets acquired/held for use in Southern Spear's free-to-play game, including converted and derived project work. This is the operative project-use direction under ADR-035; preserve source/credit records and do not redistribute raw vendor source. |
+| **Producer decision — website promotion (2026-09-28)** | The producer directed publication of renders of internal ADFRC-derived weapon models on the website's Loadout section. The producer's F2P project-use clearance applies; this does not authorize public distribution of raw ADFRC source files. |
+| **Use** | **Producer-cleared for Southern Spear F2P use**, including development, testing, prototyping and inclusion in the game. This does not authorize raw-source redistribution; see git handling. No brand-substitution permission gate remains under ADR-035. |
 | **Location** | Relocated 2026-09-27 to `Art/ADFRC/` (source: 177 `.p3d`, 1,471 PNG, 292 animation files, 68 configs). **Converted 2026-09-27** to `Art/ADFRC_MLOD/` (177 MLOD) and `Art/ADFRC_BLEND/` (**179 `.blend` with verified geometry**), including 40 optics and the `adfrc_SR25` DMR. Player/worn gear consolidated in `Art/ADFRC_Player/` (57 models + 1,538 textures). Every model has a sibling `_textures/` folder. See `Art/ADFRC/MANIFEST.md`, `Art/ADFRC_Player/README.md`. The full extraction remains at `Content/Sourced/ADF_Extracted/` |
 | **Conversion tooling** | `UKSFTA-P3D` (ODOL v73–v75 debinarizer, built on .NET 10) plus Arma 3 Object Builder v2.5.1 in Blender 5.2. Both live **outside** the repository at `E:/_tools/`. One local patch to `BlenderExport.cs` so the generated Blender script also tries the `bl_ext.user_default.*` module id. The converted output is **derived work** from the L-0021 material and is covered by the same terms |
 | **Git handling** | `Art/ADFRC/*` is **git-ignored**; only `LICENSE.md` and `MANIFEST.md` are tracked. Rationale: these are third-party source files redistributed from someone else's distribution, and the pack is not the producer's to publish, so it must not travel via the repository. Without this rule 5.5 GB of third-party content would have become committable the moment it moved out of the already-ignored `Content/Sourced/`. **Amended 2026-09-28 (producer):** the earlier wording here said the authorisation was "personal and non-commercial" and treated the project's own release model as the constraint. The project is a free-to-play product and the producer has directed that this is not a limitation, so the git rule now rests solely on the redistribution point above and not on a non-commercial reading. |
-| **Status** | **Cleared for use in Southern Spear (ADR-035)**, including release in the free game. R-27 (branding substitution) is producer-accepted, not a blocker. Raw files stay git-ignored for redistribution and size. R-28 (conversion) is **closed**; R-29 tracks the remaining gap — FBX export, Unreal materials, and unpacked textures |
+| **Status** | **Producer-cleared for Southern Spear's free-to-play game (ADR-035)**. Raw source remains quarantined/git-ignored per project handling; it is not to be redistributed as a source pack. R-28 conversion is closed; R-29's FBX/material/texture engineering observations are workflow findings, not use-permission holds. |
 
-### L-0022 — Original Southern Spear character materials (script-authored, applied over L-0016 bodies)
+### L-0022 — Original Southern Spear character materials (script-authored; historical application and current Quantum overrides)
 
 | Field | Value |
 |---|---|
 | **Component** | 12 PNG texture sets (CMECU dry-country camo, MAF red-earth camo, tan and dark gear fabric; base colour, twill micro-normal, ORM) and 4 materials `M_SS_CMECU`, `M_SS_MAF`, `M_SS_GearTan`, `M_SS_GearDark`, plus the per-slot override arrays on `ASSCharacterPartActor` |
 | **Source** | Original work, generated by `Tools/Textures/make_character_textures.py` (PIL/numpy). No third-party texture was sampled, traced or converted; the ADFRC material was specifically **not** used as a pattern reference |
 | **Licence** | Class **F** — original, ours to license |
-| **Use** | Cosmetic material overrides on the L-0016 bodies. The vendor meshes are neither duplicated nor edited (ADR-004: appearance only) |
-| **Status** | In use on 7 of 14 friendly slots and 5 of 7 MAF parts; no rendered in-game view yet (see changelog Session 026) |
-| **Retune (Session 042)** | CMECU retuned from four tones to seven and MAF lifted ~15%, both measured against the producer's reference photography by `Build/audit/tune_camo.py` rather than eyeballed: reference fabric lum p10/p50/p90 = 40/129/235, median saturation 0.46, oxide-red population 8.7%; the regenerated sets score lum 43/107/205, sat 0.47, red 10.2%. Still noise-generated from the script's own fbm field — **no real-world camouflage was sampled, traced or converted**. **Superseded in part by ADR-033 (2026-09-28):** these sets are no longer the third-person soldier's uniform at all. The friendly soldier now wears the ADFRC field-green G3 textures (Class A, cleared by the blanket grant) and the MAF keeps `make_maf_uniform.py`'s red-earth set as a deliberate faction distinction. The `T_SS_CMECU_*` / `T_SS_MAF_*` sets remain in use for first-person arms and UI. The four `M_SS_*` materials and the per-slot override arrays are unchanged. |
+| **Use** | Original cosmetic materials remain part of the project; active friendly camo rides on Quantum module component overrides under ADR-042, with ADFRC vest/helmet and separate MAF materials. Vendor meshes are not duplicated or edited. |
+| **Status** | The former friendly G3/MAF slot counts are historical and should not be read as current Quantum slot assignment. Active Quantum camo configuration is described under ADR-042 and ASSET_REGISTER CH-TEX-004; final visual capture remains pending. |
+| **Retune (Session 042)** | CMECU retuned from four tones to seven and MAF lifted ~15%, both measured against the producer's reference photography by `Build/audit/tune_camo.py` rather than eyeballed: reference fabric lum p10/p50/p90 = 40/129/235, median saturation 0.46, oxide-red population 8.7%; the regenerated sets score lum 43/107/205, sat 0.47, red 10.2%. Still noise-generated from the script's own fbm field — **no real-world camouflage was sampled, traced or converted**. **Application superseded in part by ADR-042:** these original sets are not the current friendly third-person uniform; Quantum uses a component override for the generated DPCU-derived tileable camo, while MAF remains a separate opposing configuration. The `T_SS_CMECU_*` / `T_SS_MAF_*` sets and original materials remain project assets; do not infer the old G3 slot counts are current. |
 | **Website use (Session 042)** | Studio renders using these textures on the L-0016 body and L-0021 kit were published and then **withdrawn** in the same session; see ASSET_REGISTER §4.9. The camo itself is Class F and carries no restriction; the body and kit in the same image do, and it is those two layers that made the renders unsuitable to publish. |
 
-### L-0023 — Session 044 additions (Fab, cleared under ADR-028; tooling)
+### L-0023 — Session 044 additions (producer-cleared project use; source metadata recorded per listing)
 
 | Component | Source | Use | Status |
 |---|---|---|---|
-| M4 and G17 FPS Weapon Animations packs (BarcodeGames) | Fab `38da8f1e…`, `5b920af4…`, Standard License | First-person arms and clips (`SSExp_ObjectiveAssault/FirstPerson`); the packs' real-weapon models are dropped in `fp_arms.py` | In use |
+| M4 and G17 FPS Weapon Animations packs (BarcodeGames) | Fab `38da8f1e…`, `5b920af4…`; listing-specific source metadata | First-person arms and clips (`SSExp_ObjectiveAssault/FirstPerson`); the packs' real-weapon models are dropped in `fp_arms.py` | In use; producer-cleared for F2P use |
 | African Slate Quarry (Scene_QuarrySlate) | Fab (Megascans) | Base of `L_Bluestone_01` (ADR-028 map-base note); Dry River stones | In use; git-ignored pack (R-41) |
 | Military Trenches Wall Metal Corrugated 04 | Fab (Megascans) | `MI_SS_CorrugatedIron` texture set | In use |
-| Gloves for fps game (Bobeer) | Fab, CC BY 4.0 | — | Not used; credit "Bobeer" if used |
+| Gloves for fps game (Bobeer) | Fab listing, CC BY 4.0 recorded locally | — | Not used; producer-cleared if used; preserve credit "Bobeer" |
 | VibeUE (Kevin Buckley) | github.com/kevinpbuckley/VibeUE, MIT | Editor-only dev tooling, git-ignored clone | Not shipped |
 
 ### L-0024 — Ghost gum tree and kangaroo models (registered 2026-09-30)
@@ -506,9 +483,20 @@ Department of Defence, the Australian Defence Force or the Australian Army.
 | **Component** | `Content/ghostgum/` (ghost gum tree FBX + TGA/PNG texture set, 20 MB) and `Content/kangaroo/` (kangaroo FBX/OBJ + JPG/TGA textures, 24 MB); original vendor archives kept alongside (`TH_Ghoast_Gum.zip.zip`, `kangaroo.rar`) |
 | **Publisher** | Not individually recorded — the downloads arrived with no `metadata` sidecar and no seller page record ("TH_" prefix suggests a marketplace/archive source) |
 | **Source** | Local files as received; no URL recorded |
-| **Licence** | Free-to-use per producer confirmation |
-| **Class** | **A — producer risk acceptance** (metadata not recorded; see Producer decision) |
-| **Status** | 🟢 **Cleared for use in Southern Spear (producer decision, 2026-09-30)** |
-| **Use** | Kangaroo: static easter-egg dressing only (2 individuals per map on Dry River and Red Gum Station, collision off). Ghost gum: staged for the Dry River overhaul's canopy-variety pass; not yet imported |
-| **Producer decision (2026-09-30)** | The producer confirms that **all models downloaded for or used in the project are free and able to be used in the game**. This closes R-90a: the register keeps the missing-metadata observation for the credits record only. Same risk-acceptance posture as L-0016c — recorded, producer-owned |
+| **Observed seller terms** | Not independently established; no licence file or seller page was recorded with the local copies. Producer confirmation is recorded as project-use clearance below, not as a vendor-published licence. |
+| **Project-use status** | Producer-cleared for Southern Spear F2P use; seller/source metadata remains unverified. |
+| **Status** | 🟢 **Cleared for use in Southern Spear's free-to-play game (producer decision, 2026-09-30; reaffirmed 2026-10-01)** |
+| **Use** | Kangaroo: static easter-egg dressing (2 individuals per map on Dry River and Red Gum Station, collision off). Ghost gum: imported to `/Game/Art/Environment/Fab/TH_Complete_Full_Ghoast_Gum`, six texture maps and three material instances; 10 placed on Dry River as the windmill screen ring (ASSET_REGISTER ENV-003). |
+| **Producer decision (2026-09-30; reaffirmed 2026-10-01)** | The producer confirms that assets downloaded for or used in the project are free to use in Southern Spear's F2P game. This closes R-90a; missing metadata remains a provenance/credits note, not a permission hold. |
 | **Git handling** | Tracked via LFS (`.fbx`, `.obj`, `.tga`, `.png`, `.jpg`, `.jpeg` patterns); archives tracked as plain binaries (`-filter -diff -merge text`) |
+
+### L-0025 — Full asset inventory and producer F2P reaffirmation (2026-10-01)
+
+| Field | Value |
+|---|---|
+| **Scope** | Read-only inventory of FabLibrary, the broader VaultCache, project `Content/`, tracked Game Feature assets and the local UE 5.8.3 Installed Build. Counts and caveats are documented in `Docs/evidence/asset_inventory_20261001.md`; the map-only subset remains in `PACK_MANIFEST`. |
+| **FabLibrary snapshot** | 50 physical directories, 675 files, 25,051,328,336 bytes; local `listings_v1.db` has 57 rows (51 `local_listing`). Recursive scan found 22 metadata sidecars: 10 `isAiForbidden=true`, 12 false; 28 folders have no sidecar. One catalogue listing reports `isAiGenerated=true`. These are observed source metadata, not project-use determinations. |
+| **Broader local inventory** | VaultCache: 30 top-level directories, 7,366 files, 58,343,692,654 bytes. Project `Content/`: 29,437 files, 118,405,659,191 bytes, including untracked/shared-worktree data. UE 5.8.3 CL 58210709: Engine/Content 40,056 files; Engine/Plugins 113,127 files / 901 `.uplugin`; FeaturePacks 9; Templates 5,880. `SouthernSpear.uproject`: 95 plugin entries, 84 enabled, 11 disabled. These are local snapshots, not tracked-content totals or cook manifests. |
+| **Tracked additions/findings** | Tracked A-series Game Feature roots contain 271 assets (151 `T_`, 82 `MI_`); tracked Quantum prototype meshes/material assets live under `Plugins/GameFeatures/SSExp_ObjectiveAssault/Content/Characters/QuantumProto/`. The tracked DPCU-derived tile image is a generated texture route, not evidence that the unmodified source is mounted unchanged. WaterPlane has 34 local files, one known tracked/reference normal and 33 untracked concurrent files; Splash assets were present untracked with origin/intent unknown. |
+| **Producer direction (reaffirmed)** | Assets acquired/held for Southern Spear are free to use in this free-to-play game under ADR-028/035. This applies regardless of missing metadata or seller `isAiForbidden`/`isAiGenerated` observations. Preserve known attribution and provenance, no-endorsement and content-ethics rules. This is project-specific, is not a universal marketplace licence claim, does not authorize raw-source redistribution, and does not reverse specific excluded/prohibited sources (including Electric Dreams under ADR-013/L-0012 and ripped commercial-game content under L-0007/L-0008). |
+| **Interpretation** | Cache presence, local installation, tracked Git presence, map references and selected runtime assets are separate states. This register records each only as supported by the inventory and existing reference evidence; it does not claim every cached file is imported, used, or selected in a shipping build. |

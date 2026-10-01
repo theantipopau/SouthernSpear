@@ -1,7 +1,6 @@
 # Locomotion and Animation Audit
 
-**Date:** 2026-09-27 (Session 030). **Status:** Audit and roadmap for producer approval. **No movement or
-animation change has been made against this document yet.**
+**Date:** 2026-09-27 (Session 030). **Status:** Historical audit and roadmap; portions have since been implemented or superseded. The movement/animation baseline below is a dated snapshot, not current runtime state. For current character and hand-IK state, see `PLAYER_MODEL_PLAN.md` §1, `PROJECT_AUDIT.md` R-65, and `NEXT_PRIORITIES.md`.
 
 **Brief (producer):** rebuild locomotion and animation to a tactical standard. The target feel is 40%
 Ground Branch, 30% America's Army 2, 20% Squad and 10% Ready or Not. Use Lyra and Epic's Game Animation
@@ -11,19 +10,19 @@ Every finding in §2 comes from executed evidence in this session (named in brac
 
 ---
 
-## 1. The current movement stack, layer by layer
+## 1. Historical movement stack (2026-09-27 snapshot), layer by layer
 
-| Layer | What runs today | Owner |
+| Layer | What ran in the Session 030 snapshot | Owner |
 |---|---|---|
 | Input | Lyra Enhanced Input (`IMC_Default`: move, look, jump, crouch, fire, ADS, reload) | Lyra (vendored) |
 | Movement | `ULyraCharacterMovementComponent` on `B_Hero_ShooterMannequin` | Lyra |
 | Body animation | `ABP_Mannequin_Base` plus linked item layers (`ABP_RifleAnimLayers`, `ABP_PistolAnimLayers`, …, base `ABP_ItemAnimLayersBase`) | Lyra |
-| Visible body | Fab soldier meshes (3 ACR: Quantum military character; MAF: conventional parts) that copy Lyra's invisible mannequin's pose bone for bone (`ASSCharacterPartActor`, leader pose) | Southern Spear (Team) |
+| Visible body | Historical Session 030 baseline: Fab soldier meshes copying Lyra's invisible mannequin pose by leader pose. Current friendly body is Quantum modules on Quantum's own skeleton; see `PLAYER_MODEL_PLAN.md` §1 (ADR-042). | Southern Spear (Team) |
 | Held weapon, third person | Lyra `B_Rifle` / `B_Pistol` children with the Lyra mesh hidden and our ADFRC static mesh (`SSVisual`) added | Southern Spear (`setup_weapons.py`) |
 | First person | Camera at the head bone; a **camera-held** copy of the weapon (`USSFirstPersonSubsystem`) with coded bob, sway, recoil kick and reload dip; own body hidden; no arms | Southern Spear (bridge) |
 | Camera | `USSFirstPersonCameraMode` / ADS mode (FOV from settings) | Southern Spear (bridge) |
 
-### 1.1 Movement values in use [editor script `audit.py`, `B_Hero_ShooterMannequin` defaults]
+### 1.1 Movement values measured in Session 030 [editor script `audit.py`, `B_Hero_ShooterMannequin` defaults]
 
 | Property | Value | Tactical-shooter reading |
 |---|---:|---|
@@ -35,7 +34,7 @@ Every finding in §2 comes from executed evidence in this session (named in brac
 | Jump Z velocity / air control | 500 / 0.4 | High air control: arcade. |
 | Max step height / walkable floor angle | 50 cm / 44.8° | Fine. |
 
-### 1.2 Animation techniques already in Lyra's graphs [node names found in the uassets]
+### 1.2 Animation techniques found in Lyra's graphs at the Session 030 audit [node names found in the uassets]
 
 | Requested | In Lyra today | Where |
 |---|---|---|
@@ -46,7 +45,7 @@ Every finding in §2 comes from executed evidence in this session (named in brac
 | Foot IK / placement | **Yes** (FootPlacement, LegIK) | base ABP and item layers |
 | Aim offsets | **Yes** | item layers |
 | Upper-body weapon overlay | **Yes** (layered bone blends per weapon type) | item layers |
-| Hand IK | **Yes** | item layers |
+| Hand IK | Lyra has item-layer hand IK; Southern Spear also has its own bridge implementation, with measured A88 pose change and remaining fit/acceptance work (R-65) | Lyra item layers; Southern Spear bridge |
 | Pivots, jump start / apex / land | **Yes** | base ABP |
 | Motion matching | **No** (no Pose Search databases; PoseSearch, Chooser and MotionWarping plugins not enabled) | — |
 | Motion warping (vault, mantle) | **No** | — |

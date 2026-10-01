@@ -3,8 +3,8 @@
 **Generated** by `python Tools/Weapons/adfrc_weapon_data.py` from `Docs/Sourced/ADFRC/config_registry.json`.
 Do not edit by hand. Real names are allowed anywhere (ADR-035); the A-series names are what the game uses today.
 
-These are the values our weapons *should* be tuned from. Today every A-series weapon is a copy of Lyra's
-rifle or pistol definition (`Tools/Unreal/setup_weapons.py`), so none of this is applied yet.
+This is descriptive ADFRC source-config data, not an independent service specification or a complete game-tuning prescription.
+Southern Spear currently applies configured magazine size, spare ammunition, spread scale and rounds-per-minute through `SSWeaponStatsSettings` and `USSWeaponStatsSubsystem`; the source values are adapted into project-owned rows rather than copied wholesale. The source fire-mode distinction (`bFullAuto=false`) is not enforced yet, and these tables do not establish a sight zero or a measured recoil profile. See `NEXT_PRIORITIES.md` §5 for the implementation boundary.
 
 | A-series | Role | Source class | Fire modes (rpm, dispersion MOA) | Magazine | Grip pose clip | Reload |
 |---|---|---|---|---|---|---|

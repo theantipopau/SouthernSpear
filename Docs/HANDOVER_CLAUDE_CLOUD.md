@@ -1,6 +1,8 @@
 # Handover — Claude (cloud) → whoever picks this up next
 
-Written 2026-09-29 at the end of the cloud session that ran Sessions 055–076 (with the local agents' sessions interleaved).
+Originally written 2026-09-29 at the end of the cloud session that ran Sessions 055–076 (with the local agents' sessions interleaved); current-status notes were reconciled 2026-10-01.
+
+> **Current handoff note:** this is a historical cloud-session document, not the authoritative current task list. See `NEXT_PRIORITIES.md`, `PROJECT_AUDIT.md`, and current map/register documents first; old prompts and risk actions below are retained for context and may be superseded.
 It's for the next Claude cloud session, or any agent taking over the work this session was doing. Read it after
 `CLAUDE.md`. Everything here is either measured and committed, or marked as not verified.
 
@@ -11,10 +13,9 @@ It's for the next Claude cloud session, or any agent taking over the work this s
 > and the Dry River overhaul are done. They are kept for the traps and the pipeline knowledge, not as a
 > current task list.
 >
-> **The current order of work is `Docs/NEXT_PRIORITIES.md`** (written 2026-09-30 from the producer's
-> playtest verdict): character models and animations, weapon textures, VFX, weapon zeroing and recoil from
-> real-world data, then the maps. That document carries the measured baseline, the dependency order, and
-> the real-world weapon figures with sources. **§3.7 and §2's player-model row below are stale** — read
+> **The current order of work is `Docs/NEXT_PRIORITIES.md`** (updated 2026-10-01 from the producer's
+> playtest verdict): character models and animations, weapon material/texture audit, VFX, weapon zeroing and recoil from
+> real-world data, then the maps. Historical weapon measurements are explicitly labeled for revalidation. **§3.7 and §2's player-model row below are stale** — read
 > `Docs/PLAYER_MODEL_PLAN.md` §5 and ADR-042 instead.
 
 ## 1. How the work is split
@@ -35,11 +36,7 @@ Agents over-claim. Check their numbers against the code, and ask for measurement
 
 ### Working rules from the cloud
 
-- **Pull first, every time.** Local agents push to `main` while you work. Before pushing, `git fetch origin main`. If main has
-  moved, rebase and resolve; changelog conflicts are almost always "keep both entries, in order".
-- **`git commit --only -- <paths>`**, never `git add -A`. The checkout also has other sessions' files.
-- **Push with `GIT_LFS_SKIP_PUSH=1 git push origin HEAD:main`.** From the cloud you never create LFS objects, so this always
-  works. Also push to the designated branch (`claude/fervent-galileo-n6pfss` for this session) if one was given.
+- This is a historical handover, not current Git-operation guidance. In the shared checkout, inspect status and preserve other sessions' changes; do not commit or push unless explicitly requested.
 - **Session numbers collide.** Before writing a changelog entry, `grep -n "^## Session" Docs/CHANGELOG.md | tail`, and take
   the next number. Risk IDs likewise: check the latest `R-` in the changelog **and** `Docs/PROJECT_AUDIT.md`.
 - **Line endings:** `.gitattributes` is `eol=lf`, but some files are CRLF in the working tree. When editing with Python,
@@ -58,17 +55,17 @@ Agents over-claim. Check their numbers against the code, and ask for measurement
 |---|---|---|
 | Casualty care (ADR-040) | **Steps 1 and 2 built and passing:** 67/67 automation incl. `SouthernSpear.Casualty.*` (Session 078 run) | Step 3 investigation first (prompt C), then the bridge (§3.2) |
 | Loading screens / front end | **Done in code, not built:** per-operation loading screen, one operation list, 3-column front end, "KILLS" label | Build, capture a load (§3.3) |
-| Hand IK (W2) | **A88 accepted by the producer (2026-09-29).** Wrist 4.54 cm from the bore via `GripNudgeCm` (R-86 closed, Session 078). Other six weapons take the un-nudged default and are unmeasured (R-85 stands) | Measure the other weapons only when their turn comes; no active work |
+| Hand IK (W2) | **Historical status at 2026-09-29:** A88 accepted by the producer; Session 078 measured its wrist 4.54 cm from the bore using `GripNudgeCm`. Other weapon holds were unmeasured (R-85). The later hand-IK review confirms the hook changes the rendered pose; current R-65 remains broader fit/visual acceptance, not a hook-execution blocker. | Keep the historical per-weapon measurements distinct from the current acceptance status in `PROJECT_AUDIT.md` R-65/R-85 |
 | Reload (W5) | Tooling exists; **Arma's AUG reload clips decode to impossible poses**; the magazine is welded into the mesh | An authored path, after R-86 (§3.5) |
 | Casings / muzzle light (W3) | Code and tests pass (61/61 then 63/63 suites) | Muzzle flash: `NS_WeaponFire_MuzzleFlash_Rifle` (§3.6) |
-| Player model / uniforms | **Superseded — see `Docs/NEXT_PRIORITIES.md` §2.** ADR-042 (2026-09-30): Quantum is the friendly body, runtime-retargeted, live and rendering. Appearance not yet accepted by the producer | `PLAYER_MODEL_PLAN.md` §4 P1–P5; P1 (texture pipeline) is the largest look defect |
+| Player model / uniforms | **Superseded — see `Docs/NEXT_PRIORITIES.md` §2.** ADR-042 (2026-09-30): Quantum is the producer-selected friendly body with runtime retarget; final visual/camo capture remains pending | `PLAYER_MODEL_PLAN.md` §1 current state, then §5; §§2–4 are historical G3 diagnosis, not the active appearance |
 | Grenade | A local agent was moving throw-grenade off **Q** (lean) to **G** and adding a model | Check it landed; ADFRC F1 grenade is available (§3.8) |
 | Ravenshoe map | Built, dressed, lit; **nav not baked** (needs an attended editor bake, R-82) | Producer or local agent, attended |
 | Unity-name check | **Fixed (Session 079):** the two "shadows" were false positives from the checker (assignments, not declarations); the checker now needs a type and a name. The cloud's earlier claim that this would break the Windows build was wrong | — |
 | UI verification (Session 076) | **Verified by the local agent:** front end fits at 1080p (RULES row clear, cards 3+2); loading screens show the operation, rules and tip for Dry River (both rule sets) and Red Gum, with their own art. Captures are untracked on the producer's machine | Commit captures + `dryriver.png`/`redgum.png` + the two imported textures (LFS) |
 | Callsign field | Written, uncompiled (Session 080): Settings > INTERFACE | Build; look at it in game |
 | Casualty step 3 research | Done by the local agent: `Docs/evidence/casualty_lyra_hooks.md` (301 lines) — **untracked, not on GitHub** | Commit it; then the cloud designs the bridge from it |
-| Assets | **Every asset is usable whatever its `isAiForbidden` flag** (L-0016d, producer). Record the flag, never hold back | — |
+| Assets | **Acquired project assets are producer-cleared for Southern Spear's F2P game** under ADR-028/035, reaffirmed 2026-10-01. Record available provenance/credits; seller flags do not create holds. No raw-source redistribution; commercial-game rips remain prohibited. | — |
 
 ---
 
@@ -78,8 +75,8 @@ Agents over-claim. Check their numbers against the code, and ask for measurement
 
 - ADR-040 casualty care **accepted**, with its build order. The medic's kit is a **treatment point, not a heal aura**
   (GDD §4.3: no passive regeneration).
-- `isAiForbidden` overruled for all assets (L-0016d).
-- ADR-036 stands (the G3 body) unless the Quantum route is proven better with a screenshot.
+- Producer direction clears acquired project assets for F2P use regardless of `isAiForbidden` metadata; this is project-specific, preserves credits/no-endorsement/content-ethics rules, does not authorize raw-source redistribution, and does not clear prohibited commercial-game rips (ADR-035, L-0016d).
+- ADR-042 supersedes ADR-036 for the active friendly body: Quantum is selected. Do not reopen the G3-versus-Quantum selection without new producer direction; use a visual capture to validate the current appearance.
 - Grenade on **G**, lean on Q/E.
 - The LFS storage quota is a cost the producer is aware of. The repo must stay **private** (Lyra-derived copies are in it).
 
@@ -140,10 +137,10 @@ which currently says "Healing is not in the game yet."
   - The class-select preview holds an M4-pattern rifle while the card says A88.
   - **Motion blur** is Lyra's default and very strong. Turn it off or down in our post-process or settings.
 
-### 3.4 Hand IK / weapon holds
+### 3.4 Hand IK / weapon holds (historical implementation notes; current status in PROJECT_AUDIT R-65)
 
-- The hard-won facts are in Sessions 070–074 of the changelog. Short version:
-  - **The hook does run**: `FinalizeBoneTransform` is called every evaluated frame, via `PhysAnim.cpp:468`.
+- The measured facts are in Sessions 067–078 of the changelog. Short version:
+  - **Historical engine-trace finding:** `FinalizeBoneTransform` is reached via `PhysAnim.cpp:468`; Session 067–070's captures confirmed a rendered pose change and an A88 target measurement. Current R-65 remains fit/acceptance work, not hook execution.
   - The two-bone solve places the wrist.
   - `RotateChain` turns the hand to a frame built **at runtime** from the Muzzle and RightHandGrip sockets and the weapon's
     up.
@@ -152,9 +149,7 @@ which currently says "Healing is not in the game yet."
 - **A left hand's (palm, finger, thumb) triad is left-handed**: `palm = thumb × finger`. Getting this wrong gives a
   mirrored frame that still "matches" a mirrored target with 0.0° residual (Session 074). Any new hand maths needs a test
   asserting the handedness.
-- **R-86 (next):** the A88's `LeftHandGrip` sits 10.3 cm left of the bore. The hand floats beside the handguard.
-  - Fix as data: a per-weapon nudge in the hold frame (forward, right, up cm), next to `GripPalmTiltDeg`.
-  - Start near (0, +5.5, −1.5), then measure the realised wrist-to-bore distance (target ~4–5 cm).
+- **Historical R-86 prompt (superseded by Session 078):** the A88's grip socket sat 10.3 cm left of the bore. Session 078 added `GripNudgeCm=(Forward=-4.7,Right=5.4,Up=2.1)` and measured the wrist 4.54 cm from the bore with `wrist_to_target=0.00`; R-86 is closed for A88. Do not repeat the old proposed `(0,+5.5,-1.5)` values as current instructions. Other weapon hold positions remain unauthored/unmeasured under R-85.
 - **Pistol arms (A9):** `SK_FP_Arms_Pistol` fills the lower screen with untextured tan forearms. Get the component scale,
   location and materials from a local agent first.
 - **Right hand / bare hands** are flat tan with no glove material. That's a material job.
@@ -180,20 +175,15 @@ which currently says "Healing is not in the game yet."
 
 ### 3.7 Player model / uniforms — **SUPERSEDED, read `Docs/NEXT_PRIORITIES.md` §2**
 
-The body question below is **closed**: ADR-042 (2026-09-30) made Quantum the friendly body on its own
-skeleton, runtime-retargeted from the pawn mesh, and the producer confirmed it renders in game. The
-remaining work is appearance, not selection, and the ordered plan is `PLAYER_MODEL_PLAN.md` §4 (P1–P5).
-The diagnosis in §2 of that document — 53% flat fill in the uniform texture — is still the largest single
-contributor to the soldier looking wrong. The text below is kept for the assembly-mismatch history.
+The body question is closed by ADR-042: Quantum is the producer-selected friendly visual body on its own
+skeleton, runtime-retargeted from the pawn mesh. The remaining task is visual validation, not a body-choice
+comparison. Use `PLAYER_MODEL_PLAN.md` §1 for the current state; §§2–4 preserve the G3 findings as history
+only. The 53% flat-fill finding belongs to the superseded G3 shirt and is not the active Quantum-body defect.
 
 - Start with `Docs/PLAYER_MODEL_PLAN.md`. It's measured, not guessed, and gives the ordered plan.
-- Read ADR-036–039 together: G3 is the current baseline, Quantum is a viable but unapproved alternative. The latest prototype comparison is incomplete and its runtime capture path has hit a leader-pose ensure/crash; do not switch body or skeleton without a fair fully dressed, same-condition comparison and producer decision.
-- Audit found `setup_soldiers.py` still assembles the Modern Insurgent 7 head with ADFRC G3 uniform/vest/helmet, despite ADR-036's intended G3 head. The G3 uniform carries the arms. Installed ADFRC source tree has no character body model to imply a matching head; inventory candidate meshes/provenance before editing the head.
-- Known issues:
-  - the flat olive patch between webbing and waist, which is baked into the vendor texture (53% of the sheet is flat fill);
-  - R-58, the soldier welded to the Manny skeleton;
-  - R-59, ~90k verts with no LODs.
-- Remember: **the uniform carries the arms** (the G3 mesh is a whole character, not a garment on a body).
+- ADR-036–039 document historical G3/Quantum evaluation. ADR-042 is the current producer decision: Quantum friendly modules are selected; do not follow the old G3 comparison/selection instructions.
+- The historical G3 uniform carries the arms and its sheet had a measured flat olive area (53%); this was a G3-specific finding. The active Quantum camo/fit appearance still needs a current in-game capture.
+- R-58/R-59 are tracked audit rows, but their old G3-part counts and ownership description must not be applied to the current Quantum assembly without remeasurement.
 
 ### 3.8 Grenade
 
@@ -295,7 +285,8 @@ GameplayEffect context's hit result). Don't write code.
 - R-09: no dedicated-server target on this engine install. Phase 1 criterion 1 is blocked until the engine is built
   from source.
 - R-58/R-59: soldier skeleton and vertex budget.
-- R-60: W1 reaches Lyra by reflection.
+- R-60: W1 reaches Lyra by reflection; source/config applies selected magazine/spare-ammo/spread/RPM rows, while `bFullAuto=false` enforcement remains incomplete.
+- R-65: current hand-IK status is pose-change measured, with broader grip fit/acceptance open; do not follow Session 059's superseded "hook never runs" conclusion.
 - R-78: ADFRC gesture clips don't pose.
 - R-82: Ravenshoe nav needs an attended bake.
 - R-84: the arms offset was solved against the old socket frame. Session 074 re-solved it against the runtime frame.

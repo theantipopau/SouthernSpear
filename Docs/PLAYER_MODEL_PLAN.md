@@ -6,11 +6,11 @@
 
 | | |
 |---|---|
-| Producer complaint | "the shoulders look weird, the patch between the webbing and the waist is just a weird green" |
+| Producer complaint (historical G3 assembly) | "the shoulders look weird, the patch between the webbing and the waist is just a weird green"; the active Quantum replacement is still **not visually accepted** |
 | Soldier assembly | `Tools/Unreal/setup_soldiers.py` → `B_SS_Soldier` (`USSCharacterPartActor`) |
 | Gear import + materials | `Tools/Unreal/setup_adf_soldier.py` → `Build/adf_soldier_setup.json` |
 | Fit rig | `Tools/Blender/adfrc_gear_rig.py` → `Art/Characters/ADF/SK_ADF_*.fbx` |
-| Capture | `Build/soldier_check.html`, `Build/zoom_torso.png`, `Build/zoom_shoulders.png` |
+| Historical captures | `Build/soldier_check.html`, `Build/zoom_torso.png`, `Build/zoom_shoulders.png` (G3 baseline); Session 091's `Saved/Screenshots/WindowsEditor/SSShot.png` is not available in this checkout |
 | Project-use position | ADR-035/L-0021 clear acquired ADFRC assets for this F2P project; ADR-042 records the active Quantum body/camo route. ADR-033 is historical texture direction, not the current material assignment. |
 | Project root | `E:/SouthernSpear` · UE **5.8** · Blender 5.2.2 · Python 3.12 |
 
@@ -21,13 +21,16 @@
 The producer-selected friendly visual body is **Quantum**: shirt, jeans, arms and head modules use Quantum's own skeleton; camo is supplied through `FriendlyMaterialOverrides`. ADFRC vest and helmet remain separate Manny-rigged/leader-posed gear. The gameplay pawn retains Manny for gameplay/hand-IK, while the visible Quantum modules are retargeted at runtime. Thus the old G3 uniform/Modern Insurgent head findings in §§2–4 are superseded and must not be treated as the active outfit or defect. The opposing MAF configuration is separate.
 
 **Active assembly measured (Session 091 audit, `Build/active_character_audit.json`):**
-- Assembled LOD0 vertices: **107,016 verts across 6 parts** (Quantum Shirt: 3,948; Quantum Jeans: 9,653; Quantum Arms: 12,320; Quantum Head: 13,288; ADFRC TBAS Vest: 43,130; ADFRC OpsCore Helmet: 24,677).
+- Assembled LOD0 vertices: **107,016 verts across 6 parts** (Quantum Shirt: 3,948; Quantum Jeans: 9,653; Quantum Arms: 12,320; Quantum Head: 13,288; ADFRC TBAS Vest: 43,130; ADFRC OpsCore Helmet: 24,677). This measures geometry, not visual quality or render cost; all six parts have only LOD0, and the two large Manny-rigged gear pieces have no physics asset.
+- **Construction/presentation fact:** active friendly appearance combines a Quantum sample head/body with ADFRC torso gear and the default Lyra rifle idle/weapon hold. The newer runtime retarget avoids detached preview parts, but does not prove the kit looks intentional, bespoke, flattering, or camera-ready. The class-select is a right-side 540×720 portrait; its preview-camera/light/pose must be judged as a designed presentation, not inferred from a capture command completing.
+- **Known preview risks found in source review:** the preceding preview yaw had an extra −55° offset from its stated camera-facing pose; locality was applied immediately after child creation, before `BeginPlay` built the hidden component arrays; and the camera used 28° FOV at 330 cm. The working tree now defers locality, exposes the spawned skinned parts to the capture, centers the idle pose toward camera and uses a wider 32°/360 cm full-body frame. These are source fixes, not visual evidence; rebuild and inspect the composition before accepting it.
+- **Art-quality concerns still open:** no role-specific silhouette, authored face/headgear variation, modern hard-surface material breakup on vest/helmet, boot/glove fit close-up, or bespoke combat-ready idle has been accepted. These are presentation/design issues beyond the skeleton/vertex audit.
 - Skeletons: 4 Quantum modules on `SK_Military_Character_Skeleton` (351 bones), 2 ADFRC gear meshes on `SK_Mannequin` (164 bones).
 - Physics assets: Quantum modules carry `PA_*` physics assets; ADFRC gear lacks physics assets.
 - Material overrides: `M_SS_ADFRC_Camo` master material has `used_with_skeletal_mesh = True`; `MI_SS_ADFRC_Camo_Shirt` (tiling 3.0) and `MI_SS_ADFRC_Camo_Jeans` (tiling 4.0) provide Australian DPCU camouflage.
-- Class Select Preview: `USSClassSelectWidget` spawns `B_SS_Soldier` directly as a child actor on `StageBody`, ensuring preview visuals, runtime retargeting, and gear attachment exactly mirror live in-game rendering.
+- Class Select Preview: `USSClassSelectWidget` spawns `B_SS_Soldier` directly as a child actor on `StageBody`, aiming to share runtime retargeting, locality, material overrides, and leader-posed gear.
 
-**Verification status:** Configuration verified and class select preview synchronized. Full in-engine capture recorded in `Saved/Screenshots/WindowsEditor/SSShot.png`. See ADR-042 and `Docs/NEXT_PRIORITIES.md`.
+**Verification status (corrected 2026-10-01):** The model/skeleton inventory and C++ build were reported as verified in Session 091. The screenshot is not available in this checkout, and the producer explicitly reports that the last in-game class-select popup did not show a good character model. Do **not** describe appearance as verified or call R-58/R-59 closure an art-quality acceptance. The follow-up changes in this review adjust preview locality timing, yaw, and framing, but still require a fresh attended build and in-game screenshot. Visual sign-off remains OPEN.
 
 ### Historical G3 assembly (superseded 2026-09-30)
 
@@ -55,7 +58,7 @@ Two consequences that matter for everything below:
 
 ### 2.1 The green patch between the webbing and the waist
 
-**It is a flat, untextured olive surface, and it is baked into the vendor texture.** Measured:
+**Historical G3-only diagnosis — not confirmed on the active Quantum appearance.** On the retired G3 assembly this was a flat olive surface baked into the vendor texture. Measured:
 
 | Evidence | Value |
 |---|---|
@@ -74,8 +77,7 @@ Arma base mesh with the same under-shirt. **Swapping the shirt texture cannot fi
 
 ### 2.2 The shoulders
 
-The strong candidate is the **seam**, not the geometry: a hard edge where a camo panel meets the flat
-olive fill, running across the shoulder cap and down the arm. `Build/zoom_shoulders.png` shows it
+**Historical G3-only diagnosis — do not carry forward as the active cause without new evidence.** On the retired G3 uniform the strong candidate was the **seam**, not the geometry: a hard edge where a camo panel meets the flat olive fill, running across the shoulder cap and down the arm. `Build/zoom_shoulders.png` shows it
 clearly — camo upper arm, hard boundary at the elbow, smooth olive below, and the same olive across
 the torso.
 
@@ -176,6 +178,18 @@ Do not grind the generator yet. The choice is:
 
 I recommend checking (b) before spending more on (a). This recommendation applied only to the retired G3 uniform; the current Quantum shirt/jeans camo needs its own visual inspection.
 
+**Resolved 2026-10-01, and the cause was measured rather than inferred.** The ADFRC G3 shirt does have
+a flat fill, and it is on the sheet the *current* uniform uses. `Tools/Blender/inspect_uniform_fit.py`
+reports the fitted uniform's torso faces sample UV v 0.02–0.24 of `Crye_G3_Shirt_AMC_co.png`, and
+`Tools/Common/ss_sheet_probe.py` shows that band is a plain khaki under-shirt panel — which is what
+reads as "a weird gap at the waist". The mesh itself is continuous (trunk faces within 18 cm of the
+axis in every 2.5 cm slab, 75–155 cm), so (b) was the wrong instinct: no other garment fixes it.
+**Fix applied:** option (a), island-aware. `Tools/Textures/patch_adfrc_undershirt.py` writes
+`Art/Characters/ADF/T_ADFRC_G3_Shirt_AmcuCamo.png` with the plain tiles replaced by the trouser
+sheet's camouflage, mirrored across the sheet so the repeat has no visible seam, and
+`setup_adf_soldier.py` points the shirt slot at it. Reversible: drop the patch and re-run the script.
+The producer has not yet accepted the result (R-92).
+
 ### P5 — Make "does the soldier look right" repeatable
 
 Promote the ad-hoc `Build/soldier_check.html` into a turntable capture script and a checklist, so
@@ -184,15 +198,22 @@ finding in §2 came from a hand-cropped screenshot; none of it was caught by a c
 
 ## 5. Body and head — RESOLVED by producer decision: Quantum is the friendly body (ADR-042, 2026-09-30)
 
-**The producer chose Quantum for the 3 ACR look, ending the ADR-036–039 comparison gate.** The
+**The producer chose Quantum for the friendly body (ADR-042), ending the ADR-036–039 body-selection gate; this was not final visual acceptance.** The
 G3/Modern-Insurgent assembly — the "assembled rather than worn" mismatch this plan diagnosed — has
-left the friendly look entirely. What ships now:
+left the friendly look. The active Quantum + ADFRC assembly still needs producer art-direction review. What is currently configured:
 
-- **Friendly:** the four Quantum modules from `setup_quantum_proto.py` (shirt, jeans, arms, head),
-  rendered on Quantum's own skeleton and retargeted per tick from the pawn mesh's evaluated pose by
-  `ASSCharacterPartActor`; the ADFRC vest and helmet stay Manny-rigged and leader-posed over the
-  body (`FriendlyLeaderPoseParts`, fit measured within 1.6 cm). The G3 uniform and the Modern
-  Insurgent head are gone from the friendly look.
+- **Friendly (current, 2026-10-01 evening — supersedes the four-Quantum-module assembly below):**
+  the **ADFRC G3 uniform, TBAS vest and OpsCore helmet**, all Manny-rigged and leader-posed
+  (`FriendlyLeaderPoseParts`), with the Quantum head as the only retargeted module
+  (`FriendlyParts`). This is the producer's direction ("needs the AMCU from the ADFRC textures and
+  models"): the gear that has to cover the head and torso is fitted to the skeleton the pawn
+  animates, so it cannot drift from the pose. Measured in the class-select capture: helmet, webbing
+  and AMCU camouflage all render, and the torso's white band turned out to be the shirt sheet's flat
+  under-shirt panel (P4), now repainted in pattern from the same pack.
+- **Superseded 2026-10-01 morning:** the four Quantum modules (shirt, jeans, arms, head), retargeted
+  per tick from the pawn's evaluated pose, with the ADFRC vest and helmet leader-posed over them.
+  The ADFRC gear is no longer layered over a Quantum body, so the Quantum shirt/jeans work in
+  `setup_quantum_proto.py` is now unused for the friendly look.
 - **Gameplay unchanged:** the pawn's body mesh is still Manny with the hand-IK component — hit
   zones, damage, movement, sockets and the wrist solve all keep working (ADR-004); the retarget
   carries the solved wrist rotation into the Quantum arms.
@@ -201,7 +222,7 @@ left the friendly look entirely. What ships now:
   5.8 (R-91, measured 2026-09-30) — the prototype-era in-mesh assignment silently never wrote.
 - **Opposing (MAF):** byte-for-byte the look it was before this change.
 
-The fair-comparison evidence trail (ADR-036–039) remains below as historical context. The producer decision is recorded in ADR-042; the 2026-10-01 review did not independently reproduce a final visual acceptance capture. R-58 now concerns Manny as the gameplay skeleton and the Quantum retarget/gear leader-pose boundary; the old five-part G3 vertex count and skeleton findings do not describe the active appearance.
+The fair-comparison evidence trail (ADR-036–039) remains below as historical context. The 2026-10-01 review found that Session 091's “verified in-engine” wording overstates what is established: it is a reported capture, unavailable in the checkout, and conflicts with the producer's direct visual feedback. R-58's skeleton/retarget boundary and R-59's mesh inventory can be measured independently; neither proves the outfit reads well. Treat final character appearance as OPEN.
 
 **Historical (superseded):** the plan previously held the G3 baseline pending a fully-dressed, same-condition comparison, and recorded that `setup_soldiers.py` assembled the Modern Insurgent 7 head with the ADFRC G3 uniform. That assembly was live until 2026-09-30; its green under-shirt and fit analysis is historical, not a live Quantum-body defect.
 

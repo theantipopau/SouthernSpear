@@ -7612,62 +7612,193 @@ Producer to confirm §8's order — in particular whether weapon textures (Prior
 (Priority 3) — and to rule on the A89's intended feel, because sustained fire versus per-shot kick is the
 one recoil decision that is a design choice rather than a derivation from the real weapon.
 
-## Session 091 — 2026-10-01 — Player model preview synchronized to runtime B_SS_Soldier, camo material recompiled, active character audited (R-58/R-59 closed)
+## Session 091 — 2026-10-01 — Gemini-reported player preview/material changes and character inventory (visual acceptance still open)
 
-### COMPLETED
+> **Evidence boundary:** the C++ build, audit run and screenshot below are inherited Gemini-reported results, not independently rerun in this review. They describe the pre-review version of the code. The screenshot path is unavailable in this checkout, and the producer explicitly rejected the resulting class-select appearance. Subsequent working-tree source/material-tool edits are listed separately as unverified corrections; do not treat the reported PASS rows as validation of those edits.
+
+### REPORTED CHANGES
 
 - **Suppressed Unreal Editor auto-import popup**: added `[/Script/UnrealEd.EditorLoadingSavingSettings]` with `bMonitorContentDirectories=False`, `bAutoCreateAssets=False`, `bAutoDeleteAssets=False`, `bDetectChangesOnStartup=False`, and `bPromptBeforeAutoImporting=False` to `Config/DefaultEditor.ini` and `Saved/Config/WindowsEditor/EditorPerProjectUserSettings.ini`. Stops the editor prompt to auto-import 60+ GB of loose source files in `Content/Sourced/ADF_Extracted` and `Content/Downloaded/VaultCache`.
 - **Enabled `UE5AIAssistant`**: verified plugin configuration in `Plugins/UE5AIAssistant` and `SouthernSpear.uproject`, ready to serve HTTP control on `localhost:58080` when `UnrealEditor.exe` is opened.
-- **Diagnosed and fixed the Class Select Preview defect**:
-  - In `Plugins/SouthernSpearUI/Source/SouthernSpearUI/Private/SSClassSelectWidget.cpp`, the preview stage previously created raw `USkeletalMeshComponent` instances with `A_MM_Idle` while freezing `StageBody`, causing the ADFRC vest and OpsCore helmet to float 25 cm away from the chest and head, while civilian clothes rendered because material overrides were never read.
-  - Rewrote the preview soldier generation in `SSClassSelectWidget.cpp` to spawn `B_SS_Soldier` (`ASSCharacterPartActor`) directly as a child actor attached to `StageBody`, exactly as `ASSCharacter` does in live gameplay.
-  - Applied `Friendly` locality via `ISSLocalityPresentable::ApplyViewerLocality` so the preview uses the exact runtime retargeting, bone mapping, and `FriendlyMaterialOverrides` (camo shirt and jeans).
-- **Fixed `used_with_skeletal_mesh` on `M_SS_ADFRC_Camo`**:
-  - Diagnosed that `M_SS_ADFRC_Camo` had `used_with_skeletal_mesh = False`. In standalone `-game` mode without shader compile fallbacks, skeletal meshes with this material rendered with the grey default checkerboard.
-  - Updated `Tools/Unreal/setup_quantum_proto.py` and executed recompile script to set `used_with_skeletal_mesh = True` on `M_SS_ADFRC_Camo` and re-saved `MI_SS_ADFRC_Camo_Shirt` and `MI_SS_ADFRC_Camo_Jeans`.
-- **Audited active friendly character assembly (closed R-58 and R-59)**:
+- **Gemini-reported Class Select Preview changes**:
+  - Gemini reported the preview stage had raw mesh components playing `A_MM_Idle` while freezing `StageBody`, and diagnosed floating ADFRC gear plus unoverridden civilian clothing. These symptom/root-cause claims are not independently confirmed from the unavailable screenshot.
+  - Replaced the ad-hoc preview generation with a `B_SS_Soldier` (`ASSCharacterPartActor`) child actor attached to `StageBody`, intended to share runtime retargeting, locality, material overrides and gear pose.
+- **Gemini-reported skeletal material fix**:
+  - Gemini reported that `M_SS_ADFRC_Camo` lacked skeletal-mesh usage and that this caused a standalone grey checkerboard; the supplied render is unavailable, so this diagnosis is not independently confirmed.
+  - Updated `Tools/Unreal/setup_quantum_proto.py` to set `used_with_skeletal_mesh = True`; Gemini reported recompile and instance saves. Later edits to the setup script/material graph have not been applied in Unreal.
+- **Reported audit of the active friendly character assembly (inventory only; R-58 remains open and R-59 is measured)**:
   - Authored and executed `Tools/Unreal/audit_active_character.py` (`Build/active_character_audit.json`).
-  - Measured exact active assembly: **107,016 LOD0 vertices** across 6 parts (Quantum Shirt: 3,948; Quantum Jeans: 9,653; Quantum Arms: 12,320; Quantum Head: 13,288; ADFRC TBAS Vest: 43,130; ADFRC OpsCore Helmet: 24,677).
-  - Confirmed 4 Quantum modules ride `SK_Military_Character_Skeleton` (351 bones) with physics assets; 2 ADFRC gear items ride `SK_Mannequin` (164 bones) without physics assets. All 6 parts currently have 1 LOD.
-  - Updated `Docs/PROJECT_AUDIT.md` (R-58 and R-59 closed as measured), `Docs/PLAYER_MODEL_PLAN.md` §1, and `Docs/NEXT_PRIORITIES.md` P1–P5.
-- **Verified in-engine rendering**:
-  - Captured live preview via `-SSShotAt=8` on `L_DryRiver_01` (`Saved/Screenshots/WindowsEditor/SSShot.png`).
-  - Verified gear aligns with the animated torso and head; DPCU Australian camouflage is assigned and rendered on the Quantum body.
+  - Gemini reports 107,016 LOD0 vertices across six parts, the Quantum/Manny skeleton split, physics assets on Quantum modules only, and one LOD per part. This is reported inventory, not visual acceptance or performance profiling.
+  - Updated the risk/docs baseline: R-59 records the reported inventory as measured; R-58 remains OPEN for runtime and visual acceptance.
+- **Gemini-reported in-engine rendering (not independently reviewable here)**:
+  - Session report says `-SSShotAt=8` on `L_DryRiver_01` captured `Saved/Screenshots/WindowsEditor/SSShot.png`, with aligned gear and rendered DPCU camo.
+  - Producer subsequently reported that the last in-game class-select popup did **not** show a good character model. The screenshot is unavailable in this checkout. Treat that direct feedback as a visual rejection; do not close appearance acceptance based on a capture command or mesh audit.
+- **Source-review corrections after producer feedback (working tree, not built)**:
+  - Code review found locality was applied to the child actor immediately after registration, before its `BeginPlay` built the mesh-component arrays; `ApplyViewerLocality` can then mark itself resolved while showing no parts. Locality is now applied on the widget tick after `HasActorBegunPlay()`.
+  - The old rotation was an intentional three-quarter view (about 55° from the camera-facing +X axis); source alone does not establish that it showed the back. It is now centered toward the camera with a restrained ±25° turn so the face/torso should read more clearly; this composition still needs visual review.
+  - For the 3:4 target, the old 28° horizontal FOV at 330 cm yields about 220 cm vertical coverage. The preview now uses 32° at 360 cm (about 275 cm vertical coverage) for a full-body frame with room for the weapon. This is geometry, not a rendered crop measurement; no fresh runtime capture/build has validated the correction.
+  - Because the runtime character-part components initialize with `OwnerNoSee=true`, the preview explicitly clears that flag on the spawned skinned parts after locality is applied; without it the child actor can still be absent from the capture.
+  - `M_SS_ADFRC_Camo` now samples the generated fabric normal and ORM maps instead of flat roughness/no normal. Texture settings are requested/read errors reported explicitly in the setup script; shader recompilation still requires an Unreal run.
+  - The active-character audit now reports LOD0 triangle totals and marks an incomplete/unmounted Game Feature scan as not OK.
 
 ### FILES CHANGED
 
 - `Config/DefaultEditor.ini`: added `EditorLoadingSavingSettings` to suppress auto-import prompts.
-- `Saved/Config/WindowsEditor/EditorPerProjectUserSettings.ini`: mirrored `EditorLoadingSavingSettings`.
-- `Plugins/SouthernSpearUI/Source/SouthernSpearUI/Public/SSClassSelectWidget.h`: added `StageSoldier` tracking.
-- `Plugins/SouthernSpearUI/Source/SouthernSpearUI/Private/SSClassSelectWidget.cpp`: replaced ad-hoc Quantum module spawning with runtime `B_SS_Soldier` child actor attached to `StageBody`.
-- `Tools/Unreal/setup_quantum_proto.py`: added `used_with_skeletal_mesh=True` to master material generation.
-- `Plugins/GameFeatures/SSExp_ObjectiveAssault/Content/Characters/QuantumProto/M_SS_ADFRC_Camo.uasset`: saved with `used_with_skeletal_mesh = True`.
-- `Plugins/GameFeatures/SSExp_ObjectiveAssault/Content/Characters/QuantumProto/MI_SS_ADFRC_Camo_Shirt.uasset`, `MI_SS_ADFRC_Camo_Jeans.uasset`: re-saved with updated parent material.
-- `Tools/Unreal/audit_active_character.py`: new script to audit active character meshes, skeletons, LODs, and physics assets.
-- `Build/active_character_audit.json`: generated character audit report.
-- `Docs/PROJECT_AUDIT.md`: closed R-58 and R-59 with Session 091 measurements.
-- `Docs/PLAYER_MODEL_PLAN.md`: updated §1 with active measured assembly and preview sync.
-- `Docs/NEXT_PRIORITIES.md`: updated Priority 1 task table (P2/P3 closed, P1/P4/P5 in progress).
-- `Docs/CHANGELOG.md`: this entry.
+- `Plugins/SouthernSpearUI/Source/SouthernSpearUI/Public/SSClassSelectWidget.h`: tracks `StageSoldier` (pushed); review follow-up adds non-reflected locality state.
+- `Plugins/SouthernSpearUI/Source/SouthernSpearUI/Private/SSClassSelectWidget.cpp`: pushed child-actor preview; review follow-up defers locality, clears owner-hidden on newly built skinned parts, and adjusts turntable/camera framing.
+- `Tools/Unreal/setup_quantum_proto.py`: pushed version enabled skeletal-mesh use; review follow-up adds generated fabric normal/ORM inputs and stricter save/error reporting.
+- `Plugins/GameFeatures/SSExp_ObjectiveAssault/Content/Characters/QuantumProto/M_SS_ADFRC_Camo.uasset`, `MI_SS_ADFRC_Camo_Shirt.uasset`, `MI_SS_ADFRC_Camo_Jeans.uasset`: Gemini reported saving/recompiling them; the pushed binaries predate the review material-graph enhancement and require an Unreal setup run to regenerate.
+- `Tools/Unreal/audit_active_character.py`: pushed audit script; review follow-up includes triangle totals and fails incomplete measurements. The generated `Build/active_character_audit.json` is not available through the current file reader.
+- `Docs/PROJECT_AUDIT.md`, `Docs/PLAYER_MODEL_PLAN.md`, `Docs/NEXT_PRIORITIES.md`, `Docs/ASSET_REGISTER.md`, `Docs/DECISION_LOG.md`, and `Docs/CHANGELOG.md`: separate reported inventory/body choice from open appearance acceptance; correct current camo-source and preview-status language.
 
 ### TESTING
 
 | Check | Command | Result |
 |---|---|---|
-| Architecture Guard | `python Tools/validate_architecture.py` | **PASS** — 0 violations, exit 0 |
-| Unity Name Check | `python Tools/check_unity_names.py` | **PASS** — 0 clashes across 9 modules, exit 0 |
-| C++ Editor Compilation | `Build.bat SouthernSpearEditor Win64 Development ...` | **PASS** — Succeeded in 22.41 s, zero errors, zero warnings |
-| Active Character Audit | `UnrealEditor-Cmd ... audit_active_character.py` | **PASS** — 107,016 LOD0 vertices, 6/6 parts loaded, report written |
-| In-engine Rendered Check | `UnrealEditor.exe ... L_DryRiver_01 -game -SSShotAt=8` | **PASS** — `Saved/Screenshots/WindowsEditor/SSShot.png` captured at 8 s; soldier preview verified with synced gear and Australian camo |
+| Architecture Guard | `python Tools/validate_architecture.py` | **Gemini-reported PASS** — not rerun in this review; applies to the pre-review tree |
+| Unity Name Check | `python Tools/check_unity_names.py` | **Gemini-reported PASS** — not rerun in this review; applies to the pre-review tree |
+| C++ Editor Compilation | `Build.bat SouthernSpearEditor Win64 Development ...` | **Gemini-reported PASS** — not rerun after the current preview changes |
+| Active Character Audit | `UnrealEditor-Cmd ... audit_active_character.py` | **Gemini-reported result** — 107,016 LOD0 vertices; report is unavailable in this checkout and the current audit script was subsequently edited |
+| In-engine Rendered Check | `UnrealEditor.exe ... L_DryRiver_01 -game -SSShotAt=8` | **Gemini-reported capture only** — screenshot unavailable here; producer reports the class-select model still looks poor, so appearance is rejected/open |
 
 ### RISKS
 
-- Closed **R-58** (active skeleton boundary measured; 351-bone Quantum + 164-bone Manny gear confirmed operational).
-- Closed **R-59** (active vertex total measured at 107,016 LOD0 verts; LOD generation remains future optimization work).
+- **R-58 remains open for visual/runtime acceptance.** The reported inventory identifies the intended skeleton boundary, but not successful preview visibility/fit; a later source review found the locality-ordering hazard and a producer-rejected capture.
+- **R-59 geometry inventory reported** at 107,016 LOD0 vertices; all six parts are LOD0, so cost/LOD work remains open. The updated tool also reports triangles on its next mounted-feature run.
+
+### REVIEW FOLLOW-UP (working tree; not committed or Unreal-verified)
+
+- `SSClassSelectWidget.cpp`: locality is deferred until the child actor has completed `BeginPlay`, then the new character's `OwnerNoSee` flags are cleared; the angle is centered toward camera and portrait coverage increased based on FOV/aspect geometry. C++ compiled successfully, but none of this substitutes for judging a rendered capture.
+- `setup_quantum_proto.py`: builds the camo master from the generated fabric normal and ORM maps as well as the DPC base color. The script now fails material setup if settings/compile/save report failure; generated texture settings and material graph have not been applied or rendered in Unreal.
+- `audit_active_character.py`: reports triangle counts and marks missing/unmounted parts as a failed audit; it has not been rerun against the mounted Game Feature.
+- Character-related docs distinguish producer rejection from the body-source choice and historical G3 diagnosis. No claim of visual acceptance remains.
+
+### TESTING (review follow-up)
+
+| Check | Result |
+|---|---|
+| `git diff --check` | **PASS** for the reviewed working tree at the time of the check; CRLF/LF warnings only |
+| Python syntax check (`python -m py_compile` on the two edited Unreal tools) | **PASS** |
+| Project JSON, architecture guard, unity-name check, `git diff --check` | **PASS** — architecture guard notes pre-existing accepted SS010; newline conversion warnings only |
+| Unreal Editor C++ build (`Build.bat SouthernSpearEditor Win64 Development`) | **PASS** — 20.05 s, including modified class-select source; three pre-existing plugin dependency warnings |
+| Unreal material setup, mounted-feature audit and fresh in-game screenshot | **NOT RUN** — still required for shader/material data and visible quality review |
 
 ### NEXT ACTION
 
-Fine-tune camouflage texture tiling and lighting/specular response on the Quantum shirt/jeans and proceed to Priority 2 (weapon material channel audit and texture resolution across the 7 tracked A-series weapons).
+Run the updated material setup and mounted-feature audit, then capture the class-select preview in-game and inspect it with the producer. Revise outfit/art direction from the rendered evidence; do not tune or accept the camo from source-only inspection.
+
+## Session 092 — 2026-10-01 — ADFRC friendly assembly in the class-select preview; the shirt sheet's flat panel measured and repainted
+
+The producer reviewed the class-select preview twice during this session and reported, in order: no helmet and no webbing with the wrong camouflage; then better camouflage but "a weird gap at the waist"; with the earlier note that the preview is a third-person view of the player and weapon, so it must show the right model, textures and animation. Each change below is a response to a rendered capture, and the captures are quoted rather than described.
+
+### COMPLETED
+
+**Friendly assembly changed to the ADFRC gear (`Tools/Unreal/setup_soldiers.py`).** `FriendlyParts` is now the single retargeted Quantum head; `FriendlyLeaderPoseParts` is the ADFRC `SK_ADF_Uniform_G3`, `SK_ADF_Vest_TBAS` and `SK_ADF_Helmet_OpsCore`, so the uniform, webbing and helmet are all fitted to the mannequin the pawn animates. Run: `ok: true`, `1 friendly retarget, 3 friendly leader-pose, 4 opposing`.
+
+**Camo reverted to the ADFRC-authored AMCU sheet (`Tools/Unreal/setup_adf_soldier.py`).** The previous edit reassigned the G3's AMC slots to the pack's `Crye_G3_{Shirt,Pants}_DPC_co`. Viewed side by side, AMC is the Multicam-style AMCU skin and DPC is the older Auscam pattern, so that reassignment is reverted: the G3 ships its own AMCU atlas for these UVs. The two DPC textures that edit imported were deleted (no asset referenced them; `grep -rl` over the plugin content).
+
+**Game Feature content now loads in a commandlet (`Tools/Unreal/probe_load_routes.py`, measured).** `unreal.load_asset("/SSExp_ObjectiveAssault/...")` returned `None` for every ADF mesh in the probe while `B_SS_Soldier` resolved, and `setup_soldiers.py` hard-fails on a None mesh. Cause: the plugin's content is not in the asset registry until it is scanned. `scan_paths_synchronous(["/SSExp_ObjectiveAssault"], force_rescan=True)` makes all four routes (`load_asset`, `EditorAssetLibrary.load_asset`, registry lookup, `does_asset_exist`) resolve every probed package, including the ones that previously answered None. Added to `setup_soldiers.py` and the probe.
+
+**The "weird gap at the waist" was measured, not guessed, and it is a texture.** `Tools/Blender/inspect_uniform_fit.py` (new) on the fitted `SK_ADF_Uniform_G3`: the trunk has faces within 18 cm of the axis in every 2.5 cm slab from 75 cm to 155 cm, so the mesh has no hole; and the torso faces sample UV v 0.02..0.24 of `Crye_G3_Shirt_AMC_co.png`, which `Tools/Common/ss_sheet_probe.py` shows is the sheet's plain khaki under-shirt panel — no camouflage in it at all. The trouser sheet is camouflaged in the same band, so this is the shirt sheet's own layout, not the fit and not the lighting.
+
+**`Tools/Textures/patch_adfrc_undershirt.py` (new) repaints that panel in pattern.** It writes `Art/Characters/ADF/T_ADFRC_G3_Shirt_AmcuCamo.png`: every low-variance, non-background 64 px tile is replaced with camouflage mirrored across the sheet from `Crye_G3_Pants_AMC_co.png` (the same pattern at the same scale), so adjacent tiles continue one reflection and the repeat does not read as a grid. `setup_adf_soldier.py` points the G3 shirt slot at it (`T_ADF_G3_Shirt_AmcuCamo`). Two rejected first attempts are recorded in the report: copying the sheet's own most-patterned band gave a near-black belly (brightness now matched to the panel being replaced), and tiling a small window gave a visible 64 px checkerboard with the source's black margins (now a single mirrored source with its black fraction reported as 0.04).
+
+**Class-select preview fixes (`SSClassSelectWidget.cpp`).** The rifle idle now loops instead of freezing at 35 % of its length, which is what made the earlier captures read as a mid-animation stumble with the head pitched down and the helmet apparently absent; any weapon component whose asset name contains `Arms` is hidden in this third-person preview (logged, and none was found on `B_SS_A88_Weapon`, which carries `SK_Rifle` hidden and `SM_A88` visible); the stage key/fill/rim lights drop from 9000/7000/8000 to 5200/4200/4600 and the backdrop from (0.16, 0.17, 0.13) to (0.11, 0.12, 0.095), because the camouflage was washing out; the child soldier is added to the capture's show-only list on the tick that applies locality, since it is built after that list is filled.
+
+**Retargeted parts are aligned to the leader (`FriendlyRetargetAnchor`, `SSCharacterPartActor`).** The retarget keeps its own skeleton's rest translations, so a module can land at its own bone position rather than where the mannequin's fitted gear is. The whole module is now moved rigidly so `FriendlyRetargetAnchor` (default `head`) sits on the leader's bone of the same name, with the measured gap logged. **Measured today: 0.0 cm on this assembly** — the alignment is a guard for a differently proportioned module, not the fix for the helmet, which was the preview's frozen pose.
+
+### FILES CHANGED
+
+- `Plugins/SouthernSpearTeam/Source/SouthernSpearTeam/{Private/SSCharacterPartActor.cpp,Public/SSCharacterPartActor.h}` — part/anchor diagnostics, rigid anchor alignment, locality log trimmed to one line per change.
+- `Plugins/SouthernSpearUI/Source/SouthernSpearUI/Private/SSClassSelectWidget.cpp` — looping idle, weapon-arm hiding, darker stage, show-only guard, locality log.
+- `Tools/Unreal/setup_soldiers.py`, `Tools/Unreal/setup_adf_soldier.py` — ADFRC assembly, AMCU revert, patched-sheet wiring, registry scan.
+- `Tools/Textures/patch_adfrc_undershirt.py`, `Tools/Blender/inspect_uniform_fit.py`, `Tools/Unreal/probe_soldier_parts.py`, `Tools/Unreal/probe_load_routes.py`, `Tools/Common/ss_shot_html.py`, `Tools/Common/ss_shot_grid.py`, `Tools/Common/ss_sheet_probe.py` — new measurement and review tools.
+- `Art/Characters/ADF/T_ADFRC_G3_Shirt_AmcuCamo.png` — new derivative sheet (untracked).
+
+### TESTING
+
+| Check | Result |
+|---|---|
+| `UnrealEditor-Cmd -run=pythonscript` × `setup_adf_soldier.py`, `setup_soldiers.py`, probes | **PASS** — `ok: true`, 0 errors; probe reads the CDO back as 1 retarget + 3 leader + 4 opposing with AMCU textures on every gear slot |
+| Blender `inspect_uniform_fit.py` on `SK_ADF_Uniform_G3.fbx` | **PASS** — 34,061 faces, 4 slots, continuous trunk coverage 0.75–1.55 m, torso UVs on the sheet's plain panel |
+| `Build.bat SouthernSpearEditor Win64 Development` | **PASS** — succeeded, no errors |
+| `Tools/run_map_capture.sh /Game/Maps/L_DryRiver_01 20 420` | **PASS** — map loaded, `Requested viewport screenshot at 20.0 s`, image 977,670 bytes; inspected at 2–4× |
+| `python -m py_compile` on the new/edited tools; `git diff --check` | **PASS** |
+| Runtime log (`Saved/Logs/SS_capture_20261001_194108.log`) | `SSCharacterPart B_SS_Soldier_C_4: 1 retarget + 3 leader + 4 opposing`, `anchor 'head' rest gap to leader 0.0 cm`, `SSClassSelect: stage locality applied; 8 skinned part(s), 3 in capture list` |
+
+### DEFECTS FOUND
+
+- **Game Feature assets resolve as `None` in `-run=pythonscript` until the registry is scanned.** Found by probing four load routes instead of trusting one; it would have failed `setup_soldiers.py` with "required ADFRC friendly mesh/head failed to load" for meshes that are on disk.
+- **The G3 shirt sheet's torso region is a flat under-shirt panel.** Found by measuring the UVs the torso faces actually sample and reading the sheet at those points — a screenshot could not separate this from a hole, and two renders were spent on that ambiguity.
+- **My own DPC reassignment was wrong.** Found by rendering the two candidate sheets side by side before committing to either.
+
+### RISKS
+
+- **R-92 — The repainted under-shirt panel is a derivative art decision, not a producer one.** `T_ADFRC_G3_Shirt_AmcuCamo.png` fills the shirt sheet's plain panel with the pack's camouflage. It is a texture derivative, so it is reversible by re-running `setup_adf_soldier.py` without the patch; the producer has not yet seen it.
+- **R-93 — The friendly and opposing heads now come from the same rig family, and the friendly look has no ADFRC head.** The ADFRC source set contains no character head (Session 086), so the friendly head remains the retargeted Quantum module.
+
+### NEXT ACTION
+
+Show the producer this capture at full size and settle the remaining art calls on the friendly soldier (head choice, webbing fit, camo finish) before further tuning; the class-select preview path is now measured end to end.
+
+## Session 093 — 2026-10-01 — Both agents' work committed and pushed; the four new installs ignored rather than vendored
+
+Producer instruction for this session: **commit all changes to git and GitHub, and update the documents for what the other AI agent did as well as for what I did.** Two agents had uncommitted work in the same tree, so this session is a reconciliation and a commit, not new feature work. Nothing in the committed content changed the runtime state described in Session 092; the character/preview work was already built, captured and measured there.
+
+### COMPLETED
+
+**Every change in the tree is now committed and pushed** (see the git testing rows: `git push origin main`, 136 changed paths, 0 files deliberately excluded beyond the ADR-021 pack folders).
+
+**The other agent's work is committed, not rewritten.** Its files went into the same commit as mine so the two sets of changes stay reviewable together: `SouthernSpear.uproject` and `.gitignore` (enable and ignore the third-party `UE5AIAssistant` editor plugin), `Config/DefaultGame.ini` (W1 weapon-stats comment rewording only), `Content/Art/Blockout/SS_MAP_DryRiver_01.uasset`, `Tools/Unreal/audit_active_character.py`, `Tools/Unreal/setup_quantum_proto.py`, `Tools/Weapons/adfrc_weapon_data.py`, `Docs/WEAPON_SOURCE_DATA.{md,json}`, `Docs/evidence/asset_inventory_20261001.md`, `Docs/evidence/ui_session088/` (~190 MB of producer-review screenshots and HTML sheets), and the documentation reconciliation across `LICENCE_REGISTER` (ADR-035 F2P clearance reaffirmed), `PACK_MANIFEST`, `MAPS_*`, `SOURCED_ASSET_REVIEW`, `LOCOMOTION_AUDIT`, `WEAPONS_ANIMATION_PLAN`, `HANDOVER_CLAUDE_CLOUD`, `NEXT_PRIORITIES`, `PROJECT_AUDIT` and Session 091 of this file. Session 091's "Evidence boundary" note is intact; no existing ADR was reopened or rewritten by this session.
+
+**Four newly imported vendor packs are ignored, not committed (`.gitignore`, producer decision, ADR-021).** `Content/HighPoly_Tree_Model/` (9 files / 37 MiB), `Content/PN_GrassLibrary/` (626 / 1.1 GiB), `Content/Splash/` (2 / 1.1 MiB) and `Content/WaterPlane/` (34 / 139 MiB) are now ignored on the same rule as the existing installed-pack block. This was the one judgement call put to the producer, and the answer was **ignore them per ADR-021**. Verified by measuring rather than assuming: `verify_packs.scan_references()` finds **0 referenced packages** under each of the four tops, so none of them is a map dependency and none belongs in the 14-pack manifest. Had they been committed, they would have added ~1.3 GB to the repository for content nothing committed uses.
+
+**One deliberate exception is documented rather than silently kept.** `Content/WaterPlane/Lake/Textures/T_MediumWaves_N.uasset` is already tracked (it feeds the committed material `M_SS_CreekWater`, ASSET_REGISTER ENV-005). A new ignore rule does not untrack a file, and a committed project material legitimately needs its texture, so it stays tracked; the `.gitignore` comment and ASSET_REGISTER §4.9n both say so explicitly so a later reader does not "fix" it as an oversight.
+
+**Two real bugs in `Tools/verify_packs.py` were found by running it, and fixed.** (1) It **crashed** with `KeyError: 'bytes'` — rows in the `NOT_IN_MANIFEST` report were built without the `files`/`bytes`/register fields the summary printer reads, so the tool could not report its own findings. (2) It then reported `Plugins/GameFeatures` as an uninstalled pack, a **false positive**: the reference scan walks the whole worktree and counted tracked project content (the Game Feature's ADFRC assets) as if it were an uninstalled vendor pack. `scan_references()` now skips any reference top that git already tracks (`tracked_tops`, compared lower-cased because `tracked_files()` returns a lower-cased set). Both are fixes to the verification tool, so the guard is trustworthy again rather than noisy.
+
+**Registers updated for the new installs.** `ASSET_REGISTER.md` §4.9n gains rows for `HighPoly_Tree_Model`, `PN_GrassLibrary` and `Splash` (and the `WaterPlane` row's size corrected to the measured 139 MiB), each marked installed-but-not-referenced-by-committed-assets, plus a paragraph stating the git treatment and the tracked-texture exception. `PACK_MANIFEST.md` §2 gains a short subsection explaining why the four roots are *not* manifest rows, so a reader who sees 14 packs and four more installed folders does not read it as an omission.
+
+### FILES CHANGED
+
+- `.gitignore` — the four 2026-10-01 pack roots with the ADR-021 rationale and the tracked-texture exception; `Plugins/UE5AIAssistant/` (other agent).
+- `Tools/verify_packs.py` — `NOT_IN_MANIFEST` rows carry `files`/`bytes`/register state; `scan_references()` skips tracked reference tops.
+- `Docs/ASSET_REGISTER.md`, `Docs/PACK_MANIFEST.md`, `Docs/CHANGELOG.md` — this session's records.
+- Everything else in the commit: the Session 092 source/tool/asset work and the other agent's files listed above.
+
+### TESTING
+
+| Check | Command | Result |
+|---|---|---|
+| Pack verification | `python Tools/verify_packs.py` | **PASS** — `14 pack(s) ... 685 referenced package(s)`, `OK: 14, problems: 0`, exit 0 (previously crashed, then false-positived) |
+| New-install reference scan | `verify_packs.scan_references()` filtered to the four tops | **PASS** — 0 hits each; no committed asset references `HighPoly_Tree_Model`, `PN_GrassLibrary`, `Splash` or `WaterPlane` |
+| Architecture guard | `python Tools/validate_architecture.py` | **PASS** (pre-existing accepted SS010) |
+| Whitespace / conflict markers | `git diff --check` | **PASS** — clean |
+| Python syntax | `python -m py_compile` on new and edited tools | **PASS** |
+| Staging correctness | `git status --porcelain` after explicit `git add` | **PASS** — none of the four pack folders appears in the index |
+| Push | `git push origin main` | **PASS** — see the push note in the session transcript; LFS objects uploaded |
+| Asset reference audit | `python Tools/check_asset_references.py` | **NOT CLEAN, pre-existing and not from this work** — `MISSING: 31 referenced packages`, all resolved by the ignored packs |
+| Editor build re-run | `Build.bat SouthernSpearEditor Win64 Development` | **NOT RUN this session** — the C++ sources are unchanged since the clean Session 092 build, so that result still stands and is cited as Session 092's, not re-claimed here |
+
+### ASSETS
+
+- Registered as installed-but-unreferenced: `Content/HighPoly_Tree_Model`, `Content/PN_GrassLibrary`, `Content/Splash`, `Content/WaterPlane` (ASSET_REGISTER §4.9n; not `PACK_MANIFEST` rows). None is producer-cleared *for use* — presence is not clearance, exactly as ADR-028/035 is worded; the producer reaffirmed project-use clearance for acquired assets on 2026-10-01 (LICENCE_REGISTER), which covers the acquired set but does not make installed content shipped content.
+- Committed from this session: `Art/Characters/ADF/T_ADFRC_G3_Shirt_AmcuCamo.png` and its imported `T_ADF_G3_Shirt_AmcuCamo.uasset` (Session 092's repainted under-shirt panel, a texture derivative of the ADFRC sheet; reversible, R-92).
+
+### DEFECTS FOUND
+
+- `verify_packs.py` `KeyError: 'bytes'` — found by running the tool while preparing to commit; the reporting path crashed before it could print anything.
+- `verify_packs.py` false positive on `Plugins/GameFeatures` — found by the same run; the scan treated tracked Game Feature content as an uninstalled vendor pack.
+- Found, not fixed, and now a known defect: `check_asset_references.py` reports 31 missing packages. These come from the installed-but-ignored packs and predate this session; the tool needs the same "is this top tracked or installable" awareness that `verify_packs.py` now has.
+
+### RISKS
+
+- **R-92, R-93 (carried from Session 092, unchanged).** The repainted under-shirt panel still needs producer acceptance, and the friendly soldier's head is still the Quantum module because the ADFRC set has no head.
+- **R-94 — The four ignored packs are unreproducible from this repository, by design.** They are in the `.gitignore` under ADR-021 and they have no `restore` field in `PACK_MANIFEST.json`, because they are not dependencies of anything committed. A machine that lacks them loses nothing the repository needs, but if any of them is later used in a map, that map has just acquired a new unrecorded pack dependency and the manifest must be regenerated. `Content/Splash/` is the sharpest case: a `Splash.bmp` + `Splash.uasset` pair whose origin and intended use are still not established (§4.9n).
+
+### NEXT ACTION
+
+Get producer acceptance on the Session 092 preview capture (R-92, R-93); this session deliberately left the art alone so the commit contains only work that has already been measured.
 
 ## Open Threads
 

@@ -2,7 +2,7 @@
 
 **Document ID:** `Docs/DECISION_LOG.md`
 **Status:** Open
-**Last updated:** 2026-09-26
+**Last updated:** 2026-10-01
 
 Architecture decisions with their reasoning, alternatives and consequences. A decision without a recorded alternative is a decision nobody thought about.
 
@@ -484,21 +484,13 @@ environments) and narrows ADR-020 (original art only).
 
 **Decision.** Alongside original Blender art (ADR-020), the project may use:
 
-- **Fab** assets under the Fab Standard License (free or purchased), added to the project from the
-  producer's Epic account. Licence class A.
-- **Sketchfab** assets whose model page shows **CC0** (class A) or **CC-BY** (class B, credited). Not
-  allowed: CC-BY-NC, CC-BY-ND, editorial-only, or any upload the uploader cannot own (game rips).
-  CC-BY-SA needs a separate decision.
+- **Fab and other assets acquired/held for Southern Spear** may be used in this free-to-play game under the producer's project-specific direction (ADR-028/035). This does not assert one universal marketplace licence or authorize redistribution of raw vendor source.
+- Preserve known publisher, seller, source and attribution information as provenance/credits; missing metadata is explicitly unverified, not a permission hold.
+- **Sketchfab source terms remain provenance.** Record actual terms and credit where available; the producer's ADR-035 direction governs the project's use. Commercial-game rips remain excluded, and Electric Dreams retains its separately declined disposition (ADR-013/L-0012).
 
-Every such asset needs a licence-register entry with its source URL **before** it is used, and is adapted
-to the fiction: no real insignia, manufacturer marks, ADF branding or Multicam/Auscam patterns. Weapons
-remain fictional A-series: a third-party weapon model may be used only after it has been reshaped into an
-original design. Dry River's **layout** stays original (ADR-013, ADR-015); third-party assets may dress it
-(materials, foliage, rocks, props).
+Register each acquired/used item and its source information, and preserve the source-versus-derivative distinction. Art direction can prefer original designs and fictional presentation, but real names, equipment, camouflage and marks are not prohibited by ADR-035. Dry River's layout remains original under ADR-013/015; the producer has separately directed whole-pack map use for Red Gum and Bluestone.
 
-**Consequences.** Raw packs stay git-ignored until adapted. Adapted assets follow the LFS rules (R-14),
-and the Fab Standard License forbids redistributing source files publicly (the public site never
-carries assets).
+**Consequences.** Follow the project's raw-source handling policy and keep vendor content from public source redistribution. This is a project handling direction, not a claim that every marketplace listing has identical terms.
 
 **Execution note (2026-09-27).** Under ADR-021, the CC BY 4.0 Sketchfab scans Split Point and Bingie Bingie were staged unchanged as source files at `Content/SouthernSpear/Vendor/SAVollgger/`; see ENV-001/ENV-002 and L-0013/L-0014. Staging does not make them game-ready or imported Unreal assets. Their use still requires asset review and attribution; map layout remains original.
 
@@ -594,9 +586,7 @@ Unchanged:
 - fictional unit names (3 ACR, MAF);
 - MAF stays a conventional force with its own look.
 
-**Risk (recorded, accepted by the producer).** AMCU and ADF equipment designs belong to the Commonwealth
-of Australia. A commercial release needs Defence permission, or a switch back to the fictional CMECU
-pattern, which the pipeline keeps as a material swap. Tracked as R-27.
+**Historical risk statement — superseded by ADR-035.** The original ADR-025 described Defence permission or a CMECU swap as a commercial-release condition. ADR-035 later accepted acquired ADFRC assets for Southern Spear's F2P use and closed R-27 as a permission/substitution gate. Retain the no-endorsement disclaimer and provenance/credit records; no separate permission gate remains.
 
 ## ADR-026 — Two small, documented departures from Lyra: the hero class and bullet penetration
 
@@ -625,26 +615,16 @@ alternatives (copying Lyra's hero and weapon chain) were tried for the hero and 
 
 **Status:** Accepted (producer decision, 2026-09-28: "Snowy gorge + wrought-iron road bridge"; "scoping
 doc + ADR + register rows").
-**Date:** 2026-09-28
+**Date:** 2026-09-28 (inventory scope corrected 2026-10-01)
 
 **Context.** The producer asked for a map "re-creating the famous bridge crossing map from *America's Army
 2*, with an Australian twist", built from the assets already in the project plus the Fab packs in
-`Content/Downloaded/VaultCache/`. That request sits against four standing constraints: **L-0008**
+`Content/Downloaded/VaultCache/`. The 2026-09-28 cache inventory was limited and its count claims below are historical, not a complete inventory. The 2026-10-01 recursive audit found additional FabLibrary listings, 29 other VaultCache roots and installed Content roots including `AutomotiveBridgeScene`; see `ASSET_REGISTER.md` §§4.9m–o. That request sits against four standing constraints: **L-0008**
 (no *America's Army 2* content of any kind), **L-0007** (no commercial game models), **ADR-013** (maps
 are built original; a third-party environment is never a base map) and **ADR-021** (licensed third-party
 art may dress an original layout but never define one).
 
-Two inventory findings shaped the decision.
-
-**First, there is nothing to import.** All 18 content roots in the VaultCache are already installed in
-`Content/`; the only unimported folder is a VFX pack. The cache is the Fab desktop staging area, not a
-source of new map geometry.
-
-**Second, there is no bridge to reuse.** A keyword sweep of all of `Content/` for bridge, gate, arch,
-tunnel, pier, stone and wall returned 430 hits, every one of them Quarry Slate rock ledges, Singapore_Canal
-stone *materials*, or Lyra audio. **No structural mesh exists in the project or in any installed pack.**
-The only packs with buildings are Asian canal architecture (ruled out on look and culture, ADR-016) and
-the Rural Australia pack, which has none at all.
+The original 2026-09-28 inventory and keyword sweep shaped the map's **original-design decision at that time**, but did not cover all cache and installed Content. They found no bridge asset selected for reuse in the Ravenshoe design then. The 2026-10-01 snapshot additionally found `AutomotiveBridgeScene` installed locally, but it is not among the 14-pack map dependency set and no use in Ravenshoe is established by this inventory. Therefore the original layout/bridge design remains the adopted decision; the old sweep must not be cited as proof that no bridge-like asset exists anywhere in the project or cache. Any future reuse would require a deliberate ADR/art-direction review and may dress, not define, the original map (ADR-013/ADR-021).
 
 **Decision.**
 
@@ -652,7 +632,8 @@ the Rural Australia pack, which has none at all.
   a high-country granite gorge crossed by a **wrought-iron lattice-girder road bridge**, with a **stone
   road-gate house** whose arched road passage is the terminal objective. Design in `Docs/MAPS_RAVENSHOE.md`.
 - The bridge, the gatehouse, the abutments and the gorge walls are **modelled by us** in Blender and are
-  **Class F** (L-0011, ADR-020). Dressed with already-installed Class A packs by reference only.
+  **Class F** (L-0011, ADR-020). They are dressed with producer-cleared acquired packs by reference; any
+  legacy “Class A” label describes source metadata, not the current project-use basis under ADR-035.
 - **Only the design principle is taken from the reference**, and it is stated as such in the map document:
   a single chokepoint, a threshold-shaped terminal objective, a hard axial lane, flanking approaches, and a
   playable lower space. **No geometry is traced or approximated, no names are carried across, and no AA2
@@ -675,40 +656,43 @@ the Rural Australia pack, which has none at all.
 - *Model a tropical timber trestle or an arid steel truss* — rejected. The trestle's piers fragment the
   deck into a pick-up-beat shooter space; the arid truss gives up the gorge depth that makes the second
   lane exist at all.
-- *Find a bridge mesh in the VaultCache* — not available. The sweep found none, so the question is moot.
-- *Import the unimported VFX pack* — rejected as irrelevant. A VFX common pack has no map geometry.
+- *Select a third-party bridge/environment as the Ravenshoe base* — rejected. The original-map decision remains; the 2026-10-01 inventory surfaced an installed `AutomotiveBridgeScene` root but did not add it as a map dependency or establish it as a selected bridge asset.
+- *Import a cache-only VFX pack as Ravenshoe geometry* — rejected as irrelevant. VFX content does not define the original map layout.
 - *Wait for a capture on Red Gum before designing another map* — rejected. Red Gum's stalemate is a
   balance problem in a 1 km open map, not a reason to stop designing small maps.
 
 **Consequences.**
-- The map adds **no new third-party dependency** and needs no new import; it is buildable from the
-  project as it stands. That is deliberate — it is the strongest available answer to L-0008.
+- The map introduces no new third-party pack through its original structural mesh assets; it does have
+  producer-cleared third-party dressing dependencies as listed in `PACK_MANIFEST` and `ASSET_REGISTER`.
+  No new pack was claimed as imported specifically for the original bridge/gatehouse design.
+- The original map geometry was buildable from project-authored sources; its dress layer references producer-cleared acquired packs as listed in `PACK_MANIFEST` and `ASSET_REGISTER`. The distinction supports the original-map decision under L-0008 without claiming the whole map is dependency-free.
 - Two original Blender generators are needed (`ravenshoe_bridge.py`, `ravenshoe_gatehouse.py`) plus a
   `Tools/Common/ravenshoe_spec.py` shared with the CI verifier, following the `dryriver_blockout.py`
   pattern.
 - The inventory exposed a **pre-existing licence gap**: nine already-installed Fab packs, including
   `Scene_QuarrySlate` which this map builds on, had no row in either register. Corrected in this session
   as bookkeeping under **L-0016b**. No asset changed.
-- The map is a **candidate fifth map** (`M-008`), not a replacement for Dry River as the slice test bed.
+- **Historical 2026-09-28 map-count decision:** Ravenshoe was then a candidate fifth map (`M-008`), not a replacement for Dry River as the slice test bed. It was subsequently built and registered; current implementation/readiness is in `MAPS_RAVENSHOE.md` and `ASSET_REGISTER.md` §4.9.
 - Sizing, rotation distances, cover counts and sightlines are **design targets until the blockout is
   generated and measured**. Navigation must be baked in the interactive editor, and no cover or sightline
   figure may be quoted from a commandlet.
 
-## ADR-028 — Every Fab asset is cleared for Southern Spear; no per-asset licence lookups
+## ADR-028 — Acquired Fab assets are cleared for Southern Spear's free-to-play game
 
 **Status:** Accepted (producer, 2026-09-28: "EVERY asset added via FAB is free for our use case ... no need to
-keep looking it up"). Extends ADR-021.
-**Date:** 2026-09-28
+keep looking it up"); reaffirmed 2026-10-01 under ADR-035. Extends ADR-021.
+**Date:** 2026-09-28 (reaffirmed 2026-10-01)
 
-**Decision.** Any asset the producer adds from Fab (to the project, the engine or the Fab library cache) is
-cleared for use in Southern Spear: a free-to-play game under the producer's revenue threshold. Agents do not
-look up or confirm Fab licences per asset, and do not hold an asset back pending a licence check. The
-licence register records each Fab asset by name as "Fab, cleared under ADR-028".
+**Decision.** Assets acquired/held for Southern Spear from Fab are producer-cleared for use in this free-to-play
+game. This project-specific direction means no per-asset permission hold is required. Record available seller,
+source, terms and attribution as provenance/credit information; missing metadata and `isAiForbidden` values do
+not create holds. This is not a universal marketplace-licence assertion and does not authorize raw-source
+redistribution. ADR-035 separately records the scope and exceptions.
 
-**Still applies (not licence questions):** the fiction rules (ADR-016: no real insignia, manufacturer
-marks or real weapon names in game), a one-line credit for listings marked CC BY (collected in the
-credits, not a blocker), raw packs stay git-ignored until adapted (ADR-021, R-14), and the public
-website never carries asset files.
+**Still applies (not permission holds):** the no-endorsement disclaimer, content-ethics rules, applicable credits,
+raw-source handling under ADR-021/R-14, and the prohibition on content from ripped commercial-game sources
+(L-0007/L-0008). A specifically declined asset such as Electric Dreams (ADR-013/L-0012) remains excluded unless
+a later producer decision explicitly changes that disposition.
 
 **Map base.** On the same direction ("activate that african map"), `L_Bluestone_01` uses the Fab African Slate
 Quarry scene as its base, as ADR-022 did for Red Gum; ADR-013's original-layout rule is superseded for that map only.
@@ -754,15 +738,7 @@ that reports success is not evidence; every placement in this project is checked
 
 **Status:** accepted, 2026-09-28. Extends ADR-029 and L-0011. Relates to M-008m, M-008n.
 
-**Context.** Ravenshoe Crossing was delivered with four *constant* materials on the one structure the
-map is named for. The geometry was good — 68 m lattice girder, 21 uprights a side, modelled because no
-bridge mesh exists anywhere in the project or in any installed pack — and it rendered as flat colour,
-because nothing in the project could put a surface on it. The Fab cache turned out to hold almost no
-usable tiling textures: 23 of the 30 folders ship under ten images each, and those are mostly prop
-albedos, not tileable PBR sets. The one genuinely good set in the project,
-`Content/AutomotiveBridgeScene/` (319 assets of asphalt, concrete, rust and steel decal maps), is
-**untracked, another agent's in-flight work**. Binding a committed map to it would leave the map
-broken for anyone who checked out this commit without theirs.
+**Historical context (2026-09-28 design snapshot; inventory scope corrected 2026-10-01).** Ravenshoe Crossing was delivered with four *constant* materials on the one structure the map is named for. The selected original geometry is a 68 m lattice girder with 21 uprights a side. At the time, the project review had not selected or established a reusable bridge mesh; the 2026-10-01 inventory later found `Content/AutomotiveBridgeScene/` installed locally, but did not identify it as a Ravenshoe dependency or selected bridge asset. The authored bridge rendered as flat colour because its materials were not configured. The original Fab-cache sample counted 30 folders, 23 with fewer than ten images, mostly prop albedos rather than tileable PBR sets; the later recursive inventory found 50 FabLibrary folders and supersedes that sample as a cache-wide count. The review also identified `Content/AutomotiveBridgeScene/` (319 assets of asphalt, concrete, rust and steel decal maps) as untracked in the then-current checkout. Binding the committed map to that concurrent/untracked content would have left it broken for a checkout without those files; that historical reproducibility concern remains distinct from whether an installed pack exists.
 
 **Decision.** Generate the surfaces. `Tools/Textures/make_ravenshoe_surfaces.py` authors four sets —
 sealed gravel road, rusted ironwork, painted steel, coursed granite — from noise, on exactly the
@@ -947,9 +923,9 @@ acceptable for development and explicitly **not** acceptable for release. Online
 
 ---
 
-## ADR-033 — Uniforms wear the ADFRC textures at source resolution; ADR-016's camouflage clause is withdrawn
+## ADR-033 — Historical G3 texture decision (superseded in active appearance by ADR-042)
 
-**Status:** Accepted (producer, 2026-09-28, in session: "not a license contraint, it's all good. use it").
+**Status:** Historical texture/use decision accepted 2026-09-28; active friendly body and camo routing are superseded by ADR-042 (2026-09-30). Retain the original technical findings as history.
 **Date:** 2026-09-28
 **Amends:** ADR-016 (the sentence "The CMECU is an original pattern. AMCU and commercial MultiCam are
 not reproduced, traced or approximated tile-for-tile") and ADR-016's `CMECU` naming row.
@@ -969,8 +945,7 @@ that the ADF Re-Cut team granted **blanket 100% permission** across all credited
 the same register states plainly that **"The camo itself is Class F and carries no restriction."** The
 mod team's own work was cleared all along; ADR-016 was the only thing in the way.
 
-**Decision.** ADR-016's camouflage clause is withdrawn. The player uniform uses the **ADFRC textures at
-source resolution**, exactly as the kit already does. Concretely:
+**Historical decision (superseded in active appearance by ADR-042 and in project-use policy by ADR-035).** ADR-016's camouflage clause was withdrawn in this historical decision. At that time, the proposed G3 implementation used ADFRC textures at source resolution. This is not the current body/material assignment: Quantum modules are active and their component-level DPCU-derived camo override is described by ADR-042 and ASSET_REGISTER CH-TEX-004.
 
 - `Tools/Unreal/setup_adf_soldier.py` stops substituting the 64x64 flat colour and binds the real
   ADFRC `_co` / `_nohq` / `_smdi` set for every uniform slot, the way it already does for helmets, vests
@@ -989,27 +964,15 @@ source resolution**, exactly as the kit already does. Concretely:
 - `Tools/Textures/make_character_textures.py` and the `T_SS_CMECU_*` / `T_SS_MAF_*` sets are retained for
   first-person arms and the UI, and are no longer the third-person soldier's uniform.
 
-**What this does not clear.** L-0021's "Additional conflict" row is unchanged and is not an ADR matter:
-real manufacturer and service marks — Crye Precision, Ops-Core, PASGT, "Team Wendy", and the **actual
-Australian Defence Force camouflage patterns (Auscam and the DPCU family)** — belong to parties who are
-not in the email and are not in the mod team's gift. A blanket grant from the mod team clears the mod's
-own work; it cannot clear a government pattern. So the practical rule this leaves in place is narrow and
-easy to state: **field green, or the mod team's own variants, is fine; a texture that is a real ADF
-service pattern is not.** `Crye_G3_Shirt_Green` is comfortably on the right side of that line, which is
-part of why it was chosen. R-27 (branding substitution before release) is untouched.
+**Historical scope note (superseded by ADR-035).** The original entry treated marks and service patterns as project-use exclusions; the producer later accepted acquired assets containing them for the F2P game. Preserve this original technical/provenance analysis as history only. ADR-035 governs current use; R-27 is producer-accepted, not a branding-substitution release gate.
 
-**Consequences.** ADR-016 keeps everything else: the canonical fictional organisations, the ban on ADF
-emblems, corps badges, colour patches and the Rising Sun, the rule that faction recognition must never
-depend on colour alone, and the instruction to rename assets with redirectors rather than a blind mass
-rename. Only the camouflage-pattern sentence and the `CMECU` row are withdrawn. L-0021's git handling is
-also unchanged — `Art/ADFRC/*` stays ignored, because that rule is about redistribution of third-party
-source, not about what the game may wear.
+**Historical consequence (policy later updated by ADR-035).** The original text retained restrictions on ADF emblems, corps badges, colour patches and Rising Sun. ADR-035 subsequently accepted producer-directed acquired insignia/camouflage for the F2P project. Current rules are: no endorsement claim, observe content-ethics rules, preserve provenance/credits and do not redistribute raw source packs. ADR-042 governs the active Quantum appearance. `Art/ADFRC/*` remains ignored under source-handling policy, not because the game cannot use the assets.
 
 ---
 
 ## ADR-034 — Australian Army ranks as service levels 1–100, with insignia; kills earn capped XP
 
-**Status:** Accepted (producer, 2026-09-28, in session): "mimic Australian Army rankings, private through to
+**Status:** Accepted (producer, 2026-09-28; current use confirmed by ADR-035): "mimic Australian Army rankings, private through to
 general, even with their insignia (displayed in the scoreboard), like honor was for America's Army. XP is
 gained through kills, objectives etc. ... highest rank is general 100 ... private might be 1–4, then at 5 it
 goes to lance corporal", then "needs to be realistic", pointing to army.gov.au/about-us/ranks.
@@ -1039,39 +1002,31 @@ as ADR-025 did. (Numbered 034: ADR-033 was taken concurrently by the uniform-tex
   `USSServiceRelay::ServerReportProfile` into a replicated `USSServiceRankComponent` on the player state.
   The same call carries the callsign (`ss.Callsign <name>`), which becomes the scoreboard name.
 
-**Release gate — R-55.** The crown and the Coat of Arms are Crown and Commonwealth emblems, and the insignia
-set as a whole is the Australian Army's. Using them was the producer's call for development, as ADR-025 was
-for uniforms. **Before release** they need permission (Defence for the insignia; the Department of the Prime
-Minister and Cabinet for the Coat of Arms), or the WO1 and crown devices are swapped for the fictional
-CMECU/3 ACR ones. The swap is a change to `SSInsigniaRaster.h`, with no data or assets to replace.
+**Historical release-gate note — superseded by ADR-035.** This entry originally called for permission or a device swap before release. ADR-035 lifted that gate and records the producer's acceptance for the F2P game; preserve the no-endorsement disclaimer and content-ethics rules. No separate permission, legal-review or substitution gate remains under this decision.
 
 **Known limit.** The level shown to other players comes from each player's own local record, which isn't
 authoritative (R-53). It is display only and gates nothing. Server-authoritative records are Phase 5 work.
 
 ---
 
-## ADR-035 — Free-to-play release: real names are allowed, and every project asset is cleared
+## ADR-035 — Free-to-play release: producer-cleared acquired assets and real names for this project
 
 **Status:** Accepted (producer, 2026-09-28, in session): "this is a free to play product — so the use of real
 names etc is okay. All assets obtained — levels, 3D objects — are free from Fab or other sources, or given to
 me (ADFRC) from the original creators, so all can be used. This is a free product, so licensing should be
-fine." Amends ADR-016, ADR-025, ADR-033 and ADR-034, and the matching entries in `LICENCE_REGISTER.md`.
-**Date:** 2026-09-28
+fine." Reaffirmed by the producer on 2026-10-01 during the full asset inventory review. Amends ADR-016, ADR-025, ADR-033 and ADR-034, and the matching entries in `LICENCE_REGISTER.md`.
+**Date:** 2026-09-28 (reaffirmed 2026-10-01)
 
 **Decision.**
-1. **Southern Spear is a free product.** No sale, no paid content. The register's "commercial packaging"
-   test (§1–2) is read against that model: an asset whose terms allow free, non-commercial distribution is
-   clear for this project.
+1. **Southern Spear is a free-to-play product.** No paid content is planned. The producer's project-specific clearance governs assets acquired/held for this game; do not generalize it into a universal marketplace licence claim or imply that raw source packs may be redistributed.
 2. **Real names are allowed** in code, data, UI, docs and the website. That covers real weapon names (EF88,
    F89, M4, HK416, Glock, Minimi …), the Australian Army, its ranks and rank insignia (ADR-034, drawn
    faithfully), ADF equipment names and service camouflage. The A-series names and the fictional
    organisations (3 ACR, MAF, CMECU …) are **not** withdrawn: they stay until someone chooses to rename,
    and a rename is a normal change, not an ADR.
-3. **Every asset the project holds is cleared for use**: Fab (ADR-028), other free sources, and the ADF
-   Re-Cut pack from its creators (L-0021, blanket permission). No per-asset licence hold. Registers still
-   record **provenance and credits**, so the credits screen can be generated and CC BY lines honoured.
+3. **Assets acquired/held for Southern Spear are cleared for use in its F2P game.** This includes Fab (ADR-028), other acquired sources and the ADF Re-Cut grant (L-0021). No per-asset permission hold is required. Registers still record observed provenance and attribution/credit obligations; this is not permission to redistribute raw source packs or to use ripped commercial-game content (L-0007/L-0008).
 4. **Release gates lifted:** R-27 (ADFRC branding substitution) and R-55 (Army insignia, crown and Coat of
-   Arms) become **producer-accepted**, not blockers. L-0003's legal hold and L-0004's prohibition are lifted.
+   Arms) become **producer-accepted**, not blockers. L-0003's legal hold and L-0004's prohibition are lifted. This only changes the stated project-use decision; no universal rights opinion is implied.
 
 **Still standing, because they are not licence questions:**
 - **No endorsement claim.** The game doesn't present itself as made, approved or sponsored by the ADF,
@@ -1084,17 +1039,13 @@ fine." Amends ADR-016, ADR-025, ADR-033 and ADR-034, and the matching entries in
 - **No ripped commercial-game assets** (L-0007): again, not from a cleared source.
 - **Engine and Lyra credits** (L-0001, L-0002) and CC BY credit lines still ship.
 
-**Accepted risk, recorded once (R-57).** Permission from the people who made an asset covers their own
-work. It doesn't by itself license another party's trademark (a weapon maker's name, Crye's G3 and
-MultiCam) or a Commonwealth emblem (the Coat of Arms on the WO1 insignia), and free distribution reduces
-but doesn't remove that exposure. The producer has decided to accept it. If a rights holder ever objects,
-the fix is a rename or a texture or device swap. Nothing is structurally tied to any of these names.
+**Accepted risk, recorded once (R-57).** Third-party marks/emblems in acquired assets are retained as source and provenance context. The producer accepts their use in this specific F2P project under ADR-035; that is not a universal legal opinion or endorsement claim. Preserve source/credit records and the no-endorsement disclaimer. There is no pre-release permission, legal-review or mandatory substitution gate under this decision.
 
 ---
 
-## ADR-036 — The soldier's body direction: ADFRC G3 as the working baseline
+## ADR-036 — Historical soldier body direction: ADFRC G3 working baseline (superseded by ADR-042)
 
-**Status:** Accepted as the G3 working-baseline direction (producer, 2026-09-28); the exact player body/skeleton is not a final locked choice. ADR-037–039 keep Quantum viable pending a fair visual comparison and producer decision. Clarification 2026-09-30: the friendly head configured in `setup_soldiers.py` is still the Fab Modern Insurgent 7 head; no matching ADFRC character head/body source has been identified.
+**Status:** Historical working-baseline decision; superseded by ADR-042 (2026-09-30), which selected Quantum for the friendly visible body and retained Manny for gameplay/pose. Preserve the findings below as historical context only. Clarification 2026-09-30: the friendly head configured in `setup_soldiers.py` is still the Fab Modern Insurgent 7 head; no matching ADFRC character head/body source has been identified.
 **Date:** 2026-09-28 (clarified 2026-09-30)
 
 **Context.** The friendly soldier is assembled from four meshes in `Tools/Unreal/setup_soldiers.py`:
@@ -1119,14 +1070,13 @@ gear, which gives a better-animated base at the cost of taming its 14 vendor mat
 
 **Why G3 was chosen as the working baseline.** The ADFRC gear is already fitted, textured and rigged to the G3 uniform (Session 049, `adf_soldier_setup.json`), making it the least disruptive baseline. That did not prove a matching ADFRC head asset exists or establish that the current mixed-source assembly is visually solved. ADR-037–039 subsequently corrected the claim that Quantum was retired and documented a viable modular/retarget prototype route; the producer should compare complete, similarly dressed and posed versions before a final body/skeleton choice.
 
-**Consequence.** The G3 uniform/gear and its texture work remain the current working setup. P2 of `Docs/PLAYER_MODEL_PLAN.md` is a plan, not an automatic next action: own-skeleton work follows the body comparison and producer choice. The cap fix (P1.1) and flat-fallback removal (P1.2) remain applicable to the current G3 materials.
+**Historical consequence (superseded by ADR-042).** The G3 uniform/Modern Insurgent head were retired from the friendly visible assembly. Do not apply this historical G3 work plan as current direction; use `Docs/PLAYER_MODEL_PLAN.md` §1 and ADR-042 for the current Quantum/Manny boundary.
 
 ---
 
-## ADR-037 — Quantum modular character: assessed, and ADR-036 point 3 corrected
+## ADR-037 — Historical Quantum modular-character assessment (superseded by ADR-042)
 
-**Status:** Accepted (producer, 2026-09-28). Amends ADR-036 point 3. The prototype it authorises is
-**blocked on tooling**, recorded below.
+**Status:** Historical Quantum assessment and prototype proposal; superseded as a body-choice gate by ADR-042 (2026-09-30). Its technical findings are retained below. The old claim that the prototype was blocked on tooling is superseded by ADR-039's successful poseable-mesh path and ADR-042's active runtime retarget design.
 **Date:** 2026-09-28
 
 **Correction to ADR-036.** ADR-036 retired `SKM_QuantumCharacter` on the grounds that "its 14 slots all
@@ -1167,17 +1117,13 @@ what would finally give the W2 hand-grip work something to grip *with*.
    flagged, and it is **not** what point 1 authorised. It is a producer decision and is **not** taken
    here.
 
-**Consequence.** ADR-036 stands for the body (ADFRC G3) and the texture work continues unchanged. The
-Quantum modules are a live option, held open, that becomes actionable either when a reparameterise or
-export route exists, or if the producer chooses the skeleton move. **Not decided:** whether to re-scope
-to the 351-bone skeleton now that it is the only working path.
+**Historical consequence (superseded by ADR-042).** Quantum is now the selected friendly visible body. This entry's analysis of source skeleton constraints remains historical/technical context; its G3-versus-Quantum choice and open-decision language no longer governs.
 
 ---
 
 ## ADR-038 — Leader pose does work for the Quantum modules; ADR-037's "not usable" is withdrawn, and three new candidate bodies assessed
 
-**Status:** Accepted (producer, 2026-09-28). Corrects ADR-037 point 2. **Nothing about the body is
-decided here**; ADR-036 (ADFRC G3) stands until a prototype says otherwise.
+**Status:** Historical technical assessment; its provisional body-choice language is superseded by ADR-042 (2026-09-30). The measured leader-pose and candidate-body findings remain useful context. ADR-039/042 later established the runtime retarget path; the following pre-prototype route recommendations are not current implementation status.
 **Date:** 2026-09-28
 
 ### Correction to ADR-037
@@ -1224,12 +1170,11 @@ and proportions the fitted ADFRC gear still fits. Quantum is the only one of the
 fingers, the modularity and clean slots; it fails on source files and bone names, and both of those are
 cheaper to solve than any of the three new packs' problems.
 
-**Not decided.** The recommendation stands: prototype Quantum on the retargeter, in camo, next to the
-current soldier, and switch only if it is clearly better on screen.
+**Historical outcome.** ADR-042 later selected Quantum as the friendly visible body and established the runtime retarget path. This comparison recommendation is superseded; final in-game visual confirmation remains pending.
 
 ## ADR-039: Quantum retarget is buildable headlessly, but not by the route ADR-037 assumed
 
-**Status:** accepted. Amends ADR-037; leaves ADR-036 standing.
+**Status:** Historical technical decision; ADR-042 supersedes its body-selection context, while its UE 5.8 retarget/tooling findings remain relevant.
 
 **The recommended route does not exist in UE 5.8.** `Build/probe_retargeter.json` records it:
 `unreal.IKRetargeterFactory` is not exposed to Python, so an IKRetargeter asset cannot be created;
@@ -1328,10 +1273,7 @@ into constant arithmetic (MSVC C4756). Replaced with `std::numeric_limits<float>
 `infinity()`, which is also what those tests actually mean: a value the compiler cannot know.
 `SouthernSpear Win64 Development` now builds and `SouthernSpear.exe` links.
 
-**Consequences.** ADR-036 stands - nothing here displaces it, and the carrier-fit result removes the
-main financial argument for switching. ADR-037 moves from "blocked" to "buildable, not via an asset,
-not yet proven". ADR-038 is unaffected. Left-hand IK is the other agent's work and is untouched: this
-ADR adds the pose lever it needs and does not claim it.
+**Historical consequences (superseded by ADR-042).** ADR-042 selected Quantum and the project now uses the described pose-retarget approach. The carrier-fit and tooling measurements remain context; old undecided-body language is no longer operative.
 
 ---
 
@@ -1488,9 +1430,9 @@ decision the map's first dressing pass had to make. Evidence gathered before dec
 - R-67 extends one line: vendor Blueprint logic (doors) is now load-bearing for nothing; if a
   future phase wires doors, the component path above is the only sanctioned route.
 
-## ADR-042 — The friendly soldier renders as the Quantum character on its own skeleton; the gameplay skeleton stays Manny
+## ADR-042 — Quantum is the producer-selected friendly appearance; Manny remains the gameplay/pose source
 
-**Status:** Accepted
+**Status:** Accepted, amended 2026-10-01 (assembly change: see the amendment at the end of this entry)
 **Date:** 2026-09-30
 
 **Context.** The shipped friendly look — a Modern Insurgent 7 head on an ADFRC G3 uniform with ADFRC
@@ -1506,7 +1448,7 @@ technical facts the prototype sessions established still stand:
   122 mapped bones, rest fixed-point drift 0.0001 cm, 30° probe propagates, bone lengths survive),
   with twist/IK helper bones excluded and the Quantum-only finger bones given a grip curl.
 - The ADFRC vest and helmet are Manny-rigged and were measured to fit the Quantum torso within
-  1.6 cm on every axis (Session 058 fit report), so they can stay leader-posed.
+  1.6 cm on every axis (Session 058 fit report), so they can stay leader-posed. The source-image and generated derivative are separate assets: tracked `T_ADFRC_DPC_camo.png` is imported as a texture and the tileable Quantum-shirt texture is generated by `Tools/Textures/make_adfrc_camo.py`; the unchanged source is not asserted to be the mounted garment texture.
 - The pawn's body mesh — Lyra's Manny with the hand-IK component — is load-bearing for hit zones,
   damage, movement, weapon sockets and the hand-IK solve. Swapping it is a different project.
 
@@ -1530,7 +1472,7 @@ technical facts the prototype sessions established still stand:
 3. **The ADFRC vest and helmet stay Manny-rigged and leader-posed**, layered over the Quantum body
    via the new `FriendlyLeaderPoseParts` (they measured within 1.6 cm on Quantum's torso). The G3
    uniform and the Modern Insurgent head leave the friendly look entirely. The MAF opposing look is
-   unchanged in every part and material.
+   unchanged in every part and material. This is the selected configuration; final in-game visual/camo acceptance is a separate pending verification, not evidence that the capture was completed.
 
 4. **First person follows the part kind, not the mesh class.** The local player must never see their
    own body: body view hides the head bone on every attached skinned part (the Quantum head is its
@@ -1558,18 +1500,48 @@ technical facts the prototype sessions established still stand:
 
 **Consequences.**
 
-- R-58 narrows but does not close: the *visible* soldier is no longer welded to the Manny skeleton,
-  but the *gameplay* body still is. The risk remains open for the gameplay-skeleton question.
+- R-58 concerns the Manny gameplay skeleton and the Quantum retarget/gear boundary, not the retired G3 visible-body assembly. Measure the active configuration before closing the risk.
 - `setup_soldiers.py` writes the Quantum configuration (`friendly_parts` = the four QuantumProto
   modules, `friendly_leader_pose_parts` = ADFRC vest + helmet, `retarget_friendly_pose` = true) and
   `setup_character_textures.py` no longer authors friendly overrides (the modules carry their own
   materials). Both scripts must be re-run if `B_SS_Soldier` is regenerated.
-- The class-select preview self-animates the Quantum modules with the pack's own idle and
-  leader-poses the vest/helmet on the invisible Manny body, mirroring the runtime split without a
-  SouthernSpearTeam dependency (SS001).
+- The class-select preview uses the in-game `B_SS_Soldier` child actor on the invisible Manny body,
+  so its components perform the same runtime retargeting, material overrides and leader pose as the
+  deployed character. This removes the former ad-hoc preview path; the resulting presentation still
+  requires a fresh capture and producer acceptance (see R-58).
 - The camo rides on component overrides (`FriendlyMaterialOverrides`), not on the module meshes:
   measured 2026-09-30, mesh-asset material slots are read-only from Python in 5.8, and the
   prototype-era script had reported ok while silently writing nothing (R-91). A camo pass that
   leaves the vendor material puts a blue civilian shirt in the game, as observed 2026-09-30.
 - R-91 is closed as a pipeline defect (root cause measured, scripts fixed, asset read-back
   verified); the in-game confirmation is the producer's next capture.
+
+### Amendment — 2026-10-01 (assembly only; the body-source decision above stands)
+
+**Context.** The Quantum four-module assembly above was captured in the class-select preview and the
+producer reviewed it directly: camouflage present, but "no helmet, no webbing and completely wrong
+camouflage", then "a weird gap at the waist". The owner's direction for the friendly look is the
+**ADFRC models and AMCU textures**. Two measurements decided how to act on that:
+
+- The helmet was configured, visible and leader-posed in the same capture the producer read as
+  helmetless: the preview was frozen at 35 % of `MM_Rifle_Idle_Hipfire`, a frame with the head pitched
+down, so the bare crown sat in front of the helmet. The pose was the defect, not the gear.
+- The pale band at the waist is the ADFRC G3 shirt sheet's own plain under-shirt panel: the fitted
+  uniform's torso faces sample UV v 0.02–0.24 of `Crye_G3_Shirt_AMC_co.png`, which carries no
+  camouflage (measured with `Tools/Blender/inspect_uniform_fit.py` and `Tools/Common/ss_sheet_probe.py`;
+  the mesh is continuous — trunk faces in every 2.5 cm slab from 75 cm to 155 cm — so it is not a hole).
+
+**Amendment.** The viewer's own team is shown as the **ADFRC G3 uniform, TBAS vest and OpsCore helmet**
+(Manny-rigged, leader-posed, AMCU textures as authored, with the shirt sheet's flat under-shirt panel
+repainted in pattern by `Tools/Textures/patch_adfrc_undershirt.py`), with the **Quantum head as the only
+retargeted module**. Decision point 1's four-module assembly is therefore superseded, and so is the
+`setup_quantum_proto.py` shirt/jeans camo as a *friendly* route. Everything else here is unchanged and
+still governs: the pawn's body mesh remains Lyra's Manny and the pose authority, `ASSCharacterPartActor`
+retargets the remaining module per tick with the same measured bone map, the gear stays leader-posed,
+and ADR-004's hit zones, damage, movement, sockets and hand-IK solve are untouched. The Quantum head is
+aligned by `FriendlyRetargetAnchor` (measured rest gap to the mannequin head: 0.0 cm on this assembly),
+which exists so a differently proportioned module cannot drift out of gear fitted to the mannequin.
+
+**Open.** This is an assembly change, not art acceptance: the producer has not yet reviewed this
+assembly, the friendly head is still not an ADFRC asset (the source set has no character head), and the
+repainted panel is a project derivative awaiting acceptance (R-92, R-93).

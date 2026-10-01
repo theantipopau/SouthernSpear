@@ -1,27 +1,23 @@
 # MAP NOTE — Training environment (M-006 candidate): the downloaded MOUT urban kit
 
 **Document ID:** `Docs/MAPS_TRAININGRANGE.md`
-**Status:** Note — downloaded and installed, **not adapted, not opened, not measured**
-**Last updated:** 2026-09-29
+**Status:** Historical candidate note — MOUT is now adapted into Wandarra (M-009); this document's pre-decision proposal is not current map status.
+**Last updated:** 2026-10-01 (historical status reconciled)
+
+> **Current state:** the producer selected a large urban training map on 2026-09-29. MOUT assets, RustyCarsFree wrecks and EuropeanBeech trees are used in the built Wandarra map. Wandarra's current build/verification status is in `MAPS_WANDARRA.md`; its attended nav bake (R-82), look review (R-89) and fit inspection (R-90) remain open. M-006 remains the separate open-range/training-range question. Sections below preserve the earlier candidate assessment and must not be read as saying MOUT is unopened or M-009 does not exist.
 **Source:** Fab pack staged at `Content/Downloaded/VaultCache/ModularM6dfea54fd98cV5/`, installed to `Content/MOUT_Civilian/`
 
 > **Fictional entertainment project.** Not endorsed, developed or approved by the Australian Defence Force, the Department of Defence or the Australian Army. Any Southern Spear location built on this kit is an **invented** location, laid out from gameplay requirements, and must not reproduce a real base, installation or any operationally useful site.
 
 ---
 
-## 1. What this note is
+## 1. What this note originally recorded
 
-The producer asked for a note that a training environment map had been downloaded, that it can stand as an additional map for the game, and that it is probably the environment the training missions will use later.
+The following describes the producer request and inventory as recorded on 2026-09-29; it is historical context, not the current project/map state. The later producer decision selected Wandarra (M-009) as the urban training map, while M-006 remains a separate open-range/training-range scope question.
 
-This records **what is on disk, what it is, and what is not decided**. It is deliberately *not* a map design: there is no layout, no objective scheme, no scale and no numbers here, because none have been authored. The other `MAPS_*.md` documents earn their dimensions by stating the gameplay reason for each one. Nothing in this kit has earned a dimension yet.
+This original 2026-09-29 intake snapshot recorded what was on disk and the then-open M-006 question. It was deliberately *not* a map design and accurately noted that the kit had no project-authored layout, objective scheme, scale or site dimensions at that point. Wandarra (M-009) was designed and built later; its current implementation and verification are documented in `MAPS_WANDARRA.md`.
 
-The register already carries the destination this is aimed at:
-
-| Register ID | Map | Layers required | Status | Notes |
-|---|---|---|---|---|
-| `M-006` | **Training range** | Training | `PLACEHOLDER` | Vertical slice |
-
-and `DEVELOPMENT_ROADMAP.md` VS-17 asks for *"Training range + one qualification that saves"*, while GDD §5 makes training a core progression system in five modules. Section 4 is about whether this kit should fill `M-006` as written, or sit beside it.
+The intake was originally linked to the then-existing M-006 Training range placeholder. `DEVELOPMENT_ROADMAP.md` VS-17 asks for *"Training range + one qualification that saves"*, while GDD §5 makes training a core progression system in five modules. The producer later selected MOUT for Wandarra (M-009); whether M-006 remains a separate open firing range or changes scope is still unresolved.
 
 ---
 
@@ -46,7 +42,7 @@ Three maps shipped with it:
 | `/Game/MOUT_Civilian/Maps/LVL_AssetShowcase` | 200 KB | asset showcase |
 | `/Game/MOUT_Civilian/Maps/LVL_Blueprints` | 465 KB | blueprint showcase |
 
-`FirstPersonExampleMap` is **the only environment map added to `Content/` on 2026-09-29**. Everything else downloaded that day was either props (rusty cars) or architecture/prop kits that have not been added to `Content/` at all.
+`FirstPersonExampleMap` was the only environment map added to `Content/` in the 2026-09-29 intake snapshot. Subsequent work built Wandarra from selected MOUT kit assets; see `MAPS_WANDARRA.md`.
 
 ---
 
@@ -58,17 +54,17 @@ Three maps shipped with it:
 - **Interactable doors**: `BP_GlassDoors_Interactable`, `BP_GreenDoors_Interactable`, `BP_WoodenDoor_Interactable`, and matching `*_IndividualDoorOpening` variants — the only **game** content in the pack rather than scenery, and the one thing here that may be worth more than the buildings
 - **219 textures**, and a first-person demo character and weapon under `Demo/`
 
-**MOUT** is the vendor pack's own abbreviation for **Military Operation Urban Training** — a kit for building an urban training facility, of which the demo map is one already built. That is the whole reason it reads as a training environment rather than a town: it is not a town kit that happens to be quiet, it is a facility kit with lanes, walls and cover built in the shapes training layouts use.
+**MOUT** is the vendor pack's own abbreviation for **Military Operation Urban Training**. This is the pack's stated purpose; Wandarra's current role and design are described in `MAPS_WANDARRA.md`, not inferred solely from the vendor demo map.
 
 ---
 
-## 4. The two candidate uses
+## 4. Historical candidate uses (pre-Wandarra decision)
 
 ### 4.1 As `M-006` Training range — a partial fit, and the partial matters
 
 The register and the roadmap both say "training range". Read strictly, that is **open ground with long lanes**: it is the Marksman qualification (GDD §5 module 2) that needs lane-and-sightline geometry, and the project's open-range map already exists — Saltbush was built precisely "to test engagement ranges past 200 m".
 
-**This kit is a village, not a range.** It has no long lanes, no berms, no safe backstop, no lane markers. On its own it does not answer VS-17's "training range".
+**Historical assessment (2026-09-29):** the vendor kit itself is an urban village, not an open firing range; that remains a distinction about the pack's assets, not the current project state. Wandarra uses the urban kit; M-006's separate open-range scope remains unresolved.
 
 What it *does* answer, better than anything else in the project:
 
@@ -80,14 +76,13 @@ What it *does* answer, better than anything else in the project:
 | 4. Field Skills | **Good** | Identification training is explicit in the GDD, and a village of lookalike buildings and doors is exactly where silhouette-and-insignia reading gets tested. Cover and routes exist in quantity |
 | 5. Leadership | **Weak** | Needs observable squads and clear approaches over distance |
 
-**Verdict as written:** this is a strong candidate for an **urban / close-quarters training map**, and a weak candidate for the "training range" that VS-17 literally asks for. Whether `M-006` is redefined from range to urban-training, or this becomes a second training map beside it, is a producer decision and is left open in §6.
+**Historical verdict (superseded for map selection):** this was a strong urban/close-quarters candidate and a poor literal open-range fit. The producer subsequently selected the urban use as Wandarra (M-009); M-006 remains a separate training-range decision.
 
 ### 4.2 As an additional playable map
 
-It qualifies, with caveats. The project already has one urban map (Selat Canal, M-003) and it is the only Special Forces map; this kit's close-quarters geometry would be a second urban environment with a different character — a civilian town against Selat Canal's canal district. The obstacles are the same ones that apply to §4.1 plus one more:
+Historical candidate assessment (2026-09-29, before Wandarra was built): the kit appeared to offer a second urban environment alongside Selat Canal (M-003). The producer subsequently selected that urban use as Wandarra (M-009), which now exists; the remaining concerns are current validation items listed in `MAPS_WANDARRA.md`.
 
-- **ADR-016 look check not done.** A church, a playground, police signage, bus stop, clothes lines and a European-influenced bungalow/terrace vernacular are not Southern Spear dressing by default. Singapore Canal was held back from the game for exactly this reason (see `LICENCE_REGISTER.md`, Singapore Canal row). The check has to happen **before** anything here is placed, not after.
-- **No original layout exists.** Nothing here has been laid out by us, and a map is not a kit — it is a kit plus a layout, objectives, deployment, cover audit and a navmesh.
+- **Historical concerns, retained for context:** the kit's look and the absence of a project-authored layout were open questions before the producer's map decision. Wandarra is now built; its ADR-016 look review (R-89), fit inspection (R-90), nav bake (R-82), spawn layout and playability checks remain open, as recorded in `MAPS_WANDARRA.md`. Do not infer that those gates were already completed from the 2026-09-29 candidate review.
 
 ---
 
@@ -96,8 +91,8 @@ It qualifies, with caveats. The project already has one urban map (Selat Canal, 
 | Field | Value |
 |---|---|
 | Source | Fab (fab.com), downloaded through the Epic Games Launcher into `Content/Downloaded/VaultCache/` |
-| Licence | **Fab Standard License — Class A**, as for every other Fab pack in this project (L-0016) |
-| Clearance | **Already cleared.** ADR-028 clears Fab assets; ADR-035 clears them for the free product, including converted and derived work. **No licence check holds this up** |
+| Observed seller terms | Not verified from the local Vault chunk; do not assign a blanket Fab class |
+| Project-use status | Producer-cleared for Southern Spear's F2P game under ADR-028/035, including acquired/held content; this project-specific direction is distinct from unverified local listing metadata |
 | Seller | **Unverified.** The Vault pack wrote no `metadata` sidecar, so the listing it came from is not identifiable from local files. Recorded as unverified, never as clear |
 | `isAiForbidden` | **Unverified** — same reason. This is a seller declaration, not a licence field (L-0016c) |
 | Redistribution | Stays git-ignored (ADR-021, R-14). Project assets reference pack content **by path**; vendor assets are never modified in place |
@@ -106,28 +101,28 @@ Register rows were added **in the same change** as this note, per the L-0016b st
 
 ---
 
-## 6. What is not decided
+## 6. Historical open questions (superseded by the 2026-09-29 producer decision)
 
-1. **Range or village?** Whether `M-006` stays an open firing range, or is redefined as an urban training facility with a separate range later. Producer's call.
-2. **No new map ID was opened.** The register's layout rule and the VS-17 line both assume one training map. Opening `M-009` here would commit the project to a map that has no layout, no author and no agreed name. `M-006` is left as it stands and this note records the candidate against it.
-3. **No Southern Spear name.** Map docs are named after their in-fiction location (Dry River, Red Gum, Saltbush, Selat Canal, Ravenshoe). This has none, and inventing one is a design decision, not bookkeeping. When a name is chosen it must be an invented Australian location and must not describe a real facility. No `L_*` map asset has been created.
-4. **The pack's `Demo/` tree is reference-only.** Its first-person character and weapon must not enter the game: weapons are script-built on Lyra sockets and gear is skinned to the Lyra mannequin (ADR-020), and the soldier bodies are Quantum/Modern Insurgent. Anything else would be a second, conflicting weapon path.
-5. **Whether the doors are worth the port.** They are the only interactive content in the pack, and they may be worth more to the training design than the buildings are — but they are vendor Blueprints with no owner, and ADR-004 keeps presentation out of gameplay. Not scoped.
+1. **Historical range/village choice:** resolved for the urban map by the producer's selection of Wandarra (M-009). M-006 remains a separate open-range/training-range scope question.
+2. **Historical map-ID question:** M-009 was subsequently opened and built as Wandarra; the no-layout/no-name concern no longer applies.
+3. **Historical map-name question:** resolved as Wandarra, an invented locality; see `MAPS_WANDARRA.md`.
+4. **Historical intake disposition:** the pack's `Demo/` tree was not selected for Wandarra or the current player/weapon path. This is a scope/use choice, not a prohibition on producer-cleared acquired content; preserve the distinction between vendor demo assets and the assets actually selected for the game.
+5. **Door Blueprints:** their port/use remains unscoped; no current gameplay interaction is claimed in Wandarra (ADR-041). This is a feature decision, not a permission hold.
 
 ---
 
-## 7. Risks raised by this note
+## 7. Risks raised by this note (historical; current status in PROJECT_AUDIT and MAPS_WANDARRA)
 
 | ID | Risk | Note |
 |---|---|---|
-| **R-67** | The kit was authored in **UE 4.26** and has never been opened in 5.8. 2.1 GB, 219 textures, unknown LOD policy, legacy materials, `EngineSky` sky sphere in the demo map. Nothing here has been measured — nav coverage, texel density, lightmap or draw cost are all unknown | New. Raised, not assessed |
+| **R-67** | The kit was authored in **UE 4.26** and loaded under 5.8. First load in the Wandarra build was silent (zero upconversion/redirect error lines); rendered texture survival, LOD, lightmap/texel density and draw cost remain unmeasured | First-load half measured; render-cost half remains open |
 | **R-68** | Seller and `isAiForbidden` **unverified** for the whole 2.1 GB pack (no `metadata` sidecar) | Same class of residual risk as L-0016c. ADR-028/ADR-035 decide the licence; this is bookkeeping, and an absent sidecar is recorded as unverified |
 
-Neither is a blocker for reading the kit, and neither should hold up a decision about whether to design on it. They are recorded because the alternative — a 2.1 GB unreviewed pack with an unidentified seller sitting in `Content/` — is exactly the gap L-0016b was found and closed for.
+Neither risk is a project-use permission hold under ADR-035. The first-load upconversion has since been measured as silent; remaining rendered texture/LOD/draw-cost checks are tracked under R-67, while current map status is in `MAPS_WANDARRA.md`.
 
 ---
 
-## 8. How to re-verify every number above
+## 8. How to re-verify the historical intake measurements
 
 ```bash
 du -sh Content/MOUT_Civilian                                    # 2.1 GB
@@ -139,4 +134,4 @@ strings -n 4 Content/MOUT_Civilian/Demo/FirstPersonBP/Maps/FirstPersonExampleMap
 git status --porcelain                                          # Content/MOUT_Civilian/ is untracked
 ```
 
-**What was not run:** the editor was not opened on any of the three maps, no map was loaded, no screenshot taken, no navigation built, no asset audited. Every statement about how the content looks or performs is therefore unverified, and is written above as a question rather than an answer.
+**Historical measurement boundary (2026-09-29):** the initial intake note did not open any of the three vendor maps or inspect a rendered scene. Subsequent Wandarra level/dressing and first-load checks are recorded in `MAPS_WANDARRA.md` and PROJECT_AUDIT R-67. No final attended visual sign-off, full texture/LOD/draw-cost assessment or nav bake is claimed by this note.

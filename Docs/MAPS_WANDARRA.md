@@ -1,10 +1,8 @@
 # MAP: Wandarra (M-009) — the MOUT training village
 
 **Document ID:** `Docs/MAPS_WANDARRA.md`
-**Status:** Built greybox, in Unreal — **navmesh not yet baked (R-82)**, spawns not yet laid;
-dressing pass (awnings + gate doors, Session 084) queued behind a rebuild that applies the Session
-083 yaw correction below
-**Last updated:** 2026-09-30 (Session 082)
+**Status:** Built and dressed in Unreal — **saved nav coverage is 0 until the attended R-82 bake**; spawn layout remains unverified. Attended visual look/fit review also remains open (R-89/R-90).
+**Last updated:** 2026-10-01 (current-state reconciliation)
 **Map asset:** `/Game/Maps/L_Wandarra_01`
 **Layout spec:** `Tools/Common/wandarra_spec.py` — every position below is read from it
 
@@ -17,10 +15,9 @@ dressing pass (awnings + gate doors, Session 084) queued behind a rebuild that a
 
 ## 1. What Wandarra is
 
-The producer's decision of 2026-09-29 resolves the open question in `MAPS_TRAININGRANGE.md` §4:
-**one big map** built from the MOUT urban training kit, with every other installed-and-unused pack
-brought in — RustyCarsFree's wrecks and the 7 GB EuropeanBeech forest (UE 5.1 native, so the only
-one of the three with no upconversion question at all).
+The producer's decision of 2026-09-29 resolves the urban-map choice in `MAPS_TRAININGRANGE.md` §4:
+**one large map** built using the MOUT urban kit, RustyCarsFree wrecks and EuropeanBeech trees.
+EuropeanBeech content is UE 5.1 native; MOUT was authored in UE 4.26 and its first 5.8 load was silent, while rendered texture/LOD/draw-cost review remains open (R-67). The inventory does not treat other installed packs as dependencies unless actually selected or referenced.
 
 The name follows the register's convention of invented Australian locality names (Ravenshoe, Red
 Gum): *wandarra* is constructed from "wan" (crow) + "dharra" (to have), glossed here as "place of
@@ -108,12 +105,11 @@ decision, not an omission — see ADR-041 for the phase-2 route.
 
 | Pack | Installed as | Engine | Licence | Seller / AI flag |
 |---|---|---|---|---|
-| MOUT urban training kit | `Content/MOUT_Civilian/` (2.1 GB) | UE 4.26, upconverted on load (R-67) | Fab Standard A (L-0016) | **unverified** (no `metadata` sidecar, L-0016c) |
-| Old Abandoned Rusty Cars | `Content/RustyCarsFree/` (69 MB) | — | Fab Standard A (L-0016) | OlegVerenko, `isAiForbidden: false` |
-| European Beech trees | `Content/EuropeanBeech/` (7 GB) | **UE 5.1 native** | Fab Standard A (L-0016) | **unverified** (Vault chunk manifest only, no `metadata`, L-0016c) |
+| MOUT urban training kit | `Content/MOUT_Civilian/` (2.1 GB) | UE 4.26, loaded under 5.8 (R-67) | Producer-cleared for Southern Spear F2P use (ADR-028/035) | Seller and `isAiForbidden` **unverified** locally (no `metadata` sidecar) |
+| Old Abandoned Rusty Cars | `Content/RustyCarsFree/` (69 MB) | — | Producer-cleared for Southern Spear F2P use (ADR-028/035) | OlegVerenko; catalogue reports `isAiForbidden: false` and `isAiGenerated: true` |
+| European Beech trees | `Content/EuropeanBeech/` (7 GB) | **UE 5.1 native** | Producer-cleared for Southern Spear F2P use (ADR-028/035) | Seller and `isAiForbidden` **unverified** locally (Vault manifest, no Fab `metadata`) |
 
-Pack assets are referenced in place, never modified (ADR-021). All three packs sit on the
-git-ignored path; the repo carries the build scripts, the spec, the docs and the map.
+Pack assets are referenced in place, never modified (ADR-021); the producer has cleared their use in this F2P game under ADR-028/035. The vendor pack roots are local dependencies and are git-ignored; the project carries the build scripts, spec, docs and map. Observed seller/AI metadata remains provenance only, and cache/install presence is not equivalent to runtime use.
 
 ## 5. Pipeline (the Dry River pattern, one map built not copied)
 

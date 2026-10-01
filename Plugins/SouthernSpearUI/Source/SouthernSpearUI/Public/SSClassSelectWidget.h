@@ -67,6 +67,8 @@ private:
 	UPROPERTY(Transient) TObjectPtr<AActor> StageWeapon;
 	UPROPERTY(Transient) TObjectPtr<ASceneCapture2D> StageCamera;
 	UPROPERTY(Transient) TObjectPtr<class USkeletalMeshComponent> StageBody;
+	bool bStageLocalityApplied = false;
+	float StageBodyYaw = -90.f;
 	int32 Selected = 0;
 	float Elapsed = 0.f;
 };

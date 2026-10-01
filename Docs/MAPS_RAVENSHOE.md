@@ -2,8 +2,8 @@
 
 **Document ID:** `Docs/MAPS_RAVENSHOE.md`
 **Status:** **In Unreal, dressed, surfaced, lit and wired. Navigation not baked.** `/Game/Maps/L_Ravenshoe_01` — **665 actors**, **35/35 audit checks pass**.
-**2026-09-28 first play test:** spawns, collision and the nav bake fixed; ground still renders white, bots do not advance, horizon edge shows — see `Docs/HANDOVER_RAVENSHOE.md` §0.
-**Last updated:** 2026-09-28
+**Historical 2026-09-28 first-playtest note:** reported spawns/collision and a nav bake as fixed; the later R-82 forensic check found that headless builds on this machine do not consume geometry. Current saved nav state is treated as **not baked** until an attended editor bake is verified. The original visual/bot findings are preserved in `Docs/HANDOVER_RAVENSHOE.md` §0.
+**Last updated:** 2026-10-01 (asset-register/current-state reconciliation)
 **Authoring:** `Tools/Common/ravenshoe_spec.py` (shared spec) → `Tools/Blender/ravenshoe_blockout.py` → FBX
 **Import/dress:** `Tools/Unreal/import_ravenshoe.py` · **Audit:** `Tools/Unreal/audit_ravenshoe.py` (read-only)
 **Verification:** `Tools/Blender/verify_ravenshoe.py` — **53/53 checks pass** (spec-only mode runs in CI without Blender)
@@ -23,7 +23,7 @@ Australian twist." That request is legitimate in its **design intent** and const
 | | Position |
 |---|---|
 | **L-0008** | ❌ No *America's Army 2* source content of any kind: no layouts, geometry, names, HUD, textures, audio. Binding. |
-| **L-0007** | ❌ No commercial game models. Binding. |
+| **L-0007** | ❌ No ripped commercial-game assets or assets from model-ripping sites. Binding. |
 | **ADR-013** | Maps are built **original**; a third-party environment is never a base map or a layout reference. |
 | **ADR-021** | Licensed third-party art may **dress** an original layout. It may never define one. |
 
@@ -51,9 +51,7 @@ Australian twist." That request is legitimate in its **design intent** and const
 - **The reference is not used as a layout reference.** The layout below is derived from the Dry River rule
   set (§4), not from the screenshots.
 
-**Every asset in this map is either already installed in the project or modelled by us.** No pack is
-imported for it (§6). This is the second reason the design is safe: it does not merely avoid the AA2
-problem, it needs no third-party base at all.
+**The map layout and structural bridge/gatehouse/terrain assets are project-authored; selected installed packs provide dressing.** No third-party map base or AA2 source content is used. Existing pack assets are referenced in place as documented in §5; no new pack is claimed as imported specifically for this map.
 
 ---
 
@@ -181,13 +179,7 @@ gorge. The height term is therefore off. `start_distance` is set to 140 m, which
 and both lips completely untouched and fogs only the 200 m ridge-to-ridge shot — which is the sniper
 case the fog exists to break. A true bed-pool needs a property this build will not take.
 
-**Why Namaqualand.** It is the only arid-country vegetation in the project, and Karoo succulent veld is
-genuinely close to Australian arid shrubland in habit. Rejected on look: `Light_Foliage` is temperate
-forest; `Nanite_Plants_Sample_Collection` is Acer and Ophiopogon — ornamental Japanese and Chinese
-garden plants, wrong biome *and* wrong culture (ADR-016). Unlike the Fab props these arrive as ready
-`StaticMesh` assets, so there is nothing to import or prep, and they **keep their own vendor
-materials** (ADR-029) rather than being unified onto `MI_SS_Raven_*` — a dozen different plants reading
-as a dozen different plants is the point of ground cover.
+**Why Namaqualand.** It was selected for this map's dry-country scrub and ground-cover vocabulary; it is not the only vegetation pack installed in the project. `Light_Foliage` and `Nanite_Plants_Sample_Collection` were not selected for this map's intended setting/look, which is an art-direction choice rather than a project-use restriction. The chosen assets arrive as ready `StaticMesh` content, are referenced in place, and keep their own vendor materials (ADR-029) rather than being unified onto `MI_SS_Raven_*`.
 
 ### 3.4 Pipeline and its run order
 
@@ -215,12 +207,9 @@ audit_ravenshoe.py
 
 ## 7. Open items
 
-### 7.1 Navigation — corrected 2026-09-29
+### 7.1 Navigation — current state reconciled 2026-10-01
 
-Measured after the second round: the bounds volume is play-space correct (X ±130 m, Y ±180 m, Z −25..+40 m,
-asserted by both the expand and nav passes) and the RecastNavMesh `TilePoolSize` is 4096 (the play space
-needs ~1,285 tiles at TileSizeUU 1000; the actor carried the 1024 default, which capped the map's one
-interactive bake). What remains true is that **the bake itself must happen in the attended editor**:
+The bounds volume is documented as play-space sized (X ±130 m, Y ±180 m, Z −25..+40 m), and the RecastNavMesh pool was raised to 4096 to accommodate the estimated tile requirement. An earlier record described a completed interactive bake; the current M-008 status is **nav not baked**. Do not treat that historical report as current saved navigation data: R-82's repeatable machine audit established that headless `BUILDPATHS` does not consume new geometry, and the current map register requires a fresh attended bake and verification. The bake itself must happen in the attended editor:
 headless BUILDPATHS — commandlet, `-RenderOffscreen`, or the editor unattended — serialises ~8 KB of nav
 against Dry River's megabytes, and a freshly spawned cube gains no poly on either map after ten spaced
 builds (`Build/dr_cube.json`, `Build/raven_cube.json`). The async-loading ini flag earlier passes used
@@ -229,11 +218,10 @@ run **early, on partial geometry**; it is not part of the fix. Details and the f
 `Docs/HANDOVER_RAVENSHOE.md` §0b and CHANGELOG Session 069 (R-82).
 
 **To bake:** open the editor with `/Game/Maps/L_Ravenshoe_01` loaded, **Build ▸ Build Paths**, save.
-Then re-run `build_ravenshoe_nav.py` in verify mode — it must report 32/32 routes — and a live `-game`
-run must log `Steered N idle bot(s)` with N > 0.
+Then re-run `build_ravenshoe_nav.py` in verify mode and record the current route/path results; then run a live `-game`
+check for agent traversal and bot steering. Do not use a historical route count as proof of the current saved bake.
 
-**Map count.** This is a candidate **fifth** map. It is not a replacement for Dry River and does not
-supersede Red Gum; it is an addition to the §4.9 table as `M-008`.
+**Historical map-count note (2026-09-28).** Ravenshoe was described as a candidate fifth map when this section was first written. It was subsequently built and registered as **M-008**; the original M-001–M-007 planning set plus later M-008 Ravenshoe and M-009 Wandarra are now tracked in `ASSET_REGISTER.md` §4.9. Ravenshoe does not replace Dry River or supersede Red Gum.
 
 ---
 
@@ -412,13 +400,11 @@ Above Dry River's rules, and stated here so the verifier can check them:
 
 | Asset | Why original | Built as |
 |---|---|---|
-| **Iron truss bridge** | No bridge mesh exists in the project or in any installed pack. 430 keyword hits across `Content/` for bridge/gate/arch/tunnel/pier/stone/wall returned rock ledges, stone *materials* and Lyra audio — **nothing structural** | `SS_Raven_Bridge.fbx`, 852 faces, authored with the **deck top at z=0** so the placement anchor is the road surface |
-| **Stone gatehouse** | As above. Singapore_Canal has Asian canal masonry and is ruled out on look and culture (ADR-016) | `SS_Raven_Gatehouse.fbx`, 450 faces, authored at its **real position** `(0, 62)` and rebased to its own footprint centre with base at 0 |
+| **Iron truss bridge** | No suitable bridge mesh was identified in the content search performed when the original was authored. The broader 2026-10-01 inventory later found `AutomotiveBridgeScene` installed; this is not listed as a Ravenshoe dependency and was not established as its source. | `SS_Raven_Bridge.fbx`, 852 faces, authored with the **deck top at z=0** so the placement anchor is the road surface |
+| **Stone gatehouse** | Project-authored as an original structure. Existing third-party environment kits, including Singapore_Canal and MOUT, were not selected as its source; the original geometry and map layout remain project work. | `SS_Raven_Gatehouse.fbx`, 450 faces, authored at its **real position** `(0, 62)` and rebased to its own footprint centre with base at 0 |
 | **Gorge, ramps, road, terrain** | Assembled from dressed Quarry Slate ledges at dress time; the heightfield itself is ours | `SS_MAP_Ravenshoe_01.fbx`, 15,000 faces, 2 m grid |
 
-**Class F — original, no third-party dependency** (L-0011, ADR-013, ADR-020). The same reasoning already
-recorded for the Red Gum homestead in `ASSET_REGISTER.md` **M-RG-01a**, and for the same kind of reason:
-*the packs that do have structures are the wrong continent or the wrong culture.*
+**Class F — original, no third-party dependency** (L-0011, ADR-013, ADR-020). The bridge and gatehouse geometry are project-authored, distinct from acquired dressing assets. This classification describes the authored structures only; it does not claim that installed content contains no other bridge- or building-like assets.
 
 **What this reuses, and from where.** Nothing third-party is modelled or copied. What the generators borrow
 is our **own** class F work and our own house conventions: the primitive/join/export helpers follow
@@ -426,7 +412,7 @@ is our **own** class F work and our own house conventions: the primitive/join/ex
 generator cannot disagree; and the base-at-origin convention, flat shading, 2 m box-projected UVs and the
 measured-footprint CSV columns are the Red Gum homestead's, because the import pass is the same and a second
 convention would be a second class of bug. The gorge walls, boulders, scrub, gum trees and fences that dress
-this are Class A pack meshes referenced in place, never reskinned.
+this are producer-cleared acquired pack meshes referenced in place, never reskinned.
 
 **Two placement conventions, deliberately different, and both documented in the CSV.** The bridge is placed
 by its **deck level** (`z_m = 14.0`) because its anchor is the road surface, not its underside — its abutments
@@ -436,7 +422,7 @@ is diagnostic and exists so the importer can *assert* the convention rather than
 
 ### 5.2 What dresses it, from content already in the project
 
-All Class A under **L-0016**, referenced in place and never modified.
+All acquired packs in this layer are producer-cleared for Southern Spear's F2P use under ADR-028/035; they are referenced in place and never modified. Any seller terms/metadata are retained as provenance, not used to assign an unsupported blanket class.
 
 | Source | Used for | Note |
 |---|---|---|
@@ -449,23 +435,22 @@ All Class A under **L-0016**, referenced in place and never modified.
 `Insurgent_2` (never used, ADR-016), and every weapon/character/VFX/animation pack in the cache, which are
 irrelevant to a map.
 
-### 5.3 The VaultCache finding
+### 5.3 The original VaultCache finding (historical scope, corrected 2026-10-01)
 
-The producer pointed at `Content/Downloaded/VaultCache/` (19 folders, ~36 GB) expecting new assets. **It
-contains no new assets.** All 18 content roots are **already installed** in `Content/` and reachable by
-path:
+The 2026-09-28 scoping pass measured 19 top-level VaultCache directories (~36 GB) and found 18 corresponding
+content roots already installed. That was a limited snapshot, not the whole cache: it did not recursively
+inventory the separate FabLibrary catalog or later Vault content. The 2026-10-01 read-only scan measured
+30 top-level directories / 7,366 files / 58,343,692,654 bytes (~54.3 GiB) in VaultCache, including 50
+physical FabLibrary folders; the whole project `Content/` snapshot was 29,437 files / 118,405,659,191 bytes.
+See `ASSET_REGISTER.md` §§4.9m–o and `evidence/asset_inventory_20261001.md` for the listing catalogue, installed
+roots, cache-only entries, engine inventory and classification boundaries. The older 18-root list below is
+retained as a dated snapshot, not as a current complete inventory.
 
 > AK-47 · FPS_Weapon_Bundle · FP_AKS74U_Animation · Insurgent_2 · M1911 · Military_Radio · Modern_Insurgent_7 · Modular_Rural_Cabin · Namaqualand · Nanite_Plants_Sample_Collection · QuantumCharacter · Realistic_Starter_VFX_Pack_Vol2 · RuralAustralia · SampleAnimationPack · Scene_QuarrySlate · Singapore_Canal · World_Flags
 
-The nineteenth folder, `VisAICom`, is a VFX/common pack and is not imported; it has no map geometry.
-`FabLibrary` (22 GB) is the Fab desktop cache, not project content.
+The old reference to one `VisAICom` folder also predates the expanded scan; a `VisAI - Community - Modern AI Framework` cache entry was found in the current snapshot, with no installed `Content/` root or project plugin identified. Presence in cache, Content, or FabLibrary does not by itself establish map use. This map still adds no third-party dependency; its third-party map dependencies remain listed in the map-scoped `PACK_MANIFEST`.
 
-**Consequence for the licence register.** Nothing is imported for this map, so this map adds no new
-third-party dependency. But the inventory surfaced a **pre-existing gap**: nine of the installed packs
-above have no row in `LICENCE_REGISTER.md` or `ASSET_REGISTER.md`, including `Scene_QuarrySlate`, which
-Dry River and this map both build on. L-0016's own rule is that no third-party asset enters the repository
-without a row. That is fixed in this session as bookkeeping — see `LICENCE_REGISTER.md` **L-0016 (revised
-2026-09-28)** and the **L-0016b** entry.
+**Register context.** The 2026-09-28 discovery of nine previously undocumented installed packs led to the historical L-0016b update. Later reference scans corrected use states, added StoneWell, and the 2026-10-01 inventory broadened the scope. Producer clearance for the F2P game is recorded under ADR-028/035; metadata gaps are not permission holds.
 
 ---
 
@@ -511,30 +496,19 @@ Four real defects were found this way and none of them were visible in the spec:
   footprint. Any keep-out test or seating assertion reading that would have cleared a 65 m radius around
   objective B.
 
-**Not checked, and not checkable here.** Navigation is **not baked** — `BUILDPATHS` in a commandlet crashes
-(Red Gum finding), so this must be done in the interactive editor. And no sightline or exposure figure is
-quoted anywhere in this document, because `line_trace_single` in a `-nullrhi` commandlet cannot hit
-`StaticMeshActor`; every cover/sightline number from `audit_map_playability.py` is invalid for every map.
-Those two must be measured in-editor or in-game.
+**Historical limitation from the original map review (2026-09-28), since superseded for four other maps.** At that time, commandlet trace concerns led the review to reject all `audit_map_playability.py` results. The later measured four-map findings are documented in `MAPS_PLAYABILITY_AUDIT.md` and apply to Dry River, Red Gum, Saltbush and Selat Canal—not Ravenshoe. Ravenshoe still has no established saved nav bake (R-82), and its own route traversal, sightline/exposure and playability have not been validated by that four-map audit; measure them in an attended editor/game session.
 
 ---
 
 ## 7. What this map does not do
 
-- **Navigation is not baked.** The `NavMeshBoundsVolume` is placed and the engine auto-created a
-  `RecastNavMesh-Default`, but it carries **no baked data** — 0 of the 433 actors are on a navmesh and
-  neither ramp is confirmed traversable by an agent. Bake it with **Build ▸ Build Paths** in the
-  interactive editor. **Not** by `BUILDPATHS` from a commandlet, which crashes (Red Gum finding).
-- **No sightline or exposure figure is quoted**, because none can be measured from a commandlet. See §6.
+- **Navigation is not currently baked.** The `NavMeshBoundsVolume` and Recast actor are present, but a completed saved bake is not established by the current review. R-82 measurements show headless `BUILDPATHS` does not consume new geometry on this machine. Bake with **Build ▸ Build Paths** in the attended editor and verify saved routes/agent traversal.
+- **Ravenshoe-specific sightline/exposure and playability are not yet measured here.** The separate `MAPS_PLAYABILITY_AUDIT.md` measures four other maps; do not generalize its results to Ravenshoe.
 - **It has not been playtested.** The 68 m span, the bed as a second lane, and the 8 v 8 team size are all
   design arguments awaiting a round.
-- **The originals are still greybox.** The bridge, gatehouse and terrain carry four authored *constant*
-  materials (`M_SS_Raven_Iron/Stone/Deck/Terrain`). The visual quality in the map right now is almost
-  entirely the pack dressing, which brings its own PBR materials. A proper art pass on the originals is
-  outstanding, and the terrain in particular has no ground texture.
+- **The authored structure surfaces are no longer at the initial flat-material stage.** Generated gravel, rusted iron, painted steel and coursed granite surface textures are applied to the bridge, deck and masonry (M-008m). The terrain remains on its safety-net material pending its own ground-texture pass; producer-facing visual review is also open.
 - **It does not replace Dry River** as the vertical slice test bed, and does not displace Red Gum.
-- **It has no vehicle content.** The reference screenshots show a vehicle on the deck; Southern Spear is
-  infantry-only through Phase 1 and adding a vehicle would change the map's whole threat model.
+- **It has no drivable/gameplay vehicles.** Derelict car meshes are set dressing (M-008j); a vehicle pawn or vehicle gameplay is not established for this map.
 - **It has no snow gameplay.** Snow is dressing on the north-facing slopes. A slippery-surface traversal
   mechanic is a locomotion project, not a map project (ADR-024).
 - **It does not claim a third objective.** The reference has an A/B/C structure; this map is A/B only,
@@ -546,36 +520,27 @@ Those two must be measured in-editor or in-game.
 
 ## 8. What still blocks sign-off
 
-1. **Bake navigation in the editor** and confirm both ramps and the bed are traversable for agents, not
-   just players. A 17.6° grade is fine for a pawn and may not be for a nav agent.
-2. **Playtest the 68 m span.** The whole cover contract mitigation (§4.3) is unproven. If the deck is a meat
-   grinder, the answer is *widen the deck and narrow the span*, not add more cover props.
-3. **Confirm the creek bed is a lane, not a trap.** §4.4 is the map's best idea and its biggest unknown.
-4. **Art pass the terrain.** ~~Constant materials only.~~ **Done for the bridge, deck and masonry**
-   (ADR-030, M-008m): generated gravel, rust ironwork, painted steel and coursed granite, on the
-   project's own `M_SS_ScanPBR`. **Still to do:** the terrain still carries a flat safety-net material
-   and is the largest surface on the map. It needs its own dry high-country ground set at the terrain's
-   4 m UV scale, and the road corridor wants a different, coarser treatment from the open ground.
-5. **Wire the Objective Assault layer.** The two `SSObjectiveActor`s and two `PlayerStart`s are placed and
-   labelled, but the map is not yet attached to `B_SS_ObjectiveAssault` the way Dry River is.
-6. **Decide the 8 v 8 team size** honestly — the layout is designed for it, but the slice runs 4 v 4 and a
-   4 v 4 round across this map may be over in ninety seconds.
-7. **Lighting.** A gorge at midday is a hard-contrast problem; Dry River §9b has the precedent to follow.
-8. **Look at it with a player in it.** Everything above is a measurement or an argument. None of it is a
-   round.
+1. **Bake navigation in the attended editor** and verify saved routes plus agent traversal over both ramps and the creek bed (R-82); do not count a headless build as a bake.
+2. **Playtest the 68 m span.** The cover-contract mitigation (§4.3) is still a design claim awaiting a measured Ravenshoe playability audit and a round.
+3. **Validate the creek bed as a lane, not a trap.** §4.4's traversal and exposure claims remain design intent pending saved nav and playtesting.
+4. **Texture the terrain.** The bridge, deck and masonry have generated surfaces (ADR-030, M-008m); the terrain remains on a flat safety-net material and needs its own dry high-country ground set, with a coarser road treatment.
+5. **Validate the wired Objective Assault experience in a current game build.** The map's objectives, starts, director and `DefaultGameplayExperience` are present in the saved-map setup; a successful runtime load/round is not established by the asset audit.
+6. **Confirm team size and round pacing** — 8 v 8 is the design target; suitability for the current 4 v 4 slice remains untested.
+7. **Review the placed light rig in-game.** A lighting setup is present; player-view exposure/contrast acceptance remains unverified.
+8. **Inspect and play the map with a player in it.** Structural and asset checks are not a producer look verdict or a completed round.
 
 ---
 
 ## 9. In Unreal
 
-`Tools/Unreal/import_ravenshoe.py` creates the map, imports the three original FBXs, authors four constant
-materials, places the geometry, replaces all 68 greybox cover markers with real pack meshes, and adds the
-dressing layer. `Tools/Unreal/audit_ravenshoe.py` then re-opens the saved `.umap` and measures it.
+`Tools/Unreal/import_ravenshoe.py` creates the map, imports the three original FBXs, places geometry, replaces greybox markers with selected pack meshes, and adds dressing. `Tools/Unreal/audit_ravenshoe.py` re-opens the saved `.umap` and measures it.
+
+> **Historical initial-import snapshot (2026-09-28):** the table below records 467 actors and the original audit output. The later asset-register status snapshot reports 665 actors and 35/35 asset-audit checks; neither actor count nor asset-audit pass count proves that navigation or map playability is complete. Current nav status remains **not baked** pending the attended R-82 process.
 
 | | |
 |---|---|
-| Map | `/Game/Maps/L_Ravenshoe_01`, 748,423 bytes |
-| Actors | **467** — 3 originals, 220 cover/dress, 204 dressing, 34 props, 1 nav volume, 4 gameplay, 1 engine navmesh |
+| Map | `/Game/Maps/L_Ravenshoe_01`, 748,423 bytes (initial-import snapshot) |
+| Actors | **467 (initial snapshot)** — 3 originals, 220 cover/dress, 204 dressing, 34 props, 1 nav volume, 4 gameplay, 1 engine navmesh |
 | Placed by the import | 424 pack-dressed actors, 0 removed, 0 missing assets |
 | Placed by the prop pass | 30 meshes + 4 VFX actors, 0 missing assets |
 | Pack sources used | `Scene_QuarrySlate` (ledge/rock clusters), `RuralAustralia` (trees, logs, fences), plus the 2026-09-28 Fab prop downloads (L-0016c) |

@@ -435,6 +435,14 @@
 				"Editor"
 			],
 			"Optional": true
+		},
+		{
+			"Name": "UE5AIAssistant",
+			"Enabled": true,
+			"TargetAllowList": [
+				"Editor"
+			],
+			"Optional": true
 		}
 	],
 	"EpicSampleNameHash": "451731683"

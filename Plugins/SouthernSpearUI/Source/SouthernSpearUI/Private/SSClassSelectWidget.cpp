@@ -9,6 +9,7 @@
 #include "Components/PointLightComponent.h"
 #include "Components/SceneCaptureComponent2D.h"
 #include "Components/SkeletalMeshComponent.h"
+#include "Components/SkinnedMeshComponent.h"
 #include "Components/StaticMeshComponent.h"
 #include "Engine/StaticMesh.h"
 #include "Materials/MaterialInstanceDynamic.h"
@@ -61,8 +62,6 @@ namespace
 	const FVector StageAt(0.f, 0.f, 250000.f);
 	const TCHAR* InvisibleBody = TEXT("/Game/Characters/Heroes/Mannequin/Meshes/SKM_Manny_Invis.SKM_Manny_Invis");
 	const TCHAR* IdlePose = TEXT("/Game/Characters/Heroes/Mannequin/Animations/Locomotion/Rifle/MM_Rifle_Idle_Hipfire.MM_Rifle_Idle_Hipfire");
-	// The Quantum pack's own idle (the modules ship with it), for the preview's Quantum body.
-	const TCHAR* QuantumIdle = TEXT("/Game/QuantumCharacter/Demo/Animations/A_MM_Idle.A_MM_Idle");
 	const TCHAR* SoldierClass = TEXT("/SSExp_ObjectiveAssault/Characters/B_SS_Soldier.B_SS_Soldier_C");
 
 	UButton* ClassCard(UWidgetTree* T, int32 Index, const FRoleText& Role, UBorder*& OutEdge, UTextBlock*& OutWeapon)
@@ -276,11 +275,15 @@ void USSClassSelectWidget::BuildStage()
 	StageBody = NewObject<USkeletalMeshComponent>(Stage, TEXT("StageBody"));
 	StageBody->SetupAttachment(Root);
 	StageBody->SetSkeletalMesh(LoadObject<USkeletalMesh>(nullptr, InvisibleBody));
-	StageBody->SetRelativeRotation(FRotator(0.f, -90.f, 0.f)); // the mannequin faces +Y; turn it to +X, the camera
+	StageBodyYaw = -90.f;
+	StageBody->SetRelativeRotation(FRotator(0.f, StageBodyYaw, 0.f)); // the mannequin faces +Y; turn it to +X, the camera
+
 	StageBody->VisibilityBasedAnimTickOption = EVisibilityBasedAnimTickOption::AlwaysTickPoseAndRefreshBones;
 	StageBody->RegisterComponent();
 	if (UAnimSequence* Idle = LoadObject<UAnimSequence>(nullptr, IdlePose))
 	{
+		// Let the rifle idle run: every frame of the authored loop is a plausible carry pose, and a
+		// frozen frame made the preview read as a mid-animation stumble instead of a soldier standing.
 		StageBody->PlayAnimation(Idle, /*bLooping=*/ true);
 	}
 
@@ -293,23 +296,14 @@ void USSClassSelectWidget::BuildStage()
 		UChildActorComponent* SoldierComp = NewObject<UChildActorComponent>(Stage, TEXT("SoldierParts"));
 		SoldierComp->SetupAttachment(StageBody);
 		SoldierComp->SetChildActorClass(SoldierClassPtr);
-		SoldierComp->RegisterComponent();
-
-		if (AActor* Child = SoldierComp->GetChildActor())
+		SoldierComp->RegisterComponent();		if (AActor* Child = SoldierComp->GetChildActor())
 		{
 			StageSoldier = Child;
 			Child->SetActorEnableCollision(false);
-			if (ISSLocalityPresentable* Presentable = Cast<ISSLocalityPresentable>(Child))
-			{
-				Presentable->ApplyViewerLocality(ESSLocality::Friendly);
-			}
-			TInlineComponentArray<UPrimitiveComponent*> Prims(Child);
-			for (UPrimitiveComponent* Prim : Prims)
-			{
-				Prim->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-				Prim->SetOwnerNoSee(false);
-			}
+			Child->SetActorTickEnabled(true);
 		}
+
+		// StageBody supplies the mannequin reference and weapon socket space to the character parts.
 	}
 
 	// Backdrop wall and floor disc (engine shapes tinted to the UI palette): dark rifles need something
@@ -332,8 +326,9 @@ void USSClassSelectWidget::BuildStage()
 		}
 		Part->RegisterComponent();
 	};
-	// The plane faces +Z; pitched -90 it faces the camera (+X), 2.6 m behind the soldier.
-	Shape(TEXT("/Engine/BasicShapes/Plane.Plane"), FVector(-260.f, 0.f, 150.f), FRotator(-90.f, 0.f, 0.f), FVector(14.f, 14.f, 1.f), FLinearColor(0.16f, 0.17f, 0.13f));
+	// The plane faces +Z; pitched -90 it faces the camera (+X), 2.6 m behind the soldier. Kept dark: a
+	// bright backdrop lit the camouflage to the point that its pattern washed out in the preview.
+	Shape(TEXT("/Engine/BasicShapes/Plane.Plane"), FVector(-260.f, 0.f, 150.f), FRotator(-90.f, 0.f, 0.f), FVector(14.f, 14.f, 1.f), FLinearColor(0.11f, 0.12f, 0.095f));
 	Shape(TEXT("/Engine/BasicShapes/Cylinder.Cylinder"), FVector(0.f, 0.f, -1.f), FRotator::ZeroRotator, FVector(1.6f, 1.6f, 0.02f), FLinearColor(0.035f, 0.035f, 0.028f));
 
 	// Studio lights: warm key front-left, cool fill right, rim behind. Only the stage is near them.
@@ -348,18 +343,20 @@ void USSClassSelectWidget::BuildStage()
 		Lamp->SetCastShadows(false);
 		Lamp->RegisterComponent();
 	};
-	Light(FVector(260.f, 160.f, 190.f), 9000.f, FLinearColor(1.f, 0.93f, 0.82f));
-	Light(FVector(220.f, -200.f, 150.f), 7000.f, FLinearColor(0.8f, 0.88f, 1.f));
-	Light(FVector(-220.f, 0.f, 220.f), 8000.f, FLinearColor(1.f, 0.85f, 0.65f));
+	Light(FVector(260.f, 160.f, 190.f), 5200.f, FLinearColor(1.f, 0.93f, 0.82f));
+	Light(FVector(220.f, -200.f, 150.f), 4200.f, FLinearColor(0.8f, 0.88f, 1.f));
+	Light(FVector(-220.f, 0.f, 220.f), 4600.f, FLinearColor(1.f, 0.85f, 0.65f));
 
 	PreviewTarget = NewObject<UTextureRenderTarget2D>(this);
 	PreviewTarget->InitAutoFormat(720, 960);
 	PreviewTarget->ClearColor = SSPalette::Ink950();
-	StageCamera = World->SpawnActor<ASceneCapture2D>(StageAt + FVector(330.f, 0.f, 96.f), FRotator(-1.f, 180.f, 0.f), Params);
+	// At 32° horizontal FOV and a 3:4 portrait, 360 cm gives about 274 cm vertically:
+	// a full-body hero frame with room for the carried rifle and some breathing space.
+	StageCamera = World->SpawnActor<ASceneCapture2D>(StageAt + FVector(360.f, 0.f, 96.f), FRotator(-1.f, 180.f, 0.f), Params);
 	if (StageCamera)
 	{
 		USceneCaptureComponent2D* Capture = StageCamera->GetCaptureComponent2D();
-		Capture->FOVAngle = 28.f;
+		Capture->FOVAngle = 32.f;
 		Capture->TextureTarget = PreviewTarget;
 		Capture->CaptureSource = ESceneCaptureSource::SCS_FinalColorLDR;
 		Capture->PrimitiveRenderMode = ESceneCapturePrimitiveRenderMode::PRM_UseShowOnlyList;
@@ -417,6 +414,31 @@ void USSClassSelectWidget::ShowWeapon(int32 Index)
 		{
 			Capture->ShowOnlyActors.Add(StageWeapon);
 		}
+		// A weapon actor can carry a first-person arms view model (the Fab arms pack rides the weapon
+		// in play). This preview is a third-person shot, so those arms would render as a second pair
+		// of arms on a soldier who already has his own.
+		TInlineComponentArray<UMeshComponent*> WeaponMeshes(StageWeapon);
+		for (UMeshComponent* Mesh : WeaponMeshes)
+		{
+			UObject* Asset = nullptr;
+			if (const USkinnedMeshComponent* Skinned = Cast<USkinnedMeshComponent>(Mesh))
+			{
+				Asset = Skinned->GetSkinnedAsset();
+			}
+			else if (const UStaticMeshComponent* Static = Cast<UStaticMeshComponent>(Mesh))
+			{
+				Asset = Static->GetStaticMesh();
+			}
+			const FString AssetName = GetNameSafe(Asset);
+			UE_LOG(LogTemp, Log, TEXT("SSClassSelect weapon mesh %s: %s vis=%d"), *Mesh->GetName(), *AssetName, Mesh->IsVisible() ? 1 : 0);
+			if (AssetName.Contains(TEXT("Arms")))
+			{
+				Mesh->SetVisibility(false);
+				Mesh->SetHiddenInGame(true);
+				UE_LOG(LogTemp, Log, TEXT("SSClassSelect: hid view-model arms %s on %s (third-person preview)."),
+					*AssetName, *StageWeapon->GetName());
+			}
+		}
 	}
 }
 
@@ -431,9 +453,11 @@ void USSClassSelectWidget::DestroyStage()
 	}
 	StageWeapon = nullptr;
 	StageSoldier = nullptr;
+	bStageLocalityApplied = false;
 	StageCamera = nullptr;
 	Stage = nullptr;
 	StageBody = nullptr;
+	PreviewTarget = nullptr;
 }
 
 void USSClassSelectWidget::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
@@ -445,10 +469,33 @@ void USSClassSelectWidget::NativeTick(const FGeometry& MyGeometry, float InDelta
 		Reveal(Cards[Index], Ease(Elapsed, 0.05f + 0.05f * Index, 0.35f), 24.f);
 	}
 	Reveal(PreviewPanel, Ease(Elapsed, 0.15f, 0.45f), -24.f);
-	// Slow sway around the right-hand three-quarter view, where the rifle is carried. Only the soldier
-	// turns (the weapon is attached to it); the backdrop and lights stay put, so no edge swings into view.
+	// Center the stated +X-facing pose on the camera axis, then turn through a restrained
+	// three-quarter arc. The former extra 55° offset made the framing unnecessarily oblique.
+	if (StageSoldier && !bStageLocalityApplied && StageSoldier->HasActorBegunPlay())
+	{
+		if (ISSLocalityPresentable* Presentable = Cast<ISSLocalityPresentable>(StageSoldier))
+		{
+			Presentable->ApplyViewerLocality(ESSLocality::Friendly);
+			TInlineComponentArray<USkinnedMeshComponent*> Parts(StageSoldier);
+			for (USkinnedMeshComponent* Part : Parts)
+			{
+				Part->SetOwnerNoSee(false);
+			}
+			// The parts are built in the child actor's BeginPlay, which can run after the capture's
+			// show-only list was filled: make sure the assembled soldier is in it.
+			if (USceneCaptureComponent2D* Capture = StageCamera ? StageCamera->GetCaptureComponent2D() : nullptr)
+			{
+				Capture->ShowOnlyActors.AddUnique(StageSoldier);
+			}
+			UE_LOG(LogTemp, Log, TEXT("SSClassSelect: stage locality applied; %d skinned part(s) on %s, %d in capture list."),
+				Parts.Num(), *GetNameSafe(StageSoldier),
+				StageCamera ? StageCamera->GetCaptureComponent2D()->ShowOnlyActors.Num() : 0);
+			bStageLocalityApplied = true;
+		}
+	}
 	if (StageBody)
 	{
-		StageBody->SetRelativeRotation(FRotator(0.f, -90.f - 55.f + 25.f * FMath::Sin(Elapsed * 0.45f), 0.f));
+		StageBodyYaw = -90.f + 25.f * FMath::Sin(Elapsed * 0.45f);
+		StageBody->SetRelativeRotation(FRotator(0.f, StageBodyYaw, 0.f));
 	}
 }

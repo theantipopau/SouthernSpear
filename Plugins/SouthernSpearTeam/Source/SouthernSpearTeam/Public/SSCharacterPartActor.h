@@ -84,6 +84,17 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Visual")
 	bool bRetargetFriendlyPose = false;
 
+	/**
+	 * Bone the retargeted friendly parts are aligned to. The retarget keeps its own skeleton's rest
+	 * translations, so a module assembled from a differently proportioned skeleton lands at its own
+	 * bone position, not where the mannequin's bone (and therefore the fitted gear) is: measure a bare
+	 * Quantum head against an OpsCore helmet fitted to the mannequin and the helmet reads as missing.
+	 * The whole module is moved rigidly so this bone sits exactly on the leader's bone of the same
+	 * name, which leaves the module's own proportions untouched.
+	 */
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Visual")
+	FName FriendlyRetargetAnchor = TEXT("head");
+
 	/** Curl applied to non-mapped finger chains when retargeting the friendly appearance. */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Visual", meta = (ClampMin = "0.0", ClampMax = "1.0"))
 	float FriendlyFingerCurl = 1.0f;

@@ -5,7 +5,8 @@
 # materials from the ADFRC texture sets: colour (_co), normal (_nohq) and Arma specular/gloss
 # (_smdi), found by the Arma material names kept in each slot ("<texture>_co.paa :: <rvmat>.rvmat").
 # Multicam textures ("_mc", a Crye trademark: ADR-016 still applies) take an AMCU variant when one
-# exists, else a flat coyote finish. Report: Build/adf_soldier_setup.json.
+# exists, else a flat coyote finish. The G3 uniform's own AMC sheets are already AMCU and stay as
+# authored. Report: Build/adf_soldier_setup.json.
 
 import glob
 import json
@@ -27,6 +28,9 @@ DEST = "/SSExp_ObjectiveAssault/Characters/ADF"
 SKELETON = "/Game/Characters/Heroes/Mannequin/Meshes/SK_Mannequin"
 MESHES = ["SK_ADF_Uniform_G3", "SK_ADF_Vest_TBAS", "SK_ADF_Helmet_OpsCore",
           "SK_MAF_Vest_Peacekeeper", "SK_MAF_Helmet_PASGT"]  # MAF: a conventional force, not Australian camo
+# The fitted G3's authored AMC (<name>_amc) sheets are the model's own AMCU UV atlases and are
+# left as authored: the pack also ships Crye_G3_{Shirt,Pants}_DPC_co, but that is the older
+# DPCU/Auscam skin (measured 2026-10-01), not the AMCU the producer asked for.
 # MAF palette (ADR-016: MAF is a conventional army with its own look, never AMCU or a real nation's
 # pattern): plain green uniform textures; Australian camo on MAF gear becomes flat olive.
 MAF_SWAP = {"crye_g3_shirt_amc_co": "Crye_G3_Shirt_Green_co", "crye_g3_pants_amc_co": "Crye_G3_Pants_green_co",
@@ -34,6 +38,16 @@ MAF_SWAP = {"crye_g3_shirt_amc_co": "Crye_G3_Shirt_Green_co", "crye_g3_pants_amc
 MAF_FLAT = ("pasgt_dpc_co", "belt_amcu_co", "tacgear_amcu_co")
 # ADFRC colour sheets are 4096^2. A cap below that halves them on import (Session 051).
 MAX_TEXTURE_SIZE = 4096
+# The G3 shirt sheet's own plain under-shirt panel, repainted in pattern by
+# Tools/Textures/patch_adfrc_undershirt.py. Measured 2026-10-01 (Tools/Blender/inspect_uniform_fit.py):
+# the uniform's torso faces sample UV v 0.02..0.24 of Crye_G3_Shirt_AMC_co.png, and that band is a
+# plain khaki under-shirt with no camouflage, so the soldier rendered with a pale band across the
+# belly and waist that reads as a hole in the model. The mesh is continuous (trunk faces in every
+# 2.5 cm slab from 75 cm to 155 cm) and the trouser sheet is camouflaged in the same band.
+PATCHED_STEM = "adfrc_g3_shirt_amcu_patched"
+PATCHED_PNG = os.path.join(PROJECT_DIR, "Art", "Characters", "ADF", "T_ADFRC_G3_Shirt_AmcuCamo.png")
+PATCHED_NAME = "T_ADF_G3_Shirt_AmcuCamo"
+PATCHED_SLOTS = ("crye_g3_shirt_amc_co",)
 REPORT = os.path.join(PROJECT_DIR, "Build", "adf_soldier_setup.json")
 eal = unreal.EditorAssetLibrary
 mel = unreal.MaterialEditingLibrary
@@ -43,6 +57,8 @@ report = {"ok": False, "meshes": {}, "errors": []}
 index = {}
 for path in glob.glob(os.path.join(TEX_ROOT, "**", "*.png"), recursive=True):
     index.setdefault(os.path.splitext(os.path.basename(path))[0].lower(), path)
+if os.path.exists(PATCHED_PNG):
+    index[PATCHED_STEM] = PATCHED_PNG
 
 
 def gear_master():
@@ -117,11 +133,11 @@ def fabric_master():
     return m
 
 
-def texture(stem, normal=False, masks=False):
+def texture(stem, normal=False, masks=False, name=None):
     src = index.get(stem.lower())
     if not src:
         return None
-    name = "T_ADF_" + re.sub(r"[^A-Za-z0-9_]", "_", stem)
+    name = name or ("T_ADF_" + re.sub(r"[^A-Za-z0-9_]", "_", stem))
     path = DEST + "/Textures/" + name
     if not asset_exists(path):
         task = unreal.AssetImportTask()
@@ -186,12 +202,16 @@ def material_for(slot_name, parent, prefix="MI_ADF_", maf=False):
     mi.set_editor_property("parent", parent)
     note = "no texture"
     if stem:
-        cstem, note = colour_stem(stem)
+        if not maf and stem.lower() in PATCHED_SLOTS and PATCHED_STEM in index:
+            # Same AMCU camouflage, with the sheet's plain under-shirt panel repainted in pattern.
+            cstem, note = PATCHED_STEM, "ADFRC AMCU (under-shirt panel repainted in pattern)"
+        else:
+            cstem, note = colour_stem(stem)
         if maf and stem.lower() in MAF_SWAP:
             cstem, note = MAF_SWAP[stem.lower()], "MAF green"
         elif maf and stem.lower() in MAF_FLAT:
             cstem, note = None, "MAF flat olive"
-        col = texture(cstem) if cstem else None
+        col = texture(cstem, name=PATCHED_NAME if cstem == PATCHED_STEM else None) if cstem else None
         if col:
             mel.set_material_instance_texture_parameter_value(mi, "BaseColorMap", col)
         else:

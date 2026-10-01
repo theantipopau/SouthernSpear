@@ -242,6 +242,18 @@ Content/MWLandscapeAutoMaterial/
 Content/RustyCarsFree/
 Content/StoneWell/
 
+# Installed 2026-10-01 (Session 093), same rule as the block above (ADR-021):
+# HighPoly_Tree_Model 38 MB, PN_GrassLibrary 1.1 GB, WaterPlane 140 MB, Splash
+# 1.1 MB of vendor .uasset imported into Content/ and referenced in place.
+# Registered in Docs/PACK_MANIFEST.md and Docs/ASSET_REGISTER.md; never committed.
+# Exception, already tracked before this rule and staying tracked because a committed
+# project material needs it: Content/WaterPlane/Lake/Textures/T_MediumWaves_N.uasset
+# feeds M_SS_CreekWater (ASSET_REGISTER ENV-005). .gitignore does not untrack a file.
+Content/HighPoly_Tree_Model/
+Content/PN_GrassLibrary/
+Content/Splash/
+Content/WaterPlane/
+
 # Converted ADFRC output (L-0021): derived from the third-party source, so also
 # kept out of version control. Docs remain tracked.
 Art/ADFRC_MLOD/
@@ -264,3 +276,6 @@ Content/SouthernSpear/Vendor/
 
 # VibeUE editor MCP toolset (MIT, third-party dev tool; own git clone, not shipped)
 Plugins/VibeUE/
+
+# UE5 AI Assistant editor HTTP toolset (MIT, third-party dev tool; not shipped)
+Plugins/UE5AIAssistant/

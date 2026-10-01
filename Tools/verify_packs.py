@@ -187,6 +187,15 @@ def scan_references():
     mounts = mod.mount_points()
     exists = mod.exists_predicate()
     refs = {}
+    # A vendor pack is an *untracked* folder: anything git already carries (project content such as
+    # the Game Feature plugin or Content/Art) is not a pack dependency and must not enter the
+    # manifest. Measured 2026-10-01: the scan reported Plugins/GameFeatures as a missing pack, purely
+    # because project-owned assets now reference project-owned assets.
+    tracked_tops = set()
+    for path in tracked:
+        parts = path.split("/")
+        if len(parts) >= 2:
+            tracked_tops.add((parts[0] + "/" + parts[1]).lower())
     for rel in paths:
         if not rel.lower().endswith(ASSET_SUFFIXES):
             continue
@@ -198,6 +207,8 @@ def scan_references():
             if file is None or file.lower() in tracked:
                 continue
             top = "/".join(file.split("/")[:2])
+            if top.lower() in tracked_tops:
+                continue
             rec = refs.setdefault(top, {"packages": set(), "referrers": set()})
             rec["packages"].add(file)
             rec["referrers"].add(rel)
@@ -299,7 +310,15 @@ def verify(packs, refs, rows, deep):
     # a pack that the current scan finds but the manifest has never heard of
     for path, rec in refs.items():
         if path not in {p["path"] for p in packs}:
+            # The record needs the same measured keys as a manifest row, or the report crashes on
+            # the first pack that was installed after the manifest was written -- which is exactly
+            # when this line matters most (2026-10-01: four newly imported packs, KeyError 'bytes').
+            folder = os.path.join(ROOT, path.replace("/", os.sep))
+            files, total = measure(folder) if os.path.isdir(folder) else (0, 0)
+            registered, _not_used, _all = register_state(path, rows)
             results.append({"path": path, "state": "NOT_IN_MANIFEST",
+                            "files": files, "bytes": total,
+                            "registered_in_asset_register": registered,
                             "referenced_by_count": len(rec["referrers"]),
                             "referenced_packages": len(rec["packages"]),
                             "detail": "referenced but absent from PACK_MANIFEST.json -- run --write-manifest"})

@@ -1,15 +1,15 @@
 # Southern Spear - soldier bodies (ADR-003, ADR-016, ADR-021, ADR-042).
 #
-# B_SS_Soldier (ASSCharacterPartActor): the viewer's own team is shown with the
-# Fab "Quantum" military character on its own skeleton (3 ACR look, ADR-042:
-# the producer's choice; the G3/Modern-Insurgent mix read as assembled rather
-# than worn), retargeted per tick from the pawn mesh's evaluated pose by
-# ASSCharacterPartActor. The ADFRC vest and helmet stay Manny-rigged and follow
-# by leader pose, layered over the Quantum body. The other team keeps the
-# Fab "Modern Insurgent 7" parts chosen for a conventional uniform (MAF look:
-# no balaclava, beard or irregular gear; ADR-016), which follow by leader pose.
-# The ADFRC camo materials are applied as FriendlyMaterialOverrides (R-91: the mesh assets'
-# slots are read-only from Python), from setup_quantum_proto.py's saved instances.
+# B_SS_Soldier (ASSCharacterPartActor): the friendly look uses the ADFRC G3
+# uniform, TBAS vest and OpsCore helmet on Manny's skeleton, with the Quantum
+# head retargeted from the animated pawn pose. The G3 uniform carries its
+# ADFRC-authored AMC/AMCU shirt and trouser material slots; keep those source
+# materials rather than the prototype's generated DPC tile on Quantum clothing.
+# This is the producer's requested ADFRC model/texture assembly, replacing the
+# visually rejected Quantum outfit. MAF stays on its separate conventional look.
+# R-91 still applies only to component overrides: no mesh asset material array
+# is written by Python here.
+
 # B_SS_CharacterParts (Lyra controller character-parts component) adds it to
 # every pawn, and the Game Feature grants it in place of B_PickRandomCharacter.
 # Idempotent. Writes Build/soldiers_setup.json.
@@ -26,17 +26,19 @@ sys.path.insert(0, os.path.join(unreal.Paths.convert_relative_path_to_full(unrea
 from ss_assets import asset_exists  # noqa: E402
 
 PROJECT_DIR = unreal.Paths.convert_relative_path_to_full(unreal.Paths.project_dir())
+# Game Feature content does not resolve in a -run=pythonscript commandlet until the asset registry
+# has scanned it: the first load returns a quiet None (measured 2026-10-01, Build/load_route_probe.json)
+# and this script then hard-fails on a mesh that is present on disk.
+unreal.AssetRegistryHelpers.get_asset_registry().scan_paths_synchronous(
+    ["/SSExp_ObjectiveAssault"], force_rescan=True)
 REPORT = os.path.join(PROJECT_DIR, "Build", "soldiers_setup.json")
 DEST = "/SSExp_ObjectiveAssault/Characters"
-# 3 ACR (ADR-042): the Quantum character on its own skeleton (duplicated with the
-# ADFRC camo already applied by setup_quantum_proto.py, never reparented to the
-# mannequin), plus the ADFRC vest and helmet which stay on the mannequin skeleton
-# and follow by leader pose. The shirt's rolled sleeves end at the forearm, so
-# SKM_Arms carries the hands.
-FRIENDLY_RETARGET = ["/SSExp_ObjectiveAssault/Characters/QuantumProto/" + n
-                     for n in ("SKM_Shirt_RolledUp_Blue", "SKM_Jeans", "SKM_Arms", "SKM_Head")]
+# Friendly ADFRC assembly requested by the producer: the Quantum head remains
+# independently retargeted, while the complete ADFRC G3 body and fitted gear
+# share the Manny skeleton and follow the same evaluated 3rd-person pose.
+FRIENDLY_RETARGET = ["/SSExp_ObjectiveAssault/Characters/QuantumProto/SKM_Head"]
 FRIENDLY_LEADER = ["/SSExp_ObjectiveAssault/Characters/ADF/" + n
-                   for n in ("SK_ADF_Vest_TBAS", "SK_ADF_Helmet_OpsCore")]
+                   for n in ("SK_ADF_Uniform_G3", "SK_ADF_Vest_TBAS", "SK_ADF_Helmet_OpsCore")]
 MAF = "/Game/Modern_Insurgent_7/Mesh/Separate_Parts/"
 # MAF (ADR-016: a conventional force): the same fitted uniform in a green palette, a PASGT helmet and a
 # Peacekeeper plate vest (setup_adf_soldier.py), with the conventional head.
@@ -70,38 +72,24 @@ def main():
     step("meshes", all(retarget) and all(leader) and all(opposing),
          "{} friendly retarget, {} friendly leader-pose, {} opposing".format(
              len(retarget), len(leader), len(opposing)))
+    if not all(retarget) or not all(leader):
+        raise RuntimeError("required ADFRC friendly mesh/head failed to load")
 
-    # The camo instances from setup_quantum_proto.py (R-91: mesh-asset slots are read-only
-    # from Python, so the camo rides on the character-part components as overrides).
-    shirt_camo = unreal.load_asset("/SSExp_ObjectiveAssault/Characters/QuantumProto/MI_SS_ADFRC_Camo_Shirt")
-    jeans_camo = unreal.load_asset("/SSExp_ObjectiveAssault/Characters/QuantumProto/MI_SS_ADFRC_Camo_Jeans")
-
-    def overrides_for(mesh, camo):
-        """One inner override array per mesh: the camo instance on every slot (each garment
-        module is single-slot), so the vendor blue never reaches the component."""
-        slots = []
-        if mesh is not None:
-            slots = [camo for _ in mesh.get_editor_property("materials")]
-        wrap = unreal.SSPartMaterialOverride()
-        wrap.set_editor_property("slots", slots)
-        return wrap
-
-    by_name = {p.rsplit("/", 1)[-1]: m for p, m in zip(FRIENDLY_RETARGET, retarget)}
-    friendly_overrides = [
-        overrides_for(by_name.get("SKM_Shirt_RolledUp_Blue"), shirt_camo),
-        overrides_for(by_name.get("SKM_Jeans"), jeans_camo),
-        unreal.SSPartMaterialOverride(),  # arms: authored material
-        unreal.SSPartMaterialOverride(),  # head: authored materials
-    ]
-    step("camo_overrides", shirt_camo is not None and jeans_camo is not None,
-         "shirt={} jeans={}".format(shirt_camo.get_path_name() if shirt_camo else None,
-                                    jeans_camo.get_path_name() if jeans_camo else None))
+    # The Quantum head keeps its authored face/eye materials. Clothing and gear
+    # use their ADFRC SkeletalMesh material assignments, including the G3's
+    # source AMC/AMCU texture maps, so no generated camo is injected on top.
+    friendly_overrides = [unreal.SSPartMaterialOverride()]
+    step("friendly_assembly", len(retarget) == 1 and len(leader) == 3,
+         "Quantum head retarget + ADFRC G3 uniform/TBAS vest/OpsCore helmet leader pose")
 
     soldier = blueprint("B_SS_Soldier", unreal.SSCharacterPartActor)
     cdo = unreal.get_default_object(soldier.generated_class())
     cdo.set_editor_property("friendly_parts", [m for m in retarget if m])
     cdo.set_editor_property("friendly_leader_pose_parts", [m for m in leader if m])
     cdo.set_editor_property("retarget_friendly_pose", True)
+    # The retargeted head is a different-proportioned rig; align it to the mannequin's head bone, which
+    # is where the ADFRC helmet the head has to sit inside is fitted (see FriendlyRetargetAnchor).
+    cdo.set_editor_property("friendly_retarget_anchor", "head")
     cdo.set_editor_property("opposing_parts", [m for m in opposing if m])
     cdo.set_editor_property("friendly_material_overrides", friendly_overrides)
     # MAF: the uniform (part 1) in the green palette, from setup_adf_soldier.py's report.

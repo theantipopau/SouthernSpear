@@ -62,6 +62,14 @@ void ASSCharacterPartActor::BuildSet(const TArray<TObjectPtr<USkeletalMesh>>& Me
 			Part = Skeletal;
 		}
 
+		Part->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		Part->SetGenerateOverlapEvents(false);
+		Part->SetOwnerNoSee(true); // first person: the local player does not see their own body
+		Part->SetVisibility(false);
+		Part->RegisterComponent();
+
+		// SetMaterial before the skinned component is registered can trip UE 5.8's
+		// KnownSkinnedAsset ensure while its scene proxy is being initialized.
 		if (Overrides.IsValidIndex(Index))
 		{
 			const TArray<TObjectPtr<UMaterialInterface>>& Slots = Overrides[Index].Slots;
@@ -72,13 +80,21 @@ void ASSCharacterPartActor::BuildSet(const TArray<TObjectPtr<USkeletalMesh>>& Me
 					Part->SetMaterial(Slot, Slots[Slot]);
 				}
 			}
+		}			Out.Add(Part);
+
+		// One line per part: the class-select preview and the in-game bodies both depend on these
+		// meshes being non-null, leader-posed and material-overridden, and a missing helmet is
+		// invisible in every report that only counts parts.
+		FString Materials;
+		const int32 Slots = Part->GetNumMaterials();
+		for (int32 Slot = 0; Slot < Slots; ++Slot)
+		{
+			Materials += FString::Printf(TEXT("%s[%d]=%s "), Slot == 0 ? TEXT("") : TEXT(","), Slot,
+				*GetNameSafe(Part->GetMaterial(Slot)));
 		}
-		Part->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-		Part->SetGenerateOverlapEvents(false);
-		Part->SetOwnerNoSee(true); // first person: the local player does not see their own body
-		Part->SetVisibility(false);
-		Part->RegisterComponent();
-		Out.Add(Part);
+		UE_LOG(LogTemp, Log, TEXT("SSCharacterPart %s part %d/%d: mesh=%s retarget=%d leader=%s vis=%d mats: %s"),
+			*GetName(), Index + 1, Meshes.Num(), *GetNameSafe(Mesh), bRetarget, *GetNameSafe(Leader),
+			Part->IsVisible() ? 1 : 0, *Materials);
 	}
 }
 
@@ -288,6 +304,25 @@ void ASSCharacterPartActor::TickFriendlyRetarget(float DeltaTime)
 		if (Map.TargetMesh.Get() != TargetMesh || Map.TargetNames.Num() != TargetMesh->GetRefSkeleton().GetNum())
 		{
 			BuildFriendlyBoneMap(SourceRef, TargetMesh, Map);
+
+			// How far this module's own anchor sits from the mannequin's at rest, before the rigid
+			// alignment below closes the gap. This is the number that decides whether a helmet fitted
+			// to the mannequin covers this module's head, so it is worth one line per part.
+			const int32 Anchor = Map.TargetNames.IndexOfByKey(FriendlyRetargetAnchor);
+			const int32 AnchorSource = Map.SourceForTarget.IsValidIndex(Anchor) ? Map.SourceForTarget[Anchor] : INDEX_NONE;
+			if (Anchor != INDEX_NONE && AnchorSource != INDEX_NONE)
+			{
+				TArray<FTransform> TargetRest;
+				ReferenceComponentSpace(TargetMesh->GetRefSkeleton(), TargetRest);
+				const FVector Gap = TargetRest[Anchor].GetLocation() - SourceCS[AnchorSource].GetLocation();
+				UE_LOG(LogTemp, Log, TEXT("SSCharacterPart %s: anchor '%s' rest gap to leader %.1f cm (%s); "
+					"rigid alignment applied."), *GetName(), *FriendlyRetargetAnchor.ToString(), Gap.Size(), *Gap.ToCompactString());
+			}
+			else
+			{
+				UE_LOG(LogTemp, Warning, TEXT("SSCharacterPart %s: anchor '%s' not mapped on %s; module kept at its own "
+					"skeleton's position."), *GetName(), *FriendlyRetargetAnchor.ToString(), *GetNameSafe(TargetMesh));
+			}
 		}
 
 		const TArray<FTransform>& TargetLocal = TargetMesh->GetRefSkeleton().GetRefBonePose();
@@ -316,6 +351,24 @@ void ASSCharacterPartActor::TickFriendlyRetarget(float DeltaTime)
 			FriendlyRetargetScratch[Index] = Parent == INDEX_NONE ? FTransform::Identity
 				: Local * FriendlyRetargetScratch[Parent];
 		}
+		// Rigid alignment to the leader's anchor bone (FriendlyRetargetAnchor). The retarget above
+		// keeps this skeleton's own rest translations, so a module whose bone orientation or spine
+		// length differs from the mannequin's lands away from the mannequin's bone -- the mannequin
+		// being what the fitted vest, helmet and uniform follow. Moving the whole module rigidly is
+		// exact: the anchor lands on the leader's bone and the module keeps its own proportions.
+		const int32 Anchor = Map.TargetNames.IndexOfByKey(FriendlyRetargetAnchor);
+		const int32 AnchorSource = Map.SourceForTarget.IsValidIndex(Anchor) ? Map.SourceForTarget[Anchor] : INDEX_NONE;
+		if (Anchor != INDEX_NONE && AnchorSource != INDEX_NONE && SourceCS.IsValidIndex(AnchorSource))
+		{
+			// In UE's convention A * B applies as B then A, so the pose that puts this module's anchor
+			// on the leader's is TargetAnchor⁻¹ * SourceAnchor, and it is applied on every bone.
+			const FTransform Correction = FriendlyRetargetScratch[Anchor].Inverse() * SourceCS[AnchorSource];
+			for (FTransform& Pose : FriendlyRetargetScratch)
+			{
+				Pose = Pose * Correction;
+			}
+		}
+
 		// Bones come parent-before-child in a reference skeleton, so writing component-space
 		// transforms in order localises each against its already-written parent (5.8 removed
 		// the LocalSpace bone space from SetBoneTransformByName).
@@ -373,4 +426,21 @@ void ASSCharacterPartActor::ApplyViewerLocality(ESSLocality Locality)
 	for (USkinnedMeshComponent* Part : FriendlyComponents) { Part->SetVisibility(bFriendly); }
 	for (USkinnedMeshComponent* Part : FriendlyLeaderPoseComponents) { Part->SetVisibility(bFriendly); }
 	for (USkinnedMeshComponent* Part : OpposingComponents) { Part->SetVisibility(!bFriendly); }
+
+	// One line per locality change: which parts are drawn. A helmet or vest that is present in the
+	// asset but not in this list is invisible in every report that only counts configured parts.
+	TInlineComponentArray<USkinnedMeshComponent*> All;
+	GetComponents(All);
+	FString Drawn;
+	int32 DrawnCount = 0;
+	for (USkinnedMeshComponent* Part : All)
+	{
+		if (Part->IsVisible())
+		{
+			++DrawnCount;
+			Drawn += FString::Printf(TEXT("%s "), *GetNameSafe(Part->GetSkinnedAsset()));
+		}
+	}
+	UE_LOG(LogTemp, Log, TEXT("SSCharacterPart %s locality=%d: %d of %d skinned part(s) drawn: %s"),
+		*GetName(), static_cast<int32>(Locality), DrawnCount, All.Num(), *Drawn);
 }

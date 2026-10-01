@@ -36,6 +36,8 @@ DEST = "/SSExp_ObjectiveAssault/Characters/QuantumProto"
 MAP = "/Game/Maps/L_SS_QuantumProto"
 CAMO_SRC = os.path.join(PROJECT_DIR, "Art", "Characters", "ADF", "T_ADFRC_DPC_camo.png")
 CAMO_TEX = "/Game/Art/Characters/ADF/T_ADFRC_DPC_camo"
+FABRIC_NORMAL = DEST.rsplit("/", 1)[0] + "/Textures/T_SS_Gear_N"
+FABRIC_ORM = DEST.rsplit("/", 1)[0] + "/Textures/T_SS_Gear_ORM"
 CAMO_MAT = DEST + "/M_SS_ADFRC_Camo"
 
 # Camouflage UV tiling per garment. The Quantum UVs are the vendor's, so the density is not
@@ -85,11 +87,12 @@ def import_camo_texture():
     return texture
 
 
-def build_camo_material(texture):
-    """Opaque fabric: camo through untouched vendor UVs, tiled by a scalar so one master serves
-    the shirt and the trousers at different densities. Roughness is a constant rather than a
-    sampled map - the vendor's fabric normal and roughness are dropped in the prototype, which
-    is a fidelity cost worth recording rather than hiding."""
+def build_camo_material(texture, fabric_normal, fabric_orm):
+    """Opaque camo cloth with a generated twill normal and packed surface channels.
+
+    The vendor UV layout stays untouched. CamouflageTiling controls the DPC pattern scale,
+    while FabricDetailTiling independently controls the generated weave normal and surface variation.
+    """
     name = CAMO_MAT.split("/")[-1]
     folder = CAMO_MAT.rsplit("/", 1)[0]
     if asset_exists(CAMO_MAT):
@@ -118,14 +121,31 @@ def build_camo_material(texture):
     mel.connect_material_expressions(scale, "", sample, "UVs")
     mel.connect_material_property(sample, "RGB", E.MaterialProperty.MP_BASE_COLOR)
 
-    rough = mel.create_material_expression(material, E.MaterialExpressionScalarParameter, -1000, 300)
-    rough.set_editor_property("parameter_name", "FabricRoughness")
-    rough.set_editor_property("default_value", 0.86)
-    mel.connect_material_property(rough, "", E.MaterialProperty.MP_ROUGHNESS)
-    metal = mel.create_material_expression(material, E.MaterialExpressionConstant, -1000, 450)
-    metal.set_editor_property("r", 0.0)
-    mel.connect_material_property(metal, "", E.MaterialProperty.MP_METALLIC)
+    # Keep the fine weave detail independent of garment-specific camo scale: multiplying the
+    # 300-cycle normal map by the 3x/4x camo tiling would alias it on screen.
+    fabric_tiling = mel.create_material_expression(material, E.MaterialExpressionScalarParameter, -1400, 500)
+    fabric_tiling.set_editor_property("parameter_name", "FabricDetailTiling")
+    fabric_tiling.set_editor_property("default_value", 1.0)
+    fabric_scale = mel.create_material_expression(material, E.MaterialExpressionMultiply, -1200, 400)
+    mel.connect_material_expressions(coord, "", fabric_scale, "A")
+    mel.connect_material_expressions(fabric_tiling, "", fabric_scale, "B")
 
+    normal_sample = mel.create_material_expression(material, E.MaterialExpressionTextureSampleParameter2D, -1000, 40)
+    normal_sample.set_editor_property("parameter_name", "FabricNormalMap")
+    normal_sample.set_editor_property("texture", fabric_normal)
+    normal_sample.set_editor_property("sampler_type", E.MaterialSamplerType.SAMPLERTYPE_NORMAL)
+    mel.connect_material_expressions(fabric_scale, "", normal_sample, "UVs")
+    mel.connect_material_property(normal_sample, "RGB", E.MaterialProperty.MP_NORMAL)
+
+    orm_sample = mel.create_material_expression(material, E.MaterialExpressionTextureSampleParameter2D, -1000, 300)
+    orm_sample.set_editor_property("parameter_name", "FabricORM")
+    orm_sample.set_editor_property("texture", fabric_orm)
+    mel.connect_material_expressions(fabric_scale, "", orm_sample, "UVs")
+    mel.connect_material_property(orm_sample, "R", E.MaterialProperty.MP_AMBIENT_OCCLUSION)
+    mel.connect_material_property(orm_sample, "G", E.MaterialProperty.MP_ROUGHNESS)
+    mel.connect_material_property(orm_sample, "B", E.MaterialProperty.MP_METALLIC)
+
+    material_settings_ok = True
     for editor_property, value in (("shading_model", E.MaterialShadingModel.MSM_DEFAULT_LIT),
                                    ("two_sided", False),
                                    ("use_material_attributes", False),
@@ -133,10 +153,22 @@ def build_camo_material(texture):
         try:
             material.set_editor_property(editor_property, value)
         except Exception as exc:
+            material_settings_ok = False
             report["errors"].append("material {}: {}".format(editor_property, exc))
-    mel.recompile_material(material)
-    step("camo_material", True, CAMO_MAT)
-    return material
+    compiled = True
+    try:
+        mel.recompile_material(material)
+    except Exception as exc:
+        compiled = False
+        report["errors"].append("material compile: " + str(exc))
+    saved = False
+    try:
+        saved = unreal.EditorAssetLibrary.save_loaded_asset(material, only_if_is_dirty=False)
+    except Exception as exc:
+        report["errors"].append("material save: " + str(exc))
+    ok = material_settings_ok and compiled and saved
+    step("camo_material", ok, "{} (compiled={}, saved={})".format(CAMO_MAT, compiled, saved))
+    return material if ok else None
 
 
 def build_instance(material, instance_name, tiling):
@@ -151,7 +183,7 @@ def build_instance(material, instance_name, tiling):
     if instance is None:
         return None
     mel.set_material_instance_scalar_parameter_value(instance, "CamouflageTiling", tiling)
-    mel.set_material_instance_scalar_parameter_value(instance, "FabricRoughness", 0.86)
+    mel.set_material_instance_scalar_parameter_value(instance, "FabricDetailTiling", 1.0)
     mel.update_material_instance(instance)
     return instance
 
@@ -205,7 +237,35 @@ def build_map():
 
 def main():
     texture = import_camo_texture()
-    material = build_camo_material(texture) if texture else None
+    fabric_normal = unreal.load_asset(FABRIC_NORMAL)
+    fabric_orm = unreal.load_asset(FABRIC_ORM)
+    step("fabric_surface_maps", fabric_normal is not None and fabric_orm is not None,
+         "normal={} ORM={}".format(FABRIC_NORMAL if fabric_normal else None,
+                                   FABRIC_ORM if fabric_orm else None))
+    if fabric_normal is not None:
+        try:
+            fabric_normal.modify()
+            fabric_normal.set_editor_property("srgb", False)
+            fabric_normal.set_editor_property("compression_settings", unreal.TextureCompressionSettings.TC_NORMALMAP)
+            saved = unreal.EditorAssetLibrary.save_loaded_asset(fabric_normal, only_if_is_dirty=False)
+            if not saved:
+                raise RuntimeError("save_loaded_asset failed")
+        except Exception as exc:
+            report["errors"].append("fabric normal settings: " + str(exc))
+            fabric_normal = None
+    if fabric_orm is not None:
+        try:
+            fabric_orm.modify()
+            fabric_orm.set_editor_property("srgb", False)
+            fabric_orm.set_editor_property("compression_settings", unreal.TextureCompressionSettings.TC_MASKS)
+            saved = unreal.EditorAssetLibrary.save_loaded_asset(fabric_orm, only_if_is_dirty=False)
+            if not saved:
+                raise RuntimeError("save_loaded_asset failed")
+        except Exception as exc:
+            report["errors"].append("fabric ORM settings: " + str(exc))
+            fabric_orm = None
+    material = (build_camo_material(texture, fabric_normal, fabric_orm)
+                if texture is not None and fabric_normal is not None and fabric_orm is not None else None)
 
     instances = {}
     for name, (instance_name, tiling) in GARMENTS.items():
@@ -222,13 +282,13 @@ def main():
     # exit deleted the material out from under the slots and the shirt rendered plain white.
     # (Session 058's report said "camo exists"; the screen said otherwise.)
     if material is not None:
-        unreal.EditorAssetLibrary.save_asset(CAMO_MAT, only_if_is_dirty=False)
-        step("save:camo_material", True, CAMO_MAT)
+        saved = unreal.EditorAssetLibrary.save_asset(CAMO_MAT, only_if_is_dirty=False)
+        step("save:camo_material", bool(saved), CAMO_MAT)
     for name, (instance, _tiling) in instances.items():
         if instance is not None:
             path = DEST + "/" + GARMENTS[name][0]
-            unreal.EditorAssetLibrary.save_asset(path, only_if_is_dirty=False)
-            step("save:" + GARMENTS[name][0], True, path)
+            saved = unreal.EditorAssetLibrary.save_asset(path, only_if_is_dirty=False)
+            step("save:" + GARMENTS[name][0], bool(saved), path)
 
     for name, (instance, _tiling) in instances.items():
         mesh = meshes.get(name)
@@ -258,7 +318,7 @@ def main():
 
     build_map()
 
-    report["ok"] = all(s["ok"] for s in report["steps"])
+    report["ok"] = all(s["ok"] for s in report["steps"]) and not report["errors"]
     with open(REPORT, "w", encoding="utf-8") as handle:
         json.dump(report, handle, indent=1)
     unreal.log("SS_QSETUP_DONE ok={} steps={} errors={}".format(

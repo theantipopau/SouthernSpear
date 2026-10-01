@@ -1,11 +1,11 @@
 """
 Southern Spear - per-weapon data for the A-series, read out of the ADF Re-Cut config registry.
 
-The A-series (ADR-016 names) are built from ADFRC meshes (Tools/build_adfrc_weapons.py). Their gameplay
-definitions are still copies of Lyra's rifle and pistol, so every rifle fires, spreads and reloads alike.
-This reads what the source configs say each weapon is: rate of fire, dispersion, magazine, fire modes,
-handling (inertia, dexterity, sway), the muzzle and ejection memory points, the hand-grip pose clip
-(handAnim) and the reload gesture, and the resolved audio.
+The A-series (ADR-016 names) draw on ADFRC source configs and related assets. This reports source-config
+values (not independent service specifications or game tuning): rate of fire, dispersion, magazine,
+fire modes, handling (inertia, dexterity, sway), muzzle/ejection memory points, hand-grip pose clips,
+reload gestures, and resolved audio. Southern Spear applies selected project-owned stats through
+SSWeaponStatsSettings and USSWeaponStatsSubsystem; source fire-mode distinctions are not all enforced.
 
     python Tools/Weapons/adfrc_weapon_data.py            # writes Docs/WEAPON_SOURCE_DATA.md and .json
 
@@ -117,8 +117,8 @@ def main():
         "**Generated** by `python Tools/Weapons/adfrc_weapon_data.py` from `Docs/Sourced/ADFRC/config_registry.json`.",
         "Do not edit by hand. Real names are allowed anywhere (ADR-035); the A-series names are what the game uses today.",
         "",
-        "These are the values our weapons *should* be tuned from. Today every A-series weapon is a copy of Lyra's",
-        "rifle or pistol definition (`Tools/Unreal/setup_weapons.py`), so none of this is applied yet.",
+        "This is descriptive ADFRC source-config data, not an independent service specification or a complete game-tuning prescription.",
+        "Southern Spear currently applies configured magazine size, spare ammunition, spread scale and rounds-per-minute through `SSWeaponStatsSettings` and `USSWeaponStatsSubsystem`; the source values are adapted into project-owned rows rather than copied wholesale. The source fire-mode distinction (`bFullAuto=false`) is not enforced yet, and these tables do not establish a sight zero or a measured recoil profile. See `NEXT_PRIORITIES.md` §5 for the implementation boundary.",
         "",
         "| A-series | Role | Source class | Fire modes (rpm, dispersion MOA) | Magazine | Grip pose clip | Reload |",
         "|---|---|---|---|---|---|---|",
