@@ -128,7 +128,8 @@ def build_camo_material(texture):
 
     for editor_property, value in (("shading_model", E.MaterialShadingModel.MSM_DEFAULT_LIT),
                                    ("two_sided", False),
-                                   ("use_material_attributes", False)):
+                                   ("use_material_attributes", False),
+                                   ("used_with_skeletal_mesh", True)):
         try:
             material.set_editor_property(editor_property, value)
         except Exception as exc:

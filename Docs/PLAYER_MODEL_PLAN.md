@@ -1,14 +1,8 @@
 # Player model and skeleton — where it stands and what to do next
 
-**For the producer and whoever picks up the soldier.** Written 2026-09-28. Everything below is
-measured from the assets, the source scripts and a render, not assumed. Where something is a
-judgement rather than a measurement it says so.
+**For the producer and whoever picks up the soldier.** Updated 2026-10-01. The original G3 diagnosis below is retained as historical evidence, but it no longer describes the active friendly assembly. Current configuration is summarized first; measurements and judgements remain labeled.
 
-**How to use this document.** §1–§2 are what the model is and what is wrong with it. §3 is the
-skeleton, which is in better shape than the complaint suggests. §4 is the ordered plan — this is the
-part to work from. §5 records the producer-only body decision and its current evidence gate. §6 is the
-list of things that fail *silently* on this build, each of which has already cost time. §7 is the
-weapons hand-off.
+**How to use this document.** §1 is the current assembly. §§2–4 preserve the superseded G3 diagnosis and plan as history, not active work. §5 records ADR-042's current Quantum body decision and evidence status. §6 documents UE tooling pitfalls; §7 is the historical weapons hand-off and requires revalidation before acting on it.
 
 | | |
 |---|---|
@@ -17,15 +11,27 @@ weapons hand-off.
 | Gear import + materials | `Tools/Unreal/setup_adf_soldier.py` → `Build/adf_soldier_setup.json` |
 | Fit rig | `Tools/Blender/adfrc_gear_rig.py` → `Art/Characters/ADF/SK_ADF_*.fbx` |
 | Capture | `Build/soldier_check.html`, `Build/zoom_torso.png`, `Build/zoom_shoulders.png` |
-| Licence position | ADR-033 (withdraws ADR-016's camouflage clause), ADR-035; L-0021 |
+| Project-use position | ADR-035/L-0021 clear acquired ADFRC assets for this F2P project; ADR-042 records the active Quantum body/camo route. ADR-033 is historical texture direction, not the current material assignment. |
 | Project root | `E:/SouthernSpear` · UE **5.8** · Blender 5.2.2 · Python 3.12 |
 
 ---
 
-## 1. What the player model actually is
+## 1. Current player-model state (ADR-042)
 
-The friendly soldier is **four meshes and nothing else** — there is no body mesh underneath
-(`setup_soldiers.py:21-23`):
+The producer-selected friendly visual body is **Quantum**: shirt, jeans, arms and head modules use Quantum's own skeleton; camo is supplied through `FriendlyMaterialOverrides`. ADFRC vest and helmet remain separate Manny-rigged/leader-posed gear. The gameplay pawn retains Manny for gameplay/hand-IK, while the visible Quantum modules are retargeted at runtime. Thus the old G3 uniform/Modern Insurgent head findings in §§2–4 are superseded and must not be treated as the active outfit or defect. The opposing MAF configuration is separate.
+
+**Active assembly measured (Session 091 audit, `Build/active_character_audit.json`):**
+- Assembled LOD0 vertices: **107,016 verts across 6 parts** (Quantum Shirt: 3,948; Quantum Jeans: 9,653; Quantum Arms: 12,320; Quantum Head: 13,288; ADFRC TBAS Vest: 43,130; ADFRC OpsCore Helmet: 24,677).
+- Skeletons: 4 Quantum modules on `SK_Military_Character_Skeleton` (351 bones), 2 ADFRC gear meshes on `SK_Mannequin` (164 bones).
+- Physics assets: Quantum modules carry `PA_*` physics assets; ADFRC gear lacks physics assets.
+- Material overrides: `M_SS_ADFRC_Camo` master material has `used_with_skeletal_mesh = True`; `MI_SS_ADFRC_Camo_Shirt` (tiling 3.0) and `MI_SS_ADFRC_Camo_Jeans` (tiling 4.0) provide Australian DPCU camouflage.
+- Class Select Preview: `USSClassSelectWidget` spawns `B_SS_Soldier` directly as a child actor on `StageBody`, ensuring preview visuals, runtime retargeting, and gear attachment exactly mirror live in-game rendering.
+
+**Verification status:** Configuration verified and class select preview synchronized. Full in-engine capture recorded in `Saved/Screenshots/WindowsEditor/SSShot.png`. See ADR-042 and `Docs/NEXT_PRIORITIES.md`.
+
+### Historical G3 assembly (superseded 2026-09-30)
+
+The prior friendly soldier was four meshes — no body mesh underneath (`setup_soldiers.py:21-23`):
 
 | Part | Source | Verts | Bones | Z range |
 |---|---|---|---|---|
@@ -45,7 +51,7 @@ Two consequences that matter for everything below:
   body, under an ADFRC vest and helmet. That is the reason the model reads as *assembled* rather than
   *worn*, independently of any texture fault. See §5.
 
-## 2. The two complaints, diagnosed
+## 2. Historical G3 complaints, diagnosed (superseded)
 
 ### 2.1 The green patch between the webbing and the waist
 
@@ -94,7 +100,7 @@ bound to any material, and both files are untracked. The game still uses the sto
 tool is a working *mask* — the panel detection is good — with the pattern generator as the part that
 needs another pass.
 
-## 3. The skeleton — better news than expected
+## 3. Historical G3 skeleton diagnosis (superseded for visible body)
 
 **Nothing is wrong with the bones.** Measured against the animated mannequin's 164-bone skeleton:
 
@@ -113,7 +119,7 @@ therefore cannot have its own clavicle, pec or corrective bones, and if Lyra's m
 replaced every ADF part breaks. That is headroom, not a bug — but it is the thing that makes the
 model hard to improve, because there is nowhere to add a bone.
 
-## 4. What to do next, in order
+## 4. Historical G3 work plan (do not apply without revalidation)
 
 ### P1 — Fix the texture pipeline (cheap, certain, do first)
 
@@ -141,12 +147,9 @@ Still to do in P1:
    `get_material_expressions()` / `get_texture_parameter_names()` and
    `get_material_instance_texture_parameter_value()`, then make it a gate.
 
-### P2 — Own the skeleton
+### P2 — Own the skeleton (historical G3 task; reassess)
 
-Create `/SSExp_ObjectiveAssault/Characters/ADF/SK_SS_Soldier` plus a physics asset, re-parent the
-five parts onto it, and point the pawn's mesh at it. Nothing breaks (all bones already resolve); this
-buys the ability to add clavicle/pec/corrective bones and decouples the soldier from Lyra's
-mannequin. Sequence it after P1, since P1 changes the import anyway.
+The old task proposed a G3 soldier skeleton. ADR-042 replaced the visible friendly G3 body with Quantum while keeping Manny as gameplay skeleton and retaining Manny-rigged vest/helmet. Do not create/reparent the proposed G3 skeleton as written; first measure the active Quantum retarget and gear boundary, then decide whether separate gameplay/appearance skeleton ownership is still warranted.
 
 ### P3 — Physics asset and LODs
 
@@ -159,7 +162,7 @@ mannequin. Sequence it after P1, since P1 changes the import anyway.
 Both are import-time properties plus a physics-asset generation step, so both are scripted and
 re-runnable in the same pass as P1/P2.
 
-### P4 — The flat under-shirt: decide, then finish
+### P4 — The flat under-shirt (historical G3-only issue; superseded)
 
 Do not grind the generator yet. The choice is:
 
@@ -171,7 +174,7 @@ Do not grind the generator yet. The choice is:
 - **(c) Accept it and re-frame it** — a soldier with the jacket unzipped over an olive base layer is
   not *wrong*, it just needs to be deliberate rather than accidental.
 
-I recommend checking (b) before spending more on (a).
+I recommend checking (b) before spending more on (a). This recommendation applied only to the retired G3 uniform; the current Quantum shirt/jeans camo needs its own visual inspection.
 
 ### P5 — Make "does the soldier look right" repeatable
 
@@ -198,15 +201,9 @@ left the friendly look entirely. What ships now:
   5.8 (R-91, measured 2026-09-30) — the prototype-era in-mesh assignment silently never wrote.
 - **Opposing (MAF):** byte-for-byte the look it was before this change.
 
-The fair-comparison evidence trail (ADR-036–039, the prototype stage and its defects) remains below
-as the record of how the decision was informed; the crash-suspect comparison stage is still not
-spawned in gameplay. R-58 narrows: the visible soldier is no longer Manny-welded, the gameplay
-skeleton still is, and that remains open as its own future decision.
+The fair-comparison evidence trail (ADR-036–039) remains below as historical context. The producer decision is recorded in ADR-042; the 2026-10-01 review did not independently reproduce a final visual acceptance capture. R-58 now concerns Manny as the gameplay skeleton and the Quantum retarget/gear leader-pose boundary; the old five-part G3 vertex count and skeleton findings do not describe the active appearance.
 
-**Historical (superseded):** the plan previously held the G3 baseline pending a fully-dressed,
-same-condition comparison, and recorded that `setup_soldiers.py` assembled the Modern Insurgent 7
-head with the ADFRC G3 uniform. That assembly was live until 2026-09-30 and was the producer's
-grievance; it is now configuration history in git, not a live defect.
+**Historical (superseded):** the plan previously held the G3 baseline pending a fully-dressed, same-condition comparison, and recorded that `setup_soldiers.py` assembled the Modern Insurgent 7 head with the ADFRC G3 uniform. That assembly was live until 2026-09-30; its green under-shirt and fit analysis is historical, not a live Quantum-body defect.
 
 ## 6. Things that fail silently on this build
 
@@ -240,9 +237,9 @@ Each of these has already cost time in this session.
 - Still to run: build, then `Automation RunTests SouthernSpear` (expect all 57 now), then a match to
   check the HUD — A89 shows 200, A25 shows 20.
 
-## 8. State of the working tree
+## 8. Historical state of the working tree (2026-09-28 snapshot)
 
-Untracked, none of it wired into the game:
+This table describes the older document snapshot, not the 2026-10-01 shared worktree or the active Quantum configuration. Untracked then, none of it wired into the game:
 
 | Path | What it is |
 |---|---|
@@ -255,5 +252,4 @@ committed** and **not bound to any material** — the colours are wrong (§2.3) 
 it in about four seconds, so there is no reason to put a known-bad 13.8 MB artefact in the repository.
 The project's other generated textures are committed because they are in use; this one is not.
 
-No tracked file was modified. `origin/main` is at `f2c8870b`; the working tree was clean before this
-document.
+This 2026-09-28 snapshot's note that no tracked file was modified and `origin/main` was at `f2c8870b` is historical; it is not a statement about the current working tree.

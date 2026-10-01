@@ -5,6 +5,7 @@
 #include "Animation/AnimSequence.h"
 #include "Animation/AnimationAsset.h"
 #include "Components/BackgroundBlur.h"
+#include "Components/ChildActorComponent.h"
 #include "Components/PointLightComponent.h"
 #include "Components/SceneCaptureComponent2D.h"
 #include "Components/SkeletalMeshComponent.h"
@@ -16,6 +17,7 @@
 #include "Engine/TextureRenderTarget2D.h"
 #include "Engine/World.h"
 #include "GameFramework/PlayerController.h"
+#include "SSLocalityPresentable.h"
 #include "SSWidgetKit.h"
 
 using namespace SSWidgetKit;
@@ -281,89 +283,34 @@ void USSClassSelectWidget::BuildStage()
 	{
 		StageBody->PlayAnimation(Idle, /*bLooping=*/ true);
 	}
-	// The parts live on the soldier Blueprint (SouthernSpearTeam, not a dependency of this module):
-	// read its friendly part lists by reflection. Since ADR-042 the friendly body is the Quantum
-	// character on its own skeleton: leader pose cannot drive it, so the preview self-animates the
-	// Quantum modules with their own idle while the mannequin-rigged gear and weapon stay exactly as
-	// in game. Falls back to all-leader-pose when the soldier still ships mannequin parts only.
-	bool bQuantumPreview = false;
-	TArray<USkeletalMeshComponent*> QuantumComponents;
-	if (UClass* Soldier = LoadClass<AActor>(nullptr, SoldierClass))
+
+	// Spawn the soldier body (B_SS_Soldier) on StageBody: this attaches to StageBody exactly like
+	// in-game ASSCharacter does. The child actor automatically executes its runtime retargeting,
+	// applies FriendlyMaterialOverrides (Australian camouflage), and synchronises the leader-posed
+	// gear (vest and helmet) with the animated mannequin pose.
+	if (UClass* SoldierClassPtr = LoadClass<AActor>(nullptr, SoldierClass))
 	{
-		auto MeshesOf = [Soldier](const TCHAR* Field) -> TArray<USkeletalMesh*>
+		UChildActorComponent* SoldierComp = NewObject<UChildActorComponent>(Stage, TEXT("SoldierParts"));
+		SoldierComp->SetupAttachment(StageBody);
+		SoldierComp->SetChildActorClass(SoldierClassPtr);
+		SoldierComp->RegisterComponent();
+
+		if (AActor* Child = SoldierComp->GetChildActor())
 		{
-			TArray<USkeletalMesh*> Meshes;
-			if (const FArrayProperty* Parts = FindFProperty<FArrayProperty>(Soldier, Field))
+			StageSoldier = Child;
+			Child->SetActorEnableCollision(false);
+			if (ISSLocalityPresentable* Presentable = Cast<ISSLocalityPresentable>(Child))
 			{
-				if (const FObjectPropertyBase* Inner = CastField<FObjectPropertyBase>(Parts->Inner))
-				{
-					FScriptArrayHelper Array(Parts, Parts->ContainerPtrToValuePtr<void>(Soldier->GetDefaultObject()));
-					for (int32 Index = 0; Index < Array.Num(); ++Index)
-					{
-						if (USkeletalMesh* Mesh = Cast<USkeletalMesh>(Inner->GetObjectPropertyValue(Array.GetRawPtr(Index))))
-						{
-							Meshes.Add(Mesh);
-						}
-					}
-				}
+				Presentable->ApplyViewerLocality(ESSLocality::Friendly);
 			}
-			return Meshes;
-		};
-
-		TArray<USkeletalMesh*> LeaderParts = MeshesOf(TEXT("FriendlyLeaderPoseParts"));
-		if (LeaderParts.Num() == 0)
-		{
-			// Fallback for a soldier still configured with mannequin parts only.
-			LeaderParts = MeshesOf(TEXT("FriendlyParts"));
-		}
-		TArray<USkeletalMesh*> RetargetParts = MeshesOf(TEXT("FriendlyParts"));
-		bQuantumPreview = RetargetParts.Num() > 0 && LeaderParts.Num() > 0;
-		if (!bQuantumPreview)
-		{
-			// A soldier still configured with mannequin parts only: preview the old way.
-			LeaderParts.Append(RetargetParts);
-		}
-		for (USkeletalMesh* Mesh : LeaderParts)
-		{
-			USkeletalMeshComponent* Part = NewObject<USkeletalMeshComponent>(Stage);
-			Part->SetupAttachment(StageBody);
-			Part->SetSkeletalMesh(Mesh);
-			Part->SetLeaderPoseComponent(StageBody);
-			Part->RegisterComponent();
-		}
-
-		if (bQuantumPreview)
-		{
-			for (USkeletalMesh* Mesh : RetargetParts)
+			TInlineComponentArray<UPrimitiveComponent*> Prims(Child);
+			for (UPrimitiveComponent* Prim : Prims)
 			{
-				USkeletalMeshComponent* Part = NewObject<USkeletalMeshComponent>(Stage);
-				Part->SetupAttachment(StageBody);
-				Part->SetSkeletalMesh(Mesh);
-				Part->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-				Part->RegisterComponent();
-				QuantumComponents.Add(Part);
+				Prim->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+				Prim->SetOwnerNoSee(false);
 			}
 		}
 	}
-	// The Quantum modules keep their own idle rather than the mannequin's rifle idle: without the
-	// runtime retarget they cannot follow it, and a stiff T-pose would misstate the soldier. The
-	// modules self-animate as single-node skeletal components on their own skeleton.
-	if (bQuantumPreview)
-	{
-		if (UAnimationAsset* Idle = LoadObject<UAnimationAsset>(nullptr, QuantumIdle))
-		{
-			for (USkeletalMeshComponent* Part : QuantumComponents)
-			{
-				Part->PlayAnimation(Idle, /*bLooping=*/ true);
-			}
-		}
-		// The pawn mesh holds its reference pose: the vest and helmet then sit where the gear was
-		// authored, which is the closest pose the two skeletons share.
-		StageBody->SetAnimationMode(EAnimationMode::AnimationCustomMode);
-		StageBody->SetAnimation(nullptr);
-		StageBody->Stop();
-	}
-
 
 	// Backdrop wall and floor disc (engine shapes tinted to the UI palette): dark rifles need something
 	// behind them to read against, and the soldier needs ground under the boots.
@@ -417,6 +364,10 @@ void USSClassSelectWidget::BuildStage()
 		Capture->CaptureSource = ESceneCaptureSource::SCS_FinalColorLDR;
 		Capture->PrimitiveRenderMode = ESceneCapturePrimitiveRenderMode::PRM_UseShowOnlyList;
 		Capture->ShowOnlyActors.Add(Stage);
+		if (StageSoldier)
+		{
+			Capture->ShowOnlyActors.Add(StageSoldier);
+		}
 		Capture->ShowFlags.SetFog(false);
 		// Plain backdrop: the sky and clouds are not primitives, so the show-only list does not remove them.
 		Capture->ShowFlags.SetAtmosphere(false);
@@ -471,7 +422,7 @@ void USSClassSelectWidget::ShowWeapon(int32 Index)
 
 void USSClassSelectWidget::DestroyStage()
 {
-	for (AActor* Actor : TArray<AActor*>{ StageWeapon.Get(), StageCamera.Get(), Stage.Get() })
+	for (AActor* Actor : TArray<AActor*>{ StageWeapon.Get(), StageSoldier.Get(), StageCamera.Get(), Stage.Get() })
 	{
 		if (Actor)
 		{
@@ -479,6 +430,7 @@ void USSClassSelectWidget::DestroyStage()
 		}
 	}
 	StageWeapon = nullptr;
+	StageSoldier = nullptr;
 	StageCamera = nullptr;
 	Stage = nullptr;
 	StageBody = nullptr;

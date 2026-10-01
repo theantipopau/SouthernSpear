@@ -63,6 +63,7 @@ private:
 	UPROPERTY(Transient) TObjectPtr<UWidget> PreviewPanel;
 	UPROPERTY(Transient) TObjectPtr<UTextureRenderTarget2D> PreviewTarget;
 	UPROPERTY(Transient) TObjectPtr<AActor> Stage;
+	UPROPERTY(Transient) TObjectPtr<AActor> StageSoldier;
 	UPROPERTY(Transient) TObjectPtr<AActor> StageWeapon;
 	UPROPERTY(Transient) TObjectPtr<ASceneCapture2D> StageCamera;
 	UPROPERTY(Transient) TObjectPtr<class USkeletalMeshComponent> StageBody;

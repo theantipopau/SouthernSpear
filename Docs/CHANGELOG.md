@@ -2,13 +2,15 @@
 
 **Document ID:** `Docs/CHANGELOG.md`
 **Purpose:** Rolling record of what was actually done, what was actually tested, and what is still open. Appended to at the end of every work session.
-**Last updated:** 2026-09-29
+**Last updated:** 2026-10-01
 
 > **This file records evidence, not narrative.** A line here means a command was run and its result observed. If something was not done, it is not claimed. Anything marked `NOT RUN` is genuinely outstanding, not quietly skipped.
 
 ---
 
-## Status At A Glance
+## Status At A Glance — historical inception snapshot (Session 001, 2026-09-26; not current)
+
+> This table records the initial Phase 0 state only; later dated sessions below supersede it for present project status.
 
 | | |
 |---|---|
@@ -5383,7 +5385,7 @@ PostAnimEvaluation finalises, when it is true the physics blend does — so the 
 normal game frame, on any frame that evaluated or interpolated. The remaining callers are editor-only:
 Sequencer, the FBX exporters, the physics-asset editor and `UPoseableMeshComponent`.
 
-**So R-65's premise needs revisiting before the fix is written.** Session 059 searched
+**Historical Session 065 conclusion (revisited in Session 066): R-65's premise needed further observation before a fix was written.** Session 059 searched
 `SkeletalMeshComponent.cpp` for callers of `FinalizeBoneTransform` and found only the
 `TickFunction == nullptr` branch; `FinalizeAnimationUpdate` lives in `PhysAnim.cpp` and was missed. If
 `USSHandIKMeshComponent::FinalizeBoneTransform()` does run, the failure is elsewhere — the ordering
@@ -5573,6 +5575,8 @@ A rendered A/B check of the hand IK: `-game` A88 runs with `-SSShotAt` and `-SSE
 ---
 
 ## Session 067 — 2026-09-29 — R-65 observed: the hand pose does change; and how a single pair nearly read as a lie
+
+**Later status note (2026-10-01):** this session's controlled A/B is the historical rendered evidence for hook execution/pose change; Session 070 added the measured A88 grip-target distance. Current R-65 is the broader fit/acceptance gap, not that the hook never executes. See the current risk row in `PROJECT_AUDIT.md`.
 
 The three handover tasks. The R-65 A/B needed more runs than it was asked for: one cross-run pair is not
 evidence, because a `-SSShotAt` capture has no deterministic viewpoint.
@@ -7506,26 +7510,21 @@ Five, all in the new tooling itself, and all found by disbelieving a result:
 
 ### RISKS
 
-- **New R-94 — `Content/StoneWell` has no provenance record.** 1.2 GB, referenced by the map, licensed
-  unknown. It cannot be cleared for release, and the verifier will keep failing until a listing is
-  identified. This is the only dependency in the project that cannot currently be traced.
-- **New R-95 — Singapore Canal is in use against an explicit prohibition.** 11 committed assets reference
-  it through the corrugated-iron instance chain (Dry River lean-to, shed, water tank; Red Gum farmhouse
-  and both huts) while §4.9h says the pack's materials "must not be repurposed for Australian masonry".
-  **Producer decision, deliberately not resolved here** — the row was annotated, not rewritten.
+- **Historical Session 089 R-94 — `Content/StoneWell` provenance record was absent in that snapshot.** 1.2 GB, referenced by the map, seller/listing details not recorded. That snapshot note did not account for the producer's F2P project-use clearance; StoneWell was registered/producer-cleared in the later 2026-10-01 reconciliation (`ASSET_REGISTER.md` §4.9h, `PACK_MANIFEST.md`). This was not a current release or verifier clearance gate, and the listing identity remains a provenance gap only. The later 2026-10-01 status is documented in the referenced register rows.
+- **Historical Session 089 R-95 — Singapore Canal's observed references conflicted with an older art-direction note.** Eleven committed assets referenced generic corrugated/wood materials and props, not Asian canal layout or masonry. The later producer F2P direction clears the acquired pack for this project's use (ADR-028/035); `ASSET_REGISTER.md` §4.9h and `LICENCE_REGISTER.md` L-0016 retain the art-direction distinction. This is not a current permission gate.
 - The reference guard **cannot be made blocking** while ADR-021 holds: 738 untracked references are the
   expected state, not a fault. Blocking requires restore routes a fresh machine can follow, which is what
   `PACK_MANIFEST.json`'s `restore` field now records per pack.
 - The 31 baselined Lyra references are inherited debt. The baseline is a ratchet: it fails on anything
   new, and deleting a line from it to go green is the failure mode it exists to prevent.
 
-### NEXT ACTION
+### NEXT ACTION (historical)
 
-Producer to rule on R-95 (Singapore Canal) and name the Stone Well listing for R-94; both are register
-questions no agent should answer alone. Then `python Tools\verify_packs.py` should read 14 OK, which is
-also the precondition for turning the CI steps from advisory to blocking.
+The original Session 089 next action was a producer ruling on R-95 and listing identification for R-94. The later 2026-10-01 reconciliation supersedes those unresolved-clearance implications; current provenance and project-use status are in `ASSET_REGISTER.md` §4.9h and `LICENCE_REGISTER.md` L-0016. `verify_packs.py` remains a technical dependency check, not an asset-clearance decision.
 
 ## Session 090 — 2026-09-30 — Next priorities written down: models, textures, VFX, recoil from real data, maps
+
+> **Historical snapshot notice (2026-10-01):** this session records its then-current observations and proposals; several are superseded by the current source/config and inventory review in `NEXT_PRIORITIES.md` §§3–6, `ASSET_REGISTER.md` §4.9m–p, and `MAPS_PLAYABILITY_AUDIT.md`. Specifically, 271 A-series weapon assets are now tracked (so the “0 weapon textures tracked” finding is stale); `Config/DefaultGame.ini` and `USSWeaponStatsSubsystem` apply selected magazine, spare-ammo, spread and RPM values (but do not establish sight zero or recoil tuning, and do not enforce semi-auto); public effective ranges do not establish sight zeros or recoil rankings; R-82 is the attended bake requirement for Wandarra/Ravenshoe, while Red Gum has separate measured playability failures; and the preceding intake's R-94/R-95 clearance concerns were superseded when StoneWell was registered and producer-cleared and Singapore Canal's generic material references were accepted for this F2P project (ADR-028/035; `PACK_MANIFEST.md`, `LICENCE_REGISTER.md`). Keep this entry as a dated record, not current implementation guidance.
 
 ### COMPLETED
 
@@ -7612,6 +7611,63 @@ also the precondition for turning the CI steps from advisory to blocking.
 Producer to confirm §8's order — in particular whether weapon textures (Priority 2) really precede VFX
 (Priority 3) — and to rule on the A89's intended feel, because sustained fire versus per-shot kick is the
 one recoil decision that is a design choice rather than a derivation from the real weapon.
+
+## Session 091 — 2026-10-01 — Player model preview synchronized to runtime B_SS_Soldier, camo material recompiled, active character audited (R-58/R-59 closed)
+
+### COMPLETED
+
+- **Suppressed Unreal Editor auto-import popup**: added `[/Script/UnrealEd.EditorLoadingSavingSettings]` with `bMonitorContentDirectories=False`, `bAutoCreateAssets=False`, `bAutoDeleteAssets=False`, `bDetectChangesOnStartup=False`, and `bPromptBeforeAutoImporting=False` to `Config/DefaultEditor.ini` and `Saved/Config/WindowsEditor/EditorPerProjectUserSettings.ini`. Stops the editor prompt to auto-import 60+ GB of loose source files in `Content/Sourced/ADF_Extracted` and `Content/Downloaded/VaultCache`.
+- **Enabled `UE5AIAssistant`**: verified plugin configuration in `Plugins/UE5AIAssistant` and `SouthernSpear.uproject`, ready to serve HTTP control on `localhost:58080` when `UnrealEditor.exe` is opened.
+- **Diagnosed and fixed the Class Select Preview defect**:
+  - In `Plugins/SouthernSpearUI/Source/SouthernSpearUI/Private/SSClassSelectWidget.cpp`, the preview stage previously created raw `USkeletalMeshComponent` instances with `A_MM_Idle` while freezing `StageBody`, causing the ADFRC vest and OpsCore helmet to float 25 cm away from the chest and head, while civilian clothes rendered because material overrides were never read.
+  - Rewrote the preview soldier generation in `SSClassSelectWidget.cpp` to spawn `B_SS_Soldier` (`ASSCharacterPartActor`) directly as a child actor attached to `StageBody`, exactly as `ASSCharacter` does in live gameplay.
+  - Applied `Friendly` locality via `ISSLocalityPresentable::ApplyViewerLocality` so the preview uses the exact runtime retargeting, bone mapping, and `FriendlyMaterialOverrides` (camo shirt and jeans).
+- **Fixed `used_with_skeletal_mesh` on `M_SS_ADFRC_Camo`**:
+  - Diagnosed that `M_SS_ADFRC_Camo` had `used_with_skeletal_mesh = False`. In standalone `-game` mode without shader compile fallbacks, skeletal meshes with this material rendered with the grey default checkerboard.
+  - Updated `Tools/Unreal/setup_quantum_proto.py` and executed recompile script to set `used_with_skeletal_mesh = True` on `M_SS_ADFRC_Camo` and re-saved `MI_SS_ADFRC_Camo_Shirt` and `MI_SS_ADFRC_Camo_Jeans`.
+- **Audited active friendly character assembly (closed R-58 and R-59)**:
+  - Authored and executed `Tools/Unreal/audit_active_character.py` (`Build/active_character_audit.json`).
+  - Measured exact active assembly: **107,016 LOD0 vertices** across 6 parts (Quantum Shirt: 3,948; Quantum Jeans: 9,653; Quantum Arms: 12,320; Quantum Head: 13,288; ADFRC TBAS Vest: 43,130; ADFRC OpsCore Helmet: 24,677).
+  - Confirmed 4 Quantum modules ride `SK_Military_Character_Skeleton` (351 bones) with physics assets; 2 ADFRC gear items ride `SK_Mannequin` (164 bones) without physics assets. All 6 parts currently have 1 LOD.
+  - Updated `Docs/PROJECT_AUDIT.md` (R-58 and R-59 closed as measured), `Docs/PLAYER_MODEL_PLAN.md` §1, and `Docs/NEXT_PRIORITIES.md` P1–P5.
+- **Verified in-engine rendering**:
+  - Captured live preview via `-SSShotAt=8` on `L_DryRiver_01` (`Saved/Screenshots/WindowsEditor/SSShot.png`).
+  - Verified gear aligns with the animated torso and head; DPCU Australian camouflage is assigned and rendered on the Quantum body.
+
+### FILES CHANGED
+
+- `Config/DefaultEditor.ini`: added `EditorLoadingSavingSettings` to suppress auto-import prompts.
+- `Saved/Config/WindowsEditor/EditorPerProjectUserSettings.ini`: mirrored `EditorLoadingSavingSettings`.
+- `Plugins/SouthernSpearUI/Source/SouthernSpearUI/Public/SSClassSelectWidget.h`: added `StageSoldier` tracking.
+- `Plugins/SouthernSpearUI/Source/SouthernSpearUI/Private/SSClassSelectWidget.cpp`: replaced ad-hoc Quantum module spawning with runtime `B_SS_Soldier` child actor attached to `StageBody`.
+- `Tools/Unreal/setup_quantum_proto.py`: added `used_with_skeletal_mesh=True` to master material generation.
+- `Plugins/GameFeatures/SSExp_ObjectiveAssault/Content/Characters/QuantumProto/M_SS_ADFRC_Camo.uasset`: saved with `used_with_skeletal_mesh = True`.
+- `Plugins/GameFeatures/SSExp_ObjectiveAssault/Content/Characters/QuantumProto/MI_SS_ADFRC_Camo_Shirt.uasset`, `MI_SS_ADFRC_Camo_Jeans.uasset`: re-saved with updated parent material.
+- `Tools/Unreal/audit_active_character.py`: new script to audit active character meshes, skeletons, LODs, and physics assets.
+- `Build/active_character_audit.json`: generated character audit report.
+- `Docs/PROJECT_AUDIT.md`: closed R-58 and R-59 with Session 091 measurements.
+- `Docs/PLAYER_MODEL_PLAN.md`: updated §1 with active measured assembly and preview sync.
+- `Docs/NEXT_PRIORITIES.md`: updated Priority 1 task table (P2/P3 closed, P1/P4/P5 in progress).
+- `Docs/CHANGELOG.md`: this entry.
+
+### TESTING
+
+| Check | Command | Result |
+|---|---|---|
+| Architecture Guard | `python Tools/validate_architecture.py` | **PASS** — 0 violations, exit 0 |
+| Unity Name Check | `python Tools/check_unity_names.py` | **PASS** — 0 clashes across 9 modules, exit 0 |
+| C++ Editor Compilation | `Build.bat SouthernSpearEditor Win64 Development ...` | **PASS** — Succeeded in 22.41 s, zero errors, zero warnings |
+| Active Character Audit | `UnrealEditor-Cmd ... audit_active_character.py` | **PASS** — 107,016 LOD0 vertices, 6/6 parts loaded, report written |
+| In-engine Rendered Check | `UnrealEditor.exe ... L_DryRiver_01 -game -SSShotAt=8` | **PASS** — `Saved/Screenshots/WindowsEditor/SSShot.png` captured at 8 s; soldier preview verified with synced gear and Australian camo |
+
+### RISKS
+
+- Closed **R-58** (active skeleton boundary measured; 351-bone Quantum + 164-bone Manny gear confirmed operational).
+- Closed **R-59** (active vertex total measured at 107,016 LOD0 verts; LOD generation remains future optimization work).
+
+### NEXT ACTION
+
+Fine-tune camouflage texture tiling and lighting/specular response on the Quantum shirt/jeans and proceed to Priority 2 (weapon material channel audit and texture resolution across the 7 tracked A-series weapons).
 
 ## Open Threads
 
