@@ -7776,7 +7776,8 @@ Producer instruction for this session: **commit all changes to git and GitHub, a
 | Whitespace / conflict markers | `git diff --check` | **PASS** — clean |
 | Python syntax | `python -m py_compile` on new and edited tools | **PASS** |
 | Staging correctness | `git status --porcelain` after explicit `git add` | **PASS** — none of the four pack folders appears in the index |
-| Push | `git push origin main` | **PASS** — see the push note in the session transcript; LFS objects uploaded |
+| Push | `git push origin main` | **PASS** — `5450b4d9..9abd9974 main -> main`, `Uploading LFS objects: 100% (79/79), 165 MB`, exit 0; GitHub warned that `Docs/evidence/ui_session088/_sheet.html` (50.05 MB) exceeds its recommended 50 MB maximum. Accepted: the file is committed through LFS and GitHub stores it fine, so the warning is advisory, not a failure |
+| Remote agreement after push | `git rev-list --left-right --count origin/main...HEAD`; `git ls-remote origin main` | **PASS** — `0  0`, remote `refs/heads/main` = `9abd9974` |
 | Asset reference audit | `python Tools/check_asset_references.py` | **NOT CLEAN, pre-existing and not from this work** — `MISSING: 31 referenced packages`, all resolved by the ignored packs |
 | Editor build re-run | `Build.bat SouthernSpearEditor Win64 Development` | **NOT RUN this session** — the C++ sources are unchanged since the clean Session 092 build, so that result still stands and is cited as Session 092's, not re-claimed here |
 
