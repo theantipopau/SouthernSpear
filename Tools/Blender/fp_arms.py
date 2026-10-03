@@ -45,6 +45,17 @@ bpy.ops.export_scene.fbx(
     bake_anim_force_startend_keying=True, bake_anim_simplify_factor=0.0, use_armature_deform_only=False)
 
 mesh = bpy.data.objects[KEEP_MESH]
+GLOVE_REPORT = {}
+if os.environ.get("SS_FP_GLOVES") == "1":
+    # Session 095: the glove asset's hands instead of the pack's bare ones (Tools/Blender/fp_arms_gloves.py).
+    # Re-exports over OUT so the clips and the mesh stay one file.
+    sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+    import fp_arms_gloves
+    mesh = fp_arms_gloves.graft(arm, mesh, GLOVE_REPORT)
+    bpy.ops.export_scene.fbx(
+        filepath=OUT, use_selection=False, object_types={"ARMATURE", "MESH"}, add_leaf_bones=False,
+        bake_anim=True, bake_anim_use_all_actions=True, bake_anim_use_nla_strips=False,
+        bake_anim_force_startend_keying=True, bake_anim_simplify_factor=0.0, use_armature_deform_only=False)
 
 # UV region mask source for Tools/Textures/make_fp_arms_texture.py: each polygon's UVs, labelled by its
 # dominant bone ("sleeve": forearm / upper arm, "glove": hand and fingers). The pack's UV layout does not
@@ -68,7 +79,7 @@ with open(OUT + ".uvmask.json", "w") as fh:
     json.dump(polys, fh)
 report = {"source": SRC, "out": OUT, "clips": clips, "bones": [b.name for b in arm.data.bones],
           "weapon_bone": weapon_bone, "mesh_vertices": len(mesh.data.vertices),
-          "mesh_dimensions": list(mesh.dimensions), "armature_scale": list(arm.scale)}
+          "mesh_dimensions": list(mesh.dimensions), "armature_scale": list(arm.scale), "gloves": GLOVE_REPORT}
 with open(OUT + ".json", "w") as fh:
     json.dump(report, fh, indent=1)
 print("[fp_arms] wrote", OUT, len(clips), "clips")

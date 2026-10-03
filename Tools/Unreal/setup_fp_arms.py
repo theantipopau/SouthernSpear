@@ -82,9 +82,36 @@ def setup(name):
     if tex:
         mel.set_material_instance_texture_parameter_value(mi, "BaseColorMap", tex)
     eal.save_loaded_asset(mi)
+    # Session 095: the arms carry the glove asset's hands in their own slot ("FP_Gloves", Tools/Blender/fp_arms_gloves.py).
+    gl_mi = None
+    gl_path = dest + "/MI_FP_Gloves"
+    gl_tex = []
+    for src_name, out_name in (("T_FP_Gloves_BC", "T_FP_Gloves_BC"), ("T_FP_Gloves_N", "T_FP_Gloves_N")):
+        src_png = os.path.join(BUILD, src_name + ".png")
+        if os.path.isfile(src_png):
+            tp = import_task(src_png, dest, out_name)
+            t = unreal.load_asset(tp[0]) if tp else None
+            if t:
+                t.set_editor_property("lod_group", unreal.TextureGroup.TEXTUREGROUP_CHARACTER)
+                t.set_editor_property("never_stream", True)
+                if src_name.endswith("_N"):
+                    t.set_editor_property("compression_settings", unreal.TextureCompressionSettings.TC_NORMALMAP)
+                    t.set_editor_property("srgb", False)
+                eal.save_loaded_asset(t)
+            gl_tex.append(t)
+    if len(gl_tex) == 2 and gl_tex[0]:
+        if asset_exists(gl_path):
+            eal.delete_asset(gl_path)
+        gl_mi = tools.create_asset("MI_FP_Gloves", dest, unreal.MaterialInstanceConstant, unreal.MaterialInstanceConstantFactoryNew())
+        mel.set_material_instance_parent(gl_mi, unreal.load_asset(FABRIC))
+        mel.set_material_instance_texture_parameter_value(gl_mi, "BaseColorMap", gl_tex[0])
+        if gl_tex[1]:
+            mel.set_material_instance_texture_parameter_value(gl_mi, "NormalMap", gl_tex[1])
+        eal.save_loaded_asset(gl_mi)
     mats = mesh.get_editor_property("materials")
     for i, sm in enumerate(mats):
-        sm.set_editor_property("material_interface", mi)
+        slot = str(sm.get_editor_property("material_slot_name"))
+        sm.set_editor_property("material_interface", gl_mi if (gl_mi and "Glove" in slot and slot != "Glove_D") else mi)
         mats[i] = sm
     mesh.set_editor_property("materials", mats)
     info["saved"] = eal.save_loaded_asset(mesh, False)

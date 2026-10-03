@@ -424,7 +424,7 @@ The 50-folder table records every observed FabLibrary payload directory; rows ma
 | FSB Operator | `FSB_Operator-d68905bd` | GLB | SpatialNeglect; false | Cache-only. Listing describes third-party clothing pieces; preserve its source/credit list if ever used |
 | Fuel barrel | `Fuel_barrel-873fee1d` | FBX | SampleDotTxt; true | `IN_USE` — `SS_Raven_fuel_drum` |
 | G17 - FPS Weapon Animations Pack | `G17_-_FPS_Weapon_Animations_Pack__v_1_-5b920af4` | FBX | BarcodeGames; false | `IN_USE` — animation assets, L-0023 |
-| Gloves for fps game | `Gloves_for_fps_game-1b65b8fa` | FBX + textures | Bobeer; false | Cache-only; L-0023 says unused; retain CC-BY 4.0 credit if later used |
+| Gloves for fps game | `Gloves_for_fps_game-1b65b8fa` | FBX + textures | Bobeer; false | **Used since Session 095:** the first-person arms' hands (`Tools/Blender/fp_arms_gloves.py`). CC BY 4.0 credit line owed on the credits screen: gloves by Bobeer |
 | Individual First Aid Medical Kit IFAK | `Individual_First_Aid_Medical_Kit_IFAK-a628e3ba` | GLB | SpatialNeglect; true | Cache-only / planned medic asset (ADR-040); seller flag is metadata, producer-cleared |
 | Large Fallen Tree (listing 5796…) | `Large_Fallen_Tree-5796e9d5` | glTF + BIN/ZIP | seller/flag unrecorded | Cache-only |
 | Large Fallen Tree (listing f36e…) | `Large_Fallen_Tree-f36e4566` | glTF + BIN/ZIP | seller/flag unrecorded | Cache-only; distinct listing from prior row |

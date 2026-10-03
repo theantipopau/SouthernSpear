@@ -7837,6 +7837,10 @@ Derived texture from the Fab M4 FPS pack's `Hand_D.jpg` (ADR-028 cleared) and th
 
 Found by capture, not by reading code: the arms-offset default put a forearm across the view, and the glove fill read as skin.
 
+### Session 095 addendum — the glove asset on the first-person arms
+
+Producer: the hands looked average; use the glove asset on file. `Content/Sourced/Gloves` (Fab "Gloves for fps game", Bobeer, CC BY 4.0; ASCII FBX that Blender refuses) is now read by `Tools/Blender/ascii_fbx_mesh.py`; `Tools/Blender/fp_arms_gloves.py` (run by `fp_arms.py` with `SS_FP_GLOVES=1`) removes the pack's bare hand faces, fits the glove hands onto the pack hand (best of 24 axis rotations, chamfer 0.9 cm, scale 0.86), slides the cuff under the sleeve, and skins the gloves from the pack mesh's own weights (inverse-distance over the 4 nearest vertices; Blender's Data Transfer modifier left every vertex on the forearm bone, so the fingers did not curl in the first capture). `Tools/Textures/make_fp_gloves_texture.py` builds the 2048 glove textures; `setup_fp_arms.py` makes `MI_FP_Gloves` for the new `FP_Gloves` slot. Capture (producer screenshots): the pistol grip is wrapped by olive knuckle-guard gloves; the rifle's left hand is behind the weapon in the hip view. NOT checked: reload, draw and sprint animations (the producer says the animations are still wrong), the aim view, the right-hand grip on the rifle. New risk **R-96**: the glove hands are fitted in the pack's rest pose and follow the pack's finger animation, so grip shape on our weapons is only as good as the pack's M4/G17 grips.
+
 ### NEXT ACTION
 
 Producer to review `Docs/evidence/s095/` and the third-person friendly soldier; then fix soldier leg proportions.
