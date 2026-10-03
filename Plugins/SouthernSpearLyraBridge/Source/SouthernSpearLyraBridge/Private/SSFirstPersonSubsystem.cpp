@@ -56,8 +56,10 @@ namespace
 	const FName TriggerBone(TEXT("Trigger_j")); // the pack weapon's trigger: our meshes have their origin there
 
 	// Live-tunable placement (console): arms relative to the eye, weapon on weapon_r.
-	TAutoConsoleVariable<FString> CVarArmsOffset(TEXT("ss.FP.ArmsOffset"), TEXT("17 0 -2"),
-		TEXT("First-person arms offset from the eye, cm (forward right up)."));
+	TAutoConsoleVariable<FString> CVarArmsOffset(TEXT("ss.FP.ArmsOffset"), TEXT("13 3 -8"),
+		TEXT("First-person rifle arms offset from the eye, cm (forward right up). Session 094: was 17 0 -2, which put a fat forearm across the lower left of the view."));
+	TAutoConsoleVariable<FString> CVarPistolArmsOffset(TEXT("ss.FP.PistolArmsOffset"), TEXT("11 0 -8"),
+		TEXT("First-person pistol arms offset from the eye, cm (forward right up)."));
 	TAutoConsoleVariable<FString> CVarWeaponOffset(TEXT("ss.FP.WeaponOffset"), TEXT("0 0 0"),
 		TEXT("Held rifle: offset from the pack weapon trigger bone (Trigger_j), in the weapon frame, cm (forward right up)."));
 	TAutoConsoleVariable<FString> CVarPistolOffset(TEXT("ss.FP.PistolOffset"), TEXT("0 0 -1"),
@@ -623,7 +625,7 @@ void USSFirstPersonSubsystem::UpdateViewModel(APawn* Pawn, float DeltaTime)
 		const FVector Kick(-1.2f * Recoil * SwayScale, 0.f, 0.f);
 		const FVector SprintOffset(-4.f, 3.f, -6.f);
 		const FRotator SprintTilt(-22.f * SprintAlpha, 18.f * SprintAlpha, -12.f * SprintAlpha);
-		Arms->SetRelativeLocationAndRotation(-Eye + ParseVector(CVarArmsOffset) + SwayOffset + BobOffset + Kick + SprintOffset * SprintAlpha,
+		Arms->SetRelativeLocationAndRotation(-Eye + ParseVector(ArmsSet == 1 ? CVarPistolArmsOffset : CVarArmsOffset) + SwayOffset + BobOffset + Kick + SprintOffset * SprintAlpha,
 			(SprintTilt.Quaternion() * Facing.Quaternion()).Rotator());
 
 		const FVector Rot = ParseVector(CVarWeaponRotation);

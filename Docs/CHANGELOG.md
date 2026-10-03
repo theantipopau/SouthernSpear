@@ -7801,6 +7801,46 @@ Producer instruction for this session: **commit all changes to git and GitHub, a
 
 Get producer acceptance on the Session 092 preview capture (R-92, R-93); this session deliberately left the art alone so the commit contains only work that has already been measured.
 
+## Session 095 — 2026-10-03 — First-person arms: gloves read as gloves, and the arms sit lower in the view
+
+Producer: first-person models and animations are the priority. Captures of the current build (Dry River, `-SSNoClassSelect -SSShotAt`) showed a fat camouflage forearm across the lower left in the rifle view, bare flat-tan mitts, and pistol arms filling the lower third of the screen.
+
+### COMPLETED
+
+- **Arm placement.** `ss.FP.ArmsOffset` default `17 0 -2` -> `13 3 -8`; new `ss.FP.PistolArmsOffset` default `11 0 -8` (the pistol set uses it). The scope view is unchanged (aim correction is computed from the sight position).
+- **Glove texture.** The glove region of `T_FP_Arms_*_BC` was a flat fill. New `Tools/Blender/bake_fp_arms_ao.py` bakes ambient occlusion from the arms mesh into its own UVs; `make_fp_arms_texture.py` multiplies it into the sleeve and glove, adds a knit weave, and the glove colour changes from coyote (118,98,72), which read as bare skin in sun, to olive-drab (86,82,64). `setup_fp_arms.py` re-imported both sets (`ok: true`).
+
+### FILES CHANGED
+
+`Plugins/SouthernSpearLyraBridge/.../SSFirstPersonSubsystem.cpp`; `Tools/Blender/bake_fp_arms_ao.py` (new); `Tools/Textures/make_fp_arms_texture.py` (also carries the other agent's uncommitted `de_plain` change); re-imported `FirstPerson/{Rifle,Pistol}` mesh, material and texture assets.
+
+### TESTING
+
+| Check | Result |
+|---|---|
+| `Build.bat SouthernSpearEditor Win64 Development` | PASS |
+| `setup_fp_arms.py` headless | PASS, `ok: true`, no errors |
+| Captures, rifle and pistol, before/after | `Docs/evidence/s095/fp_{rifle,pistol}_{before,after}.png` — gloves read as olive fabric, rifle forearm no longer crosses the view, pistol hand no longer fills the screen |
+| Aim-down-sights after the offset change | scope view checked before the glove change only; NOT re-run after it |
+| Automation suite | NOT RUN |
+
+### ASSETS
+
+Derived texture from the Fab M4 FPS pack's `Hand_D.jpg` (ADR-028 cleared) and the ADFRC AMCU sleeve fabric (L-0021).
+
+### RISKS
+
+- **R-95** — The hands still have no individual finger or knuckle detail beyond baked occlusion; the pistol palm is a large plain olive area. A purpose-made gloved-hands mesh (the CC BY 4.0 gloves pack needs a credit line) would be the real fix.
+- Left-hand placement on the rifle handguard is still the accepted A88 solve only (R-85).
+
+### DEFECTS FOUND
+
+Found by capture, not by reading code: the arms-offset default put a forearm across the view, and the glove fill read as skin.
+
+### NEXT ACTION
+
+Producer to review `Docs/evidence/s095/` and the third-person friendly soldier; then fix soldier leg proportions.
+
 ## Open Threads
 
 | Item | Blocked on | Owner |
