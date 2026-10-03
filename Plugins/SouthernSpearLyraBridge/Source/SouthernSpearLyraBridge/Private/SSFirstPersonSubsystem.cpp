@@ -66,6 +66,8 @@ namespace
 		TEXT("Held pistol: grip offset from the pack's weapon bone (where its pistol sat), in the weapon's frame, cm (forward right up)."));
 	TAutoConsoleVariable<FString> CVarWeaponRotation(TEXT("ss.FP.WeaponRotation"), TEXT("0 0 0"),
 		TEXT("Held weapon: extra rotation on the measured grip, degrees (pitch yaw roll)."));
+	TAutoConsoleVariable<int32> CVarHandIK(TEXT("ss.FP.HandIK"), 0,
+		TEXT("1: left-hand IK holds the idle pose on the weapon. 0 (default): the pack's own hand pose is kept after draw/reload/fire too. Session 095: the producer found the draw/reload clip pose good and the IK idle pose wrong."));
 	TAutoConsoleVariable<int32> CVarArms(TEXT("ss.FP.Arms"), 1,
 		TEXT("1: gloved arms view model (Fab M4 FPS pack) holding the weapon. 0: camera-held weapon view model."));
 	TAutoConsoleVariable<FString> CVarHip(TEXT("ss.FP.Hip"), TEXT("48 16 -20"),
@@ -357,7 +359,7 @@ void USSFirstPersonSubsystem::Play(UAnimSequence* Sequence, bool bLoop)
 	if (USSHandIKMeshComponent* HandIK = Cast<USSHandIKMeshComponent>(Arms))
 	{
 		// Draw, holster and reload move the left hand themselves.
-		HandIK->SetHandIKSuppressed(HandIK->IsSuppressingAnimationName(Sequence->GetName()));
+		HandIK->SetHandIKSuppressed(CVarHandIK.GetValueOnGameThread() == 0 || HandIK->IsSuppressingAnimationName(Sequence->GetName()));
 	}
 	OneShotRemaining = bLoop ? 0.f : Sequence->GetPlayLength();
 }
